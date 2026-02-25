@@ -1,4 +1,4 @@
-import { saveMemory, getMemories } from "./store"
+import { saveMemory, getMemories, incrementMemoryUsage } from "./store"
 
 export interface MemorySuggestion {
   key: string
@@ -22,16 +22,26 @@ export async function extractMemories(
   sessionID: string,
   task: string,
   toolCalls: string[],
-  outcome: string,
+  _outcome: string,
 ): Promise<void> {
+  const existingMemories = await getMemories(projectDir)
+
   for (const { pattern, key, value } of MEMORY_PATTERNS) {
     if (pattern.test(task) || toolCalls.some((c) => pattern.test(c))) {
-      await saveMemory(projectDir, {
-        key,
-        value,
-        context: task,
-        sessionIDs: [sessionID],
-      })
+      const existing = existingMemories.find((m) => m.key === key)
+
+      if (existing) {
+        if (!existing.sessionIDs.includes(sessionID)) {
+          existing.sessionIDs.push(sessionID)
+        }
+      } else {
+        await saveMemory(projectDir, {
+          key,
+          value,
+          context: task,
+          sessionIDs: [sessionID],
+        })
+      }
     }
   }
 }
@@ -45,7 +55,9 @@ export async function getRelevantMemories(projectDir: string, currentTask: strin
 
   return allMemories
     .map((memory) => {
-      const relevance = taskWords.filter((word) => memory.key.includes(word) || memory.value.includes(word)).length
+      const relevance = taskWords.filter(
+        (word) => memory.key.toLowerCase().includes(word) || memory.value.toLowerCase().includes(word),
+      ).length
 
       return {
         key: memory.key,

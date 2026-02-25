@@ -1,0 +1,122 @@
+[
+  {
+    "id": "9ab025b9-f411-43a1-890f-0a51eccd981e",
+    "key": "memory-0",
+    "value": "Value 0",
+    "context": "Context",
+    "sessionIDs": [
+      "s0"
+    ],
+    "createdAt": 1772063504898,
+    "lastUsedAt": 1772063504898,
+    "usageCount": 0
+  },
+  {
+    "id": "968ad152-c0e2-49a7-88b8-7946794572d0",
+    "key": "memory-1",
+    "value": "Value 1",
+    "context": "Context",
+    "sessionIDs": [
+      "s1"
+    ],
+    "createdAt": 1772063504898,
+    "lastUsedAt": 1772063504898,
+    "usageCount": 0
+  },
+  {
+    "id": "f8125a5e-61de-4e44-8a6c-3f70cdb97996",
+    "key": "memory-2",
+    "value": "Value 2",
+    "context": "Context",
+    "sessionIDs": [
+      "s2"
+    ],
+    "createdAt": 1772063504898,
+    "lastUsedAt": 1772063504898,
+    "usageCount": 0
+  },
+  {
+    "id": "fc7e615b-7d27-4623-9288-f9c279538b0c",
+    "key": "memory-3",
+    "value": "Value 3",
+    "context": "Context",
+    "sessionIDs": [
+      "s3"
+    ],
+    "createdAt": 1772063504898,
+    "lastUsedAt": 1772063504898,
+    "usageCount": 0
+  },
+  {
+    "id": "f500d6e0-5212-4e1a-a90a-03fb26cbec7f",
+    "key": "memory-4",
+    "value": "Value 4",
+    "context": "Context",
+    "sessionIDs": [
+      "s4"
+    ],
+    "createdAt": 1772063504898,
+    "lastUsedAt": 1772063504898,
+    "usageCount": 0
+  },
+  {
+    "id": "c862814d-3d18-4d44-9c88-366ea79b5fd4",
+    "key": "memory-5",
+    "value": "Value 5",
+    "context": "Context",
+    "sessionIDs": [
+      "s5"
+    ],
+    "createdAt": 1772063504898,
+    "lastUsedAt": 1772063504898,
+    "usageCount": 0
+  },
+  {
+    "id": "0e02be67-8e5c-4e74-8e2b-d15b65130bdd",
+    "key": "memory-6",
+    "value": "Value 6",
+    "context": "Context",
+    "sessionIDs": [
+      "s6"
+    ],
+    "createdAt": 1772063504898,
+    "lastUsedAt": 1772063504898,
+    "usageCount": 0
+  },
+  {
+    "id": "9d771701-f297-41e1-9957-b01f622d5d0a",
+    "key": "memory-7",
+    "value": "Value 7",
+    "context": "Context",
+    "sessionIDs": [
+      "s7"
+    ],
+    "createdAt": 1772063504899,
+    "lastUsedAt": 1772063504899,
+    "usageCount": 0
+  },
+  {
+    "id": "83193028-1635-4182-b156-f49934ca1db4",
+    "key": "memory-8",
+    "value": "Value 8",
+    "context": "Context",
+    "sessionIDs": [
+      "s8"
+    ],
+    "createdAt": 1772063504899,
+    "lastUsedAt": 1772063504899,
+    "usageCount": 0
+  },
+  {
+    "key": "memory-9",
+    "value": "Value 9",
+    "context": "Context",
+    "sessionIDs": [
+      "s9"
+    ],
+    "id": "eff85656-f409-48fd-acfa-d60ff9231842",
+    "createdAt": 1772063504899,
+    "lastUsedAt": 1772063504899,
+    "usageCount": 0
+  }
+]
