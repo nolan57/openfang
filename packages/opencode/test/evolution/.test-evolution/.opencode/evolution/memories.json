@@ -1,14 +1,14 @@
 [
   {
-    "id": "c554c58c-269e-4eaf-a618-c05abcd8dae6",
+    "id": "bc1c68ac-a45a-40bb-83c8-7d55bd3bfe2f",
     "key": "typescript-tips",
     "value": "Tip 1",
     "context": "Context 1",
     "sessionIDs": [
       "ses123"
     ],
-    "createdAt": 1772062361711,
-    "lastUsedAt": 1772062361711,
+    "createdAt": 1772062623041,
+    "lastUsedAt": 1772062623041,
     "usageCount": 0
   },
   {
@@ -18,9 +18,9 @@
     "sessionIDs": [
       "ses456"
     ],
-    "id": "92349e0d-cf3f-4393-95b8-37483a162700",
-    "createdAt": 1772062361711,
-    "lastUsedAt": 1772062361711,
+    "id": "079b193b-1c23-4e79-b38c-ce7ba5b3e697",
+    "createdAt": 1772062623041,
+    "lastUsedAt": 1772062623041,
     "usageCount": 0
   }
 ]

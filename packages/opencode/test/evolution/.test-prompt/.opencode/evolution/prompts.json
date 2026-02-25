@@ -1,0 +1,11 @@
+[
+  {
+    "originalPrompt": "You are a coder",
+    "optimizedPrompt": "You are an expert coder",
+    "reason": "Added expertise",
+    "sessionID": "ses123",
+    "id": "a74fc58a-9656-4964-aa8b-c2600b74dce2",
+    "createdAt": 1772062798892,
+    "usageCount": 0
+  }
+]
