@@ -33,6 +33,7 @@ import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
 import { Database } from "./storage/db"
+import { checkAndStartMcpCron } from "./util/mcp-cron"
 
 process.on("unhandledRejection", (e) => {
   Log.Default.error("rejection", {
@@ -117,6 +118,11 @@ const cli = yargs(hideBin(process.argv))
         }
       }
       process.stderr.write("Database migration complete." + EOL)
+    }
+
+    const mcpCronResult = await checkAndStartMcpCron()
+    if (mcpCronResult.started) {
+      Log.Default.info("mcp-cron started", { pid: mcpCronResult.pid })
     }
   })
   .usage("\n" + UI.logo())

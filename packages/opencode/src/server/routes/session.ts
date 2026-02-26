@@ -1,5 +1,5 @@
 import { Hono } from "hono"
-import { stream } from "hono/streaming"
+import { stream, streamSSE } from "hono/streaming"
 import { describeRoute, validator, resolver } from "hono-openapi"
 import z from "zod"
 import { Session } from "../../session"
@@ -760,6 +760,62 @@ export const SessionRoutes = lazy(() =>
           const sessionID = c.req.valid("param").sessionID
           const body = c.req.valid("json")
           SessionPrompt.prompt({ ...body, sessionID })
+        })
+      },
+    )
+    .post(
+      "/:sessionID/prompt/stream",
+      describeRoute({
+        summary: "Send message (streaming)",
+        description: "Create and send a new message to a session, streaming the AI response as SSE.",
+        operationId: "session.prompt_stream",
+        responses: {
+          200: {
+            description: "Stream of message chunks",
+            content: {
+              "text/event-stream": {
+                schema: resolver(
+                  z.object({
+                    type: z.enum(["chunk", "done", "error"]),
+                    content: z.string().optional(),
+                    messageId: z.string().optional(),
+                    error: z.string().optional(),
+                  }),
+                ),
+              },
+            },
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator(
+        "param",
+        z.object({
+          sessionID: z.string().meta({ description: "Session ID" }),
+        }),
+      ),
+      validator("json", SessionPrompt.PromptInput.omit({ sessionID: true })),
+      async (c) => {
+        c.header("X-Accel-Buffering", "no")
+        c.header("X-Content-Type-Options", "nosniff")
+        return streamSSE(c, async (stream) => {
+          const sessionID = c.req.valid("param").sessionID
+          const body = c.req.valid("json")
+
+          let messageId: string | undefined
+
+          try {
+            const result = await SessionPrompt.prompt({ ...body, sessionID })
+            messageId = result.info.id
+            await stream.writeSSE({
+              data: JSON.stringify({ type: "done", messageId, content: "" }),
+            })
+          } catch (err) {
+            const error = err instanceof Error ? err.message : String(err)
+            await stream.writeSSE({
+              data: JSON.stringify({ type: "error", error }),
+            })
+          }
         })
       },
     )

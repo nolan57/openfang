@@ -28,6 +28,7 @@ import { McpRoutes } from "./routes/mcp"
 import { FileRoutes } from "./routes/file"
 import { ConfigRoutes } from "./routes/config"
 import { ExperimentalRoutes } from "./routes/experimental"
+import { resolveWebhookRoute, verifySignature } from "../plugin/webhook-registry"
 import { ProviderRoutes } from "./routes/provider"
 import { lazy } from "../util/lazy"
 import { InstanceBootstrap } from "../project/bootstrap"
@@ -129,6 +130,41 @@ export namespace Server {
             },
           }),
         )
+        .use(async (c, next) => {
+          if (c.req.method === "POST") {
+            const webhook = resolveWebhookRoute(c.req.path)
+            if (webhook) {
+              log.info("webhook.request", { path: c.req.path, plugin: webhook.pluginId })
+              try {
+                const bodyText = await c.req.text()
+                if (webhook.secret) {
+                  const signature = c.req.header("X-Signature") || c.req.header("x-signature")
+                  if (!signature) {
+                    log.warn("webhook.missing-signature", { path: c.req.path })
+                    return c.json({ error: "Missing signature" }, { status: 401 })
+                  }
+                  const isValid = verifySignature(bodyText, signature, webhook.secret)
+                  if (!isValid) {
+                    log.warn("webhook.invalid-signature", { path: c.req.path })
+                    return c.json({ error: "Invalid signature" }, { status: 401 })
+                  }
+                }
+                const reqWithBody = new Request(c.req.url, {
+                  method: c.req.method,
+                  headers: new Headers(c.req.header()),
+                  body: bodyText,
+                })
+                const response = await webhook.handler(reqWithBody)
+                log.info("webhook.response", { path: c.req.path, status: response.status })
+                return response
+              } catch (err) {
+                log.error("webhook.error", { path: c.req.path, error: String(err) })
+                return c.json({ error: "Internal error" }, { status: 500 })
+              }
+            }
+          }
+          return next()
+        })
         .route("/global", GlobalRoutes())
         .put(
           "/auth/:providerID",

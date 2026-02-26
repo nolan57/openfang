@@ -49,7 +49,10 @@ export namespace Skill {
   const OPENCODE_SKILL_PATTERN = "{skill,skills}/**/SKILL.md"
   const SKILL_PATTERN = "**/SKILL.md"
 
-  export const state = Instance.state(async () => {
+  let stateVersion = 0
+  let cachedState: ReturnType<typeof state> | undefined
+
+  const state = Instance.state(async () => {
     const skills: Record<string, Info> = {}
     const dirs = new Set<string>()
 
@@ -175,15 +178,30 @@ export namespace Skill {
     }
   })
 
+  const getState = () => {
+    if (cachedState && cachedStateVersion === stateVersion) {
+      return cachedState
+    }
+    cachedState = state()
+    cachedStateVersion = stateVersion
+    return cachedState
+  }
+
+  let cachedStateVersion = 0
+
+  export async function reload() {
+    cachedStateVersion = ++stateVersion
+  }
+
   export async function get(name: string) {
-    return state().then((x) => x.skills[name])
+    return getState().then((x) => x.skills[name])
   }
 
   export async function all() {
-    return state().then((x) => Object.values(x.skills))
+    return getState().then((x) => Object.values(x.skills))
   }
 
   export async function dirs() {
-    return state().then((x) => x.dirs)
+    return getState().then((x) => x.dirs)
   }
 }

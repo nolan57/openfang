@@ -29,6 +29,52 @@ import { batch, onMount } from "solid-js"
 import { Log } from "@/util/log"
 import type { Path } from "@opencode-ai/sdk"
 
+// Plugin status types
+export type PluginStatusType = "connected" | "disconnected" | "connecting" | "error" | "disabled" | "pending"
+export type PluginLogType = "info" | "message" | "warning" | "error" | "status" | "execution"
+
+export interface PluginLog {
+  id: string
+  timestamp: number
+  type: PluginLogType
+  source: "plugin"
+  sourceName: string
+  message: string
+}
+
+export interface PluginStatusInfo {
+  name: string
+  displayName: string
+  status: PluginStatusType
+  error?: string
+  logs: PluginLog[]
+  lastActivity?: number
+  metadata?: Record<string, unknown>
+}
+
+// Scheduler job status types
+export type SchedulerJobStatusType = "active" | "completed" | "failed" | "running"
+
+export interface SchedulerJobLog {
+  id: string
+  timestamp: number
+  type: "execution"
+  source: "scheduler"
+  sourceName: string
+  message: string
+  error?: string
+}
+
+export interface SchedulerJobInfo {
+  id: string
+  name: string
+  status: SchedulerJobStatusType
+  lastRun?: number
+  nextRun?: number
+  lastError?: string
+  logs: SchedulerJobLog[]
+}
+
 export const { use: useSync, provider: SyncProvider } = createSimpleContext({
   name: "Sync",
   init: () => {
@@ -73,6 +119,12 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       formatter: FormatterStatus[]
       vcs: VcsInfo | undefined
       path: Path
+      plugin_status: {
+        [pluginName: string]: PluginStatusInfo
+      }
+      scheduler_jobs: {
+        [jobId: string]: SchedulerJobInfo
+      }
     }>({
       provider_next: {
         all: [],
@@ -100,6 +152,8 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       formatter: [],
       vcs: undefined,
       path: { state: "", config: "", worktree: "", directory: "" },
+      plugin_status: {},
+      scheduler_jobs: {},
     })
 
     const sdk = useSDK()
@@ -340,6 +394,142 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           setStore("vcs", { branch: event.properties.branch })
           break
         }
+      }
+
+      // Handle plugin status events separately (not in discriminated union yet)
+      if ((event as unknown as { type: string }).type === "tui.plugin.status") {
+        const evt = event as unknown as {
+          properties: {
+            plugin: string
+            status: PluginStatusType
+            error?: string
+            log?: { type: PluginLogType; message: string }
+            metadata?: Record<string, unknown>
+          }
+        }
+        const { plugin, status, error, log, metadata } = evt.properties
+        const existing = store.plugin_status[plugin]
+
+        const logs: PluginLog[] = log
+          ? [
+              ...(existing?.logs ?? []).slice(-49),
+              {
+                id: crypto.randomUUID(),
+                timestamp: Date.now(),
+                type: log.type,
+                source: "plugin" as const,
+                sourceName: plugin,
+                message: log.message,
+              },
+            ]
+          : (existing?.logs ?? [])
+
+        setStore("plugin_status", plugin, {
+          name: plugin,
+          displayName: existing?.displayName ?? plugin,
+          status,
+          error,
+          logs,
+          lastActivity: Date.now(),
+          metadata: { ...existing?.metadata, ...metadata },
+        })
+      }
+
+      // Handle scheduler job events
+      if ((event as unknown as { type: string }).type === "tui.scheduler.job.started") {
+        const evt = event as unknown as {
+          properties: {
+            id: string
+            name?: string
+          }
+        }
+        const { id, name } = evt.properties
+        const existing = store.scheduler_jobs[id]
+
+        const logs: SchedulerJobLog[] = [
+          ...(existing?.logs ?? []).slice(-49),
+          {
+            id: crypto.randomUUID(),
+            timestamp: Date.now(),
+            type: "execution" as const,
+            source: "scheduler" as const,
+            sourceName: id,
+            message: "Started",
+          },
+        ]
+
+        setStore("scheduler_jobs", id, {
+          id,
+          name: name ?? id,
+          status: "running",
+          lastRun: Date.now(),
+          logs,
+        })
+      }
+
+      if ((event as unknown as { type: string }).type === "tui.scheduler.job.completed") {
+        const evt = event as unknown as {
+          properties: {
+            id: string
+            name?: string
+          }
+        }
+        const { id, name } = evt.properties
+        const existing = store.scheduler_jobs[id]
+
+        const logs: SchedulerJobLog[] = [
+          ...(existing?.logs ?? []).slice(-49),
+          {
+            id: crypto.randomUUID(),
+            timestamp: Date.now(),
+            type: "execution" as const,
+            source: "scheduler" as const,
+            sourceName: id,
+            message: "Completed",
+          },
+        ]
+
+        setStore("scheduler_jobs", id, {
+          id,
+          name: name ?? id,
+          status: "completed",
+          lastRun: Date.now(),
+          logs,
+        })
+      }
+
+      if ((event as unknown as { type: string }).type === "tui.scheduler.job.failed") {
+        const evt = event as unknown as {
+          properties: {
+            id: string
+            name?: string
+            error?: string
+          }
+        }
+        const { id, name, error } = evt.properties
+        const existing = store.scheduler_jobs[id]
+
+        const logs: SchedulerJobLog[] = [
+          ...(existing?.logs ?? []).slice(-49),
+          {
+            id: crypto.randomUUID(),
+            timestamp: Date.now(),
+            type: "execution" as const,
+            source: "scheduler" as const,
+            sourceName: id,
+            message: "Failed",
+            error,
+          },
+        ]
+
+        setStore("scheduler_jobs", id, {
+          id,
+          name: name ?? id,
+          status: "failed",
+          lastRun: Date.now(),
+          lastError: error,
+          logs,
+        })
       }
     })
 

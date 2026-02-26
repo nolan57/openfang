@@ -715,6 +715,47 @@ export type EventTodoUpdated = {
   }
 }
 
+export type EventTuiSchedulerJobStarted = {
+  type: "tui.scheduler.job.started"
+  properties: {
+    id: string
+    name?: string
+  }
+}
+
+export type EventTuiSchedulerJobCompleted = {
+  type: "tui.scheduler.job.completed"
+  properties: {
+    id: string
+    name?: string
+  }
+}
+
+export type EventTuiSchedulerJobFailed = {
+  type: "tui.scheduler.job.failed"
+  properties: {
+    id: string
+    name?: string
+    error?: string
+  }
+}
+
+export type EventTuiPluginStatus = {
+  type: "tui.plugin.status"
+  properties: {
+    plugin: string
+    status: "connected" | "disconnected" | "connecting" | "error" | "disabled" | "pending"
+    log?: {
+      type: "info" | "message" | "warning" | "error" | "status" | "execution"
+      message: string
+    }
+    error?: string
+    metadata?: {
+      [key: string]: unknown
+    }
+  }
+}
+
 export type EventTuiPromptAppend = {
   type: "tui.prompt.append"
   properties: {
@@ -966,6 +1007,10 @@ export type Event =
   | EventSessionCompacted
   | EventFileWatcherUpdated
   | EventTodoUpdated
+  | EventTuiSchedulerJobStarted
+  | EventTuiSchedulerJobCompleted
+  | EventTuiSchedulerJobFailed
+  | EventTuiPluginStatus
   | EventTuiPromptAppend
   | EventTuiCommandExecute
   | EventTuiToastShow
@@ -3749,6 +3794,65 @@ export type SessionPromptAsyncResponses = {
 
 export type SessionPromptAsyncResponse = SessionPromptAsyncResponses[keyof SessionPromptAsyncResponses]
 
+export type SessionPromptStreamData = {
+  body?: {
+    messageID?: string
+    model?: {
+      providerID: string
+      modelID: string
+    }
+    agent?: string
+    noReply?: boolean
+    /**
+     * @deprecated tools and permissions have been merged, you can set permissions on the session itself now
+     */
+    tools?: {
+      [key: string]: boolean
+    }
+    format?: OutputFormat
+    system?: string
+    variant?: string
+    parts: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
+  }
+  path: {
+    /**
+     * Session ID
+     */
+    sessionID: string
+  }
+  query?: {
+    directory?: string
+  }
+  url: "/session/{sessionID}/prompt/stream"
+}
+
+export type SessionPromptStreamErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type SessionPromptStreamError = SessionPromptStreamErrors[keyof SessionPromptStreamErrors]
+
+export type SessionPromptStreamResponses = {
+  /**
+   * Stream of message chunks
+   */
+  200: {
+    type: "chunk" | "done" | "error"
+    content?: string
+    messageId?: string
+    error?: string
+  }
+}
+
+export type SessionPromptStreamResponse = SessionPromptStreamResponses[keyof SessionPromptStreamResponses]
+
 export type SessionCommandData = {
   body?: {
     messageID?: string
@@ -4834,7 +4938,15 @@ export type TuiShowToastResponses = {
 export type TuiShowToastResponse = TuiShowToastResponses[keyof TuiShowToastResponses]
 
 export type TuiPublishData = {
-  body?: EventTuiPromptAppend | EventTuiCommandExecute | EventTuiToastShow | EventTuiSessionSelect
+  body?:
+    | EventTuiSchedulerJobStarted
+    | EventTuiSchedulerJobCompleted
+    | EventTuiSchedulerJobFailed
+    | EventTuiPluginStatus
+    | EventTuiPromptAppend
+    | EventTuiCommandExecute
+    | EventTuiToastShow
+    | EventTuiSessionSelect
   path?: never
   query?: {
     directory?: string

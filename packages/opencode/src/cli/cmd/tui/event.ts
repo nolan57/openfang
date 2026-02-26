@@ -2,7 +2,50 @@ import { BusEvent } from "@/bus/bus-event"
 import { Bus } from "@/bus"
 import z from "zod"
 
+export const SchedulerJobStarted = BusEvent.define(
+  "tui.scheduler.job.started",
+  z.object({
+    id: z.string(),
+    name: z.string().optional(),
+  }),
+)
+
+export const SchedulerJobCompleted = BusEvent.define(
+  "tui.scheduler.job.completed",
+  z.object({
+    id: z.string(),
+    name: z.string().optional(),
+  }),
+)
+
+export const SchedulerJobFailed = BusEvent.define(
+  "tui.scheduler.job.failed",
+  z.object({
+    id: z.string(),
+    name: z.string().optional(),
+    error: z.string().optional(),
+  }),
+)
+
 export const TuiEvent = {
+  SchedulerJobStarted,
+  SchedulerJobCompleted,
+  SchedulerJobFailed,
+  PluginStatus: BusEvent.define(
+    "tui.plugin.status",
+    z.object({
+      plugin: z.string(),
+      status: z.enum(["connected", "disconnected", "connecting", "error", "disabled", "pending"]),
+      log: z
+        .object({
+          type: z.enum(["info", "message", "warning", "error", "status", "execution"]),
+          message: z.string(),
+        })
+        .optional(),
+      error: z.string().optional(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
+    }),
+  ),
   PromptAppend: BusEvent.define("tui.prompt.append", z.object({ text: z.string() })),
   CommandExecute: BusEvent.define(
     "tui.command.execute",

@@ -12,6 +12,7 @@ import { Session } from "../session"
 import { NamedError } from "@opencode-ai/util/error"
 import { CopilotAuthPlugin } from "./copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "@gitlab/opencode-gitlab-auth"
+import { registerWebhookRoute } from "./webhook-registry"
 
 export namespace Plugin {
   const log = Log.create({ service: "plugin" })
@@ -97,6 +98,20 @@ export namespace Plugin {
         })
     }
 
+    // Register HTTP routes from plugins
+    for (const hook of hooks) {
+      if (hook.http) {
+        for (const route of hook.http) {
+          registerWebhookRoute({
+            path: route.path,
+            handler: route.handler,
+            pluginId: "plugin",
+            secret: route.secret,
+          })
+        }
+      }
+    }
+
     return {
       hooks,
       input,
@@ -104,7 +119,7 @@ export namespace Plugin {
   })
 
   export async function trigger<
-    Name extends Exclude<keyof Required<Hooks>, "auth" | "event" | "tool">,
+    Name extends Exclude<keyof Required<Hooks>, "auth" | "event" | "tool" | "http">,
     Input = Parameters<Required<Hooks>[Name]>[0],
     Output = Parameters<Required<Hooks>[Name]>[1],
   >(name: Name, input: Input, output: Output): Promise<Output> {

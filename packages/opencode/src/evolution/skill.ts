@@ -1,6 +1,7 @@
 import { mkdir, writeFile, access } from "fs/promises"
 import { resolve } from "path"
 import { saveSkillEvolution, getSkillEvolutions, updateSkillStatus } from "./store"
+import { Skill } from "../skill/skill"
 import type { SkillEvolution } from "./types"
 
 export interface SkillPattern {
@@ -108,6 +109,8 @@ export async function approveSkill(projectDir: string, skillID: string): Promise
 
   const skillFile = resolve(skillDir, "SKILL.md")
   await writeFile(skillFile, skill.content)
+
+  await Skill.reload()
 
   return skillDir
 }

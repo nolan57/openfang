@@ -25,10 +25,24 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
     diff: true,
     todo: true,
     lsp: true,
+    plugins: true,
+    scheduler: true,
   })
 
   // Sort MCP servers alphabetically for consistent display order
   const mcpEntries = createMemo(() => Object.entries(sync.data.mcp).sort(([a], [b]) => a.localeCompare(b)))
+
+  // Plugin entries
+  const pluginEntries = createMemo(() => Object.entries(sync.data.plugin_status).sort(([a], [b]) => a.localeCompare(b)))
+  const connectedPluginCount = createMemo(() => pluginEntries().filter(([_, item]) => item.status === "connected").length)
+
+  // Scheduler jobs entries
+  const schedulerJobsEntries = createMemo(() =>
+    Object.entries(sync.data.scheduler_jobs).sort(([a], [b]) => a.localeCompare(b)),
+  )
+  const runningJobCount = createMemo(() =>
+    schedulerJobsEntries().filter(([_, item]) => item.status === "running").length,
+  )
 
   // Count connected and error MCP servers for collapsed header display
   const connectedMcpCount = createMemo(() => mcpEntries().filter(([_, item]) => item.status === "connected").length)
@@ -161,6 +175,132 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                             </Switch>
                           </span>
                         </text>
+                      </box>
+                    )}
+                  </For>
+                </Show>
+              </box>
+            </Show>
+            <Show when={pluginEntries().length > 0}>
+              <box>
+                <box
+                  flexDirection="row"
+                  gap={1}
+                  onMouseDown={() => pluginEntries().length > 1 && setExpanded("plugins", !expanded.plugins)}
+                >
+                  <Show when={pluginEntries().length > 1}>
+                    <text fg={theme.text}>{expanded.plugins ? "▼" : "▶"}</text>
+                  </Show>
+                  <text fg={theme.text}>
+                    <b>Plugins</b>
+                    <Show when={!expanded.plugins}>
+                      <span style={{ fg: theme.textMuted }}> ({connectedPluginCount()} active)</span>
+                    </Show>
+                  </text>
+                </box>
+                <Show when={expanded.plugins}>
+                  <For each={pluginEntries()}>
+                    {([name, info]) => (
+                      <box flexDirection="column" gap={0}>
+                        <box flexDirection="row" gap={1}>
+                          <text
+                            flexShrink={0}
+                            style={{
+                              fg: {
+                                connected: theme.success,
+                                disconnected: theme.textMuted,
+                                connecting: theme.warning,
+                                error: theme.error,
+                                disabled: theme.textMuted,
+                                pending: theme.warning,
+                              }[info.status],
+                            }}
+                          >
+                            •
+                          </text>
+                          <text fg={theme.text}>{info.displayName || name}</text>
+                          <text fg={theme.textMuted}>
+                            {info.status === "connected" ? "✓" : info.status === "error" ? "✗" : "○"}
+                          </text>
+                        </box>
+                        <Show when={info.error}>
+                          <text fg={theme.error} paddingLeft={2}>
+                            {info.error}
+                          </text>
+                        </Show>
+                        <Show when={info.logs.length > 0}>
+                          <For each={info.logs.slice(-3)}>
+                            {(log) => (
+                              <text fg={theme.textMuted} paddingLeft={2}>
+                                [{new Date(log.timestamp).toLocaleTimeString()}] {log.message}
+                              </text>
+                            )}
+                          </For>
+                        </Show>
+                      </box>
+                    )}
+                  </For>
+                </Show>
+              </box>
+            </Show>
+            <Show when={schedulerJobsEntries().length > 0}>
+              <box>
+                <box
+                  flexDirection="row"
+                  gap={1}
+                  onMouseDown={() => schedulerJobsEntries().length > 1 && setExpanded("scheduler", !expanded.scheduler)}
+                >
+                  <Show when={schedulerJobsEntries().length > 1}>
+                    <text fg={theme.text}>{expanded.scheduler ? "▼" : "▶"}</text>
+                  </Show>
+                  <text fg={theme.text}>
+                    <b>Scheduler</b>
+                    <Show when={!expanded.scheduler}>
+                      <span style={{ fg: theme.textMuted }}>
+                        {" "}
+                        ({runningJobCount()} running)
+                      </span>
+                    </Show>
+                  </text>
+                </box>
+                <Show when={expanded.scheduler}>
+                  <For each={schedulerJobsEntries()}>
+                    {([id, info]) => (
+                      <box flexDirection="column" gap={0}>
+                        <box flexDirection="row" gap={1}>
+                          <text
+                            flexShrink={0}
+                            style={{
+                              fg: {
+                                active: theme.success,
+                                running: theme.warning,
+                                completed: theme.success,
+                                failed: theme.error,
+                              }[info.status],
+                            }}
+                          >
+                            •
+                          </text>
+                          <text fg={theme.text}>{info.name || id}</text>
+                          <text fg={theme.textMuted}>
+                            {info.status === "running" ? "⟳" : info.status === "completed" ? "✓" : info.status === "failed" ? "✗" : "○"}
+                          </text>
+                        </box>
+                        <Show when={info.lastError}>
+                          <text fg={theme.error} paddingLeft={2}>
+                            {info.lastError}
+                          </text>
+                        </Show>
+                        <Show when={info.logs.length > 0}>
+                          <For each={info.logs.slice(-3)}>
+                            {(log) => (
+                              <text fg={theme.textMuted} paddingLeft={2}>
+                                [{new Date(log.timestamp).toLocaleTimeString()}] {log.message}
+                                {log.error ? ` - ${log.error}` : ""}
+                              </text>
+                            )}
+                          </For>
+                        </Show>
                       </box>
                     )}
                   </For>

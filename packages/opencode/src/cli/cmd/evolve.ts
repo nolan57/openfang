@@ -2,6 +2,7 @@ import type { CommandModule } from "yargs"
 import { cmd } from "./cmd"
 import { getSkillEvolutions, getPromptEvolutions, getMemories } from "../../evolution/store"
 import { approveSkill, rejectSkill, getPendingSkills } from "../../evolution/skill"
+import { Skill } from "../../skill/skill"
 
 export const EvolveCommand: CommandModule = {
   command: "evolve",
@@ -9,6 +10,7 @@ export const EvolveCommand: CommandModule = {
   builder: (yargs) =>
     yargs
       .command("list", "List evolution artifacts", {}, listArtifacts)
+      .command("reload", "Reload skills cache", {}, reloadSkills)
       .command(
         "approve <skillID>",
         "Approve and create a skill",
@@ -48,6 +50,12 @@ async function listArtifacts() {
 
   console.log("\n=== Memories ===")
   console.log(memories.length, "memories")
+}
+
+async function reloadSkills() {
+  await Skill.reload()
+  const skills = await Skill.all()
+  console.log(`Reloaded ${skills.length} skills`)
 }
 
 async function approveSkillCmd(skillID: string) {

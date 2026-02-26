@@ -21,7 +21,11 @@ import type {
   ConfigUpdateResponses,
   EventSubscribeResponses,
   EventTuiCommandExecute,
+  EventTuiPluginStatus,
   EventTuiPromptAppend,
+  EventTuiSchedulerJobCompleted,
+  EventTuiSchedulerJobFailed,
+  EventTuiSchedulerJobStarted,
   EventTuiSessionSelect,
   EventTuiToastShow,
   ExperimentalResourceListResponses,
@@ -123,6 +127,8 @@ import type {
   SessionPromptAsyncResponses,
   SessionPromptErrors,
   SessionPromptResponses,
+  SessionPromptStreamErrors,
+  SessionPromptStreamResponses,
   SessionRevertErrors,
   SessionRevertResponses,
   SessionShareErrors,
@@ -1652,6 +1658,68 @@ export class Session2 extends HeyApiClient {
   }
 
   /**
+   * Send message (streaming)
+   *
+   * Create and send a new message to a session, streaming the AI response as SSE.
+   */
+  public promptStream<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionID: string
+      directory?: string
+      messageID?: string
+      model?: {
+        providerID: string
+        modelID: string
+      }
+      agent?: string
+      noReply?: boolean
+      tools?: {
+        [key: string]: boolean
+      }
+      format?: OutputFormat
+      system?: string
+      variant?: string
+      parts?: Array<TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput>
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "sessionID" },
+            { in: "query", key: "directory" },
+            { in: "body", key: "messageID" },
+            { in: "body", key: "model" },
+            { in: "body", key: "agent" },
+            { in: "body", key: "noReply" },
+            { in: "body", key: "tools" },
+            { in: "body", key: "format" },
+            { in: "body", key: "system" },
+            { in: "body", key: "variant" },
+            { in: "body", key: "parts" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).sse.post<
+      SessionPromptStreamResponses,
+      SessionPromptStreamErrors,
+      ThrowOnError
+    >({
+      url: "/session/{sessionID}/prompt/stream",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
    * Send command
    *
    * Send a new command to a session for execution by the AI assistant.
@@ -2933,7 +3001,15 @@ export class Tui extends HeyApiClient {
   public publish<ThrowOnError extends boolean = false>(
     parameters?: {
       directory?: string
-      body?: EventTuiPromptAppend | EventTuiCommandExecute | EventTuiToastShow | EventTuiSessionSelect
+      body?:
+        | EventTuiSchedulerJobStarted
+        | EventTuiSchedulerJobCompleted
+        | EventTuiSchedulerJobFailed
+        | EventTuiPluginStatus
+        | EventTuiPromptAppend
+        | EventTuiCommandExecute
+        | EventTuiToastShow
+        | EventTuiSessionSelect
     },
     options?: Options<never, ThrowOnError>,
   ) {

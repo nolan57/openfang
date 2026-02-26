@@ -17,6 +17,19 @@ import { type ToolDefinition } from "./tool"
 
 export * from "./tool"
 
+// Plugin status types
+export type PluginStatusType = "connected" | "disconnected" | "connecting" | "error" | "disabled" | "pending"
+export type PluginLogType = "info" | "message" | "warning" | "error" | "status" | "execution"
+
+export type StatusReporter = {
+  (status: PluginStatusType, log?: { type: PluginLogType; message: string }, metadata?: Record<string, unknown>): void
+  connected: (message?: string) => void
+  disconnected: (message?: string) => void
+  connecting: (message?: string) => void
+  error: (error: string) => void
+  message: (msg: string) => void
+}
+
 export type ProviderContext = {
   source: "env" | "config" | "custom" | "api"
   info: Provider
@@ -153,6 +166,14 @@ export interface Hooks {
   }
   auth?: AuthHook
   /**
+   * Register HTTP routes (webhooks)
+   */
+  http?: {
+    path: string
+    handler: (req: Request) => Promise<Response>
+    secret?: string
+  }[]
+  /**
    * Called when a new message is received
    */
   "chat.message"?: (
@@ -231,4 +252,13 @@ export interface Hooks {
    * Modify tool definitions (description and parameters) sent to LLM
    */
   "tool.definition"?: (input: { toolID: string }, output: { description: string; parameters: any }) => Promise<void>
+  /**
+   * Report plugin status
+   * Called periodically or when status changes
+   */
+  "plugin.status"?: () => Promise<{
+    status: PluginStatusType
+    error?: string
+    metadata?: Record<string, unknown>
+  }>
 }

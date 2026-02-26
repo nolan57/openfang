@@ -1,5 +1,6 @@
 import { Instance } from "../project/instance"
 import { Log } from "../util/log"
+import { GlobalBus } from "../bus/global"
 
 export namespace Scheduler {
   const log = Log.create({ service: "scheduler" })
@@ -54,8 +55,34 @@ export namespace Scheduler {
 
   async function run(task: Task) {
     log.info("run", { id: task.id })
-    await task.run().catch((error) => {
-      log.error("run failed", { id: task.id, error })
+
+    // Emit started event
+    GlobalBus.emit("event", {
+      payload: {
+        type: "tui.scheduler.job.started",
+        properties: { id: task.id, name: task.id },
+      },
     })
+
+    try {
+      await task.run()
+
+      // Emit completed event
+      GlobalBus.emit("event", {
+        payload: {
+          type: "tui.scheduler.job.completed",
+          properties: { id: task.id, name: task.id },
+        },
+      })
+    } catch (error) {
+      // Emit failed event
+      GlobalBus.emit("event", {
+        payload: {
+          type: "tui.scheduler.job.failed",
+          properties: { id: task.id, name: task.id, error: String(error) },
+        },
+      })
+      log.error("run failed", { id: task.id, error })
+    }
   }
 }
