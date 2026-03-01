@@ -78,6 +78,7 @@ import { QuestionPrompt } from "./question"
 import { DialogExportOptions } from "../../ui/dialog-export-options"
 import { formatTranscript } from "../../util/transcript"
 import { UI } from "@/cli/ui.ts"
+import { InfoPanel } from "./infopanel"
 
 addDefaultParsers(parsers.parsers)
 
@@ -1140,7 +1141,10 @@ export function Session() {
         <Show when={sidebarVisible()}>
           <Switch>
             <Match when={wide()}>
-              <Sidebar sessionID={route.sessionID} />
+              <box flexDirection="row">
+                <InfoPanel />
+                <Sidebar sessionID={route.sessionID} />
+              </box>
             </Match>
             <Match when={!wide()}>
               <box

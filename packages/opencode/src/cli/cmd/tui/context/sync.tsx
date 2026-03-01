@@ -75,6 +75,14 @@ export interface SchedulerJobInfo {
   logs: SchedulerJobLog[]
 }
 
+export interface LogEntry {
+  id: string
+  timestamp: number
+  source: string
+  level: "info" | "warning" | "error"
+  message: string
+}
+
 export const { use: useSync, provider: SyncProvider } = createSimpleContext({
   name: "Sync",
   init: () => {
@@ -125,6 +133,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       scheduler_jobs: {
         [jobId: string]: SchedulerJobInfo
       }
+      logs: LogEntry[]
     }>({
       provider_next: {
         all: [],
@@ -154,6 +163,7 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       path: { state: "", config: "", worktree: "", directory: "" },
       plugin_status: {},
       scheduler_jobs: {},
+      logs: [],
     })
 
     const sdk = useSDK()
@@ -530,6 +540,30 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
           lastError: error,
           logs,
         })
+      }
+
+      // Handle tui.log events
+      if ((event as unknown as { type: string }).type === "tui.log") {
+        const evt = event as unknown as {
+          properties: {
+            source: string
+            level: "info" | "warning" | "error"
+            message: string
+          }
+        }
+        const { source, level, message } = evt.properties
+        setStore("logs", (prevLogs) =>
+          [
+            ...prevLogs,
+            {
+              id: crypto.randomUUID(),
+              timestamp: Date.now(),
+              source,
+              level,
+              message,
+            },
+          ].slice(-100),
+        )
       }
     })
 

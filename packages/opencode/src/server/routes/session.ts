@@ -16,6 +16,7 @@ import { Log } from "../../util/log"
 import { PermissionNext } from "@/permission/next"
 import { errors } from "../error"
 import { lazy } from "../../util/lazy"
+import { Bus } from "../../bus"
 
 const log = Log.create({ service: "server" })
 
@@ -803,6 +804,24 @@ export const SessionRoutes = lazy(() =>
           const body = c.req.valid("json")
 
           let messageId: string | undefined
+          let textBuffer = ""
+
+          // Subscribe to message part delta events for streaming
+          const unsub = Bus.subscribeAll(async (event) => {
+            if (event.type === "message.part.delta") {
+              const props = event.properties
+              if (props.sessionID === sessionID && props.field === "text") {
+                textBuffer += props.delta
+                await stream.writeSSE({
+                  data: JSON.stringify({
+                    type: "chunk",
+                    content: props.delta,
+                    messageId: props.messageID,
+                  }),
+                })
+              }
+            }
+          })
 
           try {
             const result = await SessionPrompt.prompt({ ...body, sessionID })
@@ -815,6 +834,8 @@ export const SessionRoutes = lazy(() =>
             await stream.writeSSE({
               data: JSON.stringify({ type: "error", error }),
             })
+          } finally {
+            unsub()
           }
         })
       },

@@ -3,6 +3,7 @@ import { describeRoute, validator, resolver } from "hono-openapi"
 import z from "zod"
 import { Bus } from "../../bus"
 import { Session } from "../../session"
+import { MessageV2 } from "../../session/message-v2"
 import { TuiEvent } from "@/cli/cmd/tui/event"
 import { AsyncQueue } from "../../util/queue"
 import { errors } from "../error"
@@ -373,6 +374,126 @@ export const TuiRoutes = lazy(() =>
         await Session.get(sessionID)
         await Bus.publish(TuiEvent.SessionSelect, { sessionID })
         return c.json(true)
+      },
+    )
+    .post(
+      "/memory/confirm",
+      describeRoute({
+        summary: "Memory confirm response",
+        description: "Handle user response to memory confirmation dialog",
+        operationId: "tui.memory.confirm",
+        responses: {
+          200: {
+            description: "Memory confirmation received",
+            content: {
+              "application/json": {
+                schema: resolver(z.boolean()),
+              },
+            },
+          },
+          ...errors(400),
+        },
+      }),
+      validator("json", TuiEvent.MemoryConfirm.properties),
+      async (c) => {
+        await Bus.publish(TuiEvent.MemoryConfirm, c.req.valid("json"))
+        return c.json(true)
+      },
+    )
+    .post(
+      "/session/extract-memories",
+      describeRoute({
+        summary: "Extract memories from session",
+        description: "Extract and save memories when session ends or switches",
+        operationId: "tui.session.extract-memories",
+        responses: {
+          200: {
+            description: "Memory extraction completed",
+            content: {
+              "application/json": {
+                schema: resolver(
+                  z.object({
+                    extracted: z.number(),
+                    keys: z.array(z.string()),
+                  }),
+                ),
+              },
+            },
+          },
+          ...errors(400, 404),
+        },
+      }),
+      validator(
+        "json",
+        z.object({
+          sessionID: z.string(),
+        }),
+      ),
+      async (c) => {
+        const { sessionID } = c.req.valid("json")
+        const session = await Session.get(sessionID)
+        const dir = session.directory
+
+        const { extractMemories, extractMemoriesWithLLM } = await import("../../evolution/memory")
+        const { getMemories, saveMemory } = await import("../../evolution/store")
+        const { Provider } = await import("../../provider/provider")
+
+        const messageStream = MessageV2.stream(sessionID)
+        const messages: MessageV2.WithParts[] = []
+        for await (const msg of messageStream) {
+          messages.push(msg)
+        }
+
+        const taskText = messages
+          .filter((m) => m.info.role === "user")
+          .flatMap((m) => m.parts)
+          .filter((p) => p.type === "text")
+          .map((p) => ("text" in p ? p.text : ""))
+          .join(" ")
+        const toolCallTexts = messages
+          .filter((m) => m.info.role === "assistant")
+          .flatMap((m) => m.parts)
+          .filter((p) => p.type === "tool")
+          .map((p) => ("tool" in p ? p.tool : ""))
+
+        const outcome = "session_switch"
+
+        await extractMemories(dir, sessionID, taskText, toolCallTexts, outcome)
+
+        const userMessage = messages.find((m) => (m.info as any).role === "user")
+        if (userMessage) {
+          const userInfo = userMessage.info as any
+          try {
+            const llmMemories = await extractMemoriesWithLLM(
+              dir,
+              sessionID,
+              taskText,
+              toolCallTexts,
+              outcome,
+              userInfo.model.providerID,
+              userInfo.model.modelID,
+            )
+            const existing = await getMemories(dir)
+            const newKeys: string[] = []
+            for (const m of llmMemories) {
+              const existingMatch = existing.find((e) => e.key === m.key)
+              if (!existingMatch) {
+                await saveMemory(dir, {
+                  key: m.key,
+                  value: m.value,
+                  context: taskText,
+                  sessionIDs: [sessionID],
+                })
+                newKeys.push(m.key)
+              }
+            }
+            return c.json({ extracted: newKeys.length, keys: newKeys })
+          } catch {
+            return c.json({ extracted: 0, keys: [] })
+          }
+        }
+
+        return c.json({ extracted: 0, keys: [] })
       },
     )
     .route("/control", TuiControlRoutes),

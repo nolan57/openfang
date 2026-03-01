@@ -28,6 +28,7 @@ import { Truncate } from "./truncation"
 import { PlanExitTool, PlanEnterTool } from "./plan"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
+import { MemorySearchTool } from "./memory"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -101,6 +102,7 @@ export namespace ToolRegistry {
     return [
       InvalidTool,
       ...(question ? [QuestionTool] : []),
+      MemorySearchTool,
       BashTool,
       ReadTool,
       GlobTool,

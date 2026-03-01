@@ -45,6 +45,8 @@ import { LLM } from "./llm"
 import { iife } from "@/util/iife"
 import { Shell } from "@/shell/shell"
 import { Truncate } from "@/tool/truncation"
+import { getRelevantMemories, extractMemories, extractMemoriesWithLLM } from "../evolution/memory"
+import { getMemories, saveMemory, incrementMemoryUsage } from "../evolution/store"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -321,6 +323,58 @@ export namespace SessionPrompt {
         lastUser.id < lastAssistant.id
       ) {
         log.info("exiting loop", { sessionID })
+
+        // Extract memories using LLM on session end
+        const taskText = msgs
+          .filter((m) => m.info.role === "user")
+          .flatMap((m) => m.parts)
+          .filter((p) => p.type === "text")
+          .map((p) => ("text" in p ? p.text : ""))
+          .join(" ")
+        const toolCallTexts = msgs
+          .filter((m) => m.info.role === "assistant")
+          .flatMap((m) => m.parts)
+          .filter((p) => p.type === "tool")
+          .map((p) => ("tool" in p ? p.tool : ""))
+        const outcome = lastAssistant.finish === "stop" ? "completed" : "stopped"
+
+        // Extract memories with regex patterns
+        await extractMemories(Instance.directory, sessionID, taskText, toolCallTexts, outcome)
+
+        // Try to extract additional memories with LLM (fire and forget)
+        extractMemoriesWithLLM(
+          Instance.directory,
+          sessionID,
+          taskText,
+          toolCallTexts,
+          outcome,
+          lastUser.model.providerID,
+          lastUser.model.modelID,
+        )
+          .then(async (llmMemories) => {
+            const existing = await getMemories(Instance.directory)
+            for (const m of llmMemories) {
+              const existingMatch = existing.find((e) => e.key === m.key)
+              if (!existingMatch) {
+                await saveMemory(Instance.directory, {
+                  key: m.key,
+                  value: m.value,
+                  context: taskText,
+                  sessionIDs: [sessionID],
+                })
+              }
+            }
+            if (llmMemories.length > 0) {
+              log.info("Saved LLM-extracted memories", {
+                count: llmMemories.length,
+                keys: llmMemories.map((m) => m.key),
+              })
+            }
+          })
+          .catch((err) => {
+            log.error("Failed to extract memories with LLM", { error: String(err) })
+          })
+
         break
       }
 
@@ -652,6 +706,30 @@ export namespace SessionPrompt {
       const format = lastUser.format ?? { type: "text" }
       if (format.type === "json_schema") {
         system.push(STRUCTURED_OUTPUT_SYSTEM_PROMPT)
+      }
+
+      // Inject relevant memories into system prompt on first step
+      if (step === 1) {
+        const taskText = msgs
+          .filter((m) => m.info.role === "user")
+          .flatMap((m) => m.parts)
+          .filter((p) => p.type === "text")
+          .map((p) => ("text" in p ? p.text : ""))
+          .join(" ")
+        if (taskText) {
+          const memories = await getRelevantMemories(Instance.directory, taskText)
+          if (memories.length > 0) {
+            const allMemories = await getMemories(Instance.directory)
+            for (const m of memories) {
+              const entry = allMemories.find((e) => e.key === m.key)
+              if (entry) await incrementMemoryUsage(Instance.directory, entry.id)
+            }
+            const memoryContext = memories.map((m) => `• ${m.key}: ${m.value}`).join("\n")
+            system.push(
+              `\n<system-reminder>\nPast session learnings relevant to this task:\n${memoryContext}\n</system-reminder>`,
+            )
+          }
+        }
       }
 
       const result = await processor.process({
@@ -1052,6 +1130,18 @@ export namespace SessionPrompt {
             }
 
             return pieces
+          }
+          if (!part.url) {
+            log.error("file part missing url", { part })
+            return [
+              {
+                messageID: info.id,
+                sessionID: input.sessionID,
+                type: "text",
+                synthetic: true,
+                text: `Error: File part is missing URL`,
+              },
+            ]
           }
           const url = new URL(part.url)
           switch (url.protocol) {

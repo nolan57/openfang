@@ -1,0 +1,62 @@
+[
+  {
+    "id": "d41b4d50-c989-4e3b-8201-56e1e5e55465",
+    "key": "tool-calls-structure",
+    "value": "Ensure tool calls are clearly defined with appropriate input parameters, such as file paths, to facilitate accurate processing and reuse in similar tasks.",
+    "context": " Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"} 用命令行连接模型Qwen-VL-Plus 用命令行连接模型Qwen-VL-Plus 用类似opencode connect的命令来让opencode使用Qwen-VL-Plus 能在opencode.json中配置多个模型，然后由opencode根据收到的信类型息自动选取模型来处理 解读图片  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/99FE1DCC4F409BFB019CEB73BB9F68A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1AC77EF6FC29BE6D42AF0FCFD20093A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9D3926A0064588D9B282874EEBDA6E21.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/DBADEAAF0C9AEC18040E77F9064783DB.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9F9E091CD0DE6E728E81160483494FF6.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1E377FB1144F63596C928DF7E4FDF65D.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/044488C05C2F2437D22A54FCAAD2A14F.png\"} 当前opencode中设定了哪些定时任务？",
+    "sessionIDs": [
+      "ses_35b4f689dffeto5TwCXGWKvVOn"
+    ],
+    "createdAt": 1772333978078,
+    "lastUsedAt": 1772334017756,
+    "usageCount": 1
+  },
+  {
+    "id": "66b8177d-b770-4446-b907-af16feb8c010",
+    "key": "model-selection-config",
+    "value": "Configure model selection logic in configuration files (e.g., `opencode.json`) to enable automatic model switching based on task requirements.",
+    "context": " Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"} 用命令行连接模型Qwen-VL-Plus 用命令行连接模型Qwen-VL-Plus 用类似opencode connect的命令来让opencode使用Qwen-VL-Plus 能在opencode.json中配置多个模型，然后由opencode根据收到的信类型息自动选取模型来处理 解读图片  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/99FE1DCC4F409BFB019CEB73BB9F68A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1AC77EF6FC29BE6D42AF0FCFD20093A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9D3926A0064588D9B282874EEBDA6E21.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/DBADEAAF0C9AEC18040E77F9064783DB.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9F9E091CD0DE6E728E81160483494FF6.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1E377FB1144F63596C928DF7E4FDF65D.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/044488C05C2F2437D22A54FCAAD2A14F.png\"} 当前opencode中设定了哪些定时任务？",
+    "sessionIDs": [
+      "ses_35b4f689dffeto5TwCXGWKvVOn"
+    ],
+    "createdAt": 1772333978079,
+    "lastUsedAt": 1772336139114,
+    "usageCount": 7
+  },
+  {
+    "id": "1f2fbcbe-87d2-4cfa-9017-f7bd85bb3810",
+    "key": "command-line-interface",
+    "value": "Use consistent command-line interfaces for connecting and interacting with models, ensuring ease of integration and reproducibility.",
+    "context": " Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"} 用命令行连接模型Qwen-VL-Plus 用命令行连接模型Qwen-VL-Plus 用类似opencode connect的命令来让opencode使用Qwen-VL-Plus 能在opencode.json中配置多个模型，然后由opencode根据收到的信类型息自动选取模型来处理 解读图片  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/99FE1DCC4F409BFB019CEB73BB9F68A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1AC77EF6FC29BE6D42AF0FCFD20093A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9D3926A0064588D9B282874EEBDA6E21.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/DBADEAAF0C9AEC18040E77F9064783DB.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9F9E091CD0DE6E728E81160483494FF6.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1E377FB1144F63596C928DF7E4FDF65D.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/044488C05C2F2437D22A54FCAAD2A14F.png\"} 当前opencode中设定了哪些定时任务？",
+    "sessionIDs": [
+      "ses_35b4f689dffeto5TwCXGWKvVOn"
+    ],
+    "createdAt": 1772333978080,
+    "lastUsedAt": 1772334017756,
+    "usageCount": 1
+  },
+  {
+    "id": "cd45713d-9638-46bc-8588-df51076d1814",
+    "key": "tool-call-patterns",
+    "value": "Identify and document the patterns of tool calls used in a task, such as 'read' or 'vision_analyze_image', to streamline future similar tasks.",
+    "context": " Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"} 用命令行连接模型Qwen-VL-Plus 用命令行连接模型Qwen-VL-Plus 用类似opencode connect的命令来让opencode使用Qwen-VL-Plus 能在opencode.json中配置多个模型，然后由opencode根据收到的信类型息自动选取模型来处理 解读图片  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/99FE1DCC4F409BFB019CEB73BB9F68A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1AC77EF6FC29BE6D42AF0FCFD20093A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9D3926A0064588D9B282874EEBDA6E21.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/DBADEAAF0C9AEC18040E77F9064783DB.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9F9E091CD0DE6E728E81160483494FF6.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1E377FB1144F63596C928DF7E4FDF65D.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/044488C05C2F2437D22A54FCAAD2A14F.png\"} 当前opencode中设定了哪些定时任务？ 当前opencode中设定了哪些定时任务？",
+    "sessionIDs": [
+      "ses_35b4f689dffeto5TwCXGWKvVOn"
+    ],
+    "createdAt": 1772334029283,
+    "lastUsedAt": 1772334029283,
+    "usageCount": 0
+  },
+  {
+    "id": "2294419a-c504-4b71-bfdc-5c9eac6cfb66",
+    "key": "model-configuration",
+    "value": "Configure multiple models in a configuration file (e.g., opencode.json) to enable automatic model selection based on input type.",
+    "context": " Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/BBE277A6892C65FB2243BBFD5AA8DF7F.png\"} 用命令行连接模型Qwen-VL-Plus 用命令行连接模型Qwen-VL-Plus 用类似opencode connect的命令来让opencode使用Qwen-VL-Plus 能在opencode.json中配置多个模型，然后由opencode根据收到的信类型息自动选取模型来处理 解读图片  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/99FE1DCC4F409BFB019CEB73BB9F68A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1AC77EF6FC29BE6D42AF0FCFD20093A5.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9D3926A0064588D9B282874EEBDA6E21.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/DBADEAAF0C9AEC18040E77F9064783DB.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/9F9E091CD0DE6E728E81160483494FF6.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/1E377FB1144F63596C928DF7E4FDF65D.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/B23967BAC46E511DE7459FF53C51E553.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/5BB39B195A9912134D8394F48D218E4C.png\"}  Called the Read tool with the following input: {\"filePath\":\"/tmp/qqbot-downloads/044488C05C2F2437D22A54FCAAD2A14F.png\"} 当前opencode中设定了哪些定时任务？ 当前opencode中设定了哪些定时任务？",
+    "sessionIDs": [
+      "ses_35b4f689dffeto5TwCXGWKvVOn"
+    ],
+    "createdAt": 1772334029285,
+    "lastUsedAt": 1772336139115,
+    "usageCount": 6
+  }
+]

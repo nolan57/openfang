@@ -523,19 +523,21 @@ export namespace MessageV2 {
           attachments?: Array<{ mime: string; url: string }>
         }
         const attachments = (outputObject.attachments ?? []).filter((attachment) => {
-          return attachment.url.startsWith("data:") && attachment.url.includes(",")
+          return attachment.url && typeof attachment.url === "string" && attachment.url.startsWith("data:") && attachment.url.includes(",")
         })
 
         return {
           type: "content",
           value: [
-            { type: "text", text: outputObject.text },
+            { type: "text", text: outputObject.text ?? "" },
             ...attachments.map((attachment) => ({
               type: "media",
               mediaType: attachment.mime,
               data: iife(() => {
-                const commaIndex = attachment.url.indexOf(",")
-                return commaIndex === -1 ? attachment.url : attachment.url.slice(commaIndex + 1)
+                const url = attachment.url
+                if (!url) return ""
+                const commaIndex = url.indexOf(",")
+                return commaIndex === -1 ? url : url.slice(commaIndex + 1)
               }),
             })),
           ],

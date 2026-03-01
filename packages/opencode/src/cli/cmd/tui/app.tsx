@@ -28,6 +28,7 @@ import { PromptHistoryProvider } from "./component/prompt/history"
 import { FrecencyProvider } from "./component/prompt/frecency"
 import { PromptStashProvider } from "./component/prompt/stash"
 import { DialogAlert } from "./ui/dialog-alert"
+import { DialogMemoryConfirm } from "./ui/dialog-memory-confirm"
 import { ToastProvider, useToast } from "./ui/toast"
 import { ExitProvider, useExit } from "./context/exit"
 import { Session as SessionApi } from "@/session"
@@ -353,6 +354,7 @@ function App() {
   )
 
   const connected = useConnected()
+
   command.register(() => [
     {
       title: "Switch session",
@@ -365,6 +367,14 @@ function App() {
         aliases: ["resume", "continue"],
       },
       onSelect: () => {
+        if (route.data.type === "session") {
+          const sessionID = route.data.sessionID
+          fetch(`${sdk.url}/tui/session/extract-memories`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionID }),
+          }).catch(() => {})
+        }
         dialog.replace(() => <DialogSessionList />)
       },
     },
@@ -378,9 +388,18 @@ function App() {
         name: "new",
         aliases: ["clear"],
       },
-      onSelect: () => {
+      onSelect: async () => {
+        if (route.data.type === "session") {
+          const sessionID = route.data.sessionID
+          try {
+            await fetch(`${sdk.url}/tui/session/extract-memories`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sessionID }),
+            })
+          } catch {}
+        }
         const current = promptRef.current
-        // Don't require focus - if there's any text, preserve it
         const currentPrompt = current?.current?.input ? current.current : undefined
         route.navigate({
           type: "home",

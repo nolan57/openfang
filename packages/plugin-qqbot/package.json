@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@opencode-ai/plugin-qqbot",
+  "version": "0.2.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "OpenCode QQ Bot plugin - Control OpenCode via QQ",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "peerDependencies": {
+    "@opencode-ai/sdk": ">=1.0.0",
+    "@opencode-ai/plugin": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "bun-types": "1.3.10",
+    "typescript": "catalog:"
+  },
+  "keywords": [
+    "opencode",
+    "qqbot",
+    "qq",
+    "tencent",
+    "assistant"
+  ]
+}

@@ -28,3 +28,16 @@ opencode-dev
 logs/
 *.bun-build
 tsconfig.tsbuildinfo
+
+# Generated/Build artifacts
+packages/plugin/plugin
+packages/sdk/js/js
+packages/sdk/js/src/gen/
+
+# State files
+.qqbot/
+qqbot/
+packages/opencode/.qqbot/
+packages/opencode/.opencode/
+packages/opencode/qqbot-state.json
+packages/opencode/test/evolution/.test-*/

@@ -34,14 +34,16 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
 
   // Plugin entries
   const pluginEntries = createMemo(() => Object.entries(sync.data.plugin_status).sort(([a], [b]) => a.localeCompare(b)))
-  const connectedPluginCount = createMemo(() => pluginEntries().filter(([_, item]) => item.status === "connected").length)
+  const connectedPluginCount = createMemo(
+    () => pluginEntries().filter(([_, item]) => item.status === "connected").length,
+  )
 
   // Scheduler jobs entries
   const schedulerJobsEntries = createMemo(() =>
     Object.entries(sync.data.scheduler_jobs).sort(([a], [b]) => a.localeCompare(b)),
   )
-  const runningJobCount = createMemo(() =>
-    schedulerJobsEntries().filter(([_, item]) => item.status === "running").length,
+  const runningJobCount = createMemo(
+    () => schedulerJobsEntries().filter(([_, item]) => item.status === "running").length,
   )
 
   // Count connected and error MCP servers for collapsed header display
@@ -229,13 +231,15 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                           </text>
                         </Show>
                         <Show when={info.logs.length > 0}>
-                          <For each={info.logs.slice(-3)}>
-                            {(log) => (
-                              <text fg={theme.textMuted} paddingLeft={2}>
-                                [{new Date(log.timestamp).toLocaleTimeString()}] {log.message}
-                              </text>
-                            )}
-                          </For>
+                          <scrollbox height={10} paddingLeft={2}>
+                            <For each={info.logs.slice(-20)}>
+                              {(log) => (
+                                <text fg={theme.textMuted}>
+                                  [{new Date(log.timestamp).toLocaleTimeString()}] {log.message}
+                                </text>
+                              )}
+                            </For>
+                          </scrollbox>
                         </Show>
                       </box>
                     )}
@@ -256,10 +260,7 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                   <text fg={theme.text}>
                     <b>Scheduler</b>
                     <Show when={!expanded.scheduler}>
-                      <span style={{ fg: theme.textMuted }}>
-                        {" "}
-                        ({runningJobCount()} running)
-                      </span>
+                      <span style={{ fg: theme.textMuted }}> ({runningJobCount()} running)</span>
                     </Show>
                   </text>
                 </box>
@@ -283,7 +284,13 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                           </text>
                           <text fg={theme.text}>{info.name || id}</text>
                           <text fg={theme.textMuted}>
-                            {info.status === "running" ? "⟳" : info.status === "completed" ? "✓" : info.status === "failed" ? "✗" : "○"}
+                            {info.status === "running"
+                              ? "⟳"
+                              : info.status === "completed"
+                                ? "✓"
+                                : info.status === "failed"
+                                  ? "✗"
+                                  : "○"}
                           </text>
                         </box>
                         <Show when={info.lastError}>

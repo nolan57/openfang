@@ -88,4 +88,32 @@ export const TuiEvent = {
       sessionID: z.string().regex(/^ses/).describe("Session ID to navigate to"),
     }),
   ),
+  Log: BusEvent.define(
+    "tui.log",
+    z.object({
+      source: z.string(),
+      level: z.enum(["info", "warning", "error"]),
+      message: z.string(),
+    }),
+  ),
+  MemoryConfirm: BusEvent.define(
+    "tui.memory.confirm",
+    z.object({
+      sessionID: z.string(),
+      memories: z.array(
+        z.object({
+          key: z.string(),
+          value: z.string(),
+          context: z.string().optional(),
+        }),
+      ),
+    }),
+  ),
+  SessionExiting: BusEvent.define(
+    "tui.session.exiting",
+    z.object({
+      sessionID: z.string(),
+      reason: z.enum(["new_session", "switch_session", "session_end"]),
+    }),
+  ),
 }
