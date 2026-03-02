@@ -1203,6 +1203,31 @@ export namespace Config {
             .describe("Timeout in milliseconds for model context protocol (MCP) requests"),
         })
         .optional(),
+      zeroclaw: z
+        .object({
+          enabled: z.boolean().optional(),
+          url: z.string().optional(),
+          token: z.string().optional(),
+          timeout: z.number().optional(),
+          routing: z
+            .object({
+              shell: z.boolean().optional(),
+              file: z.boolean().optional(),
+              http: z.boolean().optional(),
+              hardware: z.boolean().optional(),
+              memory: z.boolean().optional(),
+              cron: z.boolean().optional(),
+            })
+            .optional(),
+          security: z
+            .object({
+              policy: z.enum(["supervised", "read_only", "full"]).optional(),
+              estopEnabled: z.boolean().optional(),
+            })
+            .optional(),
+        })
+        .optional()
+        .describe("ZeroClaw backend configuration"),
     })
     .strict()
     .meta({
