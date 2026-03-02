@@ -104,20 +104,46 @@ export class ZeroClawClient {
       headers["X-EStop-Enabled"] = request.estopEnabled ? "true" : "false"
     }
 
-    const response = await this.request("/tools/exec", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: crypto.randomUUID(),
-        method: "tool.execute",
-        params: {
-          name: request.name,
-          args: request.args,
-        },
-      }),
+    try {
+      const response = await this.request("/tools/exec", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: crypto.randomUUID(),
+          method: "tool.execute",
+          params: {
+            name: request.name,
+            args: request.args,
+          },
+        }),
+      })
+      return response.result as ZeroClawToolResponse
+    } catch (error) {
+      if (error instanceof ZeroClawError && error.status === 405) {
+        log.warn("Tool execution endpoint not available, falling back to chat API", {
+          tool: request.name,
+        })
+        return this.executeToolViaChat(request)
+      }
+      throw error
+    }
+  }
+
+  private async executeToolViaChat(request: ZeroClawToolRequest): Promise<ZeroClawToolResponse> {
+    const prompt = `Execute the tool "${request.name}" with the following arguments: ${JSON.stringify(request.args, null, 2)}. Return only the output of the command, nothing else.`
+
+    const chatResponse = await this.chat({
+      message: prompt,
     })
-    return response.result as ZeroClawToolResponse
+
+    return {
+      success: true,
+      output: chatResponse.reply,
+      exitCode: 0,
+      memoryUsed: "N/A",
+      duration: "N/A",
+    }
   }
 
   async health(): Promise<ZeroClawHealthResponse> {

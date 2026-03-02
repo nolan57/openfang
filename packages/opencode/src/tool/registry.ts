@@ -29,6 +29,7 @@ import { PlanExitTool, PlanEnterTool } from "./plan"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
 import { MemorySearchTool } from "./memory"
+import { ZeroClawTools, getClient } from "../zeroclaw"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -99,6 +100,8 @@ export namespace ToolRegistry {
     const config = await Config.get()
     const question = ["app", "cli", "desktop"].includes(Flag.OPENCODE_CLIENT) || Flag.OPENCODE_ENABLE_QUESTION_TOOL
 
+    const zeroclawEnabled = await getClient().then((c) => !!c)
+
     return [
       InvalidTool,
       ...(question ? [QuestionTool] : []),
@@ -120,6 +123,18 @@ export namespace ToolRegistry {
       ...(Flag.OPENCODE_EXPERIMENTAL_LSP_TOOL ? [LspTool] : []),
       ...(config.experimental?.batch_tool === true ? [BatchTool] : []),
       ...(Flag.OPENCODE_EXPERIMENTAL_PLAN_MODE && Flag.OPENCODE_CLIENT === "cli" ? [PlanExitTool, PlanEnterTool] : []),
+      ...(zeroclawEnabled
+        ? [
+            ZeroClawTools.ShellTool,
+            ZeroClawTools.FileReadTool,
+            ZeroClawTools.FileWriteTool,
+            ZeroClawTools.HttpRequestTool,
+            ZeroClawTools.MemoryStoreTool,
+            ZeroClawTools.MemoryRecallTool,
+            ZeroClawTools.StatusTool,
+            ZeroClawTools.EStopTool,
+          ]
+        : []),
       ...custom,
     ]
   }
