@@ -45,8 +45,9 @@ import { LLM } from "./llm"
 import { iife } from "@/util/iife"
 import { Shell } from "@/shell/shell"
 import { Truncate } from "@/tool/truncation"
-import { getRelevantMemories, extractMemories, extractMemoriesWithLLM } from "../evolution/memory"
+import { getRelevantMemories, extractMemoriesWithLLM } from "../evolution/memory"
 import { getMemories, saveMemory, incrementMemoryUsage } from "../evolution/store"
+import { runSessionEvolution } from "../evolution/integration"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -338,8 +339,10 @@ export namespace SessionPrompt {
           .map((p) => ("tool" in p ? p.tool : ""))
         const outcome = lastAssistant.finish === "stop" ? "completed" : "stopped"
 
-        // Extract memories with regex patterns
-        await extractMemories(Instance.directory, sessionID, taskText, toolCallTexts, outcome)
+        // Run full session evolution (skill generation, prompt reflection, memory extraction)
+        runSessionEvolution(Instance.directory, sessionID, taskText, msgs).catch((err) => {
+          log.error("Session evolution failed", { error: String(err) })
+        })
 
         // Try to extract additional memories with LLM (fire and forget)
         extractMemoriesWithLLM(

@@ -8,8 +8,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772333978078,
-    "lastUsedAt": 1772334017756,
-    "usageCount": 1
+    "lastUsedAt": 1772417315206,
+    "usageCount": 14
   },
   {
     "id": "66b8177d-b770-4446-b907-af16feb8c010",
@@ -20,8 +20,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772333978079,
-    "lastUsedAt": 1772336139114,
-    "usageCount": 7
+    "lastUsedAt": 1772417315667,
+    "usageCount": 29
   },
   {
     "id": "1f2fbcbe-87d2-4cfa-9017-f7bd85bb3810",
@@ -32,8 +32,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772333978080,
-    "lastUsedAt": 1772334017756,
-    "usageCount": 1
+    "lastUsedAt": 1772417317250,
+    "usageCount": 19
   },
   {
     "id": "cd45713d-9638-46bc-8588-df51076d1814",
@@ -44,8 +44,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1772334029283,
-    "usageCount": 0
+    "lastUsedAt": 1772417317778,
+    "usageCount": 26
   },
   {
     "id": "2294419a-c504-4b71-bfdc-5c9eac6cfb66",
@@ -56,7 +56,187 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1772336139115,
+    "lastUsedAt": 1772417318290,
+    "usageCount": 30
+  },
+  {
+    "id": "5ad51b23-acfa-47fa-b354-065fe8180941",
+    "key": "debugging-tips",
+    "value": "Start with minimal reproduction case",
+    "context": "分析项目永久记忆机制 对比 /Users/lpcw/Documents/openclaw/docs/memory-system.md，分析永久记忆的差异和优劣，给出改进方案 将两个项目的永久记忆机制、差异优劣、改进方案、计划详细总结到一个新的md文件中 将两个项目的永久记忆机制、差异优劣、改进方案、计划详细用英文总结到一个新的md文件中 按优先度实施改进，其中和LLM的集成，不采用本地LLM，而是直接使用opencode连接的模型 现在实现phase 3，开始前，先讨论过程、依赖 model的信息，在opencode中，用/models指令是可以获取到opencode可以使用的model，也可以用类似opencode --model（或者connect)等命令设定使用的model，默认model也可以在~/.config/opencode/opencode.json中设置，model的api key是可以用环境变量在~/.zshrc中设置的，又或者通过mcp从openrouter获取model，根据这些来思考如何传递或获取model的信息 根据之前对openclaw永久记忆机制的了解，openclaw是如何触发的？ 但我想改善一下，就是在当前会话结束前或新建会话前，能给用户一个提示和修改记忆的机会，这个想法是否合适？ 优先是会话结束前，TUI弹窗方式，设计为可选提示，会话结束前，问用户是否需要修改记忆 采用你的建议，开始前，请将整个项目推送到远程仓管https://github.com/nolan57/opencodeclaw.git，包括所有代码文件、md文档，排除所有由编译项目生成的文件，如果推送异常，提示用户手动操作 推送完成，继续实现phase 3 将已完成的整个永久机制用英文详细总结到一个新的.md文件中 有个问题需改善了，新建一个会话时，会提示无memories.json的异常，应该是没有的话，应该新建，另外，如果所有记忆都记录到同一个memeories.json是不是过大？ 将永久机制的日志不再满屏输出到终端，而是保存到日志文件，并输出到TUI的info区域中 opencode evolve memeories命令的作用是什么 opencode evolve memeories命令执行为空，没有任何记忆被保存，请检查原因 缺少中文关键词，这个正则匹配模式是硬编码的，应该用一个文件配置 将修改的情况更新到/Users/lpcw/Documents/opencode/docs/permanent-memory-system.md 有个疑问：什么是会话结束？ 添加当用户通过/new /sessions 指令新建会话或切换会话时是会话结束的一种来触发永久记忆机制 奇怪了，memories.json明明有内容，为何执行opencode evolve memories输出却是空？",
+    "sessionIDs": [
+      "ses_3592f8f00ffeDEv0GRIcM1YWEI"
+    ],
+    "createdAt": 1772338789311,
+    "lastUsedAt": 1772356031928,
+    "usageCount": 8
+  },
+  {
+    "id": "599ad66f-eec2-4977-859b-8e1fea8a1112",
+    "key": "api-design",
+    "value": "Design APIs with clear contracts and version them",
+    "context": "分析项目永久记忆机制 对比 /Users/lpcw/Documents/openclaw/docs/memory-system.md，分析永久记忆的差异和优劣，给出改进方案 将两个项目的永久记忆机制、差异优劣、改进方案、计划详细总结到一个新的md文件中 将两个项目的永久记忆机制、差异优劣、改进方案、计划详细用英文总结到一个新的md文件中 按优先度实施改进，其中和LLM的集成，不采用本地LLM，而是直接使用opencode连接的模型 现在实现phase 3，开始前，先讨论过程、依赖 model的信息，在opencode中，用/models指令是可以获取到opencode可以使用的model，也可以用类似opencode --model（或者connect)等命令设定使用的model，默认model也可以在~/.config/opencode/opencode.json中设置，model的api key是可以用环境变量在~/.zshrc中设置的，又或者通过mcp从openrouter获取model，根据这些来思考如何传递或获取model的信息 根据之前对openclaw永久记忆机制的了解，openclaw是如何触发的？ 但我想改善一下，就是在当前会话结束前或新建会话前，能给用户一个提示和修改记忆的机会，这个想法是否合适？ 优先是会话结束前，TUI弹窗方式，设计为可选提示，会话结束前，问用户是否需要修改记忆 采用你的建议，开始前，请将整个项目推送到远程仓管https://github.com/nolan57/opencodeclaw.git，包括所有代码文件、md文档，排除所有由编译项目生成的文件，如果推送异常，提示用户手动操作 推送完成，继续实现phase 3 将已完成的整个永久机制用英文详细总结到一个新的.md文件中 有个问题需改善了，新建一个会话时，会提示无memories.json的异常，应该是没有的话，应该新建，另外，如果所有记忆都记录到同一个memeories.json是不是过大？ 将永久机制的日志不再满屏输出到终端，而是保存到日志文件，并输出到TUI的info区域中 opencode evolve memeories命令的作用是什么 opencode evolve memeories命令执行为空，没有任何记忆被保存，请检查原因 缺少中文关键词，这个正则匹配模式是硬编码的，应该用一个文件配置 将修改的情况更新到/Users/lpcw/Documents/opencode/docs/permanent-memory-system.md 有个疑问：什么是会话结束？ 添加当用户通过/new /sessions 指令新建会话或切换会话时是会话结束的一种来触发永久记忆机制 奇怪了，memories.json明明有内容，为何执行opencode evolve memories输出却是空？",
+    "sessionIDs": [
+      "ses_3592f8f00ffeDEv0GRIcM1YWEI"
+    ],
+    "createdAt": 1772338789314,
+    "lastUsedAt": 1772338789314,
+    "usageCount": 0
+  },
+  {
+    "id": "79c07f81-b97d-4f3a-9592-6781ca7a08d0",
+    "key": "git-workflow",
+    "value": "Make small, focused commits with clear messages",
+    "context": "分析项目永久记忆机制 对比 /Users/lpcw/Documents/openclaw/docs/memory-system.md，分析永久记忆的差异和优劣，给出改进方案 将两个项目的永久记忆机制、差异优劣、改进方案、计划详细总结到一个新的md文件中 将两个项目的永久记忆机制、差异优劣、改进方案、计划详细用英文总结到一个新的md文件中 按优先度实施改进，其中和LLM的集成，不采用本地LLM，而是直接使用opencode连接的模型 现在实现phase 3，开始前，先讨论过程、依赖 model的信息，在opencode中，用/models指令是可以获取到opencode可以使用的model，也可以用类似opencode --model（或者connect)等命令设定使用的model，默认model也可以在~/.config/opencode/opencode.json中设置，model的api key是可以用环境变量在~/.zshrc中设置的，又或者通过mcp从openrouter获取model，根据这些来思考如何传递或获取model的信息 根据之前对openclaw永久记忆机制的了解，openclaw是如何触发的？ 但我想改善一下，就是在当前会话结束前或新建会话前，能给用户一个提示和修改记忆的机会，这个想法是否合适？ 优先是会话结束前，TUI弹窗方式，设计为可选提示，会话结束前，问用户是否需要修改记忆 采用你的建议，开始前，请将整个项目推送到远程仓管https://github.com/nolan57/opencodeclaw.git，包括所有代码文件、md文档，排除所有由编译项目生成的文件，如果推送异常，提示用户手动操作 推送完成，继续实现phase 3 将已完成的整个永久机制用英文详细总结到一个新的.md文件中 有个问题需改善了，新建一个会话时，会提示无memories.json的异常，应该是没有的话，应该新建，另外，如果所有记忆都记录到同一个memeories.json是不是过大？ 将永久机制的日志不再满屏输出到终端，而是保存到日志文件，并输出到TUI的info区域中 opencode evolve memeories命令的作用是什么 opencode evolve memeories命令执行为空，没有任何记忆被保存，请检查原因 缺少中文关键词，这个正则匹配模式是硬编码的，应该用一个文件配置 将修改的情况更新到/Users/lpcw/Documents/opencode/docs/permanent-memory-system.md 有个疑问：什么是会话结束？ 添加当用户通过/new /sessions 指令新建会话或切换会话时是会话结束的一种来触发永久记忆机制 奇怪了，memories.json明明有内容，为何执行opencode evolve memories输出却是空？",
+    "sessionIDs": [
+      "ses_3592f8f00ffeDEv0GRIcM1YWEI"
+    ],
+    "createdAt": 1772338789316,
+    "lastUsedAt": 1772338789316,
+    "usageCount": 0
+  },
+  {
+    "id": "999f4a4b-b8ef-40a1-abcf-5822dffcff35",
+    "key": "refactoring-guidance",
+    "value": "Make small, incremental changes",
+    "context": "根据/Users/lpcw/Documents/opencode/docs/autoaduioprocessing.md的内容，结合对/Users/lpcw/Documents/PCS这个项目代码的分析，提出一个对音频文件进行处理自动化处理的方案 项目有两大目的，用/Users/lpcw/Documents/PCS/SingingVocoders的项目来生成训练声码器的数据，用/Users/lpcw/Documents/PCS/DiffSinger的项目来生成训练声学模型和方差模型的数据，涉及使用/Users/lpcw/Documents/PCS/audio-edit的工具对训练数据进行清洗，请进一步全面了解 将方案用英文总结到一个md文件 实现此方案 先实施3 继续实施其他部分，是先工作流还是先服务器？给出你的建议 先实施工作流 继续实施MCP服务器 用英文更新方案文档 vocoder flow need to run on conda env 'vocoder',and flow b need to run on conda env 'diffsinger',and cleaning need to run on conda env 'sola',and MFA need to run on conda env 'mfa',so ,how to do would be better on the auto processing on audios?",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772352330532,
+    "lastUsedAt": 1772352330532,
+    "usageCount": 0
+  },
+  {
+    "id": "fcb0828f-687f-4431-b943-f90a10993c24",
+    "key": "clear-communication",
+    "value": "Ensure that all stakeholders understand the task requirements and next steps. If unsure, ask for clarification before proceeding to avoid misunderstandings.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772356236445,
+    "lastUsedAt": 1772358850523,
+    "usageCount": 5
+  },
+  {
+    "id": "eda4fb93-b8db-423c-9c4d-00686903150c",
+    "key": "task-handoff",
+    "value": "When handing off a task, clearly communicate any pending actions or decisions needed to continue. This helps maintain workflow continuity.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772356236446,
+    "lastUsedAt": 1772378711449,
     "usageCount": 6
+  },
+  {
+    "id": "82f48df9-992a-4570-b46b-66675a8ce0d2",
+    "key": "documentation",
+    "value": "Document any assumptions, decisions, or dependencies related to the task. This aids in future reference and ensures consistency across similar tasks.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772356236446,
+    "lastUsedAt": 1772356377584,
+    "usageCount": 1
+  },
+  {
+    "id": "cb113eed-7d50-45da-804c-786b1555abaf",
+    "key": "task-understanding",
+    "value": "Ensure you fully understand the task before proceeding. If unclear, ask for clarification to avoid missteps.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. 这个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/MinLabel的作用是什么",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772356381757,
+    "lastUsedAt": 1772358850524,
+    "usageCount": 4
+  },
+  {
+    "id": "150ff0cd-9bd4-45c9-9a74-5a708e471e05",
+    "key": "tool-utilization",
+    "value": "Leverage available tools effectively to gather necessary information or complete tasks efficiently.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. 这个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/MinLabel的作用是什么",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772356381758,
+    "lastUsedAt": 1772356381758,
+    "usageCount": 0
+  },
+  {
+    "id": "95b52b56-1b29-4c89-a59e-4986f726f1af",
+    "key": "progress-monitoring",
+    "value": "Continuously assess your progress and be prepared to adjust your approach based on new insights or requirements.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. 这个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/MinLabel的作用是什么",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772356381759,
+    "lastUsedAt": 1772358850526,
+    "usageCount": 4
+  },
+  {
+    "id": "8c4fc0b0-20f3-48d9-9b1b-fafb4d466c12",
+    "key": "tool-usage",
+    "value": "Leverage tool calls effectively to gather necessary information or perform required actions, ensuring tasks are completed accurately.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. 这个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/MinLabel的作用是什么 这两个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/HubertFA 和 /Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/SomeInfer 的作用是什么",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772356531857,
+    "lastUsedAt": 1772356531857,
+    "usageCount": 0
+  },
+  {
+    "id": "6dd5dad9-4c2c-458d-aba7-411562201bfc",
+    "key": "documentation-reference",
+    "value": "Refer to documentation or source code (e.g., file paths) to understand the purpose and functionality of specific tools or applications.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. 这个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/MinLabel的作用是什么 这两个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/HubertFA 和 /Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/SomeInfer 的作用是什么",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772356531858,
+    "lastUsedAt": 1772356531858,
+    "usageCount": 0
+  },
+  {
+    "id": "1a6534fd-088f-4d93-999a-feea62c6db67",
+    "key": "codebase-exploration",
+    "value": "Always investigate unfamiliar directories and applications before making changes to understand their purpose and impact. Check documentation, README files, or source code to determine what each component does.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. 这个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/MinLabel的作用是什么 这两个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/HubertFA 和 /Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/SomeInfer 的作用是什么 给opencode安装/Users/lpcw/Documents/PCS/mcp_server 修改/Users/lpcw/Documents/PCS/mcp_server/MCP_CONFIG.md，删除for claude和for cursor的配置，添加for opencode的配置 修改/Users/lpcw/Documents/PCS/mcp_server/MCP_CONFIG.md，删除for claude和for cursor的配置，添加for opencode的配置",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772358860306,
+    "lastUsedAt": 1772358860306,
+    "usageCount": 0
+  },
+  {
+    "id": "32d8e019-c0c7-491a-a4d7-ef6a65b260a7",
+    "key": "configuration-management",
+    "value": "When updating configuration files, carefully review existing settings and ensure new configurations follow the same format and structure as previous entries. Keep backups before making changes.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. 这个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/MinLabel的作用是什么 这两个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/HubertFA 和 /Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/SomeInfer 的作用是什么 给opencode安装/Users/lpcw/Documents/PCS/mcp_server 修改/Users/lpcw/Documents/PCS/mcp_server/MCP_CONFIG.md，删除for claude和for cursor的配置，添加for opencode的配置 修改/Users/lpcw/Documents/PCS/mcp_server/MCP_CONFIG.md，删除for claude和for cursor的配置，添加for opencode的配置",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772358860308,
+    "lastUsedAt": 1772358860308,
+    "usageCount": 0
+  },
+  {
+    "id": "817c0499-8bfa-48ac-b24a-34bef42607c6",
+    "key": "tool-integration-setup",
+    "value": "When adding support for new tools, research their specific requirements and configuration needs beforehand to avoid compatibility issues during integration.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. 这个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/MinLabel的作用是什么 这两个/Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/HubertFA 和 /Users/lpcw/Documents/PCS/SingingVocoders/dataset-tools/src/apps/SomeInfer 的作用是什么 给opencode安装/Users/lpcw/Documents/PCS/mcp_server 修改/Users/lpcw/Documents/PCS/mcp_server/MCP_CONFIG.md，删除for claude和for cursor的配置，添加for opencode的配置 修改/Users/lpcw/Documents/PCS/mcp_server/MCP_CONFIG.md，删除for claude和for cursor的配置，添加for opencode的配置",
+    "sessionIDs": [
+      "ses_35805165effeHyLN6HRw4T02Qx"
+    ],
+    "createdAt": 1772358860308,
+    "lastUsedAt": 1772358860308,
+    "usageCount": 0
   }
 ]
