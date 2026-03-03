@@ -714,6 +714,10 @@ export class QQBotGateway {
     return this.ws?.readyState === WebSocket.OPEN
   }
 
+  getReconnectAttempts(): number {
+    return this.reconnectAttempts
+  }
+
   async stop(): Promise<void> {
     this.stopped = true
     this.stopHeartbeat()

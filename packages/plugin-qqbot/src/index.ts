@@ -119,7 +119,7 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
 
   const sessionsPath = input.directory + "/.qqbot/sessions.json"
 
-  const gateway = new QQBotGateway({
+  let gateway = new QQBotGateway({
     config,
     client: input.client,
     directory: input.directory,
@@ -141,7 +141,32 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
     publishLog(input.client, input.directory, PLUGIN_NAME, "error", `Failed to start: ${err}`)
   })
 
-  return {}
+  return {
+    "plugin.status": async () => ({
+      status: gateway.isConnected() ? "connected" : "disconnected",
+      metadata: { reconnectAttempts: gateway.getReconnectAttempts() },
+    }),
+
+    "plugin.restart": async () => {
+      try {
+        await gateway.stop()
+        gateway = new QQBotGateway({
+          config,
+          client: input.client,
+          directory: input.directory,
+          sessionsPath,
+          state: pluginState,
+          defaultAgent: config.defaultAgent,
+          maxChunkSize: 1500,
+          onStatus,
+        })
+        await gateway.start()
+        return { success: true }
+      } catch (error) {
+        return { success: false, error: String(error) }
+      }
+    },
+  }
 }
 
 export default plugin
