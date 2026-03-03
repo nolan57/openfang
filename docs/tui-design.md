@@ -1,43 +1,43 @@
-# OpenCode TUI 界面设计文档
+# OpenCode TUI Design Document
 
-## 1. 整体布局
+## 1. Overall Layout
 
-OpenCode TUI 采用**垂直分割 + 侧边栏**的布局模式，主要分为以下几个区域：
+OpenCode TUI uses a **vertical split + sidebar** layout pattern, divided into the following main areas:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         主内容区                                  │
+│                         Main Content Area                        │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │                      Header (可选)                           ││
+│  │                      Header (Optional)                      ││
 │  ├─────────────────────────────────────────────────────────────┤│
 │  │                                                              ││
-│  │                    Messages 消息区域                          ││
-│  │                    (可滚动)                                   ││
+│  │                    Messages Area                             ││
+│  │                    (Scrollable)                              ││
 │  │                                                              ││
-│  ├─────────────────────────────────────────────────────────────┤
-│  │                      Footer (可选)                            ││
-│  ├─────────────────────────────────────────────────────────────┤
-│  │                    Prompt 输入框                              ││
+│  ├─────────────────────────────────────────────────────────────┤│
+│  │                      Footer (Optional)                      ││
+│  ├─────────────────────────────────────────────────────────────┤│
+│  │                      Prompt Input                           ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                              │                                   │
 │  ┌───────────────────────────▼────────────────────────────────┐│
-│  │                      Sidebar (侧边栏)                        ││
-│  │                    (宽度 42 字符)                            ││
-│  │  - Context 信息                                             ││
-│  │  - MCP 服务器状态                                            ││
-│  │  - 插件状态                                                  ││
-│  │  - 定时任务                                                  ││
-│  │  - TODO 列表                                                ││
-│  │  - Diff 变更                                                ││
+│  │                      Sidebar                                ││
+│  │                    (42 characters wide)                     ││
+│  │  - Context Information                                      ││
+│  │  - MCP Server Status                                        ││
+│  │  - Plugin Status                                            ││
+│  │  - Scheduled Tasks                                          ││
+│  │  - TODO List                                                ││
+│  │  - Diff Changes                                            ││
 │  └──────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## 2. 页面结构
+## 2. Page Structure
 
-### 2.1 Home 页面 (首页)
+### 2.1 Home Page
 
-**位置**: `routes/home.tsx`
+**Location**: `routes/home.tsx`
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -46,47 +46,46 @@ OpenCode TUI 采用**垂直分割 + 侧边栏**的布局模式，主要分为以
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│   [提示词输入框]                              [发送按钮 / Ctrl+Enter]│
+│   [Prompt Input]                              [Send / Ctrl+Enter]│
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
-│  最近会话列表                                                   │
+│  Recent Sessions List                                           │
 │  - Session 1                      2024-01-15                   │
 │  - Session 2                      2024-01-14                   │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
-│  快捷操作:                                                      │
-│  /connect - 连接 provider                                        │
-│  /mcps    - 查看 MCP 服务器                                       │
+│  Quick Actions:                                                  │
+│  /connect - Connect provider                                     │
+│  /mcps    - View MCP servers                                    │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**组件**:
+**Components**:
+- `Logo`: OpenCode ASCII art logo
+- `Prompt`: Prompt input component
+- `Tips`: Usage tips
+- `MCP Status`: Shows number of connected MCP servers
 
-- `Logo`: OpenCode ASCII 艺术字 Logo
-- `Prompt`: 提示词输入组件
-- `Tips`: 使用技巧提示
-- `MCP状态`: 显示连接的 MCP 服务器数量
+### 2.2 Session Page
 
-### 2.2 Session 页面 (会话页面)
+**Location**: `routes/session/index.tsx`
 
-**位置**: `routes/session/index.tsx`
-
-#### 2.2.1 主消息区域
+#### 2.2.1 Main Message Area
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  # Session Title                              Context (15K 60%) │
+│  # Session Title                              Context (15K 60%)│
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  [User Message]                                    10:30 AM     │
 │  ─────────────────────────────────────────────────────────────  │
-│  你好，请帮我创建一个文件                                         │
+│  Hello, please help me create a file                            │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │  [Assistant]                                    Build Agent     │
 │  ▣                                                              │
-│  当然可以，我来帮你创建文件。                                      │
+│  Of course, I'll help you create the file.                     │
 │                                                                  │
 │  ┌─────────────────────────────────────────────────────────────┐│
 │  │ $ touch myfile.txt                                         ││
@@ -94,82 +93,80 @@ OpenCode TUI 采用**垂直分割 + 侧边栏**的布局模式，主要分为以
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │  [Thinking]                                                      │
-│  _Thinking: 用户想要创建一个文件，我需要使用 bash 工具...         │
+│  _Thinking: User wants to create a file, I need to use bash...│
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**消息类型**:
+**Message Types**:
 
-1. **UserMessage** (用户消息)
-   - 左侧边框带颜色标识 (根据 agent)
-   - 显示文件名/目录附件
-   - 显示时间戳 (可选)
+1. **UserMessage**
+   - Left border colored indicator (based on agent)
+   - Shows file/directory attachments
+   - Shows timestamp (optional)
 
-2. **AssistantMessage** (助手消息)
-   - 显示 Agent 名称和模型
-   - 显示执行耗时
-   - 显示 interrupted 状态
+2. **AssistantMessage**
+   - Shows Agent name and model
+   - Shows execution time
+   - Shows interrupted state
 
-3. **ToolCall** (工具调用)
-   - 内联工具: 图标 + 工具名 + 参数
-   - 块级工具: 完整输出，可展开/折叠
+3. **ToolCall**
+   - Inline tools: Icon + tool name + parameters
+   - Block-level tools: Full output, expandable/collapsible
 
-4. **Reasoning** (思考过程)
-   - 折叠显示
-   - 可通过设置切换显示/隐藏
+4. **Reasoning**
+   - Collapsed by default
+   - Can toggle show/hide via settings
 
-#### 2.2.2 Header (会话头)
+#### 2.2.2 Header
 
-**位置**: `routes/session/header.tsx`
+**Location**: `routes/session/header.tsx`
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  # Session Title                              Context  Cost    │
-│  Parent Session | Prev | Next (子会话时显示)                     │
+│  Parent Session | Prev | Next (shown for sub-sessions)          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-#### 2.2.3 Footer (页脚)
+#### 2.2.3 Footer
 
-**位置**: `routes/session/footer.tsx`
+**Location**: `routes/session/footer.tsx`
 
 ```
 ┌─────────────────────────────────────────────────────────────────┤
-│  /path/to/project                      /status  ⊙ 2 MCP  • 1 LSP │
+│  /path/to/project                      /status  ⊙ 2 MCP  • 1 LSP│
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**显示信息**:
+**Display Information**:
+- Current working directory
+- Connection status
+- MCP server count and status
+- LSP server count
+- Permission request count
 
-- 当前工作目录
-- 连接状态
-- MCP 服务器数量和状态
-- LSP 服务器数量
-- 权限请求数量
+#### 2.2.4 Prompt Input
 
-#### 2.2.4 Prompt 输入框
-
-**组件**: `component/prompt/index.tsx`
+**Component**: `component/prompt/index.tsx`
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  > [输入框 - 支持多行]                           [发送] [Ctrl+Enter]│
+│  > [Input - Multi-line Support]                 [Send] [Ctrl+Enter]│
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**功能**:
+**Features**:
+- Multi-line input (Shift+Enter for new line)
+- Command auto-completion
+- File drag & drop
+- History
 
-- 多行输入 (Shift+Enter 换行)
-- 命令自动补全
-- 文件拖拽
-- 历史记录
+### 2.3 Sidebar
 
-### 2.3 Sidebar (侧边栏)
+**Location**: `routes/session/sidebar.tsx`
 
-**位置**: `routes/session/sidebar.tsx`
-
-**宽度**: 42 字符
+**Width**: 42 characters
 
 ```
 ┌────────────────────────────────────────┐
@@ -199,25 +196,23 @@ OpenCode TUI 采用**垂直分割 + 侧边栏**的布局模式，主要分为以
 └────────────────────────────────────────┘
 ```
 
-**可折叠区块**:
+**Collapsible Sections**:
+1. **Context** - Context usage
+2. **MCP** - MCP server status
+3. **Plugins** - Plugin status and logs
+4. **Scheduler** - Scheduled tasks
+5. **Todo** - Todo list
+6. **Diff** - File changes
+7. **LSP** - LSP server status
 
-1. **Context** - 上下文使用情况
-2. **MCP** - MCP 服务器状态
-3. **Plugins** - 插件状态和日志
-4. **Scheduler** - 定时任务
-5. **Todo** - 待办事项
-6. **Diff** - 文件变更
-7. **LSP** - LSP 服务器状态
+## 3. Color Scheme
 
-## 3. 配色方案
+### 3.1 Theme System
 
-### 3.1 主题系统
+**Location**: `context/theme/`
 
-**位置**: `context/theme/`
-
-**支持的主题** (30+):
-
-- `opencode` - OpenCode 默认主题
+**Supported Themes** (30+):
+- `opencode` - OpenCode default theme
 - `catppuccin` / `catppuccin-frappe` / `catppuccin-macchiato`
 - `nord`
 - `dracula`
@@ -225,128 +220,128 @@ OpenCode TUI 采用**垂直分割 + 侧边栏**的布局模式，主要分为以
 - `tokyonight`
 - `github`
 - `gruvbox`
-- 等等...
+- And more...
 
-### 3.2 颜色变量
+### 3.2 Color Variables
 
 ```typescript
 ThemeColors {
-  primary: RGBA      // 主色
-  secondary: RGBA    // 辅色
-  accent: RGBA       // 强调色
-  error: RGBA        // 错误
-  warning: RGBA      // 警告
-  success: RGBA      // 成功
-  info: RGBA         // 信息
+  primary: RGBA      // Primary color
+  secondary: RGBA    // Secondary color
+  accent: RGBA       // Accent color
+  error: RGBA        // Error
+  warning: RGBA      // Warning
+  success: RGBA      // Success
+  info: RGBA         // Info
 
-  text: RGBA         // 主文字
-  textMuted: RGBA    // 辅助文字
+  text: RGBA         // Primary text
+  textMuted: RGBA    // Secondary text
 
-  background: RGBA        // 背景
-  backgroundPanel: RGBA   // 面板背景
-  backgroundElement: RGBA // 元素背景
+  background: RGBA        // Background
+  backgroundPanel: RGBA   // Panel background
+  backgroundElement: RGBA // Element background
 
-  border: RGBA        // 边框
-  borderActive: RGBA // 激活边框
+  border: RGBA        // Border
+  borderActive: RGBA // Active border
 
-  diffAdded: RGBA     // Diff 新增
-  diffRemoved: RGBA   // Diff 删除
+  diffAdded: RGBA     // Diff added
+  diffRemoved: RGBA   // Diff removed
 }
 ```
 
-## 4. 组件库
+## 4. Component Library
 
-### 4.1 布局组件
+### 4.1 Layout Components
 
-| 组件        | 描述                     |
-| ----------- | ------------------------ |
-| `box`       | 基础容器，支持 flex 布局 |
-| `scrollbox` | 可滚动容器，支持滚动条   |
-| `flex`      | Flex 容器                |
-| `grid`      | 网格布局                 |
+| Component | Description |
+|----------|-------------|
+| `box` | Basic container, supports flex layout |
+| `scrollbox` | Scrollable container with scrollbar |
+| `flex` | Flex container |
+| `grid` | Grid layout |
 
-### 4.2 展示组件
+### 4.2 Display Components
 
-| 组件       | 描述                |
-| ---------- | ------------------- |
-| `text`     | 文本显示            |
-| `code`     | 代码块 (带语法高亮) |
-| `markdown` | Markdown 渲染       |
-| `image`    | 图片显示            |
+| Component | Description |
+|----------|-------------|
+| `text` | Text display |
+| `code` | Code block (with syntax highlighting) |
+| `markdown` | Markdown rendering |
+| `image` | Image display |
 
-### 4.3 交互组件
+### 4.3 Interaction Components
 
-| 组件       | 描述     |
-| ---------- | -------- |
-| `button`   | 按钮     |
-| `input`    | 输入框   |
-| `checkbox` | 复选框   |
-| `select`   | 下拉选择 |
+| Component | Description |
+|----------|-------------|
+| `button` | Button |
+| `input` | Input field |
+| `checkbox` | Checkbox |
+| `select` | Dropdown select |
 
-### 4.4 对话框组件
+### 4.4 Dialog Components
 
-| 组件                | 描述       |
-| ------------------- | ---------- |
-| `Dialog`            | 基础对话框 |
-| `DialogModel`       | 模型选择   |
-| `DialogMCP`         | MCP 配置   |
-| `DialogSessionList` | 会话列表   |
-| `DialogTimeline`    | 消息时间线 |
-| `DialogHelp`        | 帮助文档   |
+| Component | Description |
+|----------|-------------|
+| `Dialog` | Basic dialog |
+| `DialogModel` | Model selection |
+| `DialogMCP` | MCP configuration |
+| `DialogSessionList` | Session list |
+| `DialogTimeline` | Message timeline |
+| `DialogHelp` | Help documentation |
 
-### 4.5 反馈组件
+### 4.5 Feedback Components
 
-| 组件       | 描述       |
-| ---------- | ---------- |
-| `Toast`    | 轻提示通知 |
-| `Spinner`  | 加载动画   |
-| `Progress` | 进度条     |
+| Component | Description |
+|----------|-------------|
+| `Toast` | Light notification |
+| `Spinner` | Loading animation |
+| `Progress` | Progress bar |
 
-## 5. 响应式布局
+## 5. Responsive Layout
 
-### 5.1 断点
+### 5.1 Breakpoints
 
-- **窄屏** (< 80 字符): 隐藏侧边栏，Header 内容垂直排列
-- **宽屏** (> 120 字符): 显示侧边栏
+- **Narrow** (< 80 chars): Hide sidebar, Header content arranged vertically
+- **Wide** (> 120 chars): Show sidebar
 
-### 5.2 侧边栏显示模式
+### 5.2 Sidebar Display Modes
 
-1. **Auto** (自动): 宽屏时自动显示
-2. **Show** (显示): 始终显示
-3. **Hide** (隐藏): 始终隐藏
-4. **Overlay** (覆盖): 窄屏时以覆盖层显示
+1. **Auto**: Auto-show on wide screens
+2. **Show**: Always show
+3. **Hide**: Always hide
+4. **Overlay**: Show as overlay on narrow screens
 
-## 6. 状态管理
+## 6. State Management
 
-### 6.1 全局状态 (Context)
+### 6.1 Global State (Context)
 
 ```typescript
-// 路由状态
+// Route state
 RouteContext: {
   ;(type, sessionID, initialPrompt)
 }
 
-// 同步状态
+// Sync state
 SyncContext: {
   ;(provider, session, message, part, mcp, plugin_status, scheduler_jobs)
 }
 
-// 主题状态
+// Theme state
 ThemeContext: {
   ;(theme, mode, setMode)
 }
 
-// 本地状态
+// Local state
 LocalContext: {
   ;(agent, model)
 }
 ```
 
-### 6.2 本地状态 (KV Store)
+### 6.2 Local State (KV Store)
 
 ```typescript
 kv.get(key: string, defaultValue: any)
-// 常用 key:
+// Common keys:
 // - sidebar: "auto" | "hide"
 // - thinking_visibility: boolean
 // - timestamps: "hide" | "show"
@@ -355,23 +350,23 @@ kv.get(key: string, defaultValue: any)
 // - header_visible: boolean
 ```
 
-## 7. 事件系统
+## 7. Event System
 
-### 7.1 TUI 事件
+### 7.1 TUI Events
 
 ```typescript
 TuiEvent = {
-  // 会话事件
+  // Session events
   SessionSelect: { sessionID: string }
   SessionDelete: { sessionID: string }
 
-  // 命令事件
+  // Command events
   CommandExecute: { command: string }
 
-  // Toast 事件
+  // Toast events
   ToastShow: { title?, message, variant, duration }
 
-  // 插件状态事件
+  // Plugin status events
   PluginStatus: {
     plugin: string
     status: "connected" | "disconnected" | "connecting" | "error"
@@ -379,16 +374,16 @@ TuiEvent = {
     error?: string
   }
 
-  // 调度任务事件
+  // Scheduler job events
   SchedulerJobStarted: { id, name? }
   SchedulerJobCompleted: { id, name? }
   SchedulerJobFailed: { id, name?, error? }
 }
 ```
 
-### 7.2 插件日志显示
+### 7.2 Plugin Log Display
 
-插件可以通过 `tui.plugin.status` 事件发送日志：
+Plugins can send logs via `tui.plugin.status` event:
 
 ```typescript
 await fetch("/tui/publish", {
@@ -407,67 +402,67 @@ await fetch("/tui/publish", {
 })
 ```
 
-日志显示在 Sidebar 的 Plugins 区块，最多显示 20 条，支持滚动。
+Logs display in Sidebar's Plugins section, max 20 entries, supports scrolling.
 
-## 8. 快捷键
+## 8. Keyboard Shortcuts
 
-### 8.1 全局快捷键
+### 8.1 Global Shortcuts
 
-| 快捷键     | 功能         |
-| ---------- | ------------ |
-| `Ctrl+C`   | 复制选中内容 |
-| `Esc`      | 取消选择     |
-| `Ctrl+X S` | 打开设置     |
+| Shortcut | Function |
+|----------|----------|
+| `Ctrl+C` | Copy selected content |
+| `Esc` | Cancel selection |
+| `Ctrl+X S` | Open settings |
 
-### 8.2 会话快捷键
+### 8.2 Session Shortcuts
 
-| 快捷键       | 功能         |
-| ------------ | ------------ |
-| `Ctrl+Enter` | 发送消息     |
-| `Ctrl+L`     | 清空输入     |
-| `/`          | 打开命令面板 |
+| Shortcut | Function |
+|----------|----------|
+| `Ctrl+Enter` | Send message |
+| `Ctrl+L` | Clear input |
+| `/` | Open command palette |
 
-### 8.3 导航快捷键
+### 8.3 Navigation Shortcuts
 
-| 快捷键                | 功能        |
-| --------------------- | ----------- |
-| `PageUp` / `PageDown` | 翻页        |
-| `Home` / `End`        | 跳转到首/末 |
-| `Ctrl+U` / `Ctrl+D`   | 半页滚动    |
+| Shortcut | Function |
+|----------|----------|
+| `PageUp` / `PageDown` | Page up/down |
+| `Home` / `End` | Jump to first/last |
+| `Ctrl+U` / `Ctrl+D` | Half page scroll |
 
-## 9. 技术栈
+## 9. Tech Stack
 
-- **框架**: SolidJS
-- **TUI 渲染**: @opentui/core
-- **状态管理**: SolidJS Context + Store
-- **样式**: 主题 JSON 配置 + CSS 变量
+- **Framework**: SolidJS
+- **TUI Rendering**: @opentui/core
+- **State Management**: SolidJS Context + Store
+- **Styling**: Theme JSON config + CSS variables
 
-## 10. 文件结构
+## 10. File Structure
 
 ```
 cli/cmd/tui/
-├── app.tsx                    # 主应用入口
+├── app.tsx                    # Main app entry
 ├── routes/
-│   ├── home.tsx              # 首页
+│   ├── home.tsx              # Home page
 │   └── session/
-│       ├── index.tsx         # 会话页面
-│       ├── header.tsx       # 会话头
-│       ├── footer.tsx       # 会话尾
-│       ├── sidebar.tsx       # 侧边栏
-│       ├── permission.tsx   # 权限提示
-│       ├── question.tsx     # 问题提示
-│       └── dialog-*.tsx     # 对话框组件
+│       ├── index.tsx         # Session page
+│       ├── header.tsx       # Session header
+│       ├── footer.tsx       # Session footer
+│       ├── sidebar.tsx       # Sidebar
+│       ├── permission.tsx   # Permission prompt
+│       ├── question.tsx     # Question prompt
+│       └── dialog-*.tsx     # Dialog components
 ├── component/
-│   ├── prompt/              # 输入框组件
-│   ├── dialog-*/            # 对话框组件
+│   ├── prompt/              # Input component
+│   ├── dialog-*/            # Dialog components
 │   └── ...
 ├── context/
-│   ├── theme.tsx            # 主题上下文
-│   ├── sync.tsx             # 同步上下文
-│   ├── route.tsx            # 路由上下文
+│   ├── theme.tsx            # Theme context
+│   ├── sync.tsx             # Sync context
+│   ├── route.tsx            # Route context
 │   └── ...
 └── ui/
-    ├── dialog-*.tsx         # UI 对话框
-    ├── toast.tsx            # 提示组件
+    ├── dialog-*.tsx         # UI dialogs
+    ├── toast.tsx            # Toast component
     └── ...
 ```

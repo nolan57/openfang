@@ -1,35 +1,35 @@
-# QQ Bot 消息发送问题修复记录
+# QQ Bot Message Sending Issue Fix Record
 
-## 问题描述
+## Issue Description
 
-QQ Bot 在处理用户纯文本消息时，出现以下错误：
+When processing user plain text messages, QQ Bot encountered the following errors:
 
 ```
 Error: undefined is not an object (evaluating 'url.indexOf')
 ```
 
-以及后续的消息发送错误：
+And subsequent message sending errors:
 
 ```
-Error: Failed to send C2C message: 400 - {"message":"消息被去重，请检查请求msgseq","code":40054005,"err_code":40054005}
+Error: Failed to send C2C message: 400 - {"message":"Message deduplicated, please check msgseq in request","code":40054005,"err_code":40054005}
 ```
 
-## 问题排查过程
+## Troubleshooting Process
 
-### 第一阶段：URL 错误
+### Phase 1: URL Error
 
-**错误信息**：`undefined is not an object (evaluating 'url.indexOf')`
+**Error:** `undefined is not an object (evaluating 'url.indexOf')`
 
-**排查步骤**：
+**Troubleshooting Steps:**
 
-1. 搜索代码中所有 `.indexOf` 调用
-2. 定位到 `prompt.ts:1056` 和 `message-v2.ts:539`
-3. 发现是处理 FilePart 时 URL 可能为 undefined
+1. Searched codebase for all `.indexOf` calls
+2. Located `prompt.ts:1056` and `message-v2.ts:539`
+3. Found that URL could be undefined when processing FilePart
 
-**修复**：
+**Fix:**
 
-- 在 `packages/opencode/src/session/prompt.ts` 添加 URL 存在性检查
-- 在 `packages/opencode/src/session/message-v2.ts` 添加防御性检查
+- Added URL existence check in `packages/opencode/src/session/prompt.ts`
+- Added defensive check in `packages/opencode/src/session/message-v2.ts`
 
 ```typescript
 // prompt.ts:1056
@@ -48,9 +48,9 @@ if (!part.url) {
 const url = new URL(part.url)
 ```
 
-### 第二阶段：Hono fetch 类型错误
+### Phase 2: Hono fetch Type Error
 
-**错误信息**：真正的根因是 Hono 4.10.7 的 fetch 在接收字符串 URL 时有 bug
+**Error:** The actual root cause was a bug in Hono 4.10.7's fetch when receiving string URLs
 
 ```
 at getPath (../../../node_modules/.bun/hono@4.10.7/node_modules/hono/dist/utils/url.js:70:17)
@@ -58,8 +58,8 @@ at fetch (src/plugin/index.ts:30:46)
 at promptStream (../sdk/js/src/client.ts:46:28)
 ```
 
-**修复**：
-在 `packages/opencode/src/plugin/index.ts` 中，将字符串 URL 转换为 Request 对象：
+**Fix:**
+In `packages/opencode/src/plugin/index.ts`, convert string URL to Request object:
 
 ```typescript
 fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -68,25 +68,25 @@ fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
 },
 ```
 
-### 第三阶段：QQ 消息去重错误
+### Phase 3: QQ Message Deduplication Error
 
-**错误信息**：`消息被去重，请检查请求msgseq`
+**Error:** `Message deduplicated, please check msgseq in request`
 
-**原因分析**：
+**Root Cause Analysis:**
 
-- QQ 机器人 API 对同一消息的多次回复有去重机制
-- 需要使用唯一的 `msg_seq` 参数来区分每条消息
-- 参考 qqbot (OpenClaw 实现) 的实现
+- QQ Bot API has deduplication mechanism for multiple replies to the same message
+- Need to use unique `msg_seq` parameter to distinguish each message
+- Referenced qqbot (OpenClaw implementation) for guidance
 
-**修复方案**：
+**Fix Solution:**
 
-#### 1. 添加限流检查 (gateway.ts)
+#### 1. Add Rate Limiting Check (gateway.ts)
 
-参考 qqbot 实现，添加消息回复限流检查：
+Referencing qqbot implementation, added message reply rate limiting:
 
 ```typescript
 const MESSAGE_REPLY_LIMIT = 4
-const MESSAGE_REPLY_TTL = 60 * 60 * 1000 // 1小时
+const MESSAGE_REPLY_TTL = 60 * 60 * 1000 // 1 hour
 
 interface MessageReplyRecord {
   count: number
@@ -135,7 +135,7 @@ function recordMessageReply(messageId: string): void {
 }
 ```
 
-#### 2. 在 sendReply 中使用限流检查 (gateway.ts)
+#### 2. Use Rate Limiting Check in sendReply (gateway.ts)
 
 ```typescript
 private async sendReply(ctx: MessageContext, content: string): Promise<void> {
@@ -167,9 +167,9 @@ private async sendReply(ctx: MessageContext, content: string): Promise<void> {
 }
 ```
 
-#### 3. 添加 msg_seq 生成器 (api.ts)
+#### 3. Add msg_seq Generator (api.ts)
 
-这是关键修复！QQ API 要求每条消息使用唯一的 `msg_seq`：
+This is the key fix! QQ API requires unique `msg_seq` for each message:
 
 ```typescript
 const msgSeqTracker = new Map<string, number>()
@@ -191,7 +191,7 @@ function getNextMsgSeq(msgId: string): number {
 }
 ```
 
-#### 4. 在发送消息时使用 msg_seq (api.ts)
+#### 4. Use msg_seq When Sending Messages (api.ts)
 
 ```typescript
 export async function sendC2CMessage(
@@ -223,35 +223,35 @@ export async function sendC2CMessage(
 }
 ```
 
-同样修复 `sendGroupMessage` 和 `sendChannelMessage`。
+Similarly fixed `sendGroupMessage` and `sendChannelMessage`.
 
-## 修改的文件
+## Modified Files
 
-1. `packages/opencode/src/session/prompt.ts` - 添加 FilePart URL 检查
-2. `packages/opencode/src/session/message-v2.ts` - 添加防御性检查
-3. `packages/opencode/src/plugin/index.ts` - 修复 Hono fetch 类型问题
-4. `packages/plugin-qqbot/src/gateway.ts` - 添加限流检查和消息记录
-5. `packages/plugin-qqbot/src/api.ts` - 添加 msg_seq 生成器和修复
+1. `packages/opencode/src/session/prompt.ts` - Added FilePart URL check
+2. `packages/opencode/src/session/message-v2.ts` - Added defensive check
+3. `packages/opencode/src/plugin/index.ts` - Fixed Hono fetch type issue
+4. `packages/plugin-qqbot/src/gateway.ts` - Added rate limiting check and message tracking
+5. `packages/plugin-qqbot/src/api.ts` - Added msg_seq generator and fixes
 
-## QQ 机器人 API 关键知识点
+## QQ Bot API Key Knowledge
 
-### 消息类型
+### Message Types
 
-- **被动消息**：带 `msg_id`，用于回复用户，必须在收到消息 60 分钟内回复，每条消息最多回复 5 次
-- **主动消息**：不带 `msg_id`，由机器人主动推送，每月每用户有限制（4 条）
+- **Passive messages**: With `msg_id`, used for replying to users, must reply within 60 minutes of receiving message, each message can be replied to at most 5 times
+- **Proactive messages**: Without `msg_id`, pushed by bot, limited per user per month (4 messages in sandbox environment)
 
-### msg_seq 的重要性
+### Importance of msg_seq
 
-- QQ API 使用 `msg_seq` 来区分对同一消息的多次回复
-- 必须为每条消息生成唯一的 `msg_seq`，否则会报去重错误
-- 使用时间戳 + 计数器确保唯一性
+- QQ API uses `msg_seq` to distinguish multiple replies to the same message
+- Must generate unique `msg_seq` for each message, otherwise deduplication error occurs
+- Use timestamp + counter to ensure uniqueness
 
-### 限流规则
+### Rate Limiting Rules
 
-- 被动消息：60 分钟内每消息最多回复 4 次
-- 主动消息：每月每用户 4 条（沙箱环境）
+- Passive messages: Maximum 4 replies per message within 60 minutes
+- Proactive messages: 4 messages per user per month (sandbox environment)
 
-## 参考文档
+## Reference Documentation
 
-- [QQ 机器人官方文档](https://bot.q.qq.com/wiki/)
-- 参考实现：`/Users/lpcw/Documents/opencode/qqbot/src/`
+- [QQ Bot Official Documentation](https://bot.q.qq.com/wiki/)
+- Reference implementation: `/Users/lpcw/Documents/opencode/qqbot/src/`

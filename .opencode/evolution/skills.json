@@ -1,0 +1,67 @@
+[
+  {
+    "id": "fc91b560-2acc-4726-9693-fb82d30648f9",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n",
+    "content": "# \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格\n\n## Description\n\nAuto-generated skill for: \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-03\n",
+    "triggerPatterns": [
+      "a0024456007641",
+      "2macdkdjrsi"
+    ],
+    "sessionID": "ses_34e91eca0ffemflCx9O0KvQ6bk",
+    "createdAt": 1772503371955,
+    "status": "draft"
+  },
+  {
+    "id": "533cc7db-ef83-4056-86b6-96d47110b349",
+    "name": "auto-websearch-task",
+    "description": "Auto-generated skill for \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n",
+    "content": "# \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格\n\n## Description\n\nAuto-generated skill for: \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n\n\n## Triggers\n\nThis skill activates when:\n- Working with websearch operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-03\n",
+    "triggerPatterns": [
+      "a0024456007641",
+      "2macdkdjrsi"
+    ],
+    "sessionID": "ses_34e90dbb1ffeKNY1ld1kkKY1cv",
+    "createdAt": 1772503487307,
+    "status": "draft"
+  },
+  {
+    "id": "5d28013e-609f-472f-b538-68bfdaeea7c6",
+    "name": "auto-websearch-task",
+    "description": "Auto-generated skill for \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n",
+    "content": "# \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格\n\n## Description\n\nAuto-generated skill for: \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n\n\n## Triggers\n\nThis skill activates when:\n- Working with websearch operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-03\n",
+    "triggerPatterns": [
+      "a0024456007641",
+      "2macdkdjrsi"
+    ],
+    "sessionID": "ses_34e8f8e96ffe8ryeybcSVBi02M",
+    "createdAt": 1772503576533,
+    "status": "draft"
+  },
+  {
+    "id": "e1aaebab-a7ce-4bf4-95f7-0326860db7f0",
+    "name": "auto-websearch-task",
+    "description": "Auto-generated skill for \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n",
+    "content": "# \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格\n\n## Description\n\nAuto-generated skill for: \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n\n\n## Triggers\n\nThis skill activates when:\n- Working with websearch operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-03\n",
+    "triggerPatterns": [
+      "a0024456007641",
+      "2macdkdjrsi"
+    ],
+    "sessionID": "ses_34e8f2333ffeEQxvoKxPDZVEg6",
+    "createdAt": 1772503606513,
+    "status": "draft"
+  },
+  {
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n",
+    "content": "# \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格\n\n## Description\n\nAuto-generated skill for: \"请分析A股股票002445和600764的技术指标和风险状况，生成简洁的汇报信息包括：1.当前价格和涨跌幅 2.技术信号(MACD/KDJ/RSI) 3.风险评分 4.操作建议\"\n\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with websearch operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-03\n",
+    "triggerPatterns": [
+      "a0024456007641",
+      "2macdkdjrsi"
+    ],
+    "sessionID": "ses_34e8d50ebffe3ZnNRNxIuCL8EL",
+    "id": "358432b8-b8ec-45bb-af13-acd74a769e1f",
+    "createdAt": 1772503714768,
+    "status": "draft"
+  }
+]
