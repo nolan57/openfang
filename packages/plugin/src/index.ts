@@ -261,4 +261,12 @@ export interface Hooks {
     error?: string
     metadata?: Record<string, unknown>
   }>
+  /**
+   * Trigger plugin recovery/restart
+   * Called when recovery manager detects failure and decides to restart
+   */
+  "plugin.restart"?: () => Promise<{
+    success: boolean
+    error?: string
+  }>
 }
