@@ -30,6 +30,7 @@ import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
 import { MemorySearchTool } from "./memory"
 import { ZeroClawTools, getClient } from "../zeroclaw"
+import { PluginRecovery } from "../plugin/recovery"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -57,6 +58,27 @@ export namespace ToolRegistry {
         custom.push(fromPlugin(id, def))
       }
     }
+
+    // Add plugin restart tool
+    custom.push({
+      id: "plugin_restart",
+      init: async () => ({
+        parameters: z.object({
+          plugin: z.string().describe("Plugin name to restart"),
+        }),
+        description: "Restart a failed plugin to recover its connection",
+        execute: async (args) => {
+          const pluginName = (args as { plugin: string }).plugin
+          const result = await PluginRecovery.restart(pluginName, async () => {
+            const hooks = await Plugin.list()
+            const hook = hooks.find((h) => h["plugin.restart"])
+            if (!hook) return { success: false, error: "Plugin does not support restart" }
+            return hook["plugin.restart"]!()
+          })
+          return { title: "Plugin Restart", output: JSON.stringify(result), metadata: {} }
+        },
+      }),
+    })
 
     return { custom }
   })
