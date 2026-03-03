@@ -13,6 +13,7 @@ import { NamedError } from "@opencode-ai/util/error"
 import { CopilotAuthPlugin } from "./copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "@gitlab/opencode-gitlab-auth"
 import { registerWebhookRoute } from "./webhook-registry"
+import { PluginRecovery } from "./recovery"
 
 export namespace Plugin {
   const log = Log.create({ service: "plugin" })
@@ -114,6 +115,13 @@ export namespace Plugin {
         }
       }
     }
+
+    // Start plugin recovery manager
+    const pluginList = hooks.map((h, i) => ({
+      name: Config.getPluginName(plugins[i] || `plugin-${i}`),
+      restart: h["plugin.restart"],
+    }))
+    PluginRecovery.start(pluginList)
 
     return {
       hooks,
