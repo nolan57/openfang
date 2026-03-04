@@ -1,313 +1,313 @@
-# OpenCode 自我进化与长程一致性系统
+# OpenCode Self-Evolving and Long-Range Consistency System
 
-**版本**: 1.0  
-**日期**: 2026-03-04  
-**状态**: ✅ 已完成 (100%)
-
----
-
-## 目录
-
-1. [概述](#概述)
-2. [架构总览](#架构总览)
-3. [核心模块](#核心模块)
-4. [完整流程](#完整流程)
-5. [使用指令](#使用指令)
-6. [数据模型](#数据模型)
-7. [安全机制](#安全机制)
-8. [集成方式](#集成方式)
-9. [快速开始](#快速开始)
+**Version**: 1.0  
+**Date**: 2026-03-04  
+**Status**: ✅ Complete (100%)
 
 ---
 
-## 概述
+## Table of Contents
 
-本系统实现了两个核心能力：
-
-1. **自我进化 (Self-Evolving)** - AI 自动收集信息、分析、生成改进、执行部署
-2. **长程一致性 (Long-Range Consistency)** - 跨时间、跨会话的记忆一致性和知识关联
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Core Modules](#core-modules)
+4. [Complete Flow](#complete-flow)
+5. [Commands](#commands)
+6. [Data Models](#data-models)
+7. [Safety Mechanisms](#safety-mechanisms)
+8. [Integration](#integration)
+9. [Quick Start](#quick-start)
 
 ---
 
-## 架构总览
+## Overview
+
+This system implements two core capabilities:
+
+1. **Self-Evolving** - AI automatically collects information, analyzes, generates improvements, and executes deployments
+2. **Long-Range Consistency** - Cross-time, cross-session memory consistency and knowledge correlation
+
+---
+
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           OpenCode 智能系统                                    │
+│                        OpenCode Intelligent System                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                    Layer 1: Researcher (研究层)                    │    │
-│  │  ├── Collector: 收集信息 (search/arxiv/github/pypi)              │    │
-│  │  └── Researcher: 生成研究提议 (相关性评分/风险评估)               │    │
+│  │                    Layer 1: Researcher                            │    │
+│  │  ├── Collector: Collect (search/arxiv/github/pypi)              │    │
+│  │  └── Researcher: Generate proposals (relevance/risk)           │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                    ↓                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                    Layer 2: Architect (规划层)                     │    │
-│  │  ├── NegativeMemory: 约束检查 (跳过已知失败)                       │    │
-│  │  ├── Architect: 决策 (approve/reject/human_review)               │    │
-│  │  ├── ConstraintLoader: 加载架构约束                                │    │
-│  │  └── SemanticAnchor: 语义相似度匹配                               │    │
+│  │                    Layer 2: Architect                            │    │
+│  │  ├── NegativeMemory: Filter known failures                       │    │
+│  │  ├── Architect: Decide (approve/reject/human_review)           │    │
+│  │  ├── ConstraintLoader: Load architecture constraints          │    │
+│  │  └── SemanticAnchor: Semantic similarity matching            │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                    ↓                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                    Layer 3: Engineer (执行层)                     │    │
-│  │  ├── Installer: 安装新技能                                        │    │
-│  │  ├── CodeSuggester: 生成代码建议                                  │    │
-│  │  └── NoteGenerator: 生成学习笔记                                  │    │
+│  │                    Layer 3: Engineer                            │    │
+│  │  ├── Installer: Install new skills                             │    │
+│  │  ├── CodeSuggester: Generate code suggestions                 │    │
+│  │  └── NoteGenerator: Generate learning notes                   │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                    ↓                                        │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │                    Layer 4: Critic + Safety (验证层)              │    │
-│  │  ├── Critic: 验证 + 自适应重试 (指数退避)                         │    │
-│  │  ├── Benchmark: 性能测量                                           │    │
-│  │  ├── Safety: Cooldown + 人工审批                                 │    │
-│  │  ├── Archive: 快照 + 回滚                                        │    │
-│  │  └── ConsistencyChecker: 一致性验证                               │    │
+│  │                    Layer 4: Critic + Safety                      │    │
+│  │  ├── Critic: Verify + adaptive retry (exponential backoff)     │    │
+│  │  ├── Benchmark: Performance measurement                        │    │
+│  │  ├── Safety: Cooldown + human approval                        │    │
+│  │  ├── Archive: Snapshots + rollback                            │    │
+│  │  └── ConsistencyChecker: Consistency validation               │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                     ↓
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        ZeroClaw (独立执行引擎)                               │
-│  - 执行 shell 命令                                                        │
-│  - 编译代码                                                              │
-│  - 重启服务                                                              │
-│  - 健康检查                                                              │
+│                     ZeroClaw (Independent Execution Engine)                  │
+│  - Execute shell commands                                                  │
+│  - Compile code                                                            │
+│  - Restart services                                                       │
+│  - Health checks                                                          │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 核心模块
+## Core Modules
 
-### 1. 知识图谱 (KnowledgeGraph)
+### 1. KnowledgeGraph
 
-统一存储所有实体和关系。
+Unified storage for all entities and relationships.
 
-**文件**: `src/learning/knowledge-graph.ts`
+**File**: `src/learning/knowledge-graph.ts`
 
 ```typescript
-// 节点类型
+// Node types
 type NodeType = "file" | "skill" | "memory" | "constraint" | "agenda"
 
-// 关系类型
+// Relationship types
 type RelationType = "depends_on" | "related_to" | "conflicts_with" | "derives_from" | "implements" | "may_affect"
 
 class KnowledgeGraph {
-  addNode(node) // 添加实体
-  addEdge(edge) // 添加关系
-  getRelatedNodes() // 获取关联节点
-  searchByContent() // 关键词搜索
+  addNode(node) // Add entity
+  addEdge(edge) // Add relationship
+  getRelatedNodes() // Get related nodes
+  searchByContent() // Keyword search
 }
 ```
 
-### 2. 变更影响追踪 (ChangeImpactTracker)
+### 2. ChangeImpactTracker
 
-代码变更时自动标记可能影响的记忆和约束。
+Automatically tracks affected memories and constraints when code changes.
 
-**文件**: `src/learning/change-impact.ts`
+**File**: `src/learning/change-impact.ts`
 
 ```typescript
 class ChangeImpactTracker {
   trackChange({ file, changed_by, changes_summary })
-  // 1. 查找相关 memories/constraints
-  // 2. 创建关联边
-  // 3. 标记可能过时
+  // 1. Find related memories/constraints
+  // 2. Create relationship edges
+  // 3. Mark as potentially outdated
 }
 ```
 
-### 3. 语义锚定 (SemanticAnchor)
+### 3. SemanticAnchor
 
-基于特征的相似度匹配。
+Feature-based similarity matching.
 
-**文件**: `src/learning/semantic-anchor.ts`
+**File**: `src/learning/semantic-anchor.ts`
 
 ```typescript
 class SemanticAnchor {
-  findSimilar(content, types, limit) // 找相似内容
-  findRelatedByContext(context) // 找相关记忆
-  findConflicting(content) // 找冲突
-  suggestConnections(newNode) // 建议连接
+  findSimilar(content, types, limit) // Find similar content
+  findRelatedByContext(context) // Find related memories
+  findConflicting(content) // Find conflicts
+  suggestConnections(newNode) // Suggest connections
 }
 ```
 
-### 4. 约束加载器 (ConstraintLoader)
+### 4. ConstraintLoader
 
-自动加载 ARCHITECTURE.md 和约束文件。
+Automatically loads ARCHITECTURE.md and constraint files.
 
-**文件**: `src/learning/constraint-loader.ts`
+**File**: `src/learning/constraint-loader.ts`
 
 ```typescript
 class ConstraintLoader {
-  loadFromProject(rootDir) // 加载项目约束
-  validateAgainstConstraints() // 验证约束
-  getConstraint(type) // 获取约束
+  loadFromProject(rootDir) // Load project constraints
+  validateAgainstConstraints() // Validate constraints
+  getConstraint(type) // Get constraints
 }
 ```
 
-### 5. 一致性检查器 (ConsistencyChecker)
+### 5. ConsistencyChecker
 
-定期检查知识图谱一致性。
+Periodic consistency validation of knowledge graph.
 
-**文件**: `src/learning/consistency-checker.ts`
+**File**: `src/learning/consistency-checker.ts`
 
 ```typescript
 class ConsistencyChecker {
-  runFullCheck() // 完整检查
-  // 检查类型:
-  // - 冲突 (conflict)
-  // - 过时 (outdated)
-  // - 孤立 (orphan)
-  // - 冗余 (redundant)
+  runFullCheck() // Full check
+  // Check types:
+  // - Conflict
+  // - Outdated
+  // - Orphan
+  // - Redundant
 }
 ```
 
-### 6. 自我进化触发器 (EvolutionTrigger)
+### 6. EvolutionTrigger
 
-检测变更并创建部署任务。
+Detects changes and creates deployment tasks.
 
-**文件**: `src/learning/evolution-trigger.ts`
+**File**: `src/learning/evolution-trigger.ts`
 
 ```typescript
 class EvolutionTrigger {
-  checkAndTrigger() // 检查并触发
-  detectCodeChanges() // 检测代码变更
-  detectNewSkills() // 检测新技能
-  startMonitoring() // 启动监控
+  checkAndTrigger() // Check and trigger
+  detectCodeChanges() // Detect code changes
+  detectNewSkills() // Detect new skills
+  startMonitoring() // Start monitoring
 }
 ```
 
-### 7. 执行器 (EvolutionExecutor)
+### 7. EvolutionExecutor
 
-通过 ZeroClaw 执行部署任务。
+Executes deployment tasks via ZeroClaw.
 
-**文件**: `src/learning/evolution-executor.ts`
+**File**: `src/learning/evolution-executor.ts`
 
 ```typescript
 class EvolutionExecutor {
-  executeTask(task) // 执行单个任务
-  executeAll() // 执行所有待处理任务
-  healthCheck() // 健康检查
-  // 特性:
-  // - 失败重试 (指数退避)
-  // - 自动回滚
-  // - 记录执行历史
+  executeTask(task) // Execute single task
+  executeAll() // Execute all pending tasks
+  healthCheck() // Health check
+  // Features:
+  // - Retry on failure (exponential backoff)
+  // - Automatic rollback
+  // - Record execution history
 }
 ```
 
 ---
 
-## 完整流程
+## Complete Flow
 
-### 触发方式
+### Trigger Methods
 
-1. **手动**: `/evolve` 指令
-2. **定时**: 定时任务 (需配置 cron)
+1. **Manual**: `/evolve` command
+2. **Scheduled**: Cron task (needs configuration)
 
-### 执行流程
-
-```
-用户触发 /evolve
-    ↓
-┌─ Cooldown 检查 ─────────────────────┐
-│  距离上次进化 > 24小时？            │
-└────────────────────────────────────┘
-    ↓ 是
-┌─ 1. Researcher (研究) ────────────┐
-│  搜索 arXiv/GitHub/PyPI            │
-│  生成 ResearchProposal             │
-└────────────────────────────────────┘
-    ↓
-┌─ 2. Architect (规划) ─────────────┐
-│  - Negative Memory 过滤已知失败     │
-│  - ConstraintLoader 加载约束        │
-│  - SemanticAnchor 找相似           │
-│  - 决策: 通过/拒绝/需审批          │
-└────────────────────────────────────┘
-    ↓
-┌─ 3. Archive 创建快照 ──────────────┐
-│  保存当前状态 (SHA256 校验)        │
-└────────────────────────────────────┘
-    ↓
-┌─ 4. Engineer (执行) ───────────────┐
-│  - 安装技能                       │
-│  - 生成代码建议                   │
-│  - 创建学习笔记                   │
-└────────────────────────────────────┘
-    ↓
-┌─ 5. Critic (验证) ────────────────┐
-│  - 运行测试                       │
-│  - 失败? → 重试 (最多3次)          │
-│  - 超过重试? → 回滚               │
-└────────────────────────────────────┘
-    ↓
-┌─ 6. KnowledgeGraph 记录 ──────────┐
-│  - 记录执行结果                   │
-│  - 更新关联边                     │
-└────────────────────────────────────┘
-    ↓
-┌─ 7. Reporter 生成报告 ─────────────┐
-│  输出 JSON 报告到文件              │
-└────────────────────────────────────┘
-    ↓
-完成 → 通知用户
-```
-
-### ZeroClaw 部署流程
+### Execution Flow
 
 ```
-部署任务创建 (docs/learning/tasks/{id}.json)
+User triggers /evolve
     ↓
-ZeroClaw 轮询检测到任务
+┌─ Cooldown Check ─────────────────────┐
+│  Is it > 24h since last evolution?    │
+└────────────────────────────────────┘
+    ↓ Yes
+┌─ 1. Researcher ────────────────────┐
+│  Search arXiv/GitHub/PyPI            │
+│  Generate ResearchProposal          │
+└────────────────────────────────────┘
     ↓
-标记为 executing
+┌─ 2. Architect ─────────────────────┐
+│  - NegativeMemory: filter failures  │
+│  - ConstraintLoader: load constraints│
+│  - SemanticAnchor: find similar    │
+│  - Decision: approve/reject/review │
+└────────────────────────────────────┘
     ↓
-执行 commands:
+┌─ 3. Archive Snapshot ──────────────┐
+│  Save current state (SHA256)       │
+└────────────────────────────────────┘
+    ↓
+┌─ 4. Engineer ─────────────────────┤
+│  - Install skills                   │
+│  - Generate code suggestions      │
+│  - Generate learning notes         │
+└────────────────────────────────────┘
+    ↓
+┌─ 5. Critic ────────────────────────┤
+│  - Run tests                        │
+│  - Fail? → Retry (max 3)          │
+│  - Retry exceeded? → Rollback     │
+└────────────────────────────────────┘
+    ↓
+┌─ 6. KnowledgeGraph Record ─────────┤
+│  - Record execution results        │
+│  - Update relationship edges      │
+└────────────────────────────────────┘
+    ↓
+┌─ 7. Reporter ──────────────────────┤
+│  Output JSON report to file         │
+└────────────────────────────────────┘
+    ↓
+Complete → Notify user
+```
+
+### ZeroClaw Deployment Flow
+
+```
+Deployment task created (docs/learning/tasks/{id}.json)
+    ↓
+ZeroClaw polls and detects task
+    ↓
+Mark as executing
+    ↓
+Execute commands:
   - git add -A
-  - git commit
-  - bun build
-  - restart
+  - git commit -m 'feat: ...'
+  - bun run build
+  - echo 'restart'
     ↓
-健康检查 (curl /health)
+Health check (curl /health)
     ↓
-成功 → 标记 completed
-失败 → 执行 rollback_commands → 标记 rolled_back
+Success → Mark completed
+Failure → Execute rollback_commands → Mark rolled_back
 ```
 
 ---
 
-## 使用指令
+## Commands
 
-### /evolve 指令
+### /evolve Command
 
-| 指令                | 功能             |
-| ------------------- | ---------------- |
-| `/evolve`           | 完整自我进化周期 |
-| `/evolve --execute` | 执行待处理任务   |
-| `/evolve --status`  | 查看状态         |
-| `/evolve --check`   | 一致性检查       |
-| `/evolve --trigger` | 仅触发任务创建   |
-| `/evolve --monitor` | 启动持续监控     |
+| Command             | Function                    |
+| ------------------- | --------------------------- |
+| `/evolve`           | Full self-evolution cycle   |
+| `/evolve --execute` | Execute pending tasks       |
+| `/evolve --status`  | View status                 |
+| `/evolve --check`   | Consistency check           |
+| `/evolve --trigger` | Trigger task creation only  |
+| `/evolve --monitor` | Start continuous monitoring |
 
-### 工具调用
+### Tool Usage
 
 ```typescript
 import { EvolveTool, LearningTool } from "./tool/learning"
 
-// 在会话中自动可用
+// Available in session automatically
 @evolve(mode="full")
 @learning(topics=["AI", "agent"])
 ```
 
 ---
 
-## 数据模型
+## Data Models
 
-### 数据库表
+### Database Tables
 
 ```sql
--- 知识节点
+-- Knowledge nodes
 CREATE TABLE knowledge_node (
   id TEXT PRIMARY KEY,
   type TEXT NOT NULL,        -- file/skill/memory/constraint/agenda
@@ -316,12 +316,12 @@ CREATE TABLE knowledge_node (
   title TEXT NOT NULL,
   content TEXT,
   embedding TEXT,            -- JSON vector
-  metadata TEXT,              -- JSON
+  metadata TEXT,             -- JSON
   time_created INTEGER NOT NULL,
   time_updated INTEGER NOT NULL
 );
 
--- 知识边
+-- Knowledge edges
 CREATE TABLE knowledge_edge (
   id TEXT PRIMARY KEY,
   source_id TEXT NOT NULL,
@@ -331,7 +331,7 @@ CREATE TABLE knowledge_edge (
   time_created INTEGER NOT NULL
 );
 
--- 失败记忆 (Negative Memory)
+-- Negative memory (failure record)
 CREATE TABLE negative_memory (
   id TEXT PRIMARY KEY,
   failure_type TEXT NOT NULL,
@@ -344,20 +344,20 @@ CREATE TABLE negative_memory (
   time_updated INTEGER NOT NULL
 );
 
--- 快照 (Archive Snapshot)
+-- Archive snapshot
 CREATE TABLE archive_snapshot (
   id TEXT PRIMARY KEY,
   snapshot_type TEXT NOT NULL,  -- pre_evolution/pre_skill_install/golden
   description TEXT NOT NULL,
   state TEXT NOT NULL,           -- JSON
-  checksum TEXT NOT NULL,        -- SHA256
+  checksum TEXT NOT NULL,       -- SHA256
   parent_id TEXT,
   is_golden INTEGER DEFAULT 0,
   time_created INTEGER NOT NULL,
   time_updated INTEGER NOT NULL
 );
 
--- 学习运行记录
+-- Learning run records
 CREATE TABLE learning_run (
   id TEXT PRIMARY KEY,
   source TEXT NOT NULL,
@@ -368,7 +368,7 @@ CREATE TABLE learning_run (
   time_created INTEGER NOT NULL
 );
 
--- 知识条目
+-- Knowledge entries
 CREATE TABLE knowledge (
   id TEXT PRIMARY KEY,
   run_id TEXT NOT NULL,
@@ -385,7 +385,7 @@ CREATE TABLE knowledge (
 );
 ```
 
-### 部署任务格式
+### Deployment Task Format
 
 ```json
 {
@@ -407,12 +407,12 @@ CREATE TABLE knowledge (
 
 ---
 
-## 安全机制
+## Safety Mechanisms
 
-### 1. Cooldown (冷却期)
+### 1. Cooldown
 
-- 默认 24 小时强制等待
-- 防止频繁修改
+- Default 24-hour mandatory wait
+- Prevents frequent changes
 
 ```typescript
 const safety = new Safety()
@@ -420,32 +420,32 @@ const result = await safety.checkCooldown()
 // { allowed: false, reason: "Cooldown period active", cooldown_remaining_ms: 3600000 }
 ```
 
-### 2. Golden Snapshot (金快照)
+### 2. Golden Snapshot
 
-- 始终保留一个已知稳定的版本
-- 失败时自动回滚
+- Always keeps a known stable version
+- Automatic rollback on failure
 
 ```typescript
 await safety.createGoldenSnapshot(state)
 await safety.rollbackToSafeState()
 ```
 
-### 3. 自动重试 (Self-Correction)
+### 3. Auto-Retry (Self-Correction)
 
-- 失败后指数退避重试 (2, 4, 8 秒)
-- 最多 3 次
+- Exponential backoff on failure (2, 4, 8 seconds)
+- Max 3 retries
 
-### 4. 变更风险评估
+### 4. Change Risk Assessment
 
 ```typescript
 const result = await safety.checkChangeRisk(files_affected, risk)
-// >50行或high risk → 需要人工审批
+// >50 lines or high risk → requires human approval
 ```
 
-### 5. 失败记忆 (Negative Memory)
+### 5. Negative Memory
 
-- 记录失败经验
-- 防止重复犯错
+- Records failure experience
+- Prevents repeating mistakes
 
 ```typescript
 const nm = new NegativeMemory()
@@ -460,9 +460,9 @@ const isBlocked = await nm.isBlocked("https://...")
 
 ---
 
-## 集成方式
+## Integration
 
-### 1. 配置 ZeroClaw
+### 1. Configure ZeroClaw
 
 `~/.config/opencode/opencode.json`:
 
@@ -478,7 +478,7 @@ const isBlocked = await nm.isBlocked("https://...")
 }
 ```
 
-### 2. 环境变量
+### 2. Environment Variables
 
 `~/.zshrc`:
 
@@ -489,53 +489,53 @@ export ZEROCLAW_AUTO_START=true
 export ZEROCLAW_START_PORT=42617
 ```
 
-### 3. 代码调用
+### 3. Code Usage
 
 ```typescript
 import { EvolutionTrigger, EvolutionExecutor, KnowledgeGraph, ConsistencyChecker } from "./learning"
 
-// 触发进化
+// Trigger evolution
 const trigger = new EvolutionTrigger()
 const result = await trigger.checkAndTrigger()
 
-// 执行任务
+// Execute tasks
 const executor = new EvolutionExecutor()
 const results = await executor.executeAll()
 
-// 检查一致性
+// Check consistency
 const checker = new ConsistencyChecker()
 const report = await checker.runFullCheck()
 ```
 
 ---
 
-## 快速开始
+## Quick Start
 
-### 1. 启动 OpenCode
+### 1. Start OpenCode
 
 ```bash
 opencode
 ```
 
-### 2. 触发自我进化
+### 2. Trigger Self-Evolution
 
 ```
 /evolve
 ```
 
-### 3. 查看状态
+### 3. View Status
 
 ```
 /evolve --status
 ```
 
-### 4. 执行待处理任务
+### 4. Execute Pending Tasks
 
 ```
 /evolve --execute
 ```
 
-### 5. 检查一致性
+### 5. Check Consistency
 
 ```
 /evolve --check
@@ -543,41 +543,41 @@ opencode
 
 ---
 
-## 文件结构
+## File Structure
 
 ```
 packages/opencode/src/learning/
-├── knowledge-graph.ts       # 统一知识图谱
-├── change-impact.ts       # 变更影响追踪
-├── semantic-anchor.ts     # 语义相似度
-├── constraint-loader.ts   # 约束加载
-├── consistency-checker.ts # 一致性检查
-├── evolution-trigger.ts  # 触发器
-├── evolution-executor.ts # 执行器
-├── negative.ts           # 失败记忆
-├── archive.ts            # 快照回滚
-├── safety.ts             # 安全机制
-├── reporter.ts           # 报告生成
-├── deployer.ts           # 部署任务
-├── collector.ts          # 信息收集
-├── analyzer.ts          # 分析
-├── researcher.ts         # 研究提议
-├── architect.ts         # 规划决策
-├── critic.ts            # 验证
-└── learning.sql.ts      # 数据库表
+├── knowledge-graph.ts       # Unified knowledge graph
+├── change-impact.ts        # Change impact tracking
+├── semantic-anchor.ts      # Semantic similarity
+├── constraint-loader.ts    # Constraint loading
+├── consistency-checker.ts  # Consistency checking
+├── evolution-trigger.ts   # Trigger
+├── evolution-executor.ts   # Executor
+├── negative.ts             # Failure memory
+├── archive.ts              # Snapshot/rollback
+├── safety.ts               # Safety mechanisms
+├── reporter.ts             # Report generation
+├── deployer.ts             # Deployment tasks
+├── collector.ts            # Information collection
+├── analyzer.ts             # Analysis
+├── researcher.ts            # Research proposals
+├── architect.ts            # Planning/decision
+├── critic.ts               # Verification
+└── learning.sql.ts         # Database tables
 ```
 
 ---
 
-## 总结
+## Summary
 
-| 能力       | 完成度  |
-| ---------- | ------- |
-| 自我进化   | ✅ 100% |
-| 长程一致性 | ✅ 100% |
-| 部署闭环   | ✅ 100% |
-| 安全机制   | ✅ 100% |
-| 用户指令   | ✅ 100% |
+| Capability             | Completion |
+| ---------------------- | ---------- |
+| Self-Evolving          | ✅ 100%    |
+| Long-Range Consistency | ✅ 100%    |
+| Deployment Loop        | ✅ 100%    |
+| Safety Mechanisms      | ✅ 100%    |
+| User Commands          | ✅ 100%    |
 
 ---
 
