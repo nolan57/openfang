@@ -40,4 +40,20 @@ export {
   defaultTriggerConfig,
 } from "./evolution-trigger"
 export { EvolutionExecutor, type ExecutionResult } from "./evolution-executor"
+export {
+  VectorStore,
+  type VectorType,
+  type EmbeddingModel,
+  type SearchResult,
+  type SearchOptions,
+} from "./vector-store"
+export { MediaStore, type Character, type Scene } from "./media-store"
+export {
+  MemoryCritic,
+  type MemoryCandidate,
+  type MemoryQualityScore,
+  type CriticDecision,
+  type VectorStoreWrapper,
+} from "./memory-critic"
+export { SelfRefactor, type CodeIssue, type RefactorResult, type GitHubConfig } from "./self-refactor"
 export * from "./learning.sql"

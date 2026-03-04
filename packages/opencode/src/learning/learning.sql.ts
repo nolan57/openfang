@@ -48,3 +48,46 @@ export const archive_snapshot = sqliteTable("archive_snapshot", {
   is_golden: integer().notNull().default(0), // boolean - golden snapshot for rollback
   ...Timestamps,
 })
+
+export const vector_memory = sqliteTable("vector_memory", {
+  id: text().primaryKey(),
+  node_type: text().notNull(), // "memory" | "skill" | "constraint" | "character" | "scene"
+  node_id: text().notNull(), // reference to entity ID
+  entity_title: text().notNull(), // entity title for display
+  vector_type: text().notNull(), // "content" | "code" | "constraint" | "character" | "scene" | "style"
+  embedding: text().notNull(), // JSON array of floats
+  model: text().notNull().default("simple"), // "simple" | "openai" | "local"
+  dimensions: integer().notNull().default(384),
+  metadata: text(), // JSON - additional data
+  ...Timestamps,
+})
+
+export const character_consistency = sqliteTable("character_consistency", {
+  id: text().primaryKey(),
+  character_name: text().notNull(),
+  character_description: text().notNull(), // Detailed description for generation
+  reference_image_url: text(), // Optional reference image
+  embedding: text().notNull(), // Character embedding for consistency
+  attributes: text().notNull(), // JSON - visual attributes (hair color, eye shape, etc.)
+  style_guide: text().notNull(), // JSON - style constraints
+  version: integer().notNull().default(1),
+  scene_count: integer().notNull().default(0),
+  ...Timestamps,
+})
+
+export const scene_graph = sqliteTable("scene_graph", {
+  id: text().primaryKey(),
+  episode: text().notNull(), // e.g., "ep01"
+  scene: text().notNull(), // e.g., "scene_01"
+  sequence_order: integer().notNull(),
+  title: text().notNull(),
+  description: text().notNull(),
+  characters: text().notNull(), // JSON array of character IDs
+  location: text(),
+  time_of_day: text(),
+  mood: text(),
+  camera_angle: text(),
+  transition_from_prev: text(), // "cut" | "fade" | "dissolve" | etc.
+  embedding: text().notNull(), // Scene embedding for similarity
+  ...Timestamps,
+})

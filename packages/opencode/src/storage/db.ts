@@ -2,6 +2,7 @@ import { Database as BunDatabase } from "bun:sqlite"
 import { drizzle, type SQLiteBunDatabase } from "drizzle-orm/bun-sqlite"
 import { migrate } from "drizzle-orm/bun-sqlite/migrator"
 import { type SQLiteTransaction } from "drizzle-orm/sqlite-core"
+import * as sqliteVec from "sqlite-vec"
 export * from "drizzle-orm"
 import { Context } from "../util/context"
 import { lazy } from "../util/lazy"
@@ -77,6 +78,9 @@ export namespace Database {
     sqlite.run("PRAGMA foreign_keys = ON")
     sqlite.run("PRAGMA wal_checkpoint(PASSIVE)")
 
+    // Load sqlite-vec extension for vector search
+    sqliteVec.load(sqlite)
+
     const db = drizzle({ client: sqlite, schema })
 
     // Apply schema migrations
@@ -94,6 +98,10 @@ export namespace Database {
 
     return db
   })
+
+  export function raw(): BunDatabase {
+    return Client().$client
+  }
 
   export type TxOrDb = Transaction | Client
 
