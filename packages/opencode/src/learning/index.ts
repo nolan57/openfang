@@ -22,4 +22,15 @@ export {
 } from "./safety"
 export { Reporter, type LearningReport } from "./reporter"
 export { Deployer, type DeploymentTask, type DeploymentType, type DeploymentStatus } from "./deployer"
+export {
+  KnowledgeGraph,
+  type KnowledgeNode,
+  type KnowledgeEdge,
+  type NodeType,
+  type RelationType,
+} from "./knowledge-graph"
+export { ChangeImpactTracker, type ImpactRecord } from "./change-impact"
+export { SemanticAnchor, type SimilarityResult } from "./semantic-anchor"
+export { ConstraintLoader, type Constraint } from "./constraint-loader"
+export { ConsistencyChecker, type ConsistencyIssue, type ConsistencyReport } from "./consistency-checker"
 export * from "./learning.sql"
