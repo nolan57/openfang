@@ -7,6 +7,7 @@ import { NoteGenerator } from "./notes"
 import { KnowledgeStore } from "./store"
 import { Installer } from "./installer"
 import { CodeSuggester, type CodeSuggestion } from "./suggester"
+import { Archive, type ArchiveState } from "./archive"
 import { Log } from "../util/log"
 
 const log = Log.create({ service: "learning-command" })
@@ -41,8 +42,11 @@ export async function runLearning(config?: Partial<LearningConfig>): Promise<Lea
   const store = new KnowledgeStore()
   const installer = new Installer()
   const suggester = new CodeSuggester()
+  const archive = new Archive()
 
   const runId = await store.createRun("manual", finalConfig.topics)
+
+  let preEvolutionSnapshot: string | null = null
 
   try {
     const items = await collector.collect()
@@ -75,6 +79,23 @@ export async function runLearning(config?: Partial<LearningConfig>): Promise<Lea
     )
     log.info("generated notes", { count: notes.length })
 
+    const hasSkillsToInstall = analyzed.some((a) => a.action === "install_skill")
+    const hasSuggestions = analyzed.some((a) => a.action === "code_suggestion")
+
+    if (hasSkillsToInstall || hasSuggestions) {
+      const currentState: ArchiveState = {
+        skills: [],
+        config: finalConfig as Record<string, unknown>,
+        memories: [],
+      }
+      preEvolutionSnapshot = await archive.createSnapshot(
+        "pre_evolution",
+        `Learning run ${runId}: ${analyzed.length} items analyzed`,
+        currentState,
+      )
+      log.info("pre_evolution_snapshot_created", { snapshotId: preEvolutionSnapshot })
+    }
+
     const installResults = await installer.install(analyzed)
     log.info("install results", { results: installResults })
 
@@ -104,6 +125,16 @@ export async function runLearning(config?: Partial<LearningConfig>): Promise<Lea
     }
   } catch (e) {
     log.error("learning run failed", { error: String(e) })
+
+    if (preEvolutionSnapshot) {
+      const rollbackState = await archive.rollback(preEvolutionSnapshot)
+      if (rollbackState) {
+        log.info("rolled_back_to_snapshot", { snapshotId: preEvolutionSnapshot })
+      } else {
+        log.error("rollback_failed", { snapshotId: preEvolutionSnapshot })
+      }
+    }
+
     return {
       success: false,
       collected: 0,

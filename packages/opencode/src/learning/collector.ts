@@ -39,6 +39,10 @@ export class Collector {
         const githubResults = await this.collectFromGithub(topic)
         items.push(...githubResults)
       }
+      if (this.config.sources.includes("pypi")) {
+        const pypiResults = await this.collectFromPyPI(topic)
+        items.push(...pypiResults)
+      }
     }
 
     return items.slice(0, this.config.max_items_per_run)
@@ -85,6 +89,54 @@ export class Collector {
       }))
     } catch (e) {
       log.error("github collection failed", { topic, error: String(e) })
+      return []
+    }
+  }
+
+  private async collectFromPyPI(topic: string): Promise<CollectedItem[]> {
+    try {
+      const response = await fetch(`https://pypi.org/simple/`)
+      if (!response.ok) {
+        throw new Error(`PyPI API error: ${response.status}`)
+      }
+
+      const text = await response.text()
+      const packages = text.split("\n").filter((l) => l.includes(topic.toLowerCase()))
+
+      const items: CollectedItem[] = []
+      for (const pkg of packages.slice(0, 5)) {
+        const pkgName = pkg.trim()
+        if (!pkgName) continue
+
+        try {
+          const infoResponse = await fetch(`https://pypi.org/pypi/${pkgName}/json`)
+          if (infoResponse.ok) {
+            const info = await infoResponse.json()
+            items.push({
+              source: "pypi" as LearningSource,
+              url: `https://pypi.org/project/${pkgName}/`,
+              title: `${pkgName} v${info.info.version}`,
+              content: `${info.info.summary}\n\n${info.info.description?.slice(0, 2000) || ""}`,
+            })
+          }
+        } catch {
+          log.warn("failed to fetch pypi package info", { package: pkgName })
+        }
+      }
+
+      if (items.length === 0) {
+        const searchResults = await this.exaSearch(`site:pypi.org ${topic}`, 3)
+        return searchResults.map((r) => ({
+          source: "pypi" as LearningSource,
+          url: r.url,
+          title: r.title,
+          content: r.text,
+        }))
+      }
+
+      return items
+    } catch (e) {
+      log.error("pypi collection failed", { topic, error: String(e) })
       return []
     }
   }

@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { LearningConfig, LearningSchedule, defaultLearningConfig } from "../../src/learning/config"
+import { LearningConfig, defaultLearningConfig } from "../../src/learning/config"
 
 describe("learning config", () => {
   test("default config has correct values", () => {
@@ -52,5 +52,31 @@ describe("note generator", () => {
     const { NoteGenerator } = await import("../../src/learning/notes")
     const generator = new NoteGenerator("docs/learning/notes")
     expect(generator).toBeDefined()
+  })
+})
+
+describe("negative memory module", () => {
+  test("negative memory module can be imported", async () => {
+    const nm = await import("../../src/learning/negative")
+    expect(nm.NegativeMemory).toBeDefined()
+  })
+
+  test("negative memory class can be instantiated", async () => {
+    const { NegativeMemory } = await import("../../src/learning/negative")
+    const instance = new NegativeMemory()
+    expect(instance).toBeDefined()
+  })
+})
+
+describe("archive module", () => {
+  test("archive module can be imported", async () => {
+    const arc = await import("../../src/learning/archive")
+    expect(arc.Archive).toBeDefined()
+  })
+
+  test("archive class can be instantiated", async () => {
+    const { Archive } = await import("../../src/learning/archive")
+    const instance = new Archive()
+    expect(instance).toBeDefined()
   })
 })

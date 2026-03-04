@@ -1,5 +1,9 @@
 # opencode database guide
 
+## Documentation
+
+- **Language**: Generate all documentation in English by default
+
 ## Database
 
 - **Schema**: Drizzle schema lives in `src/**/*.sql.ts`.

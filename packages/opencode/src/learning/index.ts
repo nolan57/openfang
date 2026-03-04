@@ -7,4 +7,17 @@ export { Installer, type InstallResult, type AnalyzedItemForInstall } from "./in
 export { CodeSuggester, type CodeSuggestion, type SuggestedChange } from "./suggester"
 export { runLearning, type LearningResult } from "./command"
 export { defaultLearningConfig, type LearningConfig, type LearningSource, type LearningSchedule } from "./config"
+export { NegativeMemory, type FailureType, type NegativeMemoryEntry } from "./negative"
+export { Archive, type SnapshotType, type ArchiveState } from "./archive"
+export { Researcher, type ResearchProposal } from "./researcher"
+export { Architect, type RefactoringPlan } from "./architect"
+export { Critic, type CriticResult, type BenchmarkResult } from "./critic"
+export { Benchmark, type MetricSnapshot, type BenchmarkReport } from "./benchmark"
+export {
+  Safety,
+  type SafetyConfig,
+  type SafetyCheckResult,
+  type HumanReviewRequest,
+  defaultSafetyConfig,
+} from "./safety"
 export * from "./learning.sql"

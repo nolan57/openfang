@@ -1,8 +1,10 @@
 import { Discovery } from "../skill/discovery"
 import { Skill } from "../skill/skill"
 import { Log } from "../util/log"
+import { NegativeMemory, type FailureType } from "./negative"
 
 const log = Log.create({ service: "learning-installer" })
+const negativeMemory = new NegativeMemory()
 
 export interface InstallResult {
   success: boolean
@@ -26,11 +28,30 @@ export class Installer {
     const skillItems = items.filter((i) => i.action === "install_skill")
 
     for (const item of skillItems) {
+      const isBlocked = await negativeMemory.isBlocked(item.url, item.title)
+      if (isBlocked) {
+        log.info("skipping_blocked_item", { url: item.url, title: item.title })
+        results.push({
+          success: false,
+          type: "none",
+          error: "blocked_by_negative_memory",
+        })
+        continue
+      }
+
       try {
         const result = await this.installSkill(item)
         results.push(result)
       } catch (e) {
         log.error("install failed", { item: item.title, error: String(e) })
+        const failureType: FailureType = this.categorizeError(e)
+        await negativeMemory.recordFailure({
+          failure_type: failureType,
+          description: `Failed to install skill: ${item.title}`,
+          context: { url: item.url, title: item.title, error: String(e) },
+          severity: failureType === "security_issue" ? 5 : 2,
+          blocked_items: [item.url, item.title],
+        })
         results.push({
           success: false,
           type: "none",
@@ -40,6 +61,15 @@ export class Installer {
     }
 
     return results
+  }
+
+  private categorizeError(error: unknown): FailureType {
+    const msg = String(error).toLowerCase()
+    if (msg.includes("security") || msg.includes("vulnerability")) return "security_issue"
+    if (msg.includes("conflict")) return "skill_conflict"
+    if (msg.includes("version")) return "incompatible_version"
+    if (msg.includes("dependency")) return "dependency_missing"
+    return "install_failed"
   }
 
   private async installSkill(item: AnalyzedItemForInstall): Promise<InstallResult> {

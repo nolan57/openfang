@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const LearningSource = z.enum(["search", "arxiv", "github", "blogs"])
+export const LearningSource = z.enum(["search", "arxiv", "github", "blogs", "pypi"])
 export type LearningSource = z.infer<typeof LearningSource>
 
 export const LearningSchedule = z.object({

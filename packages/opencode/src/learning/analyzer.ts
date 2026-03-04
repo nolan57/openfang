@@ -1,7 +1,9 @@
 import type { CollectedItem } from "./collector"
 import { Log } from "../util/log"
+import { NegativeMemory } from "./negative"
 
 const log = Log.create({ service: "learning-analyzer" })
+const negativeMemory = new NegativeMemory()
 
 export interface AnalyzedItem extends CollectedItem {
   summary: string
@@ -15,6 +17,12 @@ export class Analyzer {
     const results: AnalyzedItem[] = []
 
     for (const item of items) {
+      const isBlocked = await negativeMemory.isBlocked(item.url, item.title)
+      if (isBlocked) {
+        log.info("skipping_blocked_by_negative_memory", { url: item.url })
+        continue
+      }
+
       try {
         const analyzed = this.analyzeItem(item)
         results.push(analyzed)
