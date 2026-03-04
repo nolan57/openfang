@@ -6,6 +6,8 @@ export interface ZeroClawConfig {
   url: string
   token: string
   timeout?: number
+  autoStart?: boolean
+  startPort?: number
 }
 
 export interface ZeroClawChatRequest {
@@ -211,8 +213,10 @@ export async function getClient(): Promise<ZeroClawClient | undefined> {
   const { Env } = await import("../env")
   const { Config } = await import("../config/config")
 
-  const url = Env.get("ZEROCLAW_URL")
-  const token = Env.get("ZEROCLAW_TOKEN")
+  let url = Env.get("ZEROCLAW_URL")
+  let token = Env.get("ZEROCLAW_TOKEN")
+  let autoStart = Env.get("ZEROCLAW_AUTO_START") === "true"
+  let startPort = parseInt(Env.get("ZEROCLAW_START_PORT") ?? "42617")
 
   if (!url || !token) {
     const config = await Config.get()
@@ -220,14 +224,65 @@ export async function getClient(): Promise<ZeroClawClient | undefined> {
     if (!zeroclawConfig?.enabled || !zeroclawConfig?.url || !zeroclawConfig?.token) {
       return undefined
     }
-    client = new ZeroClawClient({
-      url: zeroclawConfig.url,
-      token: zeroclawConfig.token,
-      timeout: zeroclawConfig.timeout,
-    })
-    return client
+    url = zeroclawConfig.url
+    token = zeroclawConfig.token
+    autoStart = zeroclawConfig.autoStart ?? autoStart
+    startPort = zeroclawConfig.startPort ?? startPort
   }
 
   client = new ZeroClawClient({ url, token })
-  return client
+
+  const isRunning = await checkIfRunning(url, token)
+  if (isRunning) {
+    log.info("zeroclaw_already_running", { url })
+    return client
+  }
+
+  if (autoStart) {
+    log.info("zeroclaw_not_running_attempting_start", { url, startPort })
+    const started = await tryStartZeroClaw(startPort)
+    if (started) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const afterStart = await checkIfRunning(url, token)
+      if (afterStart) {
+        log.info("zeroclaw_started_successfully", { url })
+        return client
+      }
+    }
+    log.warn("zeroclaw_auto_start_failed", { url })
+  }
+
+  client = undefined
+  return undefined
+}
+
+async function checkIfRunning(url: string, token: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${url.replace(/\/$/, "")}/health`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(3000),
+    })
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+async function tryStartZeroClaw(port: number): Promise<boolean> {
+  try {
+    const { spawn } = await import("child_process")
+
+    const proc = spawn("zeroclaw", ["--port", String(port)], {
+      stdio: "ignore",
+      detached: true,
+    })
+    proc.unref()
+
+    log.info("zeroclaw_spawned", { port, pid: proc.pid })
+    return true
+  } catch (error) {
+    log.error("zeroclaw_spawn_failed", { error: String(error) })
+    return false
+  }
 }

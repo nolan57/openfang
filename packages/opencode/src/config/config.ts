@@ -1209,6 +1209,8 @@ export namespace Config {
           url: z.string().optional(),
           token: z.string().optional(),
           timeout: z.number().optional(),
+          autoStart: z.boolean().optional().describe("Auto-start ZeroClaw if not running"),
+          startPort: z.number().optional().describe("Port to use when auto-starting ZeroClaw"),
           routing: z
             .object({
               shell: z.boolean().optional(),
