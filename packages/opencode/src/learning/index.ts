@@ -20,4 +20,5 @@ export {
   type HumanReviewRequest,
   defaultSafetyConfig,
 } from "./safety"
+export { Reporter, type LearningReport } from "./reporter"
 export * from "./learning.sql"
