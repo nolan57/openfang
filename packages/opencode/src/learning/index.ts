@@ -33,4 +33,11 @@ export { ChangeImpactTracker, type ImpactRecord } from "./change-impact"
 export { SemanticAnchor, type SimilarityResult } from "./semantic-anchor"
 export { ConstraintLoader, type Constraint } from "./constraint-loader"
 export { ConsistencyChecker, type ConsistencyIssue, type ConsistencyReport } from "./consistency-checker"
+export {
+  EvolutionTrigger,
+  type EvolutionTriggerConfig,
+  type TriggerResult,
+  defaultTriggerConfig,
+} from "./evolution-trigger"
+export { EvolutionExecutor, type ExecutionResult } from "./evolution-executor"
 export * from "./learning.sql"
