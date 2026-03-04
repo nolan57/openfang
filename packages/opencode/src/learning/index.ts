@@ -21,4 +21,5 @@ export {
   defaultSafetyConfig,
 } from "./safety"
 export { Reporter, type LearningReport } from "./reporter"
+export { Deployer, type DeploymentTask, type DeploymentType, type DeploymentStatus } from "./deployer"
 export * from "./learning.sql"
