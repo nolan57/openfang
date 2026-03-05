@@ -1,190 +1,155 @@
-import { KnowledgeGraph, type KnowledgeNode } from "./knowledge-graph"
+import { readFile, access, readdir } from "fs/promises"
+import { resolve, join, relative } from "path"
 import { Log } from "../util/log"
-import * as fs from "fs"
-import * as path from "path"
 
 const log = Log.create({ service: "constraint-loader" })
 
 export interface Constraint {
   id: string
-  name: string
-  type: "architecture" | "security" | "performance" | "style" | "business"
-  description: string
-  rules: string[]
-  source_file: string
-  loaded_at: number
+  type: "allow" | "deny"
+  pattern: string
+  reason: string
+  severity: "low" | "medium" | "high" | "critical"
 }
 
+export interface ArchitectureConstraint {
+  version: string
+  lastUpdated: number
+  description: string
+  allowedModifications: string[]
+  deniedModifications: string[]
+  selfRefactorRules: Constraint[]
+  filePatterns: {
+    canModify: string[]
+    cannotModify: string[]
+    reviewRequired: string[]
+  }
+}
+
+/**
+ * Load and manage architecture constraints for self-modification
+ */
 export class ConstraintLoader {
-  private graph: KnowledgeGraph
-  private constraintCache: Map<string, Constraint>
-  private defaultSearchPaths: string[]
+  private constraints: ArchitectureConstraint | null = null
+  private projectDir: string
 
-  constructor() {
-    this.graph = new KnowledgeGraph()
-    this.constraintCache = new Map()
-    this.defaultSearchPaths = []
+  constructor(projectDir: string = ".") {
+    this.projectDir = projectDir
   }
 
-  setSearchPaths(paths: string[]): void {
-    this.defaultSearchPaths = paths
+  /**
+   * Load constraints from architecture.md
+   */
+  async load(): Promise<ArchitectureConstraint> {
+    if (this.constraints) return this.constraints
+
+    const constraintPath = resolve(this.projectDir, "constraints/architecture.md")
+
+    try {
+      const content = await readFile(constraintPath, "utf-8")
+      this.constraints = this.parseConstraints(content)
+      log.info("constraints_loaded", { path: constraintPath })
+    } catch (error) {
+      // Use default constraints if file doesn't exist
+      log.warn("using_default_constraints", { error: String(error) })
+      this.constraints = this.getDefaultConstraints()
+    }
+
+    return this.constraints
   }
 
-  async loadFromProject(rootDir: string): Promise<Constraint[]> {
-    const constraints: Constraint[] = []
+  /**
+   * Check if a modification is allowed
+   */
+  async canModify(filePath: string): Promise<{ allowed: boolean; reason?: string; requiresReview: boolean }> {
+    const constraints = await this.load()
+    const relPath = relative(this.projectDir, filePath)
 
-    const archPath = path.join(rootDir, "ARCHITECTURE.md")
-    if (fs.existsSync(archPath)) {
-      const constraint = await this.loadConstraint(archPath, "architecture")
-      constraints.push(constraint)
-    }
-
-    const stylePath = path.join(rootDir, ".opencode", "style-guide.md")
-    if (fs.existsSync(stylePath)) {
-      const constraint = await this.loadConstraint(stylePath, "style")
-      constraints.push(constraint)
-    }
-
-    const securityPaths = [path.join(rootDir, "SECURITY.md"), path.join(rootDir, ".opencode", "security.md")]
-    for (const sp of securityPaths) {
-      if (fs.existsSync(sp)) {
-        const constraint = await this.loadConstraint(sp, "security")
-        constraints.push(constraint)
+    // Check denied patterns first
+    for (const deny of constraints.deniedModifications) {
+      if (this.matchPattern(relPath, deny)) {
+        return { allowed: false, reason: `Matches denied pattern: ${deny}`, requiresReview: false }
       }
     }
 
-    const globalsPath = path.join(rootDir, "AGENTS.md")
-    if (fs.existsSync(globalsPath)) {
-      const constraint = await this.loadConstraint(globalsPath, "business")
-      constraints.push(constraint)
-    }
-
-    const searchDirs = [rootDir, ...this.defaultSearchPaths]
-    for (const dir of searchDirs) {
-      if (!fs.existsSync(dir)) continue
-
-      const docsDir = path.join(dir, "docs")
-      if (fs.existsSync(docsDir)) {
-        const docFiles = fs.readdirSync(docsDir).filter((f) => f.endsWith(".md"))
-        for (const docFile of docFiles) {
-          const docPath = path.join(docsDir, docFile)
-          const content = fs.readFileSync(docPath, "utf-8")
-          if (content.toLowerCase().includes("constraint") || content.toLowerCase().includes("rule")) {
-            const constraint = await this.loadConstraint(docPath, "business")
-            constraints.push(constraint)
-          }
-        }
+    // Check allowed patterns
+    for (const allow of constraints.allowedModifications) {
+      if (this.matchPattern(relPath, allow)) {
+        // Check if review is required
+        const requiresReview = constraints.filePatterns.reviewRequired.some((p) =>
+          this.matchPattern(relPath, p),
+        )
+        return { allowed: true, requiresReview }
       }
     }
 
-    log.info("constraints_loaded", {
-      count: constraints.length,
-      types: [...new Set(constraints.map((c) => c.type))],
-    })
-
-    return constraints
+    // Default: require review for unknown files
+    return { allowed: false, reason: "File not in allowed modification list", requiresReview: true }
   }
 
-  private async loadConstraint(filePath: string, type: Constraint["type"]): Promise<Constraint> {
-    const cached = this.constraintCache.get(filePath)
-    if (cached) return cached
-
-    const content = fs.readFileSync(filePath, "utf-8")
-    const rules = this.extractRules(content)
-    const name = path.basename(filePath, path.extname(filePath))
-
-    const constraint: Constraint = {
-      id: crypto.randomUUID(),
-      name,
-      type,
-      description: this.extractDescription(content),
-      rules,
-      source_file: filePath,
-      loaded_at: Date.now(),
-    }
-
-    this.constraintCache.set(filePath, constraint)
-
-    await this.graph.addNode({
-      type: "constraint",
-      entity_type: type,
-      entity_id: filePath,
-      title: constraint.name,
-      content: content.slice(0, 5000),
-      metadata: {
-        rules_count: rules.length,
-        loaded_at: constraint.loaded_at,
-      },
-    })
-
-    return constraint
-  }
-
-  private extractDescription(content: string): string {
-    const lines = content.split("\n")
-    for (let i = 0; i < Math.min(5, lines.length); i++) {
-      const line = lines[i].trim()
-      if (line && !line.startsWith("#") && !line.startsWith("```")) {
-        return line.slice(0, 200)
-      }
-    }
-    return ""
-  }
-
-  private extractRules(content: string): string[] {
-    const rules: string[] = []
-    const lines = content.split("\n")
-
-    let inList = false
-    for (const line of lines) {
-      const trimmed = line.trim()
-
-      if (trimmed.match(/^#{1,3}\s/)) {
-        if (trimmed.toLowerCase().includes("rule")) {
-          inList = true
-        }
-        continue
-      }
-
-      if (inList && (trimmed.startsWith("-") || trimmed.startsWith("*") || trimmed.startsWith("1."))) {
-        const rule = trimmed.replace(/^[-*\d.]\s*/, "").trim()
-        if (rule && rule.length > 10) {
-          rules.push(rule)
-        }
-      }
-
-      if (trimmed === "" && inList) {
-        break
-      }
-    }
-
-    return rules
-  }
-
-  async validateAgainstConstraints(
-    content: string,
+  /**
+   * Validate a proposed self-modification
+   */
+  async validateModification(
     filePath: string,
-  ): Promise<{ valid: boolean; violations: string[] }> {
+    changeType: "add" | "modify" | "delete",
+  ): Promise<{ valid: boolean; errors: string[]; warnings: string[] }> {
+    const errors: string[] = []
+    const warnings: string[] = []
+
+    const constraints = await this.load()
+    const canModify = await this.canModify(filePath)
+
+    if (!canModify.allowed) {
+      errors.push(canModify.reason || "Modification not allowed")
+    }
+
+    if (canModify.requiresReview) {
+      warnings.push("This modification requires human review")
+    }
+
+    // Check specific rules
+    for (const rule of constraints.selfRefactorRules) {
+      if (rule.type === "deny" && this.matchPattern(filePath, rule.pattern)) {
+        errors.push(`Violates constraint: ${rule.reason}`)
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings,
+    }
+  }
+
+  /**
+   * Get files that can be safely auto-modified
+   */
+  async getAutoModifiableFiles(): Promise<string[]> {
+    const constraints = await this.load()
+    return constraints.filePatterns.canModify
+  }
+
+  /**
+   * Get files that require human review
+   */
+  async getReviewRequiredFiles(): Promise<string[]> {
+    const constraints = await this.load()
+    return constraints.filePatterns.reviewRequired
+  }
+
+  /**
+   * Validate content against constraints (for consistency checker)
+   */
+  async validateAgainstConstraints(content: string, _entityId: string): Promise<{ valid: boolean; violations: string[] }> {
+    const constraints = await this.load()
     const violations: string[] = []
 
-    for (const [, constraint] of this.constraintCache) {
-      if (constraint.type === "security") {
-        const securityRules = constraint.rules.filter(
-          (r) => r.toLowerCase().includes("must not") || r.toLowerCase().includes("never"),
-        )
-        for (const rule of securityRules) {
-          if (this.violatesRule(content, rule)) {
-            violations.push(`Security: ${rule}`)
-          }
-        }
-      }
-
-      if (constraint.type === "style") {
-        const styleRules = constraint.rules.slice(0, 10)
-        for (const rule of styleRules) {
-          if (this.violatesRule(content, rule)) {
-            violations.push(`Style: ${rule}`)
-          }
+    // Check for denied patterns in content
+    for (const rule of constraints.selfRefactorRules) {
+      if (rule.type === "deny") {
+        if (content.includes(rule.pattern)) {
+          violations.push(`Content violates constraint: ${rule.reason}`)
         }
       }
     }
@@ -195,28 +160,107 @@ export class ConstraintLoader {
     }
   }
 
-  private violatesRule(content: string, rule: string): boolean {
-    const ruleLower = rule.toLowerCase()
-    const contentLower = content.toLowerCase()
+  private matchPattern(path: string, pattern: string): boolean {
+    // Simple glob-like matching
+    if (pattern === "*") return true
 
-    if (ruleLower.includes("must not") || ruleLower.includes("never")) {
-      const forbidden = ruleLower.replace(/.*(must not|never)\s+/, "")
-      return contentLower.includes(forbidden)
+    const regex = new RegExp(
+      "^" + pattern.replace(/\*/g, ".*").replace(/\?/g, ".") + "$",
+      "i",
+    )
+
+    return regex.test(path)
+  }
+
+  private parseConstraints(content: string): ArchitectureConstraint {
+    // Simple markdown parsing
+    const lines = content.split("\n")
+    const constraints: ArchitectureConstraint = {
+      version: "1.0",
+      lastUpdated: Date.now(),
+      description: "",
+      allowedModifications: [],
+      deniedModifications: [],
+      selfRefactorRules: [],
+      filePatterns: {
+        canModify: [],
+        cannotModify: [],
+        reviewRequired: [],
+      },
     }
 
-    return false
-  }
+    let section = ""
+    for (const line of lines) {
+      const trimmed = line.trim()
 
-  getConstraint(type?: Constraint["type"]): Constraint[] {
-    const all = [...this.constraintCache.values()]
-    if (type) {
-      return all.filter((c) => c.type === type)
+      if (trimmed.startsWith("# ")) {
+        constraints.description = trimmed.slice(2)
+      } else if (trimmed.startsWith("## ")) {
+        section = trimmed.slice(3).toLowerCase()
+      } else if (trimmed.startsWith("- ")) {
+        const item = trimmed.slice(2).replace(/\[.*\]$/, "").trim()
+
+        switch (section) {
+          case "allowed modifications":
+            constraints.allowedModifications.push(item)
+            constraints.filePatterns.canModify.push(item)
+            break
+          case "denied modifications":
+            constraints.deniedModifications.push(item)
+            constraints.filePatterns.cannotModify.push(item)
+            break
+          case "review required":
+            constraints.filePatterns.reviewRequired.push(item)
+            break
+        }
+      }
     }
-    return all
+
+    return constraints
   }
 
-  clearCache(): void {
-    this.constraintCache.clear()
-    log.info("constraint_cache_cleared")
+  private getDefaultConstraints(): ArchitectureConstraint {
+    return {
+      version: "1.0",
+      lastUpdated: Date.now(),
+      description: "Default architecture constraints",
+      allowedModifications: [
+        "packages/opencode/src/**/*.ts",
+        "packages/opencode/test/**/*.ts",
+      ],
+      deniedModifications: [
+        "packages/opencode/src/cli/cmd/*.ts",
+        "packages/opencode/src/index.ts",
+        "packages/opencode/package.json",
+      ],
+      selfRefactorRules: [
+        {
+          id: "no-delete-core",
+          type: "deny",
+          pattern: "**/index.ts",
+          reason: "Cannot delete core entry points",
+          severity: "critical",
+        },
+        {
+          id: "no-modify-package",
+          type: "deny",
+          pattern: "**/package.json",
+          reason: "Cannot modify package.json without human approval",
+          severity: "high",
+        },
+      ],
+      filePatterns: {
+        canModify: ["packages/opencode/src/**/*.ts", "packages/opencode/test/**/*.ts"],
+        cannotModify: ["packages/opencode/src/cli/cmd/*.ts", "packages/opencode/src/index.ts"],
+        reviewRequired: ["packages/opencode/src/**/*.ts"],
+      },
+    }
   }
+}
+
+/**
+ * Create constraint loader for project
+ */
+export function createConstraintLoader(projectDir: string): ConstraintLoader {
+  return new ConstraintLoader(projectDir)
 }

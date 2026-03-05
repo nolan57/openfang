@@ -69,4 +69,16 @@ export {
   defaultSelfEvolutionConfig,
   createSelfEvolutionScheduler,
 } from "./self-evolution-scheduler"
+export {
+  SkillSandbox,
+  type TestCase,
+  type SandboxResult,
+  type SandboxConfig,
+  generateTestCases,
+  createSkillSandbox,
+} from "./skill-sandbox"
+export {
+  type ArchitectureConstraint,
+  createConstraintLoader,
+} from "./constraint-loader"
 export * from "./learning.sql"
