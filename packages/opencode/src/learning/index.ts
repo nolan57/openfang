@@ -47,6 +47,12 @@ export {
   type SearchResult,
   type SearchOptions,
 } from "./vector-store"
+export {
+  HierarchicalMemory,
+  type ModuleSummary,
+  type ProjectOverview,
+  createHierarchicalMemory,
+} from "./hierarchical-memory"
 export { MediaStore, type Character, type Scene } from "./media-store"
 export {
   MemoryCritic,
@@ -56,4 +62,11 @@ export {
   type VectorStoreWrapper,
 } from "./memory-critic"
 export { SelfRefactor, type CodeIssue, type RefactorResult, type GitHubConfig } from "./self-refactor"
+export {
+  SelfEvolutionScheduler,
+  type SelfEvolutionConfig,
+  type SelfEvolutionResult,
+  defaultSelfEvolutionConfig,
+  createSelfEvolutionScheduler,
+} from "./self-evolution-scheduler"
 export * from "./learning.sql"
