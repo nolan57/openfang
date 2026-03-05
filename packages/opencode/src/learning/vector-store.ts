@@ -47,8 +47,17 @@ export class VectorStore {
   async init(): Promise<void> {
     if (this.initialized) return
 
-    await this.ensureVecTable()
-    await this.maybeSync()
+    try {
+      await this.ensureVecTable()
+    } catch {
+      // Continue without vec table
+    }
+    
+    // Only sync if vec table was created
+    if (this.vecTableInitialized) {
+      await this.maybeSync()
+    }
+    
     this.initialized = true
   }
 
@@ -137,10 +146,12 @@ export class VectorStore {
       this.vecTableInitialized = true
       log.info("vec_table_created")
     } catch (error) {
-      log.error("failed_to_create_vec_table", {
+      // vec0 not available - continue without vector search
+      log.warn("vec_table_not_available", {
         error: error instanceof Error ? error.message : String(error),
+        note: "Vector search will use text-based fallback",
       })
-      throw error
+      // Don't throw - allow app to continue with text-only search
     }
   }
 
