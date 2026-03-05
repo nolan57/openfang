@@ -13,6 +13,8 @@ export interface QQBotPluginConfig {
   streamingDelayMs: number
   streamingMinChunk: number
   responseMode: "blocking" | "streaming"
+  maxReconnectAttempts: number
+  maxChunkSize: number
 }
 
 export interface Attachment {

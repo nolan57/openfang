@@ -1,0 +1,20 @@
+{
+  "id": "ev-2026-0304-001",
+  "type": "code_change",
+  "status": "completed",
+  "title": "Add MCP Protocol Integration",
+  "description": "OpenCode already has MCP support! Core implementation exists in packages/opencode/src/mcp/ with server routes, CLI commands (mcp add, mcp list, mcp debug), OAuth, and config. This research task was based on incorrect analysis.",
+  "priority": "P0",
+  "source": "GitHub research (INCORRECT - OpenCode already has MCP)",
+  "changes": {
+    "files": [
+      "packages/opencode/src/mcp/index.ts",
+      "packages/opencode/src/mcp/oauth-provider.ts",
+      "packages/opencode/src/mcp/auth.ts"
+    ],
+    "diff_summary": "MCP already implemented - verify and expand MCP server ecosystem"
+  },
+  "notes": "Task marked completed - was based on incorrect research. OpenCode has full MCP support.",
+  "created_at": 1777939200000,
+  "updated_at": 1777939200000
+}

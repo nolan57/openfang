@@ -1,7 +1,57 @@
 import type { PluginInput } from "@opencode-ai/plugin"
 import type { QQBotPluginConfig } from "./types.js"
 
-export function loadConfig(_input: PluginInput): QQBotPluginConfig {
+export interface ConfigValidationResult {
+  valid: boolean
+  errors: string[]
+}
+
+export function validateConfig(config: QQBotPluginConfig): ConfigValidationResult {
+  const errors: string[] = []
+
+  if (!config.enabled) {
+    return { valid: true, errors: [] }
+  }
+
+  if (!config.appId || config.appId.trim() === "") {
+    errors.push("QQBOT_APP_ID is required")
+  }
+
+  if (!config.clientSecret || config.clientSecret.trim() === "") {
+    errors.push("QQBOT_CLIENT_SECRET is required")
+  }
+
+  if (config.appId && !/^\d+$/.test(config.appId)) {
+    errors.push("QQBOT_APP_ID must be numeric")
+  }
+
+  const validDmPolicies = ["pairing", "allowlist", "open", "disabled"]
+  if (!validDmPolicies.includes(config.dmPolicy)) {
+    errors.push(`QQBOT_DM_POLICY must be one of: ${validDmPolicies.join(", ")}`)
+  }
+
+  const validGroupPolicies = ["pairing", "allowlist", "open", "disabled"]
+  if (!validGroupPolicies.includes(config.groupPolicy)) {
+    errors.push(`QQBOT_GROUP_POLICY must be one of: ${validGroupPolicies.join(", ")}`)
+  }
+
+  const validResponseModes = ["blocking", "streaming"]
+  if (!validResponseModes.includes(config.responseMode)) {
+    errors.push(`QQBOT_RESPONSE_MODE must be one of: ${validResponseModes.join(", ")}`)
+  }
+
+  if (config.streamingDelayMs < 0) {
+    errors.push("QQBOT_STREAMING_DELAY_MS must be non-negative")
+  }
+
+  if (config.streamingMinChunk < 1) {
+    errors.push("QQBOT_STREAMING_MIN_CHUNK must be at least 1")
+  }
+
+  return { valid: errors.length === 0, errors }
+}
+
+export function loadConfig(input: PluginInput): QQBotPluginConfig {
   const config: QQBotPluginConfig = {
     enabled: Bun.env.QQBOT_ENABLED === "true",
     appId: Bun.env.QQBOT_APP_ID || "",
@@ -15,6 +65,16 @@ export function loadConfig(_input: PluginInput): QQBotPluginConfig {
     streamingDelayMs: parseInt(Bun.env.QQBOT_STREAMING_DELAY_MS || "300", 10),
     streamingMinChunk: parseInt(Bun.env.QQBOT_STREAMING_MIN_CHUNK || "200", 10),
     responseMode: (Bun.env.QQBOT_RESPONSE_MODE as "blocking" | "streaming") || "streaming",
+    maxReconnectAttempts: parseInt(Bun.env.QQBOT_MAX_RECONNECT_ATTEMPTS || "10", 10),
+    maxChunkSize: parseInt(Bun.env.QQBOT_MAX_CHUNK_SIZE || "1500", 10),
+  }
+
+  const validation = validateConfig(config)
+  if (!validation.valid) {
+    console.error("[qqbot] Configuration errors:")
+    for (const error of validation.errors) {
+      console.error(`  - ${error}`)
+    }
   }
 
   return config

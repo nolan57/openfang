@@ -12,6 +12,21 @@ import {
 const replyTimestamps: Map<string, number[]> = new Map()
 const MAX_REPLIES_PER_HOUR = 4
 const REPLY_WINDOW_MS = 60 * 60 * 1000
+const REPLY_CLEANUP_INTERVAL_MS = 5 * 60 * 1000
+
+function cleanupReplyTimestamps(): void {
+  const now = Date.now()
+  for (const [key, timestamps] of replyTimestamps) {
+    const recent = timestamps.filter((t) => now - t < REPLY_WINDOW_MS)
+    if (recent.length === 0) {
+      replyTimestamps.delete(key)
+    } else if (recent.length !== timestamps.length) {
+      replyTimestamps.set(key, recent)
+    }
+  }
+}
+
+setInterval(cleanupReplyTimestamps, REPLY_CLEANUP_INTERVAL_MS)
 
 export async function sendText(
   config: QQBotPluginConfig,
@@ -81,14 +96,22 @@ export async function sendText(
         } else if (item.type === "image") {
           await processImageForQQ(config, item.content, isGroup, targetId, msgId)
         }
-      } catch (err) {}
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        console.error(`[qqbot] Failed to send ${item.type} to ${targetId}: ${message}`)
+      }
     }
   } else {
-    if (recipient.startsWith("group_")) {
-      const groupId = recipient.replace("group_", "")
-      await sendGroupMessage(config, groupId, content, msgId)
-    } else {
-      await sendC2CMessage(config, recipient, content, msgId)
+    try {
+      if (recipient.startsWith("group_")) {
+        const groupId = recipient.replace("group_", "")
+        await sendGroupMessage(config, groupId, content, msgId)
+      } else {
+        await sendC2CMessage(config, recipient, content, msgId)
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(`[qqbot] Failed to send message to ${recipient}: ${message}`)
     }
   }
 }
@@ -150,6 +173,8 @@ async function processImageForQQ(
 
     return imageUrl
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`[qqbot] Failed to process image for ${targetId}: ${message}`)
     return null
   }
 }

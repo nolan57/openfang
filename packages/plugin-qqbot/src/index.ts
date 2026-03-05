@@ -126,7 +126,7 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
     sessionsPath,
     state: pluginState,
     defaultAgent: config.defaultAgent,
-    maxChunkSize: 1500,
+    maxChunkSize: config.maxChunkSize || 1500,
     onStatus,
   })
 
@@ -157,7 +157,7 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
           sessionsPath,
           state: pluginState,
           defaultAgent: config.defaultAgent,
-          maxChunkSize: 1500,
+          maxChunkSize: config.maxChunkSize || 1500,
           onStatus,
         })
         await gateway.start()

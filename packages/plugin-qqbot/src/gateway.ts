@@ -8,6 +8,8 @@ const SESSIONS_FILE = "sessions.json"
 
 const MESSAGE_REPLY_LIMIT = 4
 const MESSAGE_REPLY_TTL = 60 * 60 * 1000
+const INTENT_QUEUE_MAX_SIZE = 1000
+const CONNECTION_TIMEOUT_MS = 30000
 
 interface MessageReplyRecord {
   count: number
@@ -63,14 +65,16 @@ export class QQBotGateway {
   private ws: any = null
   private heartbeatInterval: any = null
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 10
+  private maxReconnectAttempts: number
   private sessionId: string | null = null
   private isIntentQueueProcessing = false
   private intentQueue: Array<{ type: string; data: unknown }> = []
+  private isConnecting = false
   private accessToken: string = ""
   private authError = false
   private stopped = false
   private currentStreamAbort: AbortController | null = null
+  private sessionsLoaded = false
 
   constructor(options: GatewayOptions) {
     this.config = options.config
@@ -81,6 +85,7 @@ export class QQBotGateway {
     this.maxChunkSize = options.maxChunkSize
     this.onStatus = options.onStatus
     this.pluginState = options.state
+    this.maxReconnectAttempts = options.config.maxReconnectAttempts || 10
   }
 
   private getSessionKey(ctx: MessageContext): string {
@@ -96,6 +101,11 @@ export class QQBotGateway {
   }
 
   private async loadSessions(): Promise<void> {
+    if (this.sessionsLoaded) {
+      return
+    }
+    this.sessionsLoaded = true
+
     try {
       const file = Bun.file(this.sessionsPath)
       if (await file.exists()) {
@@ -160,13 +170,30 @@ export class QQBotGateway {
   }
 
   private async connect(url: string): Promise<void> {
+    if (this.isConnecting) {
+      throw new Error("Already connecting")
+    }
+    this.isConnecting = true
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+      this.onStatus.error("Connection timeout")
+      if (this.ws) {
+        this.ws.close()
+      }
+    }, CONNECTION_TIMEOUT_MS)
+
     return new Promise((resolve, reject) => {
       this.ws = new WebSocket(url)
 
       this.ws.onopen = () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+          timeoutId = null
+        }
         this.onStatus.connected()
         this.onStatus.message("Connected to QQ Gateway")
         this.reconnectAttempts = 0
+        this.isConnecting = false
         this.startHeartbeat()
         resolve()
       }
@@ -176,6 +203,11 @@ export class QQBotGateway {
       }
 
       this.ws.onclose = (event: any) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+          timeoutId = null
+        }
+        this.isConnecting = false
         this.onStatus.disconnected()
         this.onStatus.message(`Disconnected: ${event.code}`)
         this.stopHeartbeat()
@@ -183,6 +215,11 @@ export class QQBotGateway {
       }
 
       this.ws.onerror = (err: any) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+          timeoutId = null
+        }
+        this.isConnecting = false
         this.onStatus.error("WebSocket error")
         reject(err)
       }
@@ -221,7 +258,7 @@ export class QQBotGateway {
     const GUILDS = 1 << 0
     const GUILD_MEMBERS = 1 << 1
     const GROUP_AND_C2C_EVENT = 1 << 25
-    const PUBLIC_GUILD_MESSAGES = (1 >>> 0) << 30
+    const PUBLIC_GUILD_MESSAGES = 1 << 30
 
     const intents = GUILDS | GUILD_MEMBERS | GROUP_AND_C2C_EVENT | PUBLIC_GUILD_MESSAGES
 
@@ -246,6 +283,11 @@ export class QQBotGateway {
   }
 
   private queueIntent(type: string, data: unknown): void {
+    if (this.intentQueue.length >= INTENT_QUEUE_MAX_SIZE) {
+      this.log("warning", `Intent queue full (${INTENT_QUEUE_MAX_SIZE}), dropping intent: ${type}`)
+      return
+    }
+
     this.intentQueue.push({ type, data })
 
     if (!this.isIntentQueueProcessing) {
@@ -514,12 +556,19 @@ export class QQBotGateway {
     currentSessionId = sessionInfo?.sessionId
 
     if (!currentSessionId) {
-      const sessionResult: any = await this.client.session.create({
-        query: { directory: this.directory },
-      })
-      currentSessionId = sessionResult.data.id as string
-      this.pluginState.sessions.set(sessionKey, { sessionId: currentSessionId, createdAt: Date.now() })
-      await this.saveSessions()
+      try {
+        const sessionResult: any = await this.client.session.create({
+          query: { directory: this.directory },
+        })
+        currentSessionId = sessionResult.data.id as string
+        this.pluginState.sessions.set(sessionKey, { sessionId: currentSessionId, createdAt: Date.now() })
+        await this.saveSessions()
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        this.onStatus.error(`Failed to create session: ${message}`)
+        await this.sendReply(ctx, `Sorry, I couldn't create a new session. Error: ${message}`)
+        return
+      }
     }
 
     const parts: Array<

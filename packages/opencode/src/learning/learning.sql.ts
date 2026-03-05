@@ -91,3 +91,10 @@ export const scene_graph = sqliteTable("scene_graph", {
   embedding: text().notNull(), // Scene embedding for similarity
   ...Timestamps,
 })
+
+export const vector_sync_meta = sqliteTable("vector_sync_meta", {
+  id: text().primaryKey(), // always "sync_state"
+  sync_version: integer().notNull().default(1),
+  last_synced_at: integer().notNull(), // timestamp
+  nodes_synced_count: integer().notNull().default(0),
+})

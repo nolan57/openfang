@@ -1,0 +1,22 @@
+{
+  "id": "ev-2026-0304-002",
+  "type": "code_change",
+  "status": "pending",
+  "title": "Implement 12-Factor Agents Principles",
+  "description": "Adopt production-ready LLM software principles from humanlayer/12-factor-agents: explicit agent boundaries, stateless execution, dependency isolation, configurable backpressure. Makes OpenCode enterprise-ready.",
+  "priority": "P1",
+  "source": "GitHub research: humanlayer/12-factor-agents",
+  "changes": {
+    "files": [
+      "packages/opencode/src/learning/safety.ts",
+      "packages/opencode/src/learning/architect.ts",
+      "docs/architecture.md"
+    ],
+    "diff_summary": "Add 12-factor agent principles to self-evolution system"
+  },
+  "commands": ["git add -A", "git commit -m 'feat(learning): implement 12-factor agents principles'", "bun run build"],
+  "rollback_commands": ["git reset --hard HEAD~1", "bun run build"],
+  "research_links": ["https://github.com/humanlayer/12-factor-agents"],
+  "created_at": 1777939200000,
+  "updated_at": 1777939200000
+}

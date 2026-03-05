@@ -79,7 +79,11 @@ export namespace Database {
     sqlite.run("PRAGMA wal_checkpoint(PASSIVE)")
 
     // Load sqlite-vec extension for vector search
-    sqliteVec.load(sqlite)
+    try {
+      sqliteVec.load(sqlite)
+    } catch (error) {
+      log.warn("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
+    }
 
     const db = drizzle({ client: sqlite, schema })
 

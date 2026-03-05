@@ -18,7 +18,7 @@ function getNextMsgSeq(msgId: string): number {
 
   if (msgSeqTracker.size > 1000) {
     const keys = Array.from(msgSeqTracker.keys())
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 800; i++) {
       msgSeqTracker.delete(keys[i])
     }
   }

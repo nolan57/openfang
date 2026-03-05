@@ -1,6 +1,7 @@
 import { Database } from "../storage/db"
-import { vector_memory } from "./learning.sql"
-import { eq } from "drizzle-orm"
+import { vector_memory, vector_sync_meta } from "./learning.sql"
+import { knowledge_nodes } from "./knowledge-graph"
+import { eq, sql, and } from "drizzle-orm"
 import { Log } from "../util/log"
 
 const log = Log.create({ service: "vector-store" })
@@ -52,44 +53,95 @@ export class VectorStore {
   }
 
   private async maybeSync(): Promise<void> {
-    const { knowledge_nodes } = await import("./knowledge-graph")
+    // Check if sync is needed using count-based approach with sync metadata
+    const needsSync = Database.use((db) => {
+      // Get total count of knowledge nodes
+      const nodesCount = db.select({ count: sql<number>`count(*)` }).from(knowledge_nodes).get() as { count: number } | undefined
+      const totalNodes = nodesCount?.count ?? 0
 
-    // Check if sync is needed
-    const hasUnsynced = Database.use((db) => {
-      // Find nodes in knowledge_nodes that don't exist in vector_memory
-      const allNodes = db.select({ id: knowledge_nodes.id }).from(knowledge_nodes).all() as { id: string }[]
+      if (totalNodes === 0) return false
 
-      if (allNodes.length === 0) return false
+      // Get sync metadata
+      const syncMeta = db.select().from(vector_sync_meta).where(eq(vector_sync_meta.id, "sync_state")).get()
 
-      // Check first node to see if we have any synced data
-      const firstNode = allNodes[0]
-      const exists = db
-        .select({ id: vector_memory.id })
-        .from(vector_memory)
-        .where(eq(vector_memory.id, firstNode.id))
-        .get()
+      // If no sync metadata exists, need to sync
+      if (!syncMeta) {
+        return true
+      }
 
-      return !exists
+      // Check if SYNC_VERSION mismatch - need to resync if version changed
+      if (syncMeta.sync_version !== this.SYNC_VERSION) {
+        log.info("sync_version_mismatch", {
+          stored: syncMeta.sync_version,
+          current: this.SYNC_VERSION,
+        })
+        return true
+      }
+
+      // Check if counts match - if not, need to sync
+      if (syncMeta.nodes_synced_count !== totalNodes) {
+        log.info("node_count_mismatch", {
+          synced: syncMeta.nodes_synced_count,
+          total: totalNodes,
+        })
+        return true
+      }
+
+      return false
     })
 
-    if (hasUnsynced) {
+    if (needsSync) {
       log.info("starting_knowledge_nodes_sync")
       const result = await this.syncKnowledgeNodes()
       log.info("sync_complete", result)
+
+      // Also clean up orphaned vectors after sync
+      const cleanupResult = await this.cleanupOrphanedVectors()
+      if (cleanupResult.removed > 0) {
+        log.info("cleanup_after_sync", cleanupResult)
+      }
     }
+  }
+
+  private async updateSyncMeta(syncedCount: number): Promise<void> {
+    const now = Date.now()
+    Database.use((db) => {
+      db.insert(vector_sync_meta)
+        .values({
+          id: "sync_state",
+          sync_version: this.SYNC_VERSION,
+          last_synced_at: now,
+          nodes_synced_count: syncedCount,
+        })
+        .onConflictDoUpdate({
+          target: vector_sync_meta.id,
+          set: {
+            sync_version: this.SYNC_VERSION,
+            last_synced_at: now,
+            nodes_synced_count: syncedCount,
+          },
+        })
+    })
   }
 
   async ensureVecTable(): Promise<void> {
     if (this.vecTableInitialized) return
 
     const sqlite = Database.raw()
-    sqlite.exec(`
-      CREATE VIRTUAL TABLE IF NOT EXISTS vec_vector_memory USING vec0(
-        embedding float[${this.defaultDimensions}]
-      )
-    `)
-    this.vecTableInitialized = true
-    log.info("vec_table_created")
+    try {
+      sqlite.exec(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS vec_vector_memory USING vec0(
+          embedding float[${this.defaultDimensions}]
+        )
+      `)
+      this.vecTableInitialized = true
+      log.info("vec_table_created")
+    } catch (error) {
+      log.error("failed_to_create_vec_table", {
+        error: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    }
   }
 
   async embedAndStore(entry: Omit<VectorEntry, "id" | "embedding" | "model" | "dimensions">): Promise<string> {
@@ -116,7 +168,10 @@ export class VectorStore {
     })
 
     const sqlite = Database.raw()
-    sqlite.exec(`INSERT INTO vec_vector_memory(rowid, embedding) VALUES ('${id}', vec_f32('${embeddingJson}'))`)
+    // Use parameterized query to prevent SQL injection
+    sqlite
+      .prepare("INSERT INTO vec_vector_memory(rowid, embedding) VALUES (?, vec_f32(?))")
+      .run(id, embeddingJson)
 
     log.info("vector_stored", { id, node_type: entry.node_type, vector_type: entry.vector_type })
     return id
@@ -322,7 +377,8 @@ export class VectorStore {
     })
 
     const sqlite = Database.raw()
-    sqlite.exec(`DELETE FROM vec_vector_memory WHERE rowid = '${nodeId}'`)
+    // Use parameterized query to prevent SQL injection
+    sqlite.prepare("DELETE FROM vec_vector_memory WHERE rowid = ?").run(nodeId)
 
     log.info("vectors_deleted", { node_id: nodeId })
   }
@@ -338,9 +394,49 @@ export class VectorStore {
     return { total_vectors: all.length, by_type }
   }
 
-  async syncKnowledgeNodes(): Promise<{ synced: number; skipped: number }> {
-    const { knowledge_nodes } = await import("./knowledge-graph")
+  /**
+   * Clean up orphaned vectors - entries in vector_memory that no longer exist in knowledge_nodes
+   */
+  async cleanupOrphanedVectors(): Promise<{ removed: number }> {
+    // Get all vector_memory IDs
+    const vectorIds = new Set(
+      Database.use((db) => db.select({ id: vector_memory.id }).from(vector_memory).all()).map((r) => r.id),
+    )
 
+    // Get all knowledge_nodes IDs
+    const nodeIds = new Set(
+      Database.use((db) => db.select({ id: knowledge_nodes.id }).from(knowledge_nodes).all()).map((r) => r.id),
+    )
+
+    // Find orphaned vector IDs
+    const orphanedIds = [...vectorIds].filter((id) => !nodeIds.has(id))
+
+    if (orphanedIds.length === 0) {
+      return { removed: 0 }
+    }
+
+    const sqlite = Database.raw()
+
+    // Delete orphaned vectors in batch
+    const deleteStmt = sqlite.prepare("DELETE FROM vec_vector_memory WHERE rowid = ?")
+    for (const id of orphanedIds) {
+      deleteStmt.run(id)
+    }
+
+    // Delete from vector_memory table
+    Database.use((db) => {
+      db.delete(vector_memory).where(sql`${vector_memory.id} IN (${orphanedIds.map((id) => sql`${id}`)})`)
+    })
+
+    // Update sync metadata
+    await this.updateSyncMeta(nodeIds.size)
+
+    log.info("orphaned_vectors_cleaned", { removed: orphanedIds.length })
+    return { removed: orphanedIds.length }
+  }
+
+  async syncKnowledgeNodes(): Promise<{ synced: number; skipped: number }> {
+    // Get all knowledge nodes
     const nodes = Database.use((db) => db.select().from(knowledge_nodes).all()) as {
       id: string
       type: string
@@ -351,53 +447,92 @@ export class VectorStore {
       embedding: string | null
     }[]
 
-    let synced = 0
+    if (nodes.length === 0) {
+      await this.updateSyncMeta(0)
+      return { synced: 0, skipped: 0 }
+    }
+
+    // Get existing vector_memory IDs in batch for efficiency
+    const existingIds = new Set(
+      Database.use((db) =>
+        db.select({ id: vector_memory.id }).from(vector_memory).all(),
+      ).map((r) => r.id),
+    )
+
+    // Separate nodes into those needing sync and those already synced
+    const nodesToSync: typeof nodes = []
     let skipped = 0
 
     for (const node of nodes) {
-      // Check if already exists in vector_memory
-      const existing = Database.use((db) =>
-        db.select({ id: vector_memory.id }).from(vector_memory).where(eq(vector_memory.id, node.id)).get(),
-      ) as { id: string } | undefined
-
-      if (existing) {
+      if (existingIds.has(node.id)) {
         skipped++
-        continue
-      }
-
-      // Generate or use existing embedding
-      let embedding: Float32Array
-      if (node.embedding) {
-        try {
-          embedding = new Float32Array(JSON.parse(node.embedding))
-        } catch {
-          embedding = await this.generateEmbedding(`${node.title} ${node.content || ""}`, "content")
-        }
       } else {
-        embedding = await this.generateEmbedding(`${node.title} ${node.content || ""}`, "content")
+        nodesToSync.push(node)
       }
+    }
 
-      const embeddingJson = JSON.stringify(Array.from(embedding))
+    if (nodesToSync.length === 0) {
+      await this.updateSyncMeta(nodes.length)
+      log.info("knowledge_nodes_synced", { synced: 0, skipped })
+      return { synced: 0, skipped }
+    }
 
-      Database.use((db) => {
-        db.insert(vector_memory).values({
+    // Process nodes in batches for better performance
+    const BATCH_SIZE = 50
+    const sqlite = Database.raw()
+
+    for (let i = 0; i < nodesToSync.length; i += BATCH_SIZE) {
+      const batch = nodesToSync.slice(i, i + BATCH_SIZE)
+      const now = Date.now()
+
+      // Prepare batch insert data
+      const vectorMemoryValues = batch.map((node) => {
+        let embedding: Float32Array
+        if (node.embedding) {
+          try {
+            embedding = new Float32Array(JSON.parse(node.embedding))
+          } catch {
+            embedding = this.simpleEmbedding(`${node.title} ${node.content || ""}`)
+          }
+        } else {
+          embedding = this.simpleEmbedding(`${node.title} ${node.content || ""}`)
+        }
+
+        return {
           id: node.id,
           node_type: node.type,
           node_id: node.entity_id,
           entity_title: node.title,
-          vector_type: "content",
-          embedding: embeddingJson,
+          vector_type: "content" as const,
+          embedding: JSON.stringify(Array.from(embedding)),
           model: this.defaultModel,
           dimensions: embedding.length,
           metadata: null,
+          time_created: now,
+          time_updated: now,
+        }
+      })
+
+      // Batch insert into vector_memory using transaction
+      Database.use((db) => {
+        db.transaction(() => {
+          for (const values of vectorMemoryValues) {
+            db.insert(vector_memory).values(values)
+          }
         })
       })
 
-      const sqlite = Database.raw()
-      sqlite.exec(`INSERT INTO vec_vector_memory(rowid, embedding) VALUES ('${node.id}', vec_f32('${embeddingJson}'))`)
-
-      synced++
+      // Batch insert into vec_vector_memory using parameterized queries
+      const insertStmt = sqlite.prepare("INSERT INTO vec_vector_memory(rowid, embedding) VALUES (?, vec_f32(?))")
+      for (const values of vectorMemoryValues) {
+        insertStmt.run(values.id, values.embedding)
+      }
     }
+
+    const synced = nodesToSync.length
+
+    // Update sync metadata
+    await this.updateSyncMeta(nodes.length)
 
     log.info("knowledge_nodes_synced", { synced, skipped })
     return { synced, skipped }
