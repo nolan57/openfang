@@ -81,4 +81,16 @@ export {
   type ArchitectureConstraint,
   createConstraintLoader,
 } from "./constraint-loader"
+export {
+  DynamicQueryGenerator,
+  type QueryGenerationResult,
+  createDynamicQueryGenerator,
+} from "./dynamic-query-generator"
+export {
+  RollbackManager,
+  type RollbackCheckpoint,
+  type RollbackResult,
+  type VerificationResult,
+  createRollbackManager,
+} from "./rollback-manager"
 export * from "./learning.sql"
