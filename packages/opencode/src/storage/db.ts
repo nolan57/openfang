@@ -66,15 +66,16 @@ export namespace Database {
   }
 
   export const Client = lazy(() => {
-    console.error("[sqlite-vec] === Client lazy function START ===")
-
     const sqlite = new BunDatabase(path.join(Global.Path.data, "opencode.db"), { create: true })
-    console.error("[sqlite-vec] Database opened")
 
     sqlite.run("PRAGMA journal_mode = WAL")
-    console.error("[sqlite-vec] PRAGMA journal_mode = WAL done")
+    sqlite.run("PRAGMA synchronous = NORMAL")
+    sqlite.run("PRAGMA busy_timeout = 5000")
+    sqlite.run("PRAGMA cache_size = -64000")
+    sqlite.run("PRAGMA foreign_keys = ON")
+    sqlite.run("PRAGMA wal_checkpoint(PASSIVE)")
 
-    // Load sqlite-vec extension EARLY, before any migrations
+    // Load sqlite-vec extension for vector search
     // Use Bun's native loadExtension API with the binary file path
     try {
       const platform = process.platform
@@ -95,57 +96,37 @@ export namespace Database {
         throw new Error(`Unsupported platform: ${platform}`)
       }
 
-      // Construct package name for platform-specific binary
       const archSuffix = arch === "arm64" ? "-arm64" : "-x64"
       const platformPkg = `sqlite-vec-${platformName}${archSuffix}`
 
-      // Use import.meta.dirname to find project root reliably
-      // Go up from packages/opencode/src/storage/db.ts to project root (4 levels up)
+      // Go up 4 levels from packages/opencode/src/storage/db.ts to project root
       const projectRoot = path.resolve(import.meta.dirname, "../../../..")
 
-      console.error(`[sqlite-vec] platform=${platform}, arch=${arch}, pkg=${platformPkg}, file=${vecFileName}`)
-      console.error(`[sqlite-vec] projectRoot=${projectRoot}`)
-
-      // Try multiple possible paths for sqlite-vec binary
       const possiblePaths = [
-        // Bun cache path in project root
         path.join(
           projectRoot,
           "node_modules/.bun",
           `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
           vecFileName,
         ),
-        // Root node_modules
         path.join(projectRoot, "node_modules", platformPkg, vecFileName),
-        // packages/opencode node_modules
         path.join(projectRoot, "packages/opencode/node_modules", platformPkg, vecFileName),
       ]
-
-      console.error(`[sqlite-vec] checking paths:`)
-      for (const p of possiblePaths) {
-        console.error(`[sqlite-vec]   - ${p} (exists: ${existsSync(p)})`)
-      }
 
       let loaded = false
       for (const vecPath of possiblePaths) {
         if (existsSync(vecPath)) {
-          console.error(`[sqlite-vec] loading from: ${vecPath}`)
           sqlite.loadExtension(vecPath)
-          console.error(`[sqlite-vec] loaded successfully!`)
           loaded = true
           break
         }
       }
 
       if (!loaded) {
-        console.error(`[sqlite-vec] FAILED to find extension in any path!`)
-        log.error("sqlite-vec binary not found in any expected location", { platform, arch, possiblePaths })
+        log.warn("sqlite-vec binary not found", { platform, arch, possiblePaths })
       }
     } catch (error) {
-      console.error(`[sqlite-vec] ERROR: ${error instanceof Error ? error.message : String(error)}`)
-      log.error("failed to load sqlite-vec extension", {
-        error: error instanceof Error ? error.message : String(error),
-      })
+      log.warn("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
     }
 
     const db = drizzle({ client: sqlite, schema })
@@ -156,7 +137,6 @@ export namespace Database {
         ? OPENCODE_MIGRATIONS
         : migrations(path.join(import.meta.dirname, "../../migration"))
     if (entries.length > 0) {
-      console.error("[sqlite-vec] about to apply migrations, count:", entries.length)
       log.info("applying migrations", {
         count: entries.length,
         mode: typeof OPENCODE_MIGRATIONS !== "undefined" ? "bundled" : "dev",
