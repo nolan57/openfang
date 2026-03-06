@@ -147,3 +147,55 @@ const results = await vectorStore.search("how does session prompt work", {
 - Package: packages/opencode
 - Total entries: 28
 - Total modules: 21
+
+---
+
+## packages/plugin-qqbot
+
+### Overview
+
+QQ Bot Plugin for OpenCode - integrates QQ messaging platform (Tencent QQ) with the AI assistant.
+
+### Generated Files
+
+| File                                                   | Description                                   |
+| ------------------------------------------------------ | --------------------------------------------- |
+| `packages/plugin-qqbot/code-index.json`                | Hierarchical module structure                 |
+| `packages/plugin-qqbot/code-index-vector-entries.json` | Flat vector entries ready for database import |
+
+### Module Index (6 modules)
+
+| Module   | Path            | Purpose                              |
+| -------- | --------------- | ------------------------------------ |
+| plugin   | src/index.ts    | Plugin entry point                   |
+| gateway  | src/gateway.ts  | WebSocket connection management      |
+| api      | src/api.ts      | QQ Bot API client                    |
+| outbound | src/outbound.ts | Outbound message handling            |
+| config   | src/config.ts   | Configuration loading and validation |
+| types    | src/types.ts    | TypeScript type definitions          |
+
+### Key Concepts
+
+- **WebSocket Gateway**: Real-time event connection to QQ API
+- **Session Management**: Per user/group/channel conversation continuity
+- **Message Streaming**: AI responses streamed to QQ with chunked sending
+- **Rate Limiting**: Max 4 replies per hour per recipient
+- **Media Handling**: Image upload via QQ Bot API
+- **Intent System**: Subscribe to specific event types
+- **Policy-based Access**: pairing, allowlist, open, disabled policies
+
+### Configuration
+
+Environment variables: `QQBOT_ENABLED`, `QQBOT_APP_ID`, `QQBOT_CLIENT_SECRET`, `QQBOT_DEFAULT_AGENT`, `QQBOT_DM_POLICY`, `QQBOT_GROUP_POLICY`, etc.
+
+### Vector Entries (11 total)
+
+- 6 module-level entries
+- 5 core file entries
+
+### Generated
+
+- Date: 2026-03-06
+- Package: packages/plugin-qqbot
+- Total entries: 11
+- Total modules: 6

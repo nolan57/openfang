@@ -1,0 +1,153 @@
+{
+  "format_version": "1.0",
+  "description": "Flat vector entries ready for database import",
+  "package": "plugin-qqbot",
+
+  "vector_entries": [
+    {
+      "node_id": "mod_plugin",
+      "entity_title": "QQ Bot Plugin Main",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "QQ Bot Plugin for OpenCode. Integrates QQ messaging platform with OpenCode AI assistant. Handles C2C (direct messages), group messages, and channel messages. Provides plugin status and restart hooks. Publishes logs and status to TUI. Manages sessions per user/group/channel.",
+      "metadata": {
+        "path": "src/index.ts",
+        "exports": ["plugin", "QQBotPlugin"],
+        "keywords": ["qqbot", "plugin", "qq", "messaging"]
+      }
+    },
+    {
+      "node_id": "mod_gateway",
+      "entity_title": "QQ Gateway",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "QQ Bot Gateway - WebSocket connection manager. Connects to QQ Bot API gateway using WebSocket. Handles authentication with access token. Manages intents for guilds, members, group and C2C events. Processes message events: C2C_MESSAGE_CREATE, GROUP_AT_MESSAGE_CREATE, AT_MESSAGE_CREATE. Implements session management per conversation. Supports message streaming with promptStream. Handles reconnection with exponential backoff.",
+      "metadata": {
+        "path": "src/gateway.ts",
+        "exports": ["QQBotGateway"],
+        "keywords": ["gateway", "websocket", "qq", "connection", "reconnect"]
+      }
+    },
+    {
+      "node_id": "mod_api",
+      "entity_title": "QQ API Client",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "QQ Bot API client. Provides functions for accessing QQ Bot API: getAccessToken, getGatewayUrl, sendC2CMessage, sendGroupMessage, sendChannelMessage. Handles media upload: uploadC2CMedia, uploadGroupMedia, sendC2CMediaMessage, sendGroupMediaMessage. Uses access token caching with expiration. Implements message sequence tracking.",
+      "metadata": {
+        "path": "src/api.ts",
+        "exports": [
+          "getAccessToken",
+          "getGatewayUrl",
+          "sendC2CMessage",
+          "sendGroupMessage",
+          "sendChannelMessage",
+          "MediaFileType"
+        ],
+        "keywords": ["api", "qq", "http", "message", "media", "upload"]
+      }
+    },
+    {
+      "node_id": "mod_outbound",
+      "entity_title": "Outbound Messaging",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Outbound message handler. Processes outgoing messages with special handling for <qqimg> tags. Parses image tags and uploads to QQ servers. Supports local paths, HTTP URLs, and base64 data. Implements rate limiting: max 4 replies per hour per recipient. Handles text and image messages to C2C and group recipients.",
+      "metadata": {
+        "path": "src/outbound.ts",
+        "exports": ["sendText"],
+        "keywords": ["outbound", "message", "image", "rate-limit"]
+      }
+    },
+    {
+      "node_id": "mod_config",
+      "entity_title": "Configuration",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Plugin configuration loader and validator. Loads config from environment variables: QQBOT_ENABLED, QQBOT_APP_ID, QQBOT_CLIENT_SECRET, QQBOT_DEFAULT_AGENT, QQBOT_MARKDOWN_SUPPORT, QQBOT_DM_POLICY, QQBOT_GROUP_POLICY, QQBOT_ALLOW_FROM, QQBOT_STREAMING_DELAY_MS, QQBOT_STREAMING_MIN_CHUNK, QQBOT_RESPONSE_MODE, QQBOT_MAX_RECONNECT_ATTEMPTS, QQBOT_MAX_CHUNK_SIZE. Validates config values and returns errors.",
+      "metadata": {
+        "path": "src/config.ts",
+        "exports": ["loadConfig", "validateConfig"],
+        "keywords": ["config", "environment", "validation"]
+      }
+    },
+    {
+      "node_id": "mod_types",
+      "entity_title": "TypeScript Types",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "TypeScript type definitions. Defines QQBotPluginConfig for plugin configuration. MessageContext for incoming messages with type C2C, GROUP, CHANNEL. PluginState for managing sessions, pending pairing, allowed users/groups. GatewayOptions for gateway constructor.",
+      "metadata": {
+        "path": "src/types.ts",
+        "exports": [
+          "QQBotPluginConfig",
+          "MessageContext",
+          "PluginState",
+          "GatewayOptions",
+          "SessionInfo",
+          "Attachment"
+        ],
+        "keywords": ["types", "typescript", "interfaces"]
+      }
+    },
+    {
+      "node_id": "file_index_ts",
+      "entity_title": "Plugin Entry Point",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Main plugin entry point. Exports default plugin and QQBotPlugin. Initializes QQBotGateway with config. Provides plugin.status and plugin.restart hooks. Publishes connection status and logs to TUI. Manages pluginState with sessions, pendingPairing, allowedUsers, allowedGroups.",
+      "metadata": { "path": "src/index.ts", "line_count": 174, "keywords": ["plugin", "entry", "hooks"] }
+    },
+    {
+      "node_id": "file_gateway_ts",
+      "entity_title": "Gateway Implementation",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "QQBotGateway class implementation. WebSocket connection management with heartbeat. Intent queue processing for events. Session management per user/group/channel. Message handling: #new (new session), #switch (switch session), #list (list sessions), #clear (clear session), #abort (abort streaming), #send (send to target). Handles C2C, group, and channel messages. Downloads attachments. Streams AI responses to QQ.",
+      "metadata": {
+        "path": "src/gateway.ts",
+        "line_count": 778,
+        "keywords": ["gateway", "websocket", "session", "streaming"]
+      }
+    },
+    {
+      "node_id": "file_api_ts",
+      "entity_title": "API Functions",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "QQ Bot API functions implementation. Token management with caching and expiration. HTTP client for all QQ API endpoints. Media upload support for images, videos, voice, files. Message sending with optional reply. Error handling and response parsing.",
+      "metadata": { "path": "src/api.ts", "line_count": 357, "keywords": ["api", "http", "token", "media"] }
+    },
+    {
+      "node_id": "file_outbound_ts",
+      "entity_title": "Outbound Handler",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Outbound message processing. Parses <qqimg> tags for inline images. Converts local paths, HTTP URLs, base64 to QQ-compatible format. Rate limiting with sliding window. Automatic cleanup of old timestamps.",
+      "metadata": { "path": "src/outbound.ts", "line_count": 180, "keywords": ["outbound", "image", "rate-limit"] }
+    },
+    {
+      "node_id": "file_config_ts",
+      "entity_title": "Config Loader",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Configuration loading and validation. Environment variable parsing with defaults. Config validation for required fields and valid ranges. Returns validation result with errors array.",
+      "metadata": { "path": "src/config.ts", "line_count": 81, "keywords": ["config", "validation", "env"] }
+    }
+  ],
+
+  "import_instructions": {
+    "target_table": "vector_memory",
+    "required_fields": {
+      "id": "Use node_id field as unique identifier",
+      "node_type": "Use type: module, file, function, concept",
+      "node_id": "Unique identifier from node_id field",
+      "entity_title": "Human-readable title",
+      "vector_type": "Use 'code' for code-related entries",
+      "embedding": "Generate from content_text field",
+      "model": "Use 'simple' for deterministic hash-based embeddings",
+      "dimensions": 384,
+      "metadata": "JSON.stringify of metadata object"
+    }
+  }
+}
