@@ -81,27 +81,40 @@ export namespace Database {
     // Use Bun's native loadExtension API with the binary file path
     try {
       const platform = process.platform
+      const arch = process.arch
       let vecFileName: string
 
       if (platform === "darwin") {
-        vecFileName = "libsqlite_vec.dylib"
+        vecFileName = arch === "arm64" ? "vec0.dylib" : "vec0.dylib"
       } else if (platform === "linux") {
-        vecFileName = "libsqlite_vec.so"
+        vecFileName = arch === "arm64" ? "vec0.so" : "vec0.so"
       } else if (platform === "win32") {
-        vecFileName = "sqlite_vec.dll"
+        vecFileName = "vec0.dll"
       } else {
         throw new Error(`Unsupported platform: ${platform}`)
       }
 
+      // Construct package name for platform-specific binary
+      const platformPkg = `sqlite-vec-${platform}${arch === "arm64" ? "-arm64" : arch === "x64" ? "-x64" : ""}`
+
       // Try multiple possible paths for sqlite-vec binary
       const possiblePaths = [
-        path.join(import.meta.dirname, "../../node_modules/sqlite-vec/dist", vecFileName),
+        // Bun cache path
         path.join(
-          import.meta.dirname,
-          "../../node_modules/.pnpm/sqlite-vec@0.1.7-alpha.2/node_modules/sqlite-vec/dist",
+          process.cwd(),
+          "node_modules/.bun",
+          `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
           vecFileName,
         ),
-        path.join(process.cwd(), "node_modules/sqlite-vec/dist", vecFileName),
+        // Root node_modules
+        path.join(process.cwd(), "node_modules", platformPkg, vecFileName),
+        // packages/opencode node_modules
+        path.join(
+          process.cwd(),
+          "packages/opencode/node_modules/.bun",
+          `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
+          vecFileName,
+        ),
       ]
 
       let loaded = false
@@ -115,7 +128,7 @@ export namespace Database {
       }
 
       if (!loaded) {
-        log.warn("sqlite-vec binary not found in any expected location")
+        log.warn("sqlite-vec binary not found in any expected location", { platform, arch })
       }
     } catch (error) {
       log.warn("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
