@@ -66,19 +66,15 @@ export namespace Database {
   }
 
   export const Client = lazy(() => {
-    console.error("[sqlite-vec] === Client lazy function started ===")
-    log.info("opening database", { path: path.join(Global.Path.data, "opencode.db") })
+    console.error("[sqlite-vec] === Client lazy function START ===")
 
     const sqlite = new BunDatabase(path.join(Global.Path.data, "opencode.db"), { create: true })
+    console.error("[sqlite-vec] Database opened")
 
     sqlite.run("PRAGMA journal_mode = WAL")
-    sqlite.run("PRAGMA synchronous = NORMAL")
-    sqlite.run("PRAGMA busy_timeout = 5000")
-    sqlite.run("PRAGMA cache_size = -64000")
-    sqlite.run("PRAGMA foreign_keys = ON")
-    sqlite.run("PRAGMA wal_checkpoint(PASSIVE)")
+    console.error("[sqlite-vec] PRAGMA journal_mode = WAL done")
 
-    // Load sqlite-vec extension for vector search
+    // Load sqlite-vec extension EARLY, before any migrations
     // Use Bun's native loadExtension API with the binary file path
     try {
       const platform = process.platform
