@@ -6,6 +6,9 @@ import { EvolutionExecutor } from "../learning/evolution-executor"
 import { ConsistencyChecker } from "../learning/consistency-checker"
 import { KnowledgeGraph } from "../learning/knowledge-graph"
 import { Safety } from "../learning/safety"
+import { Config } from "../config/config"
+import { Instance } from "../project/instance"
+import path from "path"
 import z from "zod"
 
 export const LearningTool = Tool.define("learning", async () => {
@@ -15,18 +18,23 @@ export const LearningTool = Tool.define("learning", async () => {
       topics: z
         .array(z.string())
         .optional()
-        .describe("Custom topics to learn about (default: AI, code generation, agent systems)"),
+        .describe("Custom topics to learn about (default: from config evolution.directions)"),
       sources: z
-        .array(z.enum(["search", "arxiv", "github"]))
+        .array(z.enum(["search", "arxiv", "github", "blogs", "pypi"]))
         .optional()
-        .describe("Sources to collect from (default: search, arxiv, github)"),
+        .describe("Sources to collect from (default: from config evolution.sources)"),
       max_items: z.number().optional().describe("Maximum items to collect per run (default: 10)"),
     }),
     async execute(args: any, ctx: any) {
+      const cfg = await Config.get()
+      const evolution = cfg.evolution ?? {}
+      const configTopics = evolution.directions ?? defaultLearningConfig.topics
+      const configSources = evolution.sources ?? defaultLearningConfig.sources
+
       const config = {
-        topics: args.topics ?? defaultLearningConfig.topics,
-        sources: args.sources ?? defaultLearningConfig.sources,
-        max_items_per_run: args.max_items ?? defaultLearningConfig.max_items_per_run,
+        topics: args.topics ?? configTopics,
+        sources: args.sources ?? configSources,
+        max_items_per_run: args.max_items ?? evolution.maxItemsPerRun ?? defaultLearningConfig.max_items_per_run,
       }
 
       await ctx.ask({
@@ -60,12 +68,15 @@ export const EvolveTool = Tool.define("evolve", async () => {
         .optional()
         .default("full")
         .describe("Evolution mode"),
-      topics: z.array(z.string()).optional().describe("Custom topics"),
+      topics: z.array(z.string()).optional().describe("Custom topics (default: from config evolution.directions)"),
     }),
     async execute(args: any, ctx: any) {
       const mode = args.mode ?? "full"
       const graph = new KnowledgeGraph()
       const safety = new Safety()
+      const cfg = await Config.get()
+      const evolution = cfg.evolution ?? {}
+      const configTopics = evolution.directions ?? defaultLearningConfig.topics
 
       if (mode === "status") {
         const stats = await graph.getStats()
@@ -75,7 +86,7 @@ export const EvolveTool = Tool.define("evolve", async () => {
 
         return {
           title: "Evolution Status",
-          output: `📊 Knowledge Graph: ${stats.nodes} nodes, ${stats.edges} edges\n\n🛡️ Safety: ${safetyCheck.allowed ? "Ready" : "Cooldown active"}\n\n⏱️ Last check: ${status.last_check ? new Date(status.last_check).toLocaleString() : "Never"}\n\n📋 Pending tasks: ${status.pending_tasks}`,
+          output: `📊 Knowledge Graph: ${stats.nodes} nodes, ${stats.edges} edges\n\n🛡️ Safety: ${safetyCheck.allowed ? "Ready" : "Cooldown active"}\n\n⏱️ Last check: ${status.last_check ? new Date(status.last_check).toLocaleString() : "Never"}\n\n📋 Pending tasks: ${status.pending_tasks}\n\n📋 Directions: ${configTopics.join(", ")}`,
           metadata: {} as any,
         }
       }
@@ -94,7 +105,7 @@ export const EvolveTool = Tool.define("evolve", async () => {
       if (mode === "trigger" || mode === "full") {
         await ctx.ask({
           permission: "evolve",
-          patterns: args.topics ?? defaultLearningConfig.topics,
+          patterns: args.topics ?? configTopics,
           always: [],
           metadata: { mode },
         })
@@ -137,6 +148,113 @@ export const EvolveTool = Tool.define("evolve", async () => {
       return {
         title: "Evolution",
         output: "Unknown mode",
+        metadata: {} as any,
+      }
+    },
+  }
+})
+
+export const EvolutionConfigTool = Tool.define("evolution-config", async () => {
+  return {
+    description: "Configure self-evolution direction keywords",
+    parameters: z.object({
+      action: z.enum(["get", "set", "add", "remove"]).describe("Action to perform"),
+      directions: z.array(z.string()).optional().describe("Evolution direction keywords (for set/add)"),
+      sources: z
+        .array(z.enum(["search", "arxiv", "github", "blogs", "pypi"]))
+        .optional()
+        .describe("Data sources to collect from"),
+    }),
+    async execute(args: any, ctx: any) {
+      const cfg = await Config.get()
+      const evolution = cfg.evolution ?? {}
+      const currentDirections = evolution.directions ?? defaultLearningConfig.topics
+      const currentSources = evolution.sources ?? defaultLearningConfig.sources
+
+      if (args.action === "get") {
+        return {
+          title: "Evolution Config",
+          output: `📋 Evolution Directions:\n${currentDirections.map((d: string) => `  - ${d}`).join("\n")}\n\n🔍 Sources: ${currentSources.join(", ")}\n\n🟢 Enabled: ${evolution.enabled ?? true}`,
+          metadata: {} as any,
+        }
+      }
+
+      if (args.action === "set") {
+        const newDirections = args.directions ?? currentDirections
+        const newSources = args.sources ?? currentSources
+        const configPath = path.join(Instance.directory, "opencode.jsonc")
+
+        let configText = await Bun.file(configPath)
+          .text()
+          .catch(() => "{}")
+        const config = JSON.parse(configText.replace(/^\/\/.*$/gm, "").replace(/\/\/.*$/gm, ""))
+
+        config.evolution = {
+          ...config.evolution,
+          directions: newDirections,
+          sources: newSources,
+        }
+
+        await Bun.write(configPath, JSON.stringify(config, null, 2))
+
+        return {
+          title: "Evolution Config Updated",
+          output: `✅ Updated evolution directions:\n${newDirections.map((d: string) => `  - ${d}`).join("\n")}\n\nSources: ${newSources.join(", ")}`,
+          metadata: {} as any,
+        }
+      }
+
+      if (args.action === "add") {
+        const toAdd = args.directions ?? []
+        const newDirections = [...new Set([...currentDirections, ...toAdd])]
+        const configPath = path.join(Instance.directory, "opencode.jsonc")
+
+        let configText = await Bun.file(configPath)
+          .text()
+          .catch(() => "{}")
+        const config = JSON.parse(configText.replace(/^\/\/.*$/gm, "").replace(/\/\/.*$/gm, ""))
+
+        config.evolution = {
+          ...config.evolution,
+          directions: newDirections,
+        }
+
+        await Bun.write(configPath, JSON.stringify(config, null, 2))
+
+        return {
+          title: "Evolution Directions Added",
+          output: `✅ Added directions:\n${toAdd.map((d: string) => `  + ${d}`).join("\n")}\n\nTotal directions: ${newDirections.length}`,
+          metadata: {} as any,
+        }
+      }
+
+      if (args.action === "remove") {
+        const toRemove = args.directions ?? []
+        const newDirections = currentDirections.filter((d: string) => !toRemove.includes(d))
+        const configPath = path.join(Instance.directory, "opencode.jsonc")
+
+        let configText = await Bun.file(configPath)
+          .text()
+          .catch(() => "{}")
+        const config = JSON.parse(configText.replace(/^\/\/.*$/gm, "").replace(/\/\/.*$/gm, ""))
+
+        config.evolution = {
+          ...config.evolution,
+          directions: newDirections,
+        }
+
+        await Bun.write(configPath, JSON.stringify(config, null, 2))
+
+        return {
+          title: "Evolution Directions Removed",
+          output: `✅ Removed directions:\n${toRemove.map((d: string) => `  - ${d}`).join("\n")}\n\nRemaining: ${newDirections.length}`,
+          metadata: {} as any,
+        }
+      }
+
+      return {
+        title: "Evolution Config",
+        output: "Unknown action",
         metadata: {} as any,
       }
     },

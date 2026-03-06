@@ -1230,6 +1230,22 @@ export namespace Config {
         })
         .optional()
         .describe("ZeroClaw backend configuration"),
+      evolution: z
+        .object({
+          enabled: z.boolean().optional().describe("Enable self-evolution system"),
+          directions: z
+            .array(z.string())
+            .optional()
+            .describe("Keywords/topic directions for self-evolution research (e.g., ['AI agents', 'code generation'])"),
+          sources: z
+            .array(z.enum(["search", "arxiv", "github", "blogs", "pypi"]))
+            .optional()
+            .describe("Sources to collect from during evolution"),
+          maxItemsPerRun: z.number().optional().describe("Maximum items to collect per evolution run"),
+          cooldownHours: z.number().optional().describe("Hours between major evolution cycles"),
+        })
+        .optional()
+        .describe("Self-evolution configuration for AI-driven improvements"),
     })
     .strict()
     .meta({

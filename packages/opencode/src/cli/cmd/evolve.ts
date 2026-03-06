@@ -5,6 +5,11 @@ import { approveSkill, rejectSkill, getPendingSkills } from "../../evolution/ski
 import { Skill } from "../../skill/skill"
 import { createSelfEvolutionScheduler, defaultSelfEvolutionConfig } from "../../learning/self-evolution-scheduler"
 import { createHierarchicalMemory } from "../../learning/hierarchical-memory"
+import { EvolutionTrigger } from "../../learning/evolution-trigger"
+import { KnowledgeGraph } from "../../learning/knowledge-graph"
+import { Safety } from "../../learning/safety"
+import { Config } from "../../config/config"
+import { defaultLearningConfig } from "../../learning/config"
 
 export const EvolveCommand: CommandModule = {
   command: "evolve",
@@ -27,13 +32,16 @@ export const EvolveCommand: CommandModule = {
       )
       .command("memories", "List learned memories", {}, listMemories)
       .command("pending", "List pending skill approvals", {}, listPending)
+      .command("status", "Show evolution system status", {}, showStatus)
       // New self-evolution commands
       .command("scan", "Scan and report code issues", {}, scanCode)
       .command("fix", "Auto-fix code issues", {}, fixCode)
       .command("stats", "Show code statistics", {}, codeStats)
       .command("summaries build", "Build module summaries", {}, buildSummaries)
-      .command("summaries search <query>", "Search module summaries", (yargs) =>
-        yargs.positional("query", { type: "string", demandOption: true }),
+      .command(
+        "summaries search <query>",
+        "Search module summaries",
+        (yargs) => yargs.positional("query", { type: "string", demandOption: true }),
         (args) => searchSummaries(args.query as string),
       )
       .command("overview", "Generate project overview", {}, generateOverview)
@@ -103,6 +111,41 @@ async function listPending() {
   for (const s of skills) {
     console.log(`${s.id}: ${s.name} - ${s.description}`)
   }
+}
+
+async function showStatus() {
+  const cfg = await Config.get()
+  const evolution = cfg.evolution ?? {}
+  const directions = evolution.directions ?? defaultLearningConfig.topics
+  const sources = evolution.sources ?? defaultLearningConfig.sources
+
+  const graph = new KnowledgeGraph()
+  const safety = new Safety()
+  const trigger = new EvolutionTrigger()
+
+  const [stats, safetyCheck, triggerStatus] = await Promise.all([
+    graph.getStats(),
+    safety.checkCooldown(),
+    trigger.getStatus(),
+  ])
+
+  console.log("\n=== Evolution Status ===\n")
+  console.log("📋 Directions:")
+  for (const d of directions) {
+    console.log(`   - ${d}`)
+  }
+  console.log(`\n🔍 Sources: ${sources.join(", ")}`)
+  console.log(`\n🟢 Enabled: ${evolution.enabled ?? true}`)
+  console.log("\n--- System ---")
+  console.log(`📊 Knowledge Graph: ${stats.nodes} nodes, ${stats.edges} edges`)
+  console.log(`🛡️ Safety: ${safetyCheck.allowed ? "Ready" : "Cooldown active"}`)
+  if (safetyCheck.cooldown_remaining_ms) {
+    console.log(`   Cooldown remaining: ${Math.round(safetyCheck.cooldown_remaining_ms / 1000 / 60)} min`)
+  }
+  console.log(
+    `⏱️ Last check: ${triggerStatus.last_check ? new Date(triggerStatus.last_check).toLocaleString() : "Never"}`,
+  )
+  console.log(`📋 Pending tasks: ${triggerStatus.pending_tasks}`)
 }
 
 // Self-evolution: scan code for issues

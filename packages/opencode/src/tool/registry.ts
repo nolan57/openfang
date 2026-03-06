@@ -32,6 +32,7 @@ import { MemorySearchTool } from "./memory"
 import { BuildCodeIndexTool } from "./code-index"
 import { ZeroClawTools, getClient } from "../zeroclaw"
 import { PluginRecovery } from "../plugin/recovery"
+import { LearningTool, EvolveTool, EvolutionConfigTool } from "./learning"
 
 export namespace ToolRegistry {
   const log = Log.create({ service: "tool.registry" })
@@ -159,6 +160,9 @@ export namespace ToolRegistry {
             ZeroClawTools.EStopTool,
           ]
         : []),
+      LearningTool,
+      EvolveTool,
+      EvolutionConfigTool,
       ...custom,
     ]
   }
