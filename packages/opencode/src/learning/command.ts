@@ -56,18 +56,9 @@ Respond with a JSON object containing:
 
 Respond ONLY with valid JSON.`
 
-const PROTECTED_PATHS = [
-  "bin/",
-  "src/index.ts",
-  "src/bootstrap.ts",
-]
+const PROTECTED_PATHS = ["bin/", "src/index.ts", "src/bootstrap.ts"]
 
-const ALLOWED_PATHS = [
-  "src/evolution/",
-  "src/cli/cmd/",
-  "src/skill/",
-  "src/config/",
-]
+const ALLOWED_PATHS = ["src/evolution/", "src/cli/cmd/", "src/skill/", "src/config/"]
 
 function isPathAllowed(filePath: string): boolean {
   const isAllowed = ALLOWED_PATHS.some((p) => filePath.startsWith(p))
@@ -77,16 +68,13 @@ function isPathAllowed(filePath: string): boolean {
 
 async function testInSandbox(code: string): Promise<boolean> {
   const { writeFile, rm } = await import("fs/promises")
-  const { exec } = await import("child_process")
-  const util = await import("util")
-
-  const execAsync = util.promisify(exec)
+  const { execSync } = await import("child_process")
   const tempFile = `.temp_sandbox_${Date.now()}.ts`
 
   try {
     await writeFile(tempFile, code)
-    const result = await execAsync(`bunx tsc --noEmit --skipLibCheck ${tempFile} 2>&1`)
-    return result.exitCode === 0
+    execSync(`bunx tsc --noEmit --skipLibCheck ${tempFile} 2>&1`, { encoding: "utf-8" })
+    return true
   } catch {
     return false
   } finally {
