@@ -87,7 +87,9 @@ async function runSpecImplementation(specFilePath: string): Promise<LearningResu
     log.info("starting spec implementation", { specFilePath })
 
     const specContent = await readFile(specFilePath, "utf-8")
-    const model = await Provider.getModel("anthropic", "claude-sonnet-4-20250514")
+    const defaultModel = await Provider.defaultModel()
+    log.info("using model", { providerID: defaultModel.providerID, modelID: defaultModel.modelID })
+    const model = await Provider.getModel(defaultModel.providerID, defaultModel.modelID)
     const languageModel = await Provider.getLanguage(model)
 
     const prompt = SPEC_IMPLEMENTATION_PROMPT.replace("{spec}", specContent)

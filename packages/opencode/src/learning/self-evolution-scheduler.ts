@@ -2,6 +2,7 @@ import { SelfRefactor } from "./self-refactor"
 import type { CodeIssue, RefactorResult, GitHubConfig } from "./self-refactor"
 import { Log } from "../util/log"
 import { resolve } from "path"
+import { IncrementalIndexer, incrementalIndexer } from "./incremental-indexer"
 
 const log = Log.create({ service: "self-evolution-scheduler" })
 
@@ -11,6 +12,7 @@ export interface SelfEvolutionConfig {
   autoFixPatterns: CodeIssue["type"][]
   requireHumanReview: boolean
   maxAutoFixPerRun: number
+  enableIncrementalIndex?: boolean
   github?: GitHubConfig
 }
 
@@ -20,6 +22,7 @@ export const defaultSelfEvolutionConfig: SelfEvolutionConfig = {
   autoFixPatterns: ["console_log", "TODO"],
   requireHumanReview: true,
   maxAutoFixPerRun: 10,
+  enableIncrementalIndex: true,
 }
 
 export interface SelfEvolutionResult {
@@ -36,11 +39,14 @@ export class SelfEvolutionScheduler {
   private srcDir: string
   private refactor: SelfRefactor
   private intervalId: ReturnType<typeof setInterval> | null = null
+  private indexer: IncrementalIndexer
 
   constructor(projectDir: string, config?: Partial<SelfEvolutionConfig>) {
     this.srcDir = resolve(projectDir, "packages/opencode/src")
     this.config = { ...defaultSelfEvolutionConfig, ...config }
     this.refactor = new SelfRefactor(this.srcDir)
+    this.indexer = incrementalIndexer
+    this.indexer.configure(this.srcDir, "opencode")
 
     if (this.config.github) {
       this.refactor.setGitHubConfig(this.config.github)
@@ -59,6 +65,12 @@ export class SelfEvolutionScheduler {
     if (this.intervalId) {
       log.warn("scheduler_already_running")
       return
+    }
+
+    // Start incremental indexer
+    if (this.config.enableIncrementalIndex) {
+      this.indexer.start()
+      log.info("incremental_indexer_started")
     }
 
     // Run immediately on start

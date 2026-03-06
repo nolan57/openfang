@@ -10,12 +10,24 @@ import { KnowledgeGraph } from "../../learning/knowledge-graph"
 import { Safety } from "../../learning/safety"
 import { Config } from "../../config/config"
 import { defaultLearningConfig } from "../../learning/config"
+import { runLearning } from "../../learning/command"
+import { Instance } from "../../project/instance"
 
 export const EvolveCommand: CommandModule = {
   command: "evolve",
   describe: "Manage self-evolving agent system",
   builder: (yargs) =>
     yargs
+      .option("mode", {
+        type: "string",
+        choices: ["full", "execute", "status", "check", "trigger", "monitor", "spec"],
+        default: "full",
+        describe: "Evolution mode",
+      })
+      .option("spec-file", {
+        type: "string",
+        describe: "Path to specification document (markdown/json) to implement",
+      })
       .command("list", "List evolution artifacts", {}, listArtifacts)
       .command("reload", "Reload skills cache", {}, reloadSkills)
       .command(
@@ -45,8 +57,31 @@ export const EvolveCommand: CommandModule = {
         (args) => searchSummaries(args.query as string),
       )
       .command("overview", "Generate project overview", {}, generateOverview)
-      .demandCommand(),
-  handler: () => {},
+      .demandCommand(0, ""),
+  handler: async (args: any) => {
+    console.log("DEBUG: evolve handler called with args:", JSON.stringify(args, null, 2))
+    if (args.mode === "spec") {
+      if (!args.specFile) {
+        console.error("Error: --spec-file is required for spec mode")
+        process.exit(1)
+      }
+      console.log("DEBUG: Running spec implementation with file:", args.specFile)
+      const result = await Instance.provide({
+        directory: process.cwd(),
+        fn: async () => {
+          return await runLearning({ spec_file: args.specFile as string })
+        },
+      })
+      console.log("DEBUG: Spec implementation result:", JSON.stringify(result, null, 2))
+      if (result.success) {
+        console.log(`✅ Spec Implementation Complete\n\nFiles created: ${result.suggestions}`)
+      } else {
+        console.error(`❌ Spec Implementation Failed: ${result.error}`)
+        process.exit(1)
+      }
+    }
+    // For other modes, the subcommands handle them
+  },
 }
 
 async function listArtifacts() {
