@@ -1,6 +1,6 @@
 {
-  "version": "1.0",
-  "generated_at": "2026-03-06T00:00:00Z",
+  "version": "1.1",
+  "generated_at": "2026-03-06T12:00:00Z",
   "package": "opencode",
   "description": "AI coding assistant with self-evolution capabilities",
   "modules": [
@@ -29,6 +29,34 @@
         }
       ],
       "sub_modules": []
+    },
+    {
+      "name": "auth",
+      "path": "src/auth",
+      "description": "Authentication system",
+      "purpose": "OAuth, API key, and well-known auth methods",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Authentication types and token management",
+          "exports": ["Auth", "Oauth", "Api", "WellKnown"],
+          "type": "auth"
+        }
+      ]
+    },
+    {
+      "name": "bus",
+      "path": "src/bus",
+      "description": "Event bus system",
+      "purpose": "Pub/sub event system for inter-component communication",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Event bus with subscriptions and publishing",
+          "exports": ["Bus", "BusEvent", "GlobalBus"],
+          "type": "core"
+        }
+      ]
     },
     {
       "name": "cli",
@@ -141,6 +169,20 @@
           "purpose": "ID generation and parsing",
           "exports": ["id", "parse", "is"],
           "type": "util"
+        }
+      ]
+    },
+    {
+      "name": "ide",
+      "path": "src/ide",
+      "description": "IDE integration",
+      "purpose": "VSCode, Cursor, Windsurf extension installation",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "IDE detection and extension installation",
+          "exports": ["Ide", "install", "ide", "alreadyInstalled"],
+          "type": "tool"
         }
       ]
     },
@@ -279,6 +321,21 @@
       ]
     },
     {
+      "name": "plugin",
+      "path": "src/plugin",
+      "description": "Plugin system",
+      "purpose": "Dynamic plugin loading, hooks, and lifecycle management",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Plugin loader with hooks system",
+          "exports": ["Plugin", "trigger", "list", "init"],
+          "type": "core"
+        }
+      ],
+      "sub_modules": ["codex", "copilot", "webhook-registry", "recovery"]
+    },
+    {
       "name": "project",
       "path": "src/project",
       "description": "Project management",
@@ -348,6 +405,20 @@
           "purpose": "PTY creation and management",
           "exports": ["Pty"],
           "type": "util"
+        }
+      ]
+    },
+    {
+      "name": "question",
+      "path": "src/question",
+      "description": "Question/Answer tool system",
+      "purpose": "Interactive question prompts for user input",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Question tool - ask, reply, reject operations",
+          "exports": ["Question", "ask", "reply", "reject", "Option", "Info"],
+          "type": "tool"
         }
       ]
     },
@@ -663,6 +734,14 @@
     {
       "concept": "Project isolation",
       "description": "Git worktree-based isolated environments for parallel tasks"
+    },
+    {
+      "concept": "Plugin system",
+      "description": "Dynamic plugin loading with hooks for auth, events, tools, HTTP routes"
+    },
+    {
+      "concept": "Event bus",
+      "description": "Pub/sub event system for decoupled inter-component communication"
     }
   ],
   "database_schema": {
@@ -674,6 +753,7 @@
       "knowledge",
       "learning_runs",
       "vector_memory",
+      "vector_sync_meta",
       "knowledge_nodes",
       "knowledge_edges",
       "negative_memory",

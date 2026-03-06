@@ -1,7 +1,7 @@
 {
-  "index_version": "1.0",
+  "index_version": "1.1",
   "package": "opencode",
-  "generated": "2026-03-06T00:00:00Z",
+  "generated": "2026-03-06T12:00:00Z",
   "description": "Vector-ready code index for packages/opencode - hierarchical multi-level access index",
 
   "entries": [
@@ -14,6 +14,26 @@
       "keywords": ["agent", "permissions", "configuration", "subagent", "explore", "build", "plan"],
       "exports": ["Agent", "generate", "build", "plan", "explore", "general"],
       "dependencies": ["config", "permission", "session"]
+    },
+    {
+      "id": "mod_auth",
+      "type": "module",
+      "path": "src/auth",
+      "title": "Authentication System",
+      "content": "Authentication system supporting OAuth, API key, and well-known auth methods. Manages tokens, credentials, and enterprise URL configurations.",
+      "keywords": ["auth", "authentication", "oauth", "api", "token"],
+      "exports": ["Auth", "Oauth", "Api", "WellKnown"],
+      "dependencies": ["config", "global"]
+    },
+    {
+      "id": "mod_bus",
+      "type": "module",
+      "path": "src/bus",
+      "title": "Event Bus System",
+      "content": "Pub/sub event bus for inter-component communication. Supports subscription management, event publishing, and global bus for cross-instance events.",
+      "keywords": ["bus", "event", "pub/sub", "publish", "subscribe"],
+      "exports": ["Bus", "BusEvent", "GlobalBus"],
+      "dependencies": ["project", "util"]
     },
     {
       "id": "mod_cli",
@@ -64,6 +84,16 @@
       "keywords": ["global", "paths", "xdg", "directory"],
       "exports": ["Global", "Path"],
       "dependencies": []
+    },
+    {
+      "id": "mod_ide",
+      "type": "module",
+      "path": "src/ide",
+      "title": "IDE Integration",
+      "content": "IDE detection and extension installation. Supports VSCode, VSCode Insiders, Cursor, VSCodium, Windsurf. Provides install function for OpenCode extension.",
+      "keywords": ["ide", "vscode", "cursor", "windsurf", "extension"],
+      "exports": ["Ide", "install", "ide", "alreadyInstalled"],
+      "dependencies": ["util", "bus"]
     },
     {
       "id": "mod_learning",
@@ -126,6 +156,16 @@
       "dependencies": ["config"]
     },
     {
+      "id": "mod_plugin",
+      "type": "module",
+      "path": "src/plugin",
+      "title": "Plugin System",
+      "content": "Dynamic plugin loading system. Built-in plugins for auth (Codex, Copilot, GitLab). Hooks system for auth, events, tools, HTTP routes. Plugin recovery manager for auto-restart.",
+      "keywords": ["plugin", "hook", "lifecycle", "extension"],
+      "exports": ["Plugin", "trigger", "list", "init"],
+      "dependencies": ["config", "bus", "server"]
+    },
+    {
       "id": "mod_project",
       "type": "module",
       "path": "src/project",
@@ -144,6 +184,16 @@
       "keywords": ["provider", "ai", "anthropic", "openai", "google", "azure", "bedrock", "model", "embedding"],
       "exports": ["Provider", "getModel", "defaultModel", "getSmallModel"],
       "dependencies": ["config", "util"]
+    },
+    {
+      "id": "mod_question",
+      "type": "module",
+      "path": "src/question",
+      "title": "Question Tool System",
+      "content": "Interactive question/answer tool for user input. Supports single and multiple choice questions with descriptions. Manages pending requests, replies, and rejection handling.",
+      "keywords": ["question", "answer", "prompt", "input", "interactive"],
+      "exports": ["Question", "ask", "reply", "reject", "Option", "Info"],
+      "dependencies": ["bus", "id", "project"]
     },
     {
       "id": "mod_session",
@@ -241,7 +291,7 @@
       "path": "src/index.ts",
       "parent": "mod_cli",
       "title": "Main Entry Point",
-      "content": "CLI entry point using yargs. Registers all commands: run, generate, auth, agent, upgrade, uninstall, serve, web, models, stats, export, import, github, pr, session, db, evolve, acp, mcp. Handles uncaught exceptions, database migration, MCP cron check.",
+      "content": "CLI entry point using yargs. Registers all commands: run, generate, auth, agent, upgrade, serve, web, models, stats, export, import, github, pr, session, db, evolve, acp, mcp. Handles uncaught exceptions, database migration, MCP cron check.",
       "keywords": ["entry", "cli", "yargs", "command", "migration"],
       "exports": [],
       "line_count": 211
@@ -305,6 +355,46 @@
       "content": "HTTP API server using Hono framework. Routes: /project, /session, /permission, /provider, /config, /pty, /mcp, /tui. Auth with basic auth, CORS support, SSE for events, webhook support.",
       "keywords": ["server", "http", "api", "hono", "sse", "cors"],
       "line_count": 500
+    },
+    {
+      "id": "file_plugin_index_ts",
+      "type": "file",
+      "path": "src/plugin/index.ts",
+      "parent": "mod_plugin",
+      "title": "Plugin Loader",
+      "content": "Plugin loader with hooks system. Dynamic plugin installation from npm. Internal plugins for auth (Codex, Copilot, GitLab). HTTP route registration from plugins. Plugin recovery manager for auto-restart.",
+      "keywords": ["plugin", "hook", "loader", "npm"],
+      "line_count": 169
+    },
+    {
+      "id": "file_question_index_ts",
+      "type": "file",
+      "path": "src/question/index.ts",
+      "parent": "mod_question",
+      "title": "Question Tool",
+      "content": "Interactive question/answer tool. Zod schemas for Option, Info, Request, Answer, Reply. Event publishing for Asked, Replied, Rejected. Pending request state management.",
+      "keywords": ["question", "answer", "zod", "interactive"],
+      "line_count": 171
+    },
+    {
+      "id": "file_bus_index_ts",
+      "type": "file",
+      "path": "src/bus/index.ts",
+      "parent": "mod_bus",
+      "title": "Event Bus",
+      "content": "Pub/sub event bus. Subscriptions map for event handlers. InstanceDisposed event for cleanup. Subscribe to all events via wildcard.",
+      "keywords": ["bus", "event", "pub/sub", "subscription"],
+      "line_count": 105
+    },
+    {
+      "id": "file_ide_index_ts",
+      "type": "file",
+      "path": "src/ide/index.ts",
+      "parent": "mod_ide",
+      "title": "IDE Integration",
+      "content": "IDE detection and extension installation. Supports Windsurf, VSCode Insiders, VSCode, Cursor, VSCodium. InstallFailedError and AlreadyInstalledError for error handling.",
+      "keywords": ["ide", "vscode", "cursor", "extension"],
+      "line_count": 76
     }
   ],
 

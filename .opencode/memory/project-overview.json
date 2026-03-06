@@ -1,0 +1,23 @@
+{
+  "project_name": "opencode",
+  "language": "typescript",
+  "framework": [
+    "hono",
+    "solid-js",
+    "drizzle"
+  ],
+  "architecture": "Monorepo with multiple packages",
+  "key_modules": [
+    "session",
+    "tool",
+    "learning",
+    "storage"
+  ],
+  "capabilities": [
+    "code editing",
+    "LLM integration",
+    "self-evolution"
+  ],
+  "known_gaps": [],
+  "recent_changes": []
+}

@@ -1,5 +1,5 @@
 {
-  "format_version": "1.0",
+  "format_version": "1.1",
   "description": "Flat vector entries ready for database import",
   "package": "opencode",
 
@@ -14,6 +14,30 @@
         "path": "src/agent",
         "exports": ["Agent", "generate", "build", "plan", "explore", "general"],
         "keywords": ["agent", "permissions", "configuration", "subagent"]
+      }
+    },
+    {
+      "node_id": "mod_auth",
+      "entity_title": "Authentication System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Authentication system supporting OAuth, API key, and well-known auth methods. Manages tokens, credentials, and enterprise URL configurations. Provides type-safe auth schema definitions.",
+      "metadata": {
+        "path": "src/auth",
+        "exports": ["Auth", "Oauth", "Api", "WellKnown"],
+        "keywords": ["auth", "authentication", "oauth", "api", "token"]
+      }
+    },
+    {
+      "node_id": "mod_bus",
+      "entity_title": "Event Bus System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Pub/sub event bus for inter-component communication. Supports subscription management, event publishing, and global bus for cross-instance events. Enables decoupled architecture.",
+      "metadata": {
+        "path": "src/bus",
+        "exports": ["Bus", "BusEvent", "GlobalBus"],
+        "keywords": ["bus", "event", "pub/sub", "publish", "subscribe"]
       }
     },
     {
@@ -73,6 +97,18 @@
       "metadata": { "path": "src/global", "exports": ["Global", "Path"], "keywords": ["global", "paths", "xdg"] }
     },
     {
+      "node_id": "mod_ide",
+      "entity_title": "IDE Integration",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "IDE detection and extension installation. Supports Windsurf, VSCode Insiders, VSCode, Cursor, VSCodium. Provides install function to install OpenCode extension. Detects current IDE via environment variables.",
+      "metadata": {
+        "path": "src/ide",
+        "exports": ["Ide", "install", "ide", "alreadyInstalled"],
+        "keywords": ["ide", "vscode", "cursor", "windsurf", "extension"]
+      }
+    },
+    {
       "node_id": "mod_learning",
       "entity_title": "Self-Learning System",
       "node_type": "module",
@@ -129,6 +165,18 @@
       }
     },
     {
+      "node_id": "mod_plugin",
+      "entity_title": "Plugin System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Dynamic plugin loading system with hooks. Built-in plugins for auth (Codex, Copilot, GitLab). Hooks for auth, events, tools, HTTP routes. Plugin recovery manager for auto-restart on failure. Dynamic npm package installation.",
+      "metadata": {
+        "path": "src/plugin",
+        "exports": ["Plugin", "trigger", "list", "init"],
+        "keywords": ["plugin", "hook", "lifecycle", "extension"]
+      }
+    },
+    {
       "node_id": "mod_project",
       "entity_title": "Project Management",
       "node_type": "module",
@@ -150,6 +198,18 @@
         "path": "src/provider",
         "exports": ["Provider", "getModel", "defaultModel", "getSmallModel"],
         "keywords": ["provider", "ai", "anthropic", "openai", "google", "azure", "bedrock", "model"]
+      }
+    },
+    {
+      "node_id": "mod_question",
+      "entity_title": "Question Tool System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Interactive question/answer tool for user input. Supports single and multiple choice questions with descriptions. Manages pending requests with ask, reply, reject operations. Zod-validated schemas for options, questions, answers.",
+      "metadata": {
+        "path": "src/question",
+        "exports": ["Question", "ask", "reply", "reject", "Option", "Info"],
+        "keywords": ["question", "answer", "prompt", "input", "interactive"]
       }
     },
     {
@@ -330,6 +390,54 @@
         "path": "src/server/server.ts",
         "line_count": 500,
         "keywords": ["server", "http", "api", "hono", "sse"]
+      }
+    },
+    {
+      "node_id": "file_plugin_index_ts",
+      "entity_title": "Plugin Loader",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Plugin loader with hooks system. Dynamic plugin installation from npm packages. Internal plugins for auth (Codex, Copilot, GitLab OAuth). HTTP route registration from plugins. Plugin recovery manager for auto-restart on failure. State management for hooks and input context.",
+      "metadata": {
+        "path": "src/plugin/index.ts",
+        "line_count": 169,
+        "keywords": ["plugin", "hook", "loader", "npm"]
+      }
+    },
+    {
+      "node_id": "file_question_index_ts",
+      "entity_title": "Question Tool",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Interactive question/answer tool implementation. Zod schemas for Option, Info, Request, Answer, Reply with metadata references. Event publishing for Asked, Replied, Rejected states. Pending request state management with ask, reply, reject, RejectedError functions.",
+      "metadata": {
+        "path": "src/question/index.ts",
+        "line_count": 171,
+        "keywords": ["question", "answer", "zod", "interactive"]
+      }
+    },
+    {
+      "node_id": "file_bus_index_ts",
+      "entity_title": "Event Bus",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Pub/sub event bus implementation. Subscriptions map stores event handlers. InstanceDisposed event triggers on project disposal. Publish and subscribe methods for event communication. GlobalBus for cross-instance events.",
+      "metadata": {
+        "path": "src/bus/index.ts",
+        "line_count": 105,
+        "keywords": ["bus", "event", "pub/sub", "subscription"]
+      }
+    },
+    {
+      "node_id": "file_ide_index_ts",
+      "entity_title": "IDE Integration",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "IDE detection and extension installation. Supports Windsurf, VSCode Insiders, VSCode, Cursor, VSCodium. IDE detection via TERM_PROGRAM and GIT_ASKPASS environment variables. Install function runs CLI command to install OpenCode extension. Custom errors: InstallFailedError, AlreadyInstalledError.",
+      "metadata": {
+        "path": "src/ide/index.ts",
+        "line_count": 76,
+        "keywords": ["ide", "vscode", "cursor", "extension"]
       }
     }
   ],

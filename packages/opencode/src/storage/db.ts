@@ -66,6 +66,12 @@ export namespace Database {
   }
 
   export const Client = lazy(() => {
+    // On macOS, Apple's SQLite doesn't support dynamic extensions
+    // Use Homebrew's vanilla SQLite which supports extensions
+    if (process.platform === "darwin") {
+      BunDatabase.setCustomSQLite("/opt/homebrew/Cellar/sqlite/3.51.2_1/lib/libsqlite3.dylib")
+    }
+
     const sqlite = new BunDatabase(path.join(Global.Path.data, "opencode.db"), { create: true })
 
     sqlite.run("PRAGMA journal_mode = WAL")
@@ -102,6 +108,8 @@ export namespace Database {
       // Go up 4 levels from packages/opencode/src/storage/db.ts to project root
       const projectRoot = path.resolve(import.meta.dirname, "../../../..")
 
+      log.debug("sqlite-vec loading", { platform, arch, platformName, platformPkg, projectRoot })
+
       const possiblePaths = [
         path.join(
           projectRoot,
@@ -113,20 +121,33 @@ export namespace Database {
         path.join(projectRoot, "packages/opencode/node_modules", platformPkg, vecFileName),
       ]
 
+      log.debug("sqlite-vec checking paths", { possiblePaths })
+
       let loaded = false
       for (const vecPath of possiblePaths) {
         if (existsSync(vecPath)) {
-          sqlite.loadExtension(vecPath)
-          loaded = true
-          break
+          log.info("loading sqlite-vec from", { vecPath })
+          try {
+            sqlite.loadExtension(vecPath)
+            // Verify the extension is loaded by testing vec0
+            sqlite.exec("SELECT vec0_version()")
+            log.info("sqlite-vec loaded successfully", { vecPath })
+            loaded = true
+            break
+          } catch (loadError) {
+            log.error("failed to load sqlite-vec extension", {
+              vecPath,
+              error: loadError instanceof Error ? loadError.message : String(loadError),
+            })
+          }
         }
       }
 
       if (!loaded) {
-        log.warn("sqlite-vec binary not found", { platform, arch, possiblePaths })
+        log.warn("sqlite-vec binary not found or failed to load", { platform, arch, possiblePaths })
       }
     } catch (error) {
-      log.warn("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
+      log.error("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
     }
 
     const db = drizzle({ client: sqlite, schema })
