@@ -29,6 +29,7 @@ import { PlanExitTool, PlanEnterTool } from "./plan"
 import { ApplyPatchTool } from "./apply_patch"
 import { Glob } from "../util/glob"
 import { MemorySearchTool } from "./memory"
+import { BuildCodeIndexTool } from "./code-index"
 import { ZeroClawTools, getClient } from "../zeroclaw"
 import { PluginRecovery } from "../plugin/recovery"
 
@@ -128,6 +129,7 @@ export namespace ToolRegistry {
       InvalidTool,
       ...(question ? [QuestionTool] : []),
       MemorySearchTool,
+      BuildCodeIndexTool,
       BashTool,
       ReadTool,
       GlobTool,
