@@ -102,6 +102,8 @@ export namespace Database {
       const archSuffix = arch === "arm64" ? "-arm64" : "-x64"
       const platformPkg = `sqlite-vec-${platformName}${archSuffix}`
 
+      console.log(`[sqlite-vec] platform=${platform}, arch=${arch}, pkg=${platformPkg}, file=${vecFileName}`)
+
       // Try multiple possible paths for sqlite-vec binary
       const possiblePaths = [
         // Bun cache path
@@ -122,21 +124,31 @@ export namespace Database {
         ),
       ]
 
+      console.log(`[sqlite-vec] checking paths:`)
+      for (const p of possiblePaths) {
+        console.log(`[sqlite-vec]   - ${p} (exists: ${existsSync(p)})`)
+      }
+
       let loaded = false
       for (const vecPath of possiblePaths) {
         if (existsSync(vecPath)) {
-          log.info("loading sqlite-vec extension", { path: vecPath })
+          console.log(`[sqlite-vec] loading from: ${vecPath}`)
           sqlite.loadExtension(vecPath)
+          console.log(`[sqlite-vec] loaded successfully!`)
           loaded = true
           break
         }
       }
 
       if (!loaded) {
-        log.warn("sqlite-vec binary not found in any expected location", { platform, arch })
+        console.error(`[sqlite-vec] FAILED to find extension in any path!`)
+        log.error("sqlite-vec binary not found in any expected location", { platform, arch, possiblePaths })
       }
     } catch (error) {
-      log.warn("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
+      console.error(`[sqlite-vec] ERROR: ${error instanceof Error ? error.message : String(error)}`)
+      log.error("failed to load sqlite-vec extension", {
+        error: error instanceof Error ? error.message : String(error),
+      })
     }
 
     const db = drizzle({ client: sqlite, schema })
