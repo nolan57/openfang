@@ -83,19 +83,24 @@ export namespace Database {
       const platform = process.platform
       const arch = process.arch
       let vecFileName: string
+      let platformName: string
 
       if (platform === "darwin") {
-        vecFileName = arch === "arm64" ? "vec0.dylib" : "vec0.dylib"
+        vecFileName = "vec0.dylib"
+        platformName = "darwin"
       } else if (platform === "linux") {
-        vecFileName = arch === "arm64" ? "vec0.so" : "vec0.so"
+        vecFileName = "vec0.so"
+        platformName = "linux"
       } else if (platform === "win32") {
         vecFileName = "vec0.dll"
+        platformName = "windows"
       } else {
         throw new Error(`Unsupported platform: ${platform}`)
       }
 
       // Construct package name for platform-specific binary
-      const platformPkg = `sqlite-vec-${platform}${arch === "arm64" ? "-arm64" : arch === "x64" ? "-x64" : ""}`
+      const archSuffix = arch === "arm64" ? "-arm64" : "-x64"
+      const platformPkg = `sqlite-vec-${platformName}${archSuffix}`
 
       // Try multiple possible paths for sqlite-vec binary
       const possiblePaths = [
