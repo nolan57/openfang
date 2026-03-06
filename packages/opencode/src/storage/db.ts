@@ -115,10 +115,7 @@ export namespace Database {
       }
 
       if (!loaded) {
-        log.warn("sqlite-vec binary not found, trying JS fallback")
-        // Fallback to JS wrapper (may not work in Bun)
-        const { load } = await import("sqlite-vec")
-        load(sqlite)
+        log.warn("sqlite-vec binary not found in any expected location")
       }
     } catch (error) {
       log.warn("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
