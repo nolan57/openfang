@@ -112,62 +112,16 @@ export namespace Database {
       // Try multiple possible paths for sqlite-vec binary
       const possiblePaths = [
         // Bun cache path in project root
-        path.join(projectRoot, "node_modules/.bun", `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`, vecFileName),
-        // Root node_modules
-        path.join(projectRoot, "node_modules", platformPkg, vecFileName),
-        // packages/opencode node_modules
-        path.join(projectRoot, "packages/opencode/node_modules", platformPkg, vecFileName),
-      ]
-
-      console.log(`[sqlite-vec] checking paths:`)
-      for (const p of possiblePaths) {
-        console.log(`[sqlite-vec]   - ${p} (exists: ${existsSync(p)})`)
-      }
-
-      let loaded = false
-      for (const vecPath of possiblePaths) {
-        if (existsSync(vecPath)) {
-          console.log(`[sqlite-vec] loading from: ${vecPath}`)
-          sqlite.loadExtension(vecPath)
-          console.log(`[sqlite-vec] loaded successfully!`)
-          loaded = true
-          break
-        }
-      }
-
-      if (!loaded) {
-        console.error(`[sqlite-vec] FAILED to find extension in any path!`)
-        log.error("sqlite-vec binary not found in any expected location", { platform, arch, possiblePaths })
-      }
-    } catch (error) {
-      console.error(`[sqlite-vec] ERROR: ${error instanceof Error ? error.message : String(error)}`)
-      log.error("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
-    }
-
-      // Construct package name for platform-specific binary
-      const archSuffix = arch === "arm64" ? "-arm64" : "-x64"
-      const platformPkg = `sqlite-vec-${platformName}${archSuffix}`
-
-      console.log(`[sqlite-vec] platform=${platform}, arch=${arch}, pkg=${platformPkg}, file=${vecFileName}`)
-
-      // Try multiple possible paths for sqlite-vec binary
-      const possiblePaths = [
-        // Bun cache path
         path.join(
-          process.cwd(),
+          projectRoot,
           "node_modules/.bun",
           `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
           vecFileName,
         ),
         // Root node_modules
-        path.join(process.cwd(), "node_modules", platformPkg, vecFileName),
+        path.join(projectRoot, "node_modules", platformPkg, vecFileName),
         // packages/opencode node_modules
-        path.join(
-          process.cwd(),
-          "packages/opencode/node_modules/.bun",
-          `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
-          vecFileName,
-        ),
+        path.join(projectRoot, "packages/opencode/node_modules", platformPkg, vecFileName),
       ]
 
       console.log(`[sqlite-vec] checking paths:`)
