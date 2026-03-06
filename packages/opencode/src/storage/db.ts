@@ -66,6 +66,7 @@ export namespace Database {
   }
 
   export const Client = lazy(() => {
+    console.log("[sqlite-vec] === Client lazy function started ===")
     log.info("opening database", { path: path.join(Global.Path.data, "opencode.db") })
 
     const sqlite = new BunDatabase(path.join(Global.Path.data, "opencode.db"), { create: true })
