@@ -143,19 +143,128 @@ cd packages/opencode && bun run typecheck
 
 ---
 
+## Phase 3: Enhanced Self-Modification Capabilities
+
+Based on the meta-cognition analysis, we need additional capabilities for full self-evolution:
+
+### Task 3: Add Sandbox Testing for Generated Code
+
+**Files:**
+- Modify: `packages/opencode/src/learning/command.ts`
+
+**Step 1: Add sandbox execution**
+
+```typescript
+async function testInSandbox(code: string, testType: "typecheck" | "syntax"): Promise<boolean> {
+  // Write temp file
+  const tempFile = `.temp_sandbox_${Date.now()}.ts`
+  await writeFile(tempFile, code)
+  
+  try {
+    if (testType === "typecheck") {
+      const result = await execAsync(`bunx tsc --noEmit ${tempFile}`)
+      return result.exitCode === 0
+    }
+    // syntax check via bun
+    const result = await execAsync(`bun build ${tempFile} --outdir /tmp 2>&1`)
+    return result.exitCode === 0
+  } finally {
+    await rm(tempFile).catch(() => {})
+  }
+}
+```
+
+**Step 2: Integrate into runSpecImplementation**
+
+```typescript
+// After generating code, test before writing
+for (const file of generated) {
+  const isSafe = await testInSandbox(file.content, "typecheck")
+  if (!isSafe) {
+    log.warn("generated code failed typecheck, skipping", { path: file.path })
+    continue
+  }
+  // Write file
+}
+```
+
+---
+
+### Task 4: Add Safety Guards (Core Code Protection)
+
+**Files:**
+- Create: `packages/opencode/src/learning/safety-guard.ts`
+
+**Step 1: Define protected paths**
+
+```typescript
+const PROTECTED_PATHS = [
+  "bin/",
+  "src/index.ts",
+  "src/bootstrap.ts",
+]
+
+const ALLOWED_PATHS = [
+  "src/evolution/",
+  "src/cli/cmd/",
+  "src/skill/",
+  "src/config/",
+]
+
+export function isPathAllowed(filePath: string): boolean {
+  // Check if in allowed paths and NOT in protected paths
+  const isAllowed = ALLOWED_PATHS.some(p => filePath.startsWith(p))
+  const isProtected = PROTECTED_PATHS.some(p => filePath.startsWith(p))
+  return isAllowed && !isProtected
+}
+```
+
+---
+
+### Task 5: Add Hot Reload Support
+
+**Files:**
+- Modify: `packages/opencode/src/skill/skill.ts`
+
+**Step 1: Add dynamic skill reload**
+
+```typescript
+export async function reloadSkills(): Promise<void> {
+  // Clear skill cache
+  skillCache.clear()
+  
+  // Reload from filesystem
+  await loadSkillsFromDir(path.join(Global.Path.data, "skills"))
+  
+  // Reload dynamic skills
+  const dynamicDir = path.join(Global.Path.data, "skills", "novel-patterns")
+  if (await exists(dynamicDir)) {
+    await loadSkillsFromDir(dynamicDir)
+  }
+}
+```
+
+---
+
 ## Summary
 
 | Task | Description | Files |
 |------|-------------|-------|
-| 1 | Add spec_file to evolve tool | `tool/learning.ts`, `learning/command.ts` |
+| 1 | Add spec_file to evolve tool | `tool/learning.ts`, `learning/command.ts`, `learning/config.ts` |
 | 2 | Run evolution with spec | CLI command |
+| 3 | Add sandbox testing | `learning/command.ts` |
+| 4 | Add safety guards | `learning/safety-guard.ts` |
+| 5 | Add hot reload | `skill/skill.ts` |
 
-> **Key insight:** Once Task 1 is done, any future feature can be implemented by simply writing a spec document and running `evolve --spec-file <path>`. This makes the system truly self-evolving for code generation.
+> **Key insight:** With Tasks 3-5, the system gains "Meta-Evolution" capability:
+> - Read spec → Generate code → Test in sandbox → Apply if safe → Hot reload
+> - This is the "Architect Agent" mentioned in the meta-cognition analysis
+> - Only the initial skill needs manual creation; subsequent features auto-generate
 
 ---
 
 **Plan saved to:** `docs/plans/2026-03-06-novel-cli-commands.md`
 
-**Worktree:** `.worktrees/novel-features**
+**Worktree:** `.worktrees/novel-features`
 
-**Next step:** Execute Task 1 - extend evolve tool to support specification files.
+**Next step:** Execute Task 2 to test spec-driven generation, then Tasks 3-5 for enhanced safety.
