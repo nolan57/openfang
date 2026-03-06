@@ -214,17 +214,17 @@ export class IncrementalIndexer {
     const relativePath = filePath.replace(this.srcDir + "/", "")
     const nodeId = generateNodeId(relativePath, this.packageName)
 
-    const existing = Database.use((db) =>
-      db.select({ id: vector_memory.id }).from(vector_memory).where(eq(vector_memory.node_id, nodeId)).get(),
-    )
+    const sqlite = Database.raw()
+    const result = sqlite.query(`SELECT id FROM vector_memory WHERE node_id = ?`).get(nodeId)
 
-    return !!existing
+    return !!result
   }
 
   private async addToIndex(filePath: string) {
     const content = await readFile(filePath, "utf-8")
     const relativePath = filePath.replace(this.srcDir + "/", "")
     const nodeId = generateNodeId(relativePath, this.packageName)
+
     const exports = extractExports(content)
     const purpose = extractPurpose(content)
     const embedding = simpleEmbedding(`${relativePath}: ${purpose}. Exports: ${exports.join(", ")}`)
@@ -238,21 +238,11 @@ export class IncrementalIndexer {
       lineCount: content.split("\n").length,
     })
 
-    Database.use((db) => {
-      db.insert(vector_memory).values({
-        id: nodeId,
-        node_id: nodeId,
-        node_type: "file",
-        entity_title: relativePath,
-        vector_type: "code",
-        embedding: JSON.stringify(embedding),
-        model: "simple",
-        dimensions: 384,
-        metadata,
-        time_created: now,
-        time_updated: now,
-      })
-    })
+    const sqlite = Database.raw()
+    sqlite.run(
+      `INSERT OR REPLACE INTO vector_memory (id, node_type, node_id, entity_title, vector_type, embedding, model, dimensions, metadata, time_created, time_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nodeId, "file", nodeId, relativePath, "code", JSON.stringify(embedding), "simple", 384, metadata, now, now],
+    )
 
     log.debug("indexed_file", { file: relativePath, nodeId })
   }
@@ -274,15 +264,13 @@ export class IncrementalIndexer {
       lineCount: content.split("\n").length,
     })
 
-    Database.use((db) => {
-      db.update(vector_memory)
-        .set({
-          embedding: JSON.stringify(embedding),
-          metadata,
-          time_updated: now,
-        })
-        .where(eq(vector_memory.node_id, nodeId))
-    })
+    const sqlite = Database.raw()
+    sqlite.run(`UPDATE vector_memory SET embedding = ?, metadata = ?, time_updated = ? WHERE node_id = ?`, [
+      JSON.stringify(embedding),
+      metadata,
+      now,
+      nodeId,
+    ])
 
     log.debug("updated_file_index", { file: relativePath, nodeId })
   }
@@ -291,9 +279,8 @@ export class IncrementalIndexer {
     const relativePath = filePath.replace(this.srcDir + "/", "")
     const nodeId = generateNodeId(relativePath, this.packageName)
 
-    Database.use((db) => {
-      db.delete(vector_memory).where(eq(vector_memory.node_id, nodeId))
-    })
+    const sqlite = Database.raw()
+    sqlite.run(`DELETE FROM vector_memory WHERE node_id = ?`, [nodeId])
 
     log.debug("removed_file_index", { file: relativePath, nodeId })
   }
