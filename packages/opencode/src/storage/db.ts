@@ -2,7 +2,6 @@ import { Database as BunDatabase } from "bun:sqlite"
 import { drizzle, type SQLiteBunDatabase } from "drizzle-orm/bun-sqlite"
 import { migrate } from "drizzle-orm/bun-sqlite/migrator"
 import { type SQLiteTransaction } from "drizzle-orm/sqlite-core"
-import * as sqliteVec from "sqlite-vec"
 export * from "drizzle-orm"
 import { Context } from "../util/context"
 import { lazy } from "../util/lazy"
@@ -79,8 +78,48 @@ export namespace Database {
     sqlite.run("PRAGMA wal_checkpoint(PASSIVE)")
 
     // Load sqlite-vec extension for vector search
+    // Use Bun's native loadExtension API with the binary file path
     try {
-      sqliteVec.load(sqlite)
+      const platform = process.platform
+      let vecFileName: string
+
+      if (platform === "darwin") {
+        vecFileName = "libsqlite_vec.dylib"
+      } else if (platform === "linux") {
+        vecFileName = "libsqlite_vec.so"
+      } else if (platform === "win32") {
+        vecFileName = "sqlite_vec.dll"
+      } else {
+        throw new Error(`Unsupported platform: ${platform}`)
+      }
+
+      // Try multiple possible paths for sqlite-vec binary
+      const possiblePaths = [
+        path.join(import.meta.dirname, "../../node_modules/sqlite-vec/dist", vecFileName),
+        path.join(
+          import.meta.dirname,
+          "../../node_modules/.pnpm/sqlite-vec@0.1.7-alpha.2/node_modules/sqlite-vec/dist",
+          vecFileName,
+        ),
+        path.join(process.cwd(), "node_modules/sqlite-vec/dist", vecFileName),
+      ]
+
+      let loaded = false
+      for (const vecPath of possiblePaths) {
+        if (existsSync(vecPath)) {
+          log.info("loading sqlite-vec extension", { path: vecPath })
+          sqlite.loadExtension(vecPath)
+          loaded = true
+          break
+        }
+      }
+
+      if (!loaded) {
+        log.warn("sqlite-vec binary not found, trying JS fallback")
+        // Fallback to JS wrapper (may not work in Bun)
+        const { load } = await import("sqlite-vec")
+        load(sqlite)
+      }
     } catch (error) {
       log.warn("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
     }
