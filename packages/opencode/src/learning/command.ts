@@ -56,6 +56,44 @@ Respond with a JSON object containing:
 
 Respond ONLY with valid JSON.`
 
+const PROTECTED_PATHS = [
+  "bin/",
+  "src/index.ts",
+  "src/bootstrap.ts",
+]
+
+const ALLOWED_PATHS = [
+  "src/evolution/",
+  "src/cli/cmd/",
+  "src/skill/",
+  "src/config/",
+]
+
+function isPathAllowed(filePath: string): boolean {
+  const isAllowed = ALLOWED_PATHS.some((p) => filePath.startsWith(p))
+  const isProtected = PROTECTED_PATHS.some((p) => filePath.startsWith(p))
+  return isAllowed && !isProtected
+}
+
+async function testInSandbox(code: string): Promise<boolean> {
+  const { writeFile, rm } = await import("fs/promises")
+  const { exec } = await import("child_process")
+  const util = await import("util")
+
+  const execAsync = util.promisify(exec)
+  const tempFile = `.temp_sandbox_${Date.now()}.ts`
+
+  try {
+    await writeFile(tempFile, code)
+    const result = await execAsync(`bunx tsc --noEmit --skipLibCheck ${tempFile} 2>&1`)
+    return result.exitCode === 0
+  } catch {
+    return false
+  } finally {
+    await rm(tempFile).catch(() => {})
+  }
+}
+
 async function runSpecImplementation(specFilePath: string): Promise<LearningResult> {
   try {
     log.info("starting spec implementation", { specFilePath })
@@ -95,16 +133,30 @@ async function runSpecImplementation(specFilePath: string): Promise<LearningResu
     log.info("generated files", { count: generated.length })
 
     const baseDir = process.cwd()
+    let writtenCount = 0
+
     for (const file of generated) {
+      if (!isPathAllowed(file.path)) {
+        log.warn("path not allowed, skipping", { path: file.path })
+        continue
+      }
+
       const filePath = resolve(baseDir, file.path)
       const dir = dirname(filePath)
+
+      const isSafe = await testInSandbox(file.content)
+      if (!isSafe) {
+        log.warn("generated code failed typecheck, skipping", { path: file.path })
+        continue
+      }
 
       await mkdir(dir, { recursive: true })
       await writeFile(filePath, file.content)
       log.info("wrote file", { path: file.path })
+      writtenCount++
     }
 
-    return { success: true, collected: 0, notes: 0, installs: 0, suggestions: generated.length }
+    return { success: true, collected: 0, notes: 0, installs: 0, suggestions: writtenCount }
   } catch (error) {
     log.error("spec implementation failed", { error: String(error) })
     return { success: false, collected: 0, notes: 0, installs: 0, suggestions: 0, error: String(error) }
