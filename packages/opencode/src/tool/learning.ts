@@ -64,11 +64,12 @@ export const EvolveTool = Tool.define("evolve", async () => {
     description: "Trigger OpenCode self-evolution system - collect, analyze, and evolve",
     parameters: z.object({
       mode: z
-        .enum(["full", "execute", "status", "check", "trigger", "monitor"])
+        .enum(["full", "execute", "status", "check", "trigger", "monitor", "spec"])
         .optional()
         .default("full")
         .describe("Evolution mode"),
       topics: z.array(z.string()).optional().describe("Custom topics (default: from config evolution.directions)"),
+      spec_file: z.string().optional().describe("Path to specification document (markdown/json) to implement"),
     }),
     async execute(args: any, ctx: any) {
       const mode = args.mode ?? "full"
@@ -141,6 +142,34 @@ export const EvolveTool = Tool.define("evolve", async () => {
         return {
           title: "Evolution Monitor",
           output: `📡 Monitor started (checking every 60s)\n\nUse /evolve --status to check progress`,
+          metadata: {} as any,
+        }
+      }
+
+      if (mode === "spec") {
+        if (!args.spec_file) {
+          return {
+            title: "Evolution Spec",
+            output: "Error: --spec-file required for spec mode",
+            metadata: {} as any,
+          }
+        }
+
+        await ctx.ask({
+          permission: "evolve",
+          patterns: ["spec implementation"],
+          always: [],
+          metadata: { spec_file: args.spec_file },
+        })
+
+        const { runLearning } = await import("../learning/command")
+        const result = await runLearning({ spec_file: args.spec_file })
+
+        return {
+          title: "Evolution Spec",
+          output: result.success
+            ? `✅ Spec Implementation Complete\n\nFiles created: ${result.suggestions}`
+            : `❌ Spec Implementation Failed: ${result.error}`,
           metadata: {} as any,
         }
       }

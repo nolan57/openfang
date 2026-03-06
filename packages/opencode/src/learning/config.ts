@@ -17,6 +17,7 @@ export const LearningConfig = z.object({
   topics: z.array(z.string()),
   max_items_per_run: z.number(),
   note_output_dir: z.string(),
+  spec_file: z.string().optional(),
 })
 export type LearningConfig = z.infer<typeof LearningConfig>
 
