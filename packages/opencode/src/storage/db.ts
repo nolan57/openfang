@@ -100,8 +100,8 @@ export namespace Database {
       const platformPkg = `sqlite-vec-${platformName}${archSuffix}`
 
       // Use import.meta.dirname to find project root reliably
-      // Go up from packages/opencode/src/storage/db.ts to project root
-      const projectRoot = path.resolve(import.meta.dirname, "../../..")
+      // Go up from packages/opencode/src/storage/db.ts to project root (4 levels up)
+      const projectRoot = path.resolve(import.meta.dirname, "../../../..")
 
       console.error(`[sqlite-vec] platform=${platform}, arch=${arch}, pkg=${platformPkg}, file=${vecFileName}`)
       console.error(`[sqlite-vec] projectRoot=${projectRoot}`)
