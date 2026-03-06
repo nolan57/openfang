@@ -66,7 +66,7 @@ export namespace Database {
   }
 
   export const Client = lazy(() => {
-    console.log("[sqlite-vec] === Client lazy function started ===")
+    console.error("[sqlite-vec] === Client lazy function started ===")
     log.info("opening database", { path: path.join(Global.Path.data, "opencode.db") })
 
     const sqlite = new BunDatabase(path.join(Global.Path.data, "opencode.db"), { create: true })
@@ -107,8 +107,8 @@ export namespace Database {
       // Go up from packages/opencode/src/storage/db.ts to project root
       const projectRoot = path.resolve(import.meta.dirname, "../../..")
 
-      console.log(`[sqlite-vec] platform=${platform}, arch=${arch}, pkg=${platformPkg}, file=${vecFileName}`)
-      console.log(`[sqlite-vec] projectRoot=${projectRoot}`)
+      console.error(`[sqlite-vec] platform=${platform}, arch=${arch}, pkg=${platformPkg}, file=${vecFileName}`)
+      console.error(`[sqlite-vec] projectRoot=${projectRoot}`)
 
       // Try multiple possible paths for sqlite-vec binary
       const possiblePaths = [
@@ -125,17 +125,17 @@ export namespace Database {
         path.join(projectRoot, "packages/opencode/node_modules", platformPkg, vecFileName),
       ]
 
-      console.log(`[sqlite-vec] checking paths:`)
+      console.error(`[sqlite-vec] checking paths:`)
       for (const p of possiblePaths) {
-        console.log(`[sqlite-vec]   - ${p} (exists: ${existsSync(p)})`)
+        console.error(`[sqlite-vec]   - ${p} (exists: ${existsSync(p)})`)
       }
 
       let loaded = false
       for (const vecPath of possiblePaths) {
         if (existsSync(vecPath)) {
-          console.log(`[sqlite-vec] loading from: ${vecPath}`)
+          console.error(`[sqlite-vec] loading from: ${vecPath}`)
           sqlite.loadExtension(vecPath)
-          console.log(`[sqlite-vec] loaded successfully!`)
+          console.error(`[sqlite-vec] loaded successfully!`)
           loaded = true
           break
         }
@@ -160,6 +160,7 @@ export namespace Database {
         ? OPENCODE_MIGRATIONS
         : migrations(path.join(import.meta.dirname, "../../migration"))
     if (entries.length > 0) {
+      console.error("[sqlite-vec] about to apply migrations, count:", entries.length)
       log.info("applying migrations", {
         count: entries.length,
         mode: typeof OPENCODE_MIGRATIONS !== "undefined" ? "bundled" : "dev",
