@@ -1,12 +1,16 @@
 import { Log } from "../util/log"
 import { readFile, writeFile } from "fs/promises"
 import { resolve } from "path"
-import { analyzeAndEvolve, loadDynamicPatterns, PatternMiner } from "./pattern-miner"
-import { NovelConfig } from "../config/novel-config"
+import { generateText } from "ai"
+import { Provider } from "../provider/provider"
+import { Instance } from "../project/instance"
+import { Skill } from "../skill/skill"
 
-const log = Log.create({ service: "evolution-orchestrator" })
+const log = Log.create({ service: "novel-orchestrator" })
 
 const StoryBiblePath = ".opencode/novel/state/story_bible.json"
+const DynamicPatternsPath = ".opencode/novel/patterns/dynamic-patterns.json"
+const SkillsPath = ".opencode/novel/skills"
 
 interface StoryState {
   characters: Record<string, any>
@@ -15,17 +19,38 @@ interface StoryState {
   currentChapter: string
   chapterCount: number
   timestamps: Record<string, number>
+  fullStory: string
   [key: string]: any
 }
 
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await readFile(path)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function loadDynamicPatterns(): Promise<any[]> {
+  try {
+    const path = resolve(DynamicPatternsPath)
+    if (await fileExists(path)) {
+      const content = await readFile(path, "utf-8")
+      const data = JSON.parse(content)
+      return data.patterns || []
+    }
+  } catch (error) {
+    log.error("failed_to_load_patterns", { error: String(error) })
+  }
+  return []
+}
+
 export class EvolutionOrchestrator {
-  private patternMiner: PatternMiner
   private storyState: StoryState
-  private config: NovelConfig
+  private patterns: any[]
 
   constructor() {
-    this.patternMiner = new PatternMiner()
-    this.config = new NovelConfig()
     this.storyState = {
       characters: {},
       world: {},
@@ -33,15 +58,20 @@ export class EvolutionOrchestrator {
       currentChapter: "",
       chapterCount: 0,
       timestamps: {},
+      fullStory: "",
     }
+    this.patterns = []
   }
 
   async loadState(): Promise<void> {
     try {
       const path = resolve(StoryBiblePath)
-      const content = await readFile(path, "utf-8")
-      this.storyState = JSON.parse(content)
-      log.info("state_loaded", { chapter: this.storyState.chapterCount })
+      if (await fileExists(path)) {
+        const content = await readFile(path, "utf-8")
+        this.storyState = { ...this.storyState, ...JSON.parse(content) }
+        log.info("state_loaded", { chapter: this.storyState.chapterCount })
+      }
+      this.patterns = await loadDynamicPatterns()
     } catch {
       log.info("no_existing_state")
     }
@@ -53,49 +83,95 @@ export class EvolutionOrchestrator {
     log.info("state_saved", { chapter: this.storyState.chapterCount })
   }
 
-  async runNovelCycle(input: string): Promise<string> {
-    // 1. Load merged patterns (Static + Dynamic)
-    const allPatterns = await loadDynamicPatterns()
+  async runNovelCycle(promptContent: string): Promise<string> {
+    log.info("cycle_started", { chapter: this.storyState.chapterCount + 1 })
 
-    // 2. Execute generation with patterns
-    const storySegment = await this.generateStory(input, allPatterns)
+    // Load patterns
+    this.patterns = await loadDynamicPatterns()
 
-    // 3. Update state
+    // Parse prompt with LLM
+    const elements = await this.parsePromptWithLLM(promptContent)
+    log.info("prompt_parsed", elements)
+
+    // Generate story with LLM
+    const storySegment = await this.generateWithLLM(promptContent, elements)
+
+    // Update state
     this.storyState.chapterCount++
     this.storyState.currentChapter = `第${this.storyState.chapterCount}章`
     this.storyState.fullStory = (this.storyState.fullStory || "") + "\n\n" + storySegment
     this.storyState.timestamps.lastGeneration = Date.now()
 
-    // 4. Trigger evolution (PatternMiner)
-    await this.patternMiner.onTurn({ storySegment, significantShift: false })
+    // Update characters from generated story
+    if (elements.characters) {
+      for (const char of elements.characters) {
+        if (!this.storyState.characters[char]) {
+          this.storyState.characters[char] = { traits: [], status: "active" }
+        }
+      }
+    }
 
-    // 5. Save updated state
+    // Save state
     await this.saveState()
 
     return storySegment
   }
 
-  private async generateStory(input: string, patterns: any[]): Promise<string> {
-    // Parse prompt to extract story elements
-    const elements = this.parsePrompt(input)
+  /**
+   * LLM-based prompt parsing - extracts story elements intelligently
+   */
+  private async parsePromptWithLLM(promptContent: string): Promise<any> {
+    try {
+      const model = await Provider.defaultModel()
+      const modelInfo = await Provider.getModel(model.providerID, model.modelID)
+      const languageModel = await Provider.getLanguage(modelInfo)
 
-    // Build context from state
-    const context = this.buildContext(elements, patterns)
+      const systemPrompt = `You are a story element extractor. Analyze the following prompt and extract story elements in JSON format.
 
-    // Generate story content (placeholder - in production would use LLM)
-    const chapterContent = this.generateFromContext(context, elements)
+Extract ONLY these fields:
+{
+  "time": "time and date if mentioned",
+  "location": "place/location if mentioned", 
+  "characters": ["list of character names mentioned"],
+  "event": "main event or conflict",
+  "tone": "mood/atmosphere (dark, suspenseful, etc)",
+  "genre": "genre if detectable (detective, sci-fi, fantasy, etc)"
+}
 
-    return chapterContent
+If a field is not mentioned, use empty string or empty array.`
+
+      const result = await generateText({
+        model: languageModel,
+        system: systemPrompt,
+        prompt: promptContent.substring(0, 3000),
+      })
+
+      const text = result.text.trim()
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0])
+        return {
+          time: parsed.time || "",
+          location: parsed.location || "",
+          characters: parsed.characters || [],
+          event: parsed.event || "",
+          tone: parsed.tone || "",
+          genre: parsed.genre || "",
+        }
+      }
+    } catch (error) {
+      log.error("llm_parse_failed", { error: String(error) })
+    }
+
+    // Fallback to simple extraction
+    return this.parsePromptSimple(promptContent)
   }
 
-  private parsePrompt(promptContent: string): any {
-    const elements = {
-      time: "",
-      location: "",
-      characters: [] as string[],
-      event: "",
-      chaos: "",
-    }
+  /**
+   * Simple fallback parsing
+   */
+  private parsePromptSimple(promptContent: string): any {
+    const elements = { time: "", location: "", characters: [] as string[], event: "", tone: "", genre: "" }
 
     const timeMatch = promptContent.match(/\d{4}年\d{1,2}月\d{1,2}日.*?\d{1,2}:\d{2}/)
     if (timeMatch) elements.time = timeMatch[0]
@@ -104,51 +180,75 @@ export class EvolutionOrchestrator {
     const charMatches = promptContent.match(charPattern)
     if (charMatches) elements.characters = [...new Set(charMatches)]
 
-    const eventMatch = promptContent.match(/(\w+案|\w+事件|\w+谋杀)/)
-    if (eventMatch) elements.event = eventMatch[1]
-    else {
-      const simpleEvent = promptContent.match(/(案|事件|调查|谋杀|失踪)/)
-      if (simpleEvent) elements.event = simpleEvent[0]
-    }
-
-    const chaosMatch = promptContent.match(/掷骰结果.*?=.*?(\d+)/)
-    if (chaosMatch) elements.chaos = `掷骰结果 = ${chaosMatch[1]}`
+    const eventMatch = promptContent.match(/(案|事件|调查|谋杀|失踪)/)
+    if (eventMatch) elements.event = eventMatch[0]
 
     return elements
   }
 
-  private buildContext(elements: any, patterns: any[]): string {
-    let context = ""
+  /**
+   * LLM-based story generation with full context
+   */
+  private async generateWithLLM(promptContent: string, elements: any): Promise<string> {
+    try {
+      const model = await Provider.defaultModel()
+      const modelInfo = await Provider.getModel(model.providerID, model.modelID)
+      const languageModel = await Provider.getLanguage(modelInfo)
 
-    if (this.storyState.characters) {
-      context += `Characters: ${JSON.stringify(this.storyState.characters)}\n`
+      // Build context from previous story
+      const previousStory = this.storyState.fullStory || "(这是故事的开始)"
+      const characterInfo = Object.keys(this.storyState.characters).join(", ") || "主角"
+
+      const systemPrompt = `You are a creative story writer. Continue or start a story based on the given prompt and context.
+
+Rules:
+- Write in Chinese
+- If this is chapter 1, start fresh from the prompt
+- If continuing, pick up from where the story left off
+- Maintain consistency with established characters and plot
+- Create engaging, descriptive narrative
+- Chapter length: 300-500 Chinese characters`
+
+      const userPrompt = `Story Context (previous chapters):
+${previousStory.substring(-2000)}
+
+Established Characters: ${characterInfo}
+
+Prompt/Timing: ${elements.time || "某个时刻"} ${elements.location || "某个地方"}
+Main Event: ${elements.event || "待揭示"}
+Tone: ${elements.tone || "悬疑"}
+
+Write Chapter ${this.storyState.chapterCount + 1}:`
+
+      const result = await generateText({
+        model: languageModel,
+        system: systemPrompt,
+        prompt: userPrompt,
+      })
+
+      return result.text.trim()
+    } catch (error) {
+      log.error("llm_generate_failed", { error: String(error) })
     }
 
-    if (patterns.length > 0) {
-      context += `Known Patterns: ${JSON.stringify(patterns.slice(-3))}\n`
-    }
-
-    if (elements.characters?.length > 0) {
-      context += `Current Characters: ${elements.characters.join(", ")}\n`
-    }
-
-    return context
+    // Fallback
+    return this.generateFallback(elements)
   }
 
-  private generateFromContext(context: string, elements: any): string {
+  /**
+   * Fallback generation when LLM fails
+   */
+  private generateFallback(elements: any): string {
     const time = elements.time || "某个时刻"
     const location = elements.location || "某个地方"
-    const characters = elements.characters.length > 0 ? elements.characters.join("、") : "主角"
+    const characters = elements.characters?.join("、") || "主角"
     const event = elements.event || "神秘事件"
-    const chaos = elements.chaos ? `\n\n**${elements.chaos}**` : ""
 
     return `${time}，${location}。
 
 ${characters}站在昏暗的灯光下，空气中弥漫着紧张的气息。${event}的调查陷入了僵局，每一个线索都指向更深层的谜团。
 
 "我们必须找到真相，"其中一人低声说道，"不管代价是什么。"
-
-${chaos}
 
 他们知道，这只是开始...`
   }
@@ -165,9 +265,97 @@ ${chaos}
       currentChapter: "",
       chapterCount: 0,
       timestamps: {},
+      fullStory: "",
     }
-    this.patternMiner.reset()
     await this.saveState()
     log.info("state_reset")
+  }
+}
+
+/**
+ * Standalone function to analyze and evolve patterns
+ */
+export async function analyzeAndEvolve(context: string, currentPatterns: any[] = []): Promise<void> {
+  log.info("pattern_analysis_started", { contextLength: context.length, patternCount: currentPatterns.length })
+
+  try {
+    const model = await Provider.defaultModel()
+    const modelInfo = await Provider.getModel(model.providerID, model.modelID)
+    const languageModel = await Provider.getLanguage(modelInfo)
+
+    const prompt = `You are a narrative pattern analyst.
+Analyze this story segment and extract unique patterns NOT in the existing list.
+
+Existing Patterns: ${JSON.stringify(currentPatterns.slice(-5))}
+Story Segment: ${context.substring(0, 1500)}
+
+Output JSON array of new patterns. Each pattern:
+{ "keyword": "pattern name", "category": "character_trait|plot_device|world_rule|tone", "description": "what this pattern does" }`
+
+    const result = await generateText({
+      model: languageModel,
+      prompt: prompt,
+    })
+
+    const text = result.text
+    const jsonMatch = text.match(/\[[\s\S]*\]/)
+    if (!jsonMatch) {
+      log.info("no_patterns_extracted")
+      return
+    }
+
+    const newPatterns = JSON.parse(jsonMatch[0])
+    if (newPatterns.length > 0) {
+      const dynamicPath = resolve(DynamicPatternsPath)
+      const existing = (await fileExists(dynamicPath))
+        ? JSON.parse(await readFile(dynamicPath, "utf-8"))
+        : { patterns: [], version: "1.0", lastUpdated: null }
+
+      const merged = {
+        ...existing,
+        patterns: [...(existing.patterns || []), ...newPatterns],
+        lastUpdated: Date.now(),
+      }
+
+      await writeFile(dynamicPath, JSON.stringify(merged, null, 2))
+      log.info("patterns_discovered", { count: newPatterns.length })
+
+      // Generate skill if complex structure detected
+      await checkAndGenerateSkills(context)
+    }
+  } catch (error) {
+    log.error("pattern_analysis_failed", { error: String(error) })
+  }
+}
+
+async function checkAndGenerateSkills(context: string): Promise<void> {
+  try {
+    const complexPatterns = ["时间循环", "非线性", "多重人格", "梦境", "幻觉", "逆转", "悬疑"]
+    const needsSkill = complexPatterns.some((p) => context.includes(p))
+
+    if (needsSkill) {
+      const skillContent = `# Auto-Generated Narrative Skill
+
+Generated: ${new Date().toISOString()}
+
+## Trigger
+Detected complex narrative structure in story
+
+## Guidelines
+- Maintain consistency with established plot twists
+- Track character psychology accurately
+- Honor the established mystery elements
+
+## Examples
+- Use dramatic irony for suspense
+- Plant subtle clues for later revelation
+`
+      const fileName = `${SkillsPath}/auto-${Date.now()}.md`
+      await writeFile(resolve(fileName), skillContent)
+      await Skill.reload()
+      log.info("skill_generated", { fileName })
+    }
+  } catch (error) {
+    log.error("skill_generation_failed", { error: String(error) })
   }
 }
