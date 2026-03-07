@@ -98,12 +98,42 @@ Output a JSON list of NEW patterns to add. Return an empty array if none found.`
 
 async function checkAndGenerateSkills(context: string): Promise<void> {
   try {
-    // Simple heuristic check - in production would use LLM
-    const complexPatterns = ["时间循环", "非线性叙事", "多重人格", "梦境", "幻觉"]
-    const needsSkill = complexPatterns.some((p) => context.includes(p))
+    // Use LLM to determine if skill generation is needed
+    const languageModel = await getNovelLanguageModel()
+
+    const prompt = `Analyze this story context. Determine if a new narrative skill should be generated.
+
+Story context (last 1000 chars):
+${context.slice(-1000)}
+
+Output JSON:
+{
+  "needsSkill": true/false,
+  "reason": "why skill is/isn't needed",
+  "skillType": "character_development|plot_twist|world_rule|combat|investigation" (if needsSkill)
+}`
+
+    const result = await generateText({
+      model: languageModel,
+      prompt,
+    })
+
+    const match = result.text.match(/\{[\s\S]*\}/)
+    let needsSkill = false
+    
+    if (match) {
+      const analysis = JSON.parse(match[0])
+      needsSkill = analysis.needsSkill
+    }
+
+    // Also check simple patterns as fallback
+    if (!needsSkill) {
+      const complexPatterns = ["时间循环", "非线性叙事", "多重人格", "梦境", "幻觉", "缸中之脑", "数据病毒", "神经接口"]
+      needsSkill = complexPatterns.some((p) => context.includes(p))
+    }
 
     if (needsSkill) {
-      const skillContent = generateSkillContent(context)
+      const skillContent = await generateSkillContent(context)
       const fileName = `${SkillsPath}/auto-${Date.now()}.md`
       await writeFile(resolve(fileName), skillContent)
 
@@ -116,25 +146,76 @@ async function checkAndGenerateSkills(context: string): Promise<void> {
   }
 }
 
-function generateSkillContent(context: string): string {
+async function generateSkillContent(context: string): Promise<string> {
+  const languageModel = await getNovelLanguageModel()
+
+  const prompt = `Based on this story context, generate a specific, actionable narrative skill instruction.
+
+Story Context (last 1500 chars):
+${context.slice(-1500)}
+
+Generate a JSON object for a narrative skill:
+{
+  "name": "Skill name in Chinese",
+  "trigger": "When to trigger this skill",
+  "instructions": [
+    "Specific narrative instruction 1",
+    "Specific narrative instruction 2"
+  ],
+  "examples": [
+    "Example of how to use this in narrative"
+  ]
+}
+
+The skill should be specific to the story's themes, not generic.`
+
+  try {
+    const result = await generateText({
+      model: languageModel,
+      prompt,
+    })
+
+    const match = result.text.match(/\{[\s\S]*\}/)
+    if (match) {
+      const skill = JSON.parse(match[0])
+      return `# Narrative Skill: ${skill.name}
+
+Generated: ${new Date().toISOString()}
+
+## Trigger
+${skill.trigger}
+
+## Instructions
+${skill.instructions.map((i: string, idx: number) => `${idx + 1}. ${i}`).join("\n")}
+
+## Examples
+${skill.examples.map((e: string) => `- ${e}`).join("\n")}
+
+## Integration
+This skill should be applied when generating story segments that match the trigger condition.
+The narrative must follow these instructions to maintain consistency and depth.
+`
+    }
+  } catch (e) {
+    log.warn("llm_skill_generation_failed", { error: String(e) })
+  }
+
+  // Fallback
   return `# Auto-Generated Narrative Skill
 
 Generated: ${new Date().toISOString()}
 
-## Trigger Conditions
-Detected in context: ${context.substring(0, 200)}
+## Trigger
+Complex narrative structure detected in story context.
 
-## System Prompt
-You are writing a story with complex narrative elements. Maintain consistency with previously established patterns.
-
-## Narrative Guidelines
-- Track character behavior patterns
-- Maintain world rules consistency
-- Honor established relationship dynamics
+## Instructions
+1. Maintain consistency with established character psychology
+2. Honor the stress/trauma state when writing
+3. Reference previous events appropriately
 
 ## Examples
-- When character faces similar situation, reference their past behavior
-- When introducing world rule, ensure it's followed consistently
+- When stress > 80, use fragmented, chaotic prose
+- When trauma is triggered, include sensory flashbacks
 `
 }
 
