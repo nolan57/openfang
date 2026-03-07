@@ -161,21 +161,82 @@ export class NovelEngine {
   }
 
   /**
+   * Parse prompt file to extract story elements
+   */
+  private parsePrompt(promptContent: string): any {
+    const elements = {
+      time: "",
+      location: "",
+      characters: [] as string[],
+      event: "",
+      chaos: "",
+    }
+
+    // Extract time/location
+    const timeMatch = promptContent.match(/\d{4}年\d{1,2}月\d{1,2}日.*?\d{1,2}:\d{2}/)
+    if (timeMatch) elements.time = timeMatch[0]
+
+    const locationMatch = promptContent.match(/[赛博都市|城市|警局|医院|实验室|房间].*?[警局|审讯室|病房|实验室]/g)
+    if (locationMatch) elements.location = locationMatch[0]
+
+    // Extract character names - match full names
+    const charPattern = /(林墨|陈雨薇|周远舟|李明|王雪|张伟|赵敏)/g
+    const charMatches = promptContent.match(charPattern)
+    if (charMatches) elements.characters = [...new Set(charMatches)]
+
+    // Extract event - more comprehensive
+    const eventMatch = promptContent.match(/(\w+案|\w+事件|\w+谋杀|\w+失踪)/)
+    if (eventMatch) elements.event = eventMatch[1]
+    else {
+      const simpleEvent = promptContent.match(/(案|事件|调查|谋杀|失踪)/)
+      if (simpleEvent) elements.event = simpleEvent[0]
+    }
+
+    // Extract chaos event
+    const chaosMatch = promptContent.match(/掷骰结果.*?=.*?(\d+)/)
+    if (chaosMatch) elements.chaos = `掷骰结果 = ${chaosMatch[1]}`
+
+    return elements
+  }
+
+  /**
+   * Generate story content based on prompt elements
+   */
+  private generateFromPrompt(promptContent: string, elements: any): string {
+    const time = elements.time || "深夜"
+    const location = elements.location || "警局"
+    const characters = elements.characters.length > 0 ? elements.characters.join("、") : "林墨"
+    const event = elements.event || "神秘案件"
+    const chaos = elements.chaos ? `\n\n**${elements.chaos}**` : ""
+
+    return `${time}，${location}。
+
+${characters}站在昏暗的灯光下，空气中弥漫着紧张的气息。${event}的调查陷入了僵局，每一个线索都指向更深层的谜团。
+
+"我们必须找到真相，"其中一人低声说道，"不管代价是什么。"
+
+${chaos}
+
+他们知道，这只是开始...`
+  }
+
+  /**
    * Generate actual story content using placeholder logic
    */
   private async generateContent(prompt: string): Promise<void> {
-    console.log("Generating story content...")
+    console.log("Generating story content from prompt...")
 
-    // Placeholder implementation - in real system would use LLM
-    const chapterContent = `林墨站在警局门口，雨水打湿了他的外套。他刚接到陈雨薇的电话，说周远舟案有了新线索。
-    
-"我们必须小心，" 陈雨薇低声说，"这个案子比我们想象的要复杂得多。"
-    
-林墨点点头，他的手不自觉地摸向口袋里的那张神秘纸条。上面只写着一个数字：3728。
+    // Parse prompt to extract story elements
+    const elements = this.parsePrompt(prompt)
+    console.log("Extracted elements:", JSON.stringify(elements))
 
-他知道，这不仅仅是一个案件，而是一场关于Uploaded Souls的阴谋...`
+    // Generate story based on prompt
+    const chapterContent = this.generateFromPrompt(prompt, elements)
 
-    const chapterTitle = "第一章：雨夜召唤"
+    // Generate chapter number
+    const chapterNum = (this.storyState.chapterCount || 0) + 1
+    const chapterTitle = `第${chapterNum}章：${elements.event || "新的开始"}`
+    this.storyState.chapterCount = chapterNum
 
     this.storyState.currentChapter = chapterTitle
     this.storyState.fullStory += "\n\n" + chapterContent
