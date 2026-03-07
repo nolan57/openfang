@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { readFile, writeFile } from "fs/promises"
-import { resolve } from "path"
+import { resolve, dirname } from "path"
+import { fileURLToPath } from "url"
 import { Skill } from "../skill/skill"
 import { Log } from "../util/log"
 import { generateText } from "ai"
@@ -16,8 +17,14 @@ const PatternSchema = z.object({
   trigger_condition: z.string(),
 })
 
-const DynamicPatternsPath = ".opencode/novel/patterns/dynamic-patterns.json"
-const SkillsPath = ".opencode/novel/skills"
+// Get the project root directory
+function getProjectRoot(): string {
+  // Try to get from environment or use a reasonable default
+  return process.cwd()
+}
+
+const DynamicPatternsPath = resolve(getProjectRoot(), ".opencode/novel/patterns/dynamic-patterns.json")
+const SkillsPath = resolve(getProjectRoot(), ".opencode/novel/skills")
 
 async function fileExists(path: string): Promise<boolean> {
   try {
