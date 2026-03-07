@@ -243,13 +243,102 @@ Output JSON only:
     storyText: string,
     evaluation: TurnEvaluation,
   ): Promise<StateUpdate> {
-    const validated: StateUpdate = { ...updates }
+    let validated: StateUpdate = { ...updates }
     const auditFlags: any[] = []
     let correctionsApplied = 0
 
     const { outcome_type, challenge_difficulty, stress_events } = evaluation
 
-    for (const [charName, charUpdate] of Object.entries(updates.characters || {})) {
+    // 🔧 FIX: Transform character_updates array to characters object
+    // The prompt outputs array format, but code expects object format
+    if (updates.character_updates && Array.isArray(updates.character_updates)) {
+      validated.characters = {}
+      for (const entry of updates.character_updates) {
+        if (entry.name) {
+          const charName = entry.name
+          const charObj: any = {
+            stress: entry.stress_delta || 0,
+            status: entry.status_change || "active",
+          }
+          
+          if (entry.emotions) {
+            charObj.emotions = {
+              valence: entry.emotions.valence_delta || 0,
+              arousal: entry.emotions.arousal_delta || 50,
+              dominant: entry.emotions.dominant || "neutral",
+            }
+          }
+          
+          if (entry.new_trait) {
+            charObj.traits = [entry.new_trait]
+          }
+          
+          // Store trauma/skill data for applyUpdates to handle
+          if (entry.new_trauma) {
+            charObj.trauma = [{
+              name: entry.new_trauma.name,
+              description: entry.new_trauma.description,
+              tags: entry.new_trauma.tags || [],
+              severity: entry.new_trauma.severity || 5,
+              source_event: entry.new_trauma.source_event,
+            }]
+          }
+          
+          if (entry.new_skill) {
+            charObj.skills = [{
+              name: entry.new_skill.name,
+              category: entry.new_skill.category || "uncategorized",
+              level: entry.new_skill.level || 1,
+              description: entry.new_skill.description || "",
+              source_event: entry.new_skill.source_event,
+              difficulty: entry.new_skill.difficulty || 5,
+            }]
+          }
+          
+          validated.characters[charName] = charObj
+        }
+      }
+      log.info("transformed_character_updates", { 
+        count: Object.keys(validated.characters).length 
+      })
+    }
+
+    // Handle relationship_deltas array to relationships object
+    if (updates.character_updates) {
+      for (const entry of updates.character_updates) {
+        if (entry.relationship_deltas && validated.characters && entry.name) {
+          const charName = entry.name
+          if (!validated.characters[charName]) {
+            validated.characters[charName] = {}
+          }
+          if (!validated.characters[charName].relationships) {
+            validated.characters[charName].relationships = {}
+          }
+          for (const [otherChar, delta] of Object.entries(entry.relationship_deltas)) {
+            validated.characters[charName].relationships![otherChar] = {
+              trust: delta as number,
+              hostility: 0,
+              dominance: 0,
+              friendliness: 0,
+              attachmentStyle: "secure",
+            }
+          }
+        }
+      }
+    }
+
+    // Transform world_updates if needed
+    if (updates.world_updates) {
+      validated.world = {
+        events: updates.world_updates.events_resolved || [],
+        threats: updates.world_updates.new_threats || [],
+        opportunities: updates.world_updates.new_opportunities || [],
+        activeClues: updates.world_updates.clues_discovered || [],
+        location: updates.world_updates.location_change || undefined,
+      }
+    }
+
+    for (const [charName, charUpdate] of Object.entries(validated.characters || {})) {
       const update = charUpdate as CharacterUpdate
       const currentChar = currentState.characters?.[charName] || {}
 
