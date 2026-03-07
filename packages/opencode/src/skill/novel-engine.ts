@@ -17,8 +17,9 @@ export class NovelEngine {
   /**
    * Initialize a new story session with actual content generation
    */
-  async start(promptPath?: string): Promise<void> {
+  async start(promptPath?: string, loops: number = 1): Promise<void> {
     console.log("Starting novel engine...")
+    console.log(`Self-evolution loops: ${loops}`)
 
     let initialPrompt = ""
     if (promptPath) {
@@ -31,15 +32,21 @@ export class NovelEngine {
       }
     } else {
       console.log("Starting interactive setup...")
-      // For now, use a basic prompt
       initialPrompt = "Write a detective story about Lin Mo investigating a mystery."
     }
 
-    // Initialize story state with real content
     await this.initializeStoryState(initialPrompt)
-
-    // Generate first chapter
     await this.generateContent(initialPrompt)
+
+    for (let i = 1; i < loops; i++) {
+      console.log(`\n--- Self-evolution loop ${i + 1}/${loops} ---`)
+      await this.evolve()
+      await this.generateContent("Continue the story based on evolved patterns.")
+    }
+
+    if (loops > 1) {
+      console.log(`\n✅ Completed ${loops} self-evolution loops!`)
+    }
   }
 
   /**

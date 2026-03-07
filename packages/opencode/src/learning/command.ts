@@ -30,14 +30,17 @@ interface GeneratedFile {
   content: string
   description: string
   summary: string
+  type?: "code" | "config"
 }
 
-const SPEC_IMPLEMENTATION_PROMPT = `You are an expert TypeScript developer. Given the following specification document, generate the implementation code.
+const SPEC_IMPLEMENTATION_PROMPT = `You are an expert TypeScript developer. Given the following specification document, generate the implementation.
 
-For each file to create:
-1. Analyze what files need to be created/modified
-2. Generate the complete TypeScript code
-3. Ensure it follows the existing code patterns in the codebase
+Output Type Decision:
+- If implementing code logic/commands/handlers → generate TypeScript files (type: "code")
+- If implementing data/config/templates/patterns → generate JSON/YAML files (type: "config")
+
+JSON config files support hot reload - they will be automatically loaded without restart.
+Config directory: ~/.opencode/commands/ (or use "config:" prefix in path)
 
 Specification:
 {spec}
@@ -49,7 +52,8 @@ Respond with a JSON object containing:
       "path": "relative/path/to/file.ts",
       "content": "complete file content",
       "description": "what this file does",
-      "summary": "brief summary of changes"
+      "summary": "brief summary of changes",
+      "type": "code" | "config"
     }
   ]
 }
@@ -58,12 +62,30 @@ Respond ONLY with valid JSON.`
 
 const PROTECTED_PATHS = ["bin/", "src/index.ts", "src/bootstrap.ts"]
 
-const ALLOWED_PATHS = ["src/evolution/", "src/cli/cmd/", "src/skill/", "src/config/"]
+const ALLOWED_CODE_PATHS = ["src/evolution/", "src/cli/cmd/", "src/skill/", "src/config/"]
+
+const CONFIG_COMMANDS_DIR = () => {
+  const home = process.env.HOME || process.env.USERPROFILE || "."
+  return resolve(home, ".opencode", "commands")
+}
 
 function isPathAllowed(filePath: string): boolean {
-  const isAllowed = ALLOWED_PATHS.some((p) => filePath.startsWith(p))
-  const isProtected = PROTECTED_PATHS.some((p) => filePath.startsWith(p))
+  const isAllowed = ALLOWED_CODE_PATHS.some((p: string) => filePath.startsWith(p))
+  const isProtected = PROTECTED_PATHS.some((p: string) => filePath.startsWith(p))
   return isAllowed && !isProtected
+}
+
+function isConfigPath(filePath: string): boolean {
+  return filePath.startsWith("config:") || filePath.endsWith(".json") || filePath.endsWith(".yaml")
+}
+
+function resolveConfigPath(filePath: string): string {
+  const commandsDir = CONFIG_COMMANDS_DIR()
+  let relativePath = filePath.replace(/^config:/, "")
+  if (!relativePath.endsWith(".json")) {
+    relativePath += ".json"
+  }
+  return resolve(commandsDir, relativePath)
 }
 
 async function testInSandbox(code: string): Promise<boolean> {
@@ -124,8 +146,26 @@ async function runSpecImplementation(specFilePath: string): Promise<LearningResu
 
     const baseDir = process.cwd()
     let writtenCount = 0
+    let configWrittenCount = 0
 
     for (const file of generated) {
+      const fileType = file.type || (isConfigPath(file.path) ? "config" : "code")
+
+      if (fileType === "config") {
+        const configPath = resolveConfigPath(file.path)
+        const configDir = dirname(configPath)
+
+        try {
+          await mkdir(configDir, { recursive: true })
+          await writeFile(configPath, file.content)
+          log.info("wrote config file (hot reload supported)", { path: configPath })
+          configWrittenCount++
+        } catch (err) {
+          log.warn("failed to write config file", { path: configPath, error: String(err) })
+        }
+        continue
+      }
+
       if (!isPathAllowed(file.path)) {
         log.warn("path not allowed, skipping", { path: file.path })
         continue
@@ -146,7 +186,11 @@ async function runSpecImplementation(specFilePath: string): Promise<LearningResu
       writtenCount++
     }
 
-    return { success: true, collected: 0, notes: 0, installs: 0, suggestions: writtenCount }
+    if (configWrittenCount > 0) {
+      log.info("config files written - hot reload will pick up changes automatically", { count: configWrittenCount })
+    }
+
+    return { success: true, collected: 0, notes: 0, installs: 0, suggestions: writtenCount + configWrittenCount }
   } catch (error) {
     log.error("spec implementation failed", { error: String(error) })
     return { success: false, collected: 0, notes: 0, installs: 0, suggestions: 0, error: String(error) }
