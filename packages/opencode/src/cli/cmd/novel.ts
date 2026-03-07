@@ -1,35 +1,38 @@
 import type { CommandModule } from "yargs"
-import { NovelEngine } from "@/skill/novel-engine"
-import { ConfigInterpreter } from "@/skill/interpreter"
+import { EvolutionOrchestrator, analyzeAndEvolve, loadDynamicPatterns, PatternMiner } from "@/novel"
+import { readFile, writeFile } from "fs/promises"
+import { resolve } from "path"
+import { Skill } from "@/skill/skill"
 
-let interpreter: ConfigInterpreter | null = null
+let orchestrator: EvolutionOrchestrator | null = null
 
-async function getInterpreter(): Promise<ConfigInterpreter> {
-  if (!interpreter) {
-    interpreter = new ConfigInterpreter()
-    await interpreter.load()
-    await interpreter.startHotReload()
+async function getOrchestrator(): Promise<EvolutionOrchestrator> {
+  if (!orchestrator) {
+    orchestrator = new EvolutionOrchestrator()
+    await orchestrator.loadState()
   }
-  return interpreter
+  return orchestrator
+}
+
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await readFile(path)
+    return true
+  } catch {
+    return false
+  }
 }
 
 export const NovelCommand: CommandModule = {
   command: "novel",
-  describe: "Novel writing engine with self-evolving capabilities",
+  describe: "Self-evolving novel writing engine with PatternMiner",
   builder: (yargs) =>
     yargs
       .command("start [prompt]", "Initialize a new story session", (yargs) =>
-        yargs
-          .positional("prompt", {
-            type: "string",
-            describe: "Path to initial prompt file",
-          })
-          .option("loops", {
-            type: "number",
-            default: 1,
-            describe: "Number of self-evolution loops to run",
-            alias: "l",
-          }),
+        yargs.positional("prompt", {
+          type: "string",
+          describe: "Path to initial prompt file",
+        }),
       )
       .command("continue", "Resume the self-evolving loop from last saved state")
       .command("inject <file>", "Inject additional context into current memory", (yargs) =>
@@ -55,70 +58,120 @@ export const NovelCommand: CommandModule = {
           describe: "Export format",
         }),
       )
-      .command("cmd [name]", "Execute config-driven commands", (yargs) =>
-        yargs
-          .positional("name", {
-            type: "string",
-            describe: "Command name to execute",
-          })
-          .option("list", {
-            type: "boolean",
-            describe: "List available commands",
-            alias: "l",
-          }),
-      )
-      .command("primitives", "List available primitive actions")
+      .command("patterns", "Display discovered narrative patterns")
+      .command("reset", "Reset story state and start fresh")
       .demandCommand(1, ""),
   handler: async (args) => {
     if (args._[0] !== "novel") return
 
-    const engine = new NovelEngine()
+    const engine = await getOrchestrator()
 
     switch (args._[1]) {
-      case "start":
-        await engine.start(args.prompt as string | undefined, args.loops as number)
-        break
-      case "continue":
-        await engine.continue()
-        break
-      case "inject":
-        await engine.inject(args.file as string)
-        break
-      case "evolve":
-        await engine.evolve()
-        break
-      case "state":
-        await engine.state(args.target as string)
-        break
-      case "export":
-        await engine.export(args.format as "md" | "json" | "pdf")
-        break
-      case "cmd": {
-        const interp = await getInterpreter()
-        if (args.list) {
-          const commands = interp.listCommands()
-          console.log("Available commands:")
-          for (const cmd of commands) {
-            const detail = interp.getCommand(cmd)
-            console.log(`  - ${cmd}: ${detail?.description || "No description"}`)
+      case "start": {
+        let promptContent = "Starting new creative session..."
+        if (args.prompt) {
+          const path = resolve(args.prompt as string)
+          if (await fileExists(path)) {
+            promptContent = await readFile(path, "utf-8")
+            console.log(`📄 Loaded prompt from: ${args.prompt}`)
           }
-        } else if (args.name) {
-          const result = await interp.executeCommand(args.name as string)
-          console.log("Result:", result)
+        }
+        // Run novel cycle with the prompt
+        const result = await engine.runNovelCycle(promptContent)
+        console.log("\n✅ Chapter generated!")
+        console.log("Preview:", result.substring(0, 150) + "...")
+        break
+      }
+
+      case "continue": {
+        const state = engine.getState()
+        console.log(`Continuing from Chapter ${state.chapterCount}: ${state.currentChapter || "Untitled"}`)
+        const result = await engine.runNovelCycle("Continue the story from the current state.")
+        console.log("\n✅ Next chapter generated!")
+        console.log("Preview:", result.substring(0, 150) + "...")
+        break
+      }
+
+      case "inject": {
+        const filePath = resolve(args.file as string)
+        const content = await readFile(filePath, "utf-8")
+        console.log(`💉 Injecting context from: ${args.file}`)
+
+        // Trigger immediate pattern analysis
+        await analyzeAndEvolve(content, await loadDynamicPatterns())
+        console.log("✅ Context injected and patterns updated!")
+        break
+      }
+
+      case "evolve": {
+        console.log("🔄 Triggering PatternMiner evolution...")
+        const patterns = await loadDynamicPatterns()
+        const state = engine.getState()
+        await analyzeAndEvolve(state.fullStory || "", patterns)
+        console.log("✅ Evolution complete!")
+        break
+      }
+
+      case "state": {
+        const target = args.target as string
+        const state = engine.getState()
+
+        if (target === "world") {
+          console.log("📊 World State:")
+          console.log(
+            JSON.stringify(
+              {
+                chapter: state.currentChapter,
+                chapterCount: state.chapterCount,
+                characters: Object.keys(state.characters || {}),
+                timestamps: state.timestamps,
+              },
+              null,
+              2,
+            ),
+          )
         } else {
-          console.log("Use --list to list commands or provide a command name")
+          console.log(`📊 State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
         }
         break
       }
-      case "primitives": {
-        const interp = await getInterpreter()
-        const primitives = interp.getAvailablePrimitives()
-        console.log("Available primitives:")
-        for (const p of primitives) {
-          console.log(`  - ${p}`)
+
+      case "export": {
+        const format = args.format as "md" | "json" | "pdf"
+        const state = engine.getState()
+
+        if (format === "json") {
+          await writeFile("novel_export.json", JSON.stringify(state, null, 2))
+          console.log("✅ Exported to novel_export.json")
+        } else if (format === "md") {
+          const md = `# Novel Export\n\nChapter: ${state.currentChapter}\n\n${state.fullStory || "No content yet."}`
+          await writeFile("novel_export.md", md)
+          console.log("✅ Exported to novel_export.md")
+        } else {
+          console.log("PDF export not implemented yet")
         }
         break
       }
+
+      case "patterns": {
+        const patterns = await loadDynamicPatterns()
+        console.log("📚 Discovered Patterns:")
+        if (patterns.length === 0) {
+          console.log("  (No patterns discovered yet)")
+        } else {
+          for (const p of patterns) {
+            console.log(`  - ${p.keyword} (${p.category}): ${p.description}`)
+          }
+        }
+        break
+      }
+
+      case "reset": {
+        await engine.reset()
+        console.log("✅ Story state reset!")
+        break
+      }
+
       default:
         console.log("Unknown novel command")
     }
