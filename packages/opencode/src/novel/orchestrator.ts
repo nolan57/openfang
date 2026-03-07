@@ -3,8 +3,8 @@ import { readFile, writeFile } from "fs/promises"
 import { resolve } from "path"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
-import { Instance } from "../project/instance"
 import { Skill } from "../skill/skill"
+import { StateExtractor } from "./state-extractor"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
@@ -49,6 +49,7 @@ export async function loadDynamicPatterns(): Promise<any[]> {
 export class EvolutionOrchestrator {
   private storyState: StoryState
   private patterns: any[]
+  private stateExtractor: StateExtractor
 
   constructor() {
     this.storyState = {
@@ -61,6 +62,7 @@ export class EvolutionOrchestrator {
       fullStory: "",
     }
     this.patterns = []
+    this.stateExtractor = new StateExtractor()
   }
 
   async loadState(): Promise<void> {
@@ -93,20 +95,40 @@ export class EvolutionOrchestrator {
     const elements = await this.parsePromptWithLLM(promptContent)
     log.info("prompt_parsed", elements)
 
-    // Generate story with LLM
+    // Generate story with LLM (passes full state context)
     const storySegment = await this.generateWithLLM(promptContent, elements)
 
-    // Update state
+    // 🔥 CRITICAL: Extract state changes from generated story
+    log.info("extracting_state_changes")
+    const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
+
+    // Apply extracted updates to state
+    this.storyState = this.stateExtractor.applyUpdates(this.storyState, stateUpdates)
+    log.info("state_changes_applied", {
+      characters: Object.keys(this.storyState.characters).length,
+      relationships: Object.keys(this.storyState.relationships || {}).length,
+    })
+
+    // Update basic counters
     this.storyState.chapterCount++
     this.storyState.currentChapter = `第${this.storyState.chapterCount}章`
     this.storyState.fullStory = (this.storyState.fullStory || "") + "\n\n" + storySegment
     this.storyState.timestamps.lastGeneration = Date.now()
 
-    // Update characters from generated story
+    // Initialize characters from prompt if not already set
     if (elements.characters) {
       for (const char of elements.characters) {
         if (!this.storyState.characters[char]) {
-          this.storyState.characters[char] = { traits: [], status: "active" }
+          this.storyState.characters[char] = {
+            traits: [],
+            stress: 0,
+            status: "active",
+            trauma: [],
+            skills: [],
+            secrets: [],
+            clues: [],
+            notes: "",
+          }
         }
       }
     }
