@@ -1,16 +1,26 @@
 import { Log } from "../util/log"
 import { readFile, writeFile } from "fs/promises"
-import { resolve } from "path"
+import { resolve, dirname } from "path"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
 import { Skill } from "../skill/skill"
 import { StateExtractor } from "./state-extractor"
+import { EvolutionRulesEngine } from "./evolution-rules"
+import { mkdir } from "fs/promises"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
 const StoryBiblePath = ".opencode/novel/state/story_bible.json"
 const DynamicPatternsPath = ".opencode/novel/patterns/dynamic-patterns.json"
 const SkillsPath = ".opencode/novel/skills"
+const SummariesPath = ".opencode/novel/summaries"
+
+interface ChaosResult {
+  roll: number
+  event: string
+  narrativePrompt: string
+  category: string
+}
 
 interface StoryState {
   characters: Record<string, any>
@@ -50,6 +60,7 @@ export class EvolutionOrchestrator {
   private storyState: StoryState
   private patterns: any[]
   private stateExtractor: StateExtractor
+  private lastChaosResult: ChaosResult | null = null
 
   constructor() {
     this.storyState = {
@@ -88,34 +99,77 @@ export class EvolutionOrchestrator {
   async runNovelCycle(promptContent: string): Promise<string> {
     log.info("cycle_started", { chapter: this.storyState.chapterCount + 1 })
 
-    // Load patterns
     this.patterns = await loadDynamicPatterns()
 
-    // Parse prompt with LLM
+    const chaosEvent = EvolutionRulesEngine.rollChaos()
+    const chaosResult: ChaosResult = {
+      roll: chaosEvent.roll,
+      event: chaosEvent.description,
+      narrativePrompt: chaosEvent.narrativePrompt,
+      category: chaosEvent.category,
+    }
+    this.lastChaosResult = chaosResult
+
     const elements = await this.parsePromptWithLLM(promptContent)
     log.info("prompt_parsed", elements)
 
-    // Generate story with LLM (passes full state context)
-    const storySegment = await this.generateWithLLM(promptContent, elements)
+    const storySegment = await this.generateWithLLM(promptContent, elements, chaosResult)
 
-    // 🔥 CRITICAL: Extract state changes from generated story
     log.info("extracting_state_changes")
     const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
 
-    // Apply extracted updates to state
+    const skillAwards = EvolutionRulesEngine.checkSkillUnlocks({
+      chapterCount: this.storyState.chapterCount + 1,
+      characters: this.storyState.characters,
+      worldEvents: this.storyState.world?.events || [],
+      storySegment,
+    })
+
+    const traumaAwards = EvolutionRulesEngine.checkTraumaTriggers({
+      chapterCount: this.storyState.chapterCount + 1,
+      characters: this.storyState.characters,
+      worldEvents: this.storyState.world?.events || [],
+      storySegment,
+    })
+
+    for (const award of skillAwards) {
+      if (!stateUpdates.characters) stateUpdates.characters = {}
+      if (!stateUpdates.characters[award.characterName]) {
+        stateUpdates.characters[award.characterName] = {}
+      }
+      if (!stateUpdates.characters[award.characterName].newSkill) {
+        stateUpdates.characters[award.characterName].newSkill = award.skill
+      }
+    }
+
+    for (const award of traumaAwards) {
+      if (!stateUpdates.characters) stateUpdates.characters = {}
+      if (!stateUpdates.characters[award.characterName]) {
+        stateUpdates.characters[award.characterName] = {}
+      }
+      if (!stateUpdates.characters[award.characterName].newTrauma) {
+        stateUpdates.characters[award.characterName].newTrauma = award.trauma
+      }
+    }
+
     this.storyState = this.stateExtractor.applyUpdates(this.storyState, stateUpdates)
     log.info("state_changes_applied", {
       characters: Object.keys(this.storyState.characters).length,
       relationships: Object.keys(this.storyState.relationships || {}).length,
     })
 
-    // Update basic counters
+    for (const [charName, char] of Object.entries(this.storyState.characters)) {
+      const stressResult = EvolutionRulesEngine.enforceStressLimits(char)
+      if (stressResult.breakdown) {
+        log.warn("character_breakdown", { character: charName, stress: char.stress })
+      }
+    }
+
     this.storyState.chapterCount++
     this.storyState.currentChapter = `第${this.storyState.chapterCount}章`
     this.storyState.fullStory = (this.storyState.fullStory || "") + "\n\n" + storySegment
     this.storyState.timestamps.lastGeneration = Date.now()
 
-    // Initialize characters from prompt if not already set
     if (elements.characters) {
       for (const char of elements.characters) {
         if (!this.storyState.characters[char]) {
@@ -133,8 +187,8 @@ export class EvolutionOrchestrator {
       }
     }
 
-    // Save state
     await this.saveState()
+    await this.saveTurnSummary(stateUpdates, chaosResult)
 
     return storySegment
   }
@@ -211,13 +265,12 @@ If a field is not mentioned, use empty string or empty array.`
   /**
    * LLM-based story generation with full context
    */
-  private async generateWithLLM(promptContent: string, elements: any): Promise<string> {
+  private async generateWithLLM(promptContent: string, elements: any, chaosResult: ChaosResult): Promise<string> {
     try {
       const model = await Provider.defaultModel()
       const modelInfo = await Provider.getModel(model.providerID, model.modelID)
       const languageModel = await Provider.getLanguage(modelInfo)
 
-      // Build context from previous story
       const previousStory = this.storyState.fullStory || "(这是故事的开始)"
       const characterInfo = Object.keys(this.storyState.characters).join(", ") || "主角"
 
@@ -229,7 +282,8 @@ Rules:
 - If continuing, pick up from where the story left off
 - Maintain consistency with established characters and plot
 - Create engaging, descriptive narrative
-- Chapter length: 300-500 Chinese characters`
+- Chapter length: 300-500 Chinese characters
+- INCORPORATE the chaos event naturally into the narrative`
 
       const userPrompt = `Story Context (previous chapters):
 ${previousStory.substring(-2000)}
@@ -239,6 +293,12 @@ Established Characters: ${characterInfo}
 Prompt/Timing: ${elements.time || "某个时刻"} ${elements.location || "某个地方"}
 Main Event: ${elements.event || "待揭示"}
 Tone: ${elements.tone || "悬疑"}
+
+🎲 Chaos Event (Roll: ${chaosResult.roll}/6 - ${chaosResult.category.toUpperCase()}):
+${chaosResult.event}
+${chaosResult.narrativePrompt}
+
+Force the narrative to address this chaos event naturally.
 
 Write Chapter ${this.storyState.chapterCount + 1}:`
 
@@ -291,6 +351,38 @@ ${characters}站在昏暗的灯光下，空气中弥漫着紧张的气息。${ev
     }
     await this.saveState()
     log.info("state_reset")
+  }
+
+  private async saveTurnSummary(stateUpdates: any, chaosResult: ChaosResult): Promise<void> {
+    try {
+      const summaryDir = resolve(SummariesPath)
+      await mkdir(summaryDir, { recursive: true })
+
+      const chaosEvent = {
+        roll: chaosResult.roll,
+        category: chaosResult.category as any,
+        description: chaosResult.event,
+        narrativePrompt: chaosResult.narrativePrompt,
+      }
+
+      const summary = EvolutionRulesEngine.generateTurnSummary(
+        {
+          chapterCount: this.storyState.chapterCount,
+          characters: this.storyState.characters,
+          worldEvents: this.storyState.world?.events || [],
+          storySegment: this.storyState.fullStory.split("\n\n").slice(-1)[0] || "",
+        },
+        stateUpdates,
+        chaosEvent,
+      )
+
+      const fileName = `turn_${this.storyState.chapterCount.toString().padStart(3, "0")}_summary.md`
+      const filePath = resolve(summaryDir, fileName)
+      await writeFile(filePath, summary)
+      log.info("summary_saved", { fileName })
+    } catch (error) {
+      log.error("summary_save_failed", { error: String(error) })
+    }
   }
 }
 

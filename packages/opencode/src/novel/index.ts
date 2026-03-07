@@ -2,5 +2,6 @@ export { PatternMiner, analyzeAndEvolve, loadDynamicPatterns } from "./pattern-m
 export { EvolutionOrchestrator } from "./orchestrator"
 export { NovelConfig } from "../config/novel-config"
 export { StateExtractor, stateExtractor } from "./state-extractor"
+export { EvolutionRulesEngine, evolutionRules } from "./evolution-rules"
 export { handleSlashCommand, resolveSafePath, isSlashCommand, listSkills } from "./command-parser"
 export * from "./types"
