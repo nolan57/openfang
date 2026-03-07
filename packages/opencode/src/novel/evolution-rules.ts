@@ -195,7 +195,7 @@ export class EvolutionRulesEngine {
           characterName: charName,
           trauma: {
             description: `累积压力突破临界值 (${char.stress}/100)，心理防线崩溃`,
-            tags: [TRAUMA_TAGS.FEAR, TRAUMA_TAGS.GUILT],
+            tags: [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR, TRAUMA_TAGS.PSYCHOLOGICAL_GUILT],
             severity: 8,
           },
           reason: `压力值达到 ${char.stress}`,
@@ -207,7 +207,7 @@ export class EvolutionRulesEngine {
           characterName: charName,
           trauma: {
             description: this.extractTraumaDescription(charName, storyText),
-            tags: [TRAUMA_TAGS.FLASHBACK, TRAUMA_TAGS.FEAR],
+            tags: [TRAUMA_TAGS.FLASHBACK, TRAUMA_TAGS.PSYCHOLOGICAL_FEAR],
             severity: this.calculateTraumaSeverity(storyText),
           },
           reason: "生命威胁事件",

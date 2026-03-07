@@ -1,0 +1,26 @@
+[
+  {
+    "id": "88187ebf-779e-4673-9e15-64b046f55541",
+    "key": "verify-cron-jobs-regularly",
+    "value": "Regularly list and verify configured cron jobs to ensure they are active and correctly scheduled. Use tools like `cron_cron_list` to audit and validate task setups.",
+    "context": "检查已设定的定时任务",
+    "sessionIDs": [
+      "ses_3384b1e37ffeG61naQcMhNxDUj"
+    ],
+    "createdAt": 1772877066841,
+    "lastUsedAt": 1772877066841,
+    "usageCount": 0
+  },
+  {
+    "key": "document-cron-schedules",
+    "value": "Maintain clear documentation of cron job schedules and purposes to simplify troubleshooting and future maintenance.",
+    "context": "检查已设定的定时任务",
+    "sessionIDs": [
+      "ses_3384b1e37ffeG61naQcMhNxDUj"
+    ],
+    "id": "10f26955-1fe1-4820-8843-558928df528b",
+    "createdAt": 1772877066847,
+    "lastUsedAt": 1772877066847,
+    "usageCount": 0
+  }
+]

@@ -2,15 +2,20 @@ import { Log } from "../util/log"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
 import { TRAUMA_TAGS, SKILL_CATEGORIES, CHARACTER_STATUS, EMOTION_TYPES, GOAL_TYPES, SALIENCE_LEVELS } from "./types"
+import type {
+  OutcomeType,
+  CharacterState,
+  TraumaEntry,
+  SkillEntry,
+  TurnResult,
+  StateUpdate,
+  ProposedChanges,
+  ValidatedChanges,
+} from "../types/novel-state"
+import { validateSkillAward, validateTraumaSeverity, calculateStressDelta } from "../types/novel-state"
+import { buildStateExtractionPrompt } from "../prompts/state-extraction-prompt"
 
 const log = Log.create({ service: "state-extractor" })
-
-interface StateUpdate {
-  characters?: Record<string, CharacterUpdate>
-  relationships?: Record<string, RelationshipUpdate>
-  world?: WorldUpdate
-  evolution_summary?: EvolutionSummary
-}
 
 interface CharacterUpdate {
   traits?: string[]
@@ -22,27 +27,32 @@ interface CharacterUpdate {
     dominant?: string
   }
   newTrauma?: {
+    name: string
     description: string
     tags: string[]
     severity: number
+    source_event: string
   }
   newSkill?: {
     name: string
     category: string
     level: number
     description: string
+    source_event: string
+    difficulty: number
   }
   secrets?: string[]
   clues?: string[]
   goals?: GoalUpdate[]
   notes?: string
+  relationships?: Record<string, number>
 }
 
 interface GoalUpdate {
   type: string
   description: string
   priority: number
-  status: "active" | "completed" | "failed" | "abandoned"
+  status: "active" | "completed" | "failed" | "abandoned" | "paused"
 }
 
 interface RelationshipUpdate {
@@ -61,11 +71,13 @@ interface WorldUpdate {
   location?: string
   threats?: string[]
   opportunities?: string[]
+  activeClues?: string[]
 }
 
 interface EvolutionSummary {
   timestamp: number
   chapter: number
+  turn: number
   changes: {
     newCharacters: number
     updatedCharacters: string[]
@@ -74,119 +86,61 @@ interface EvolutionSummary {
     newEvents: number
     newTraumas: number
     newSkills: number
-    stressChanges: { character: string; delta: number }[]
+    stressChanges: { character: string; delta: number; cause?: string }[]
   }
   highlights: string[]
   contradictions: string[]
+  auditFlags?: {
+    type: "SKILL_IN_FAILURE" | "MISSING_TRAUMA" | "INFLATION" | "IMPOSSIBLE_CHANGE" | "STRESS_OVERFLOW"
+    description: string
+    corrected: boolean
+  }[]
 }
 
-/**
- * StateExtractor v2.0 - Enhanced with standardized tags and evolution tracking
- *
- * Improvements over v1.0:
- * - Standardized trauma/skill tags for programmatic access
- * - Emotion modeling (valence/arousal)
- * - Goal tracking system
- * - Evolution summary for each turn
- * - Contradiction detection
- * - Memory salience scoring
- */
+interface LocalEvolutionSummary {
+  timestamp: number
+  chapter: number
+  turn: number
+  changes: {
+    newCharacters: number
+    updatedCharacters: string[]
+    newRelationships: number
+    updatedRelationships: string[]
+    newEvents: number
+    newTraumas: number
+    newSkills: number
+    stressChanges: { character: string; delta: number; cause?: string }[]
+  }
+  highlights: string[]
+  contradictions: string[]
+  auditFlags?: {
+    type: "SKILL_IN_FAILURE" | "MISSING_TRAUMA" | "INFLATION" | "IMPOSSIBLE_CHANGE"
+    description: string
+    corrected: boolean
+  }[]
+}
+
+interface TurnEvaluation {
+  outcome_type: OutcomeType
+  challenge_difficulty: number
+  stress_events: { character: string; intensity: number; cause: string }[]
+  relationship_changes: { pair: string; delta: number; cause: string }[]
+  key_events: string[]
+}
+
 export class StateExtractor {
   private previousState: any = null
+  private turnHistory: TurnResult[] = []
 
-  /**
-   * Extract state changes from story segment
-   */
-  async extract(storyText: string, currentState: any): Promise<StateUpdate> {
+  async extract(storyText: string, currentState: any, turnResult?: Partial<TurnResult>): Promise<StateUpdate> {
     try {
       const model = await Provider.defaultModel()
       const modelInfo = await Provider.getModel(model.providerID, model.modelID)
       const languageModel = await Provider.getLanguage(modelInfo)
 
-      const systemPrompt = `You are an expert story state analyzer with psychology training.
+      const evaluation = await this.evaluateTurn(storyText, currentState, turnResult)
 
-Current known state:
-${JSON.stringify(currentState, null, 2)}
-
-Extract ALL changes from this story segment. Use STANDARDIZED TAGS:
-
-TRAUMA TAGS (choose from these):
-${JSON.stringify(TRAUMA_TAGS, null, 2)}
-
-SKILL CATEGORIES (choose from these):
-${JSON.stringify(SKILL_CATEGORIES, null, 2)}
-
-EMOTION TYPES:
-${JSON.stringify(EMOTION_TYPES, null, 2)}
-
-CHARACTER STATUS (choose one):
-${JSON.stringify(CHARACTER_STATUS, null, 2)}
-
-GOAL TYPES:
-${JSON.stringify(GOAL_TYPES, null, 2)}
-
-IMPORTANT RULES:
-1. For trauma: Include BOTH description AND tags array
-2. For skills: Only add when character OVERCOMES difficulty or gains insight
-3. For stress: Track cumulative changes (additive, not absolute)
-4. For relationships: Track trust (-100 to 100) and hostility (0 to 100)
-5. For deceased characters: Set status to "deceased" or "consciousness_lost"
-6. CONTRADICTIONS: Flag if dead character acts, or state changes without cause
-
-Output ONLY JSON with this structure:
-{
-  "characters": {
-    "CharacterName": {
-      "stress": 0-100 (delta, not absolute),
-      "emotions": { "valence": -100 to 100, "arousal": 0-100, "dominant": "emotion_type" },
-      "status": "status_from_list",
-      "traits": ["new trait"],
-      "newTrauma": { "description": "...", "tags": ["TAG1", "TAG2"], "severity": 1-10 },
-      "newSkill": { "name": "...", "category": "category_from_list", "level": 1-5, "description": "..." },
-      "secrets": ["revealed secret"],
-      "clues": ["discovered clue"],
-      "goals": [{ "type": "goal_type", "description": "...", "priority": 1-10, "status": "active|completed|failed" }],
-      "notes": "brief note"
-    }
-  },
-  "relationships": {
-    "Char1-Char2": {
-      "trust": -100 to 100 (delta),
-      "hostility": 0-100 (delta),
-      "dominance": -100 to 100,
-      "friendliness": -100 to 100,
-      "dynamic": "description",
-      "attachmentStyle": "secure|anxious|avoidant|disorganized"
-    }
-  },
-  "world": {
-    "events": ["event"],
-    "timeProgression": "description",
-    "location": "place",
-    "threats": ["new threat"],
-    "opportunities": ["new opportunity"]
-  },
-  "evolution_summary": {
-    "timestamp": ${Date.now()},
-    "chapter": ${currentState.chapterCount || 0},
-    "changes": {
-      "newCharacters": 0,
-      "updatedCharacters": ["Name1", "Name2"],
-      "newRelationships": 0,
-      "updatedRelationships": ["Char1-Char2"],
-      "newEvents": 0,
-      "newTraumas": 0,
-      "newSkills": 0,
-      "stressChanges": [{ "character": "Name", "delta": +20 }]
-    },
-    "highlights": ["major plot point 1", "major plot point 2"],
-    "contradictions": ["flag any logical inconsistencies"]
-  }
-}
-
-Only include fields that CHANGED. Use delta values (e.g., stress +20, not stress 85).
-For skills: Only award when character demonstrates growth or overcomes significant challenge.
-For trauma: Always include severity (1-10) based on emotional impact.`
+      const systemPrompt = this.buildSystemPrompt(currentState, evaluation)
 
       const result = await generateText({
         model: languageModel,
@@ -199,20 +153,18 @@ For trauma: Always include severity (1-10) based on emotional impact.`
 
       if (jsonMatch) {
         const updates = JSON.parse(jsonMatch[0])
-
-        // Validate and enhance the extraction
-        const validated = await this.validateAndEnhance(updates, currentState, storyText)
-
+        const validated = await this.validateAndEnhance(updates, currentState, storyText, evaluation)
         log.info("state_extracted", {
+          outcome: evaluation.outcome_type,
+          difficulty: evaluation.challenge_difficulty,
           characters: Object.keys(validated.characters || {}).length,
           relationships: Object.keys(validated.relationships || {}).length,
-          events: (validated.world?.events || []).length,
-          contradictions: (validated.evolution_summary?.contradictions || []).length,
+          newTraumas: validated.evolution_summary?.changes.newTraumas || 0,
+          newSkills: validated.evolution_summary?.changes.newSkills || 0,
+          auditFlags: (validated.evolution_summary?.auditFlags || []).length,
         })
 
-        // Store for next iteration
         this.previousState = currentState
-
         return validated
       }
     } catch (error) {
@@ -222,68 +174,236 @@ For trauma: Always include severity (1-10) based on emotional impact.`
     return {}
   }
 
-  /**
-   * Validate extracted changes and detect contradictions
-   */
-  private async validateAndEnhance(updates: any, currentState: any, storyText: string): Promise<StateUpdate> {
-    const contradictions: string[] = []
+  private async evaluateTurn(
+    storyText: string,
+    currentState: any,
+    turnResult?: Partial<TurnResult>,
+  ): Promise<TurnEvaluation> {
+    const model = await Provider.defaultModel()
+    const modelInfo = await Provider.getModel(model.providerID, model.modelID)
+    const languageModel = await Provider.getLanguage(modelInfo)
 
-    // Check for deceased character actions
+    const evaluationPrompt = `You are a strict narrative auditor. Evaluate this turn's outcome.
+
+ANALYSIS RULES:
+1. SUCCESS: Character achieved their goal despite obstacles
+2. COMPLICATION: Character failed or made situation worse
+3. FAILURE: Character suffered clear defeat or setback
+4. NEUTRAL: No clear success or failure, just progression
+
+STRESS EVALUATION:
+- Identify moments of conflict, danger, psychological pressure
+- Rate intensity 1-10 for each character
+- High intensity (>7) should trigger trauma consideration
+
+RELATIONSHIP EVALUATION:
+- Track trust changes based on cooperation/betrayal
+- Range: -50 to +50 per event
+
+Output JSON only:
+{
+  "outcome_type": "SUCCESS" | "COMPLICATION" | "FAILURE" | "NEUTRAL",
+  "challenge_difficulty": 1-10,
+  "stress_events": [{"character": "Name", "intensity": 1-10, "cause": "event"}],
+  "relationship_changes": [{"pair": "Char1-Char2", "delta": -50 to 50, "cause": "event"}],
+  "key_events": ["event1", "event2"]
+}`
+
+    const evalResult = await generateText({
+      model: languageModel,
+      system: evaluationPrompt,
+      prompt: `Current state:\n${JSON.stringify(currentState, null, 2)}\n\nStory:\n${storyText}`,
+    })
+
+    const evalJson = evalResult.text.match(/\{[\s\S]*\}/)?.[0]
+    if (evalJson) {
+      return JSON.parse(evalJson) as TurnEvaluation
+    }
+
+    return {
+      outcome_type: turnResult?.outcome_type || "NEUTRAL",
+      challenge_difficulty: turnResult?.challenge_difficulty || 5,
+      stress_events: [],
+      relationship_changes: [],
+      key_events: [],
+    }
+  }
+
+  private buildSystemPrompt(currentState: any, evaluation: TurnEvaluation): string {
+    const { outcome_type, challenge_difficulty, stress_events } = evaluation
+
+    return buildStateExtractionPrompt({
+      currentStateJson: JSON.stringify(currentState, null, 2),
+      narrativeText: "Story segment provided separately",
+      chaosOutcome: outcome_type,
+      difficultyRating: challenge_difficulty,
+    })
+  }
+
+  private async validateAndEnhance(
+    updates: any,
+    currentState: any,
+    storyText: string,
+    evaluation: TurnEvaluation,
+  ): Promise<StateUpdate> {
+    const validated: StateUpdate = { ...updates }
+    const auditFlags: any[] = []
+    let correctionsApplied = 0
+
+    const { outcome_type, challenge_difficulty, stress_events } = evaluation
+
     for (const [charName, charUpdate] of Object.entries(updates.characters || {})) {
-      const current = currentState.characters?.[charName]
-      if (current?.status === "deceased" || current?.status === "consciousness_lost") {
-        if ((charUpdate as any).traits?.length > 0 || (charUpdate as any).newSkill) {
-          contradictions.push(`${charName} is ${current.status} but gained new traits/skills`)
+      const update = charUpdate as CharacterUpdate
+      const currentChar = currentState.characters?.[charName] || {}
+
+      if (update.newSkill) {
+        const canAwardSkill = validateSkillAward(outcome_type, challenge_difficulty)
+        if (!canAwardSkill) {
+          auditFlags.push({
+            type: "SKILL_IN_FAILURE",
+            description: `${charName} gained skill during ${outcome_type} (difficulty ${challenge_difficulty})`,
+            corrected: true,
+            correction: "Skill removed, converted to stress +15",
+          })
+          delete (update as any).newSkill
+          update.stress = (update.stress || 0) + 15
+          correctionsApplied++
+        } else {
+          update.newSkill.difficulty = challenge_difficulty
+          update.newSkill.source_event = evaluation.key_events[0] || "Unknown challenge"
         }
       }
 
-      // Validate stress changes have narrative justification
-      const stressDelta = (charUpdate as CharacterUpdate).stress || 0
-      if (Math.abs(stressDelta) > 30) {
-        // Large stress change should have clear cause in story
-        if (!storyText.toLowerCase().includes(charName.toLowerCase())) {
-          contradictions.push(`Large stress change for ${charName} without clear presence in scene`)
+      const stressDelta = update.stress || 0
+      const currentStress = currentChar.stress || 0
+      const newStress = currentStress + stressDelta
+
+      const relatedStressEvent = stress_events.find((e) => e.character === charName)
+      const shouldAddTrauma =
+        validateTraumaSeverity(newStress, relatedStressEvent ? relatedStressEvent.intensity >= 7 : false) ||
+        stressDelta > 20
+
+      if (shouldAddTrauma && !update.newTrauma) {
+        auditFlags.push({
+          type: "MISSING_TRAUMA",
+          description: `${charName} experienced stress ${newStress} without trauma`,
+          corrected: true,
+          correction: "Auto-generated trauma entry",
+        })
+        update.newTrauma = {
+          name: this.generateTraumaName(charName, relatedStressEvent?.cause || "stress_event"),
+          description: `Psychological wound from: ${relatedStressEvent?.cause || "high stress event"}`,
+          tags: this.selectTraumaTags(relatedStressEvent?.cause || ""),
+          severity: Math.min(10, Math.floor((relatedStressEvent?.intensity || 5) / 2) + 1),
+          source_event: relatedStressEvent?.cause || "Cumulative stress",
+        }
+        correctionsApplied++
+      }
+
+      if (newStress > 90) {
+        auditFlags.push({
+          type: "STRESS_OVERFLOW",
+          description: `${charName} stress ${newStress} exceeds critical threshold`,
+          corrected: false,
+        })
+      }
+
+      if (update.newSkill && update.newSkill.category === "Mental_Analysis") {
+        const recentAnalysisSkills = (currentChar.skills || []).filter(
+          (s: SkillEntry) =>
+            s.category === "Mental_Analysis" && s.acquiredTurn && (currentState.turnCount || 0) - s.acquiredTurn! < 3,
+        )
+        if (recentAnalysisSkills.length >= 2) {
+          auditFlags.push({
+            type: "INFLATION",
+            description: `${charName} has ${recentAnalysisSkills.length} recent Mental_Analysis skills`,
+            corrected: true,
+            correction: "Skill merged into existing",
+          })
+          delete (update as any).newSkill
+          correctionsApplied++
         }
       }
     }
 
-    // Check for impossible relationship changes
     for (const [relKey, relUpdate] of Object.entries(updates.relationships || {})) {
       const trustDelta = (relUpdate as RelationshipUpdate).trust || 0
       if (Math.abs(trustDelta) > 50) {
-        // Major trust shift should have dramatic event
-        const hasDramaticEvent = ["betray", "save", "reveal", "confess", "attack"].some((word) =>
+        const hasDramaticEvent = ["betray", "save", "reveal", "confess", "attack", "die"].some((word) =>
           storyText.toLowerCase().includes(word),
         )
         if (!hasDramaticEvent) {
-          contradictions.push(`Major trust shift in ${relKey} without dramatic catalyst`)
+          auditFlags.push({
+            type: "IMPOSSIBLE_CHANGE",
+            description: `Trust shift ${trustDelta} in ${relKey} without dramatic catalyst`,
+            corrected: true,
+            correction: "Clamped to ±50",
+          })
+          ;(relUpdate as RelationshipUpdate).trust = Math.sign(trustDelta) * 50
+          correctionsApplied++
         }
       }
     }
 
-    // Generate evolution summary if not provided
-    if (!updates.evolution_summary) {
-      updates.evolution_summary = this.generateEvolutionSummary(updates, currentState, contradictions)
+    if (!validated.evolution_summary) {
+      const summary = this.generateEvolutionSummary(updates, currentState, auditFlags)
+      validated.evolution_summary = summary as any
     } else {
-      // Merge detected contradictions
-      updates.evolution_summary.contradictions = [
-        ...(updates.evolution_summary.contradictions || []),
-        ...contradictions,
-      ]
+      validated.evolution_summary.auditFlags = auditFlags as any
+      validated.evolution_summary.changes.newTraumas = Object.values(updates.characters || {}).filter(
+        (c: any) => c.newTrauma,
+      ).length
+      validated.evolution_summary.changes.newSkills = Object.values(updates.characters || {}).filter(
+        (c: any) => c.newSkill,
+      ).length
     }
 
-    return updates as StateUpdate
+    log.info("validation_complete", {
+      auditFlags: auditFlags.length,
+      correctionsApplied,
+      outcome: outcome_type,
+    })
+
+    return validated
   }
 
-  /**
-   * Generate evolution summary from changes
-   */
-  private generateEvolutionSummary(updates: any, currentState: any, contradictions: string[]): EvolutionSummary {
+  private generateTraumaName(character: string, cause: string): string {
+    const keywords = cause.split("_").map((k) => k.charAt(0).toUpperCase() + k.slice(1).toLowerCase())
+    const suffix = ["Shock", "Wound", "Scar", "Phobia", "PTSD"][Math.floor(Math.random() * 5)]
+    return `${character}_${keywords.join("")}_${suffix}`
+  }
+
+  private selectTraumaTags(cause: string): string[] {
+    const tags: string[] = []
+    const causeLower = cause.toLowerCase()
+
+    if (causeLower.includes("interrogat") || causeLower.includes("torture")) {
+      tags.push(TRAUMA_TAGS.PSYCHOLOGICAL_FEAR, TRAUMA_TAGS.ISOLATION)
+    }
+    if (causeLower.includes("combat") || causeLower.includes("injur")) {
+      tags.push(TRAUMA_TAGS.PHYSICAL_INJURY, TRAUMA_TAGS.PHYSICAL_PAIN)
+    }
+    if (causeLower.includes("betray") || causeLower.includes("trust")) {
+      tags.push(TRAUMA_TAGS.PSYCHOLOGICAL_BETRAYAL)
+    }
+    if (causeLower.includes("death") || causeLower.includes("loss")) {
+      tags.push(TRAUMA_TAGS.PSYCHOLOGICAL_LOSS)
+    }
+    if (causeLower.includes("visual") || causeLower.includes("gore")) {
+      tags.push(TRAUMA_TAGS.VISUAL, TRAUMA_TAGS.FLASHBACK)
+    }
+    if (causeLower.includes("nightmare") || causeLower.includes("sleep")) {
+      tags.push(TRAUMA_TAGS.NIGHTMARE)
+    }
+
+    return tags.length > 0 ? tags : [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR]
+  }
+
+  private generateEvolutionSummary(updates: any, currentState: any, auditFlags: any[]): EvolutionSummary {
     const chars = updates.characters || {}
     const rels = updates.relationships || {}
-    const world = updates.world || {}
 
-    const stressChanges: { character: string; delta: number }[] = []
+    const stressChanges: { character: string; delta: number; cause?: string }[] = []
     const updatedCharacters: string[] = []
     const updatedRelationships: string[] = []
     let newTraumas = 0
@@ -292,7 +412,7 @@ For trauma: Always include severity (1-10) based on emotional impact.`
     for (const [name, update] of Object.entries(chars)) {
       const u = update as CharacterUpdate
       updatedCharacters.push(name)
-      if (u.stress) stressChanges.push({ character: name, delta: u.stress })
+      if (typeof u.stress === "number") stressChanges.push({ character: name, delta: u.stress })
       if (u.newTrauma) newTraumas++
       if (u.newSkill) newSkills++
     }
@@ -305,64 +425,62 @@ For trauma: Always include severity (1-10) based on emotional impact.`
     if (newTraumas > 0) highlights.push(`${newTraumas} new trauma(s) recorded`)
     if (newSkills > 0) highlights.push(`${newSkills} new skill(s) unlocked`)
     if (stressChanges.some((s) => s.delta > 20)) highlights.push("Severe stress experienced")
-    if ((world.events || []).length > 0) highlights.push(`${world.events.length} major event(s)`)
 
     return {
       timestamp: Date.now(),
       chapter: (currentState.chapterCount || 0) + 1,
+      turn: (currentState.turnCount || 0) + 1,
       changes: {
         newCharacters: Object.keys(chars).filter((n) => !currentState.characters?.[n]).length,
         updatedCharacters,
         newRelationships: Object.keys(rels).filter((k) => !currentState.relationships?.[k]).length,
         updatedRelationships,
-        newEvents: (world.events || []).length,
+        newEvents: ((updates.world as WorldUpdate | undefined)?.events || []).length,
         newTraumas,
         newSkills,
         stressChanges,
       },
       highlights,
-      contradictions,
+      contradictions: [],
+      auditFlags,
     }
   }
 
-  /**
-   * Apply extracted updates to current state
-   */
   applyUpdates(currentState: any, updates: StateUpdate): any {
     const newState = { ...currentState }
+    newState.characters = { ...currentState.characters }
+    newState.relationships = { ...currentState.relationships }
+    newState.world = { ...currentState.world }
 
-    // Apply character updates
     if (updates.characters) {
       for (const [charName, charUpdate] of Object.entries(updates.characters)) {
         if (!newState.characters[charName]) {
           newState.characters[charName] = {
-            traits: [],
+            status: CHARACTER_STATUS.ACTIVE,
             stress: 0,
             emotions: { valence: 0, arousal: 50, dominant: "neutral" },
-            status: CHARACTER_STATUS.ACTIVE,
+            traits: [],
             trauma: [],
             skills: [],
             secrets: [],
             clues: [],
             goals: [],
             notes: "",
+            relationships: {},
           }
         }
 
         const current = newState.characters[charName]
         const update = charUpdate as CharacterUpdate
 
-        // Merge traits (deduplicated)
         if (update.traits && update.traits.length > 0) {
-          current.traits = [...new Set([...(current.traits || []), ...update.traits])]
+          current.traits = [...new Set([...current.traits, ...update.traits])]
         }
 
-        // Update stress (additive, clamped 0-100)
         if (typeof update.stress === "number") {
-          current.stress = Math.min(100, Math.max(0, (current.stress || 0) + update.stress))
+          current.stress = Math.min(100, Math.max(0, current.stress + update.stress))
         }
 
-        // Update emotions
         if (update.emotions) {
           current.emotions = {
             valence: update.emotions.valence !== undefined ? update.emotions.valence : current.emotions?.valence || 0,
@@ -371,51 +489,50 @@ For trauma: Always include severity (1-10) based on emotional impact.`
           }
         }
 
-        // Update status
         if (update.status) {
           current.status = update.status
         }
 
-        // Add trauma with tags and severity
         if (update.newTrauma) {
           current.trauma = [
-            ...(current.trauma || []),
+            ...current.trauma,
             {
+              name: update.newTrauma.name,
               description: update.newTrauma.description,
               tags: update.newTrauma.tags || [],
               severity: update.newTrauma.severity || 5,
+              source_event: update.newTrauma.source_event || "Unknown",
               acquiredChapter: newState.chapterCount,
+              acquiredTurn: newState.turnCount,
+              triggers: [],
             },
           ]
         }
 
-        // Add skill with category and level
         if (update.newSkill) {
           current.skills = [
-            ...new Set([
-              ...(current.skills || []),
-              {
-                name: update.newSkill.name,
-                category: update.newSkill.category || "uncategorized",
-                level: update.newSkill.level || 1,
-                description: update.newSkill.description || "",
-                acquiredChapter: newState.chapterCount,
-              },
-            ]),
+            ...current.skills,
+            {
+              name: update.newSkill.name,
+              category: update.newSkill.category || "uncategorized",
+              level: update.newSkill.level || 1,
+              description: update.newSkill.description || "",
+              source_event: update.newSkill.source_event || "Unknown",
+              difficulty: update.newSkill.difficulty || 5,
+              acquiredChapter: newState.chapterCount,
+              acquiredTurn: newState.turnCount,
+            },
           ]
         }
 
-        // Add secrets
         if (update.secrets && update.secrets.length > 0) {
-          current.secrets = [...new Set([...(current.secrets || []), ...update.secrets])]
+          current.secrets = [...new Set([...current.secrets, ...update.secrets])]
         }
 
-        // Add clues
         if (update.clues && update.clues.length > 0) {
-          current.clues = [...new Set([...(current.clues || []), ...update.clues])]
+          current.clues = [...new Set([...current.clues, ...update.clues])]
         }
 
-        // Update goals
         if (update.goals && update.goals.length > 0) {
           for (const goal of update.goals) {
             const existingIndex = current.goals?.findIndex((g: any) => g.type === goal.type)
@@ -427,22 +544,35 @@ For trauma: Always include severity (1-10) based on emotional impact.`
           }
         }
 
-        // Update notes
+        if (update.relationships) {
+          if (!current.relationships) current.relationships = {}
+          for (const [otherChar, delta] of Object.entries(update.relationships)) {
+            if (!current.relationships[otherChar]) {
+              current.relationships[otherChar] = {
+                trust: 0,
+                hostility: 0,
+                dominance: 0,
+                friendliness: 0,
+                attachmentStyle: "secure",
+              }
+            }
+            current.relationships[otherChar].trust = Math.min(
+              100,
+              Math.max(-100, current.relationships[otherChar].trust + (delta as number)),
+            )
+          }
+        }
+
         if (update.notes) {
           current.notes = update.notes
         }
       }
     }
 
-    // Apply relationship updates
     if (updates.relationships) {
-      if (!newState.relationships) {
-        newState.relationships = {}
-      }
-
-      for (const [relationKey, relationUpdate] of Object.entries(updates.relationships)) {
-        if (!newState.relationships[relationKey]) {
-          newState.relationships[relationKey] = {
+      for (const [relKey, relUpdate] of Object.entries(updates.relationships)) {
+        if (!newState.relationships[relKey]) {
+          newState.relationships[relKey] = {
             trust: 0,
             hostility: 0,
             dominance: 0,
@@ -453,108 +583,96 @@ For trauma: Always include severity (1-10) based on emotional impact.`
           }
         }
 
-        const current = newState.relationships[relationKey]
-        const update = relationUpdate as RelationshipUpdate
+        const current = newState.relationships[relKey]
+        const update = relUpdate as RelationshipUpdate
 
-        // Update trust (additive, clamped -100 to 100)
         if (typeof update.trust === "number") {
-          current.trust = Math.min(100, Math.max(-100, (current.trust || 0) + update.trust))
-        }
-
-        // Update hostility (additive, clamped 0-100)
-        if (typeof update.hostility === "number") {
-          current.hostility = Math.min(100, Math.max(0, (current.hostility || 0) + update.hostility))
-        }
-
-        // Update dominance
-        if (typeof update.dominance === "number") {
-          current.dominance = update.dominance
-        }
-
-        // Update friendliness
-        if (typeof update.friendliness === "number") {
-          current.friendliness = update.friendliness
-        }
-
-        // Update dynamic with history
-        if (update.dynamic) {
-          const previousDynamic = current.dynamic
-          current.dynamic = update.dynamic
+          const newTrust = Math.min(100, Math.max(-100, current.trust + update.trust))
+          const delta = newTrust - current.trust
+          current.trust = newTrust
           current.history = [
-            ...(current.history || []),
+            ...current.history,
             {
               timestamp: Date.now(),
               chapter: newState.chapterCount,
-              previous: previousDynamic,
-              current: update.dynamic,
+              turn: newState.turnCount,
+              previous: current.dynamic || "",
+              current: current.dynamic || "",
+              delta,
             },
           ]
         }
 
-        // Update attachment style
+        if (typeof update.hostility === "number") {
+          current.hostility = Math.min(100, Math.max(0, current.hostility + update.hostility))
+        }
+
+        if (typeof update.dominance === "number") {
+          current.dominance = update.dominance
+        }
+
+        if (typeof update.friendliness === "number") {
+          current.friendliness = update.friendliness
+        }
+
+        if (update.dynamic) {
+          current.dynamic = update.dynamic
+        }
+
         if (update.attachmentStyle) {
           current.attachmentStyle = update.attachmentStyle
         }
       }
     }
 
-    // Apply world updates
     if (updates.world) {
-      if (!newState.world) {
-        newState.world = {}
-      }
-
+      if (!newState.world) newState.world = {}
       const worldUpdate = updates.world as WorldUpdate
 
       if (worldUpdate.events) {
         newState.world.events = [...new Set([...(newState.world.events || []), ...worldUpdate.events])]
       }
-
       if (worldUpdate.timeProgression) {
-        newState.world.lastTimeUpdate = worldUpdate.timeProgression
+        newState.world.timeProgression = worldUpdate.timeProgression
       }
-
       if (worldUpdate.location) {
-        newState.world.currentLocation = worldUpdate.location
+        newState.world.location = worldUpdate.location
       }
-
       if (worldUpdate.threats) {
         newState.world.threats = [...new Set([...(newState.world.threats || []), ...worldUpdate.threats])]
       }
-
       if (worldUpdate.opportunities) {
         newState.world.opportunities = [
           ...new Set([...(newState.world.opportunities || []), ...worldUpdate.opportunities]),
         ]
       }
+      if (worldUpdate.activeClues) {
+        newState.world.activeClues = [...new Set([...(newState.world.activeClues || []), ...worldUpdate.activeClues])]
+      }
     }
 
-    // Add evolution summary
     if (updates.evolution_summary) {
       newState.last_turn_evolution = updates.evolution_summary
     }
 
+    newState.turnCount = (newState.turnCount || 0) + 1
+
     log.info("state_updated", {
-      characters: Object.keys(newState.characters || {}).length,
-      relationships: Object.keys(newState.relationships || {}).length,
-      worldFields: Object.keys(newState.world || {}).length,
-      evolutionSummary: updates.evolution_summary ? "included" : "missing",
+      characters: Object.keys(newState.characters).length,
+      relationships: Object.keys(newState.relationships).length,
+      turnCount: newState.turnCount,
     })
 
     return newState
   }
 
-  /**
-   * Generate context string from current state for LLM
-   */
   generateContextString(state: any): string {
     const parts: string[] = []
 
-    // Character context with emotions and goals
     if (state.characters && Object.keys(state.characters).length > 0) {
       parts.push("=== Characters ===")
       for (const [name, char] of Object.entries(state.characters)) {
-        const c = char as any
+        const c = char as CharacterState
         parts.push(`${name} (${c.status || "active"}):`)
         if (c.emotions)
           parts.push(
@@ -564,16 +682,16 @@ For trauma: Always include severity (1-10) based on emotional impact.`
         if (c.traits?.length) parts.push(`  Traits: ${c.traits.join(", ")}`)
         if (c.trauma?.length) {
           for (const t of c.trauma) {
-            parts.push(`  Trauma: ${t.description} [${t.tags?.join(",") || "untagged"}] (severity: ${t.severity})`)
+            parts.push(
+              `  Trauma: ${t.name || t.description} [${(t as any).tags?.join(",") || "untagged"}] (severity: ${(t as any).severity})`,
+            )
           }
         }
         if (c.skills?.length) {
           for (const s of c.skills) {
-            parts.push(`  Skill: ${s.name} (${s.category}) Lv.${s.level || 1}`)
+            parts.push(`  Skill: ${s.name} (${s.category}) Lv.${(s as any).level || 1}`)
           }
         }
-        if (c.secrets?.length) parts.push(`  Secrets: ${c.secrets.length} hidden`)
-        if (c.clues?.length) parts.push(`  Clues: ${c.clues.length} found`)
         if (c.goals?.length) {
           const activeGoals = c.goals.filter((g: any) => g.status === "active")
           if (activeGoals.length) parts.push(`  Active Goals: ${activeGoals.length}`)
@@ -581,60 +699,30 @@ For trauma: Always include severity (1-10) based on emotional impact.`
       }
     }
 
-    // Relationship context with history
     if (state.relationships && Object.keys(state.relationships).length > 0) {
       parts.push("\n=== Relationships ===")
       for (const [key, rel] of Object.entries(state.relationships)) {
         const r = rel as any
-        parts.push(`${key}:`)
-        parts.push(`  Trust: ${r.trust || 0}, Hostility: ${r.hostility || 0}`)
-        parts.push(`  Dynamic: ${r.dynamic || "undefined"}`)
-        if (r.history?.length > 0) {
-          const recent = r.history.slice(-3)
-          parts.push(`  Recent Changes: ${recent.length}`)
-        }
+        parts.push(`${key}: Trust ${r.trust || 0}, Hostility: ${r.hostility || 0}`)
       }
     }
 
-    // World context
     if (state.world && Object.keys(state.world).length > 0) {
       parts.push("\n=== World State ===")
       if (state.world.events?.length) parts.push(`Events: ${state.world.events.slice(-5).join("; ")}`)
       if (state.world.threats?.length) parts.push(`Threats: ${state.world.threats.join(", ")}`)
-      if (state.world.opportunities?.length) parts.push(`Opportunities: ${state.world.opportunities.join(", ")}`)
-      if (state.world.lastTimeUpdate) parts.push(`Time: ${state.world.lastTimeUpdate}`)
+      if (state.world.activeClues?.length) parts.push(`Active Clues: ${state.world.activeClues.join(", ")}`)
     }
 
-    // Last turn evolution summary
     if (state.last_turn_evolution) {
       const evo = state.last_turn_evolution
       parts.push("\n=== Last Turn Evolution ===")
       if (evo.changes?.updatedCharacters?.length)
         parts.push(`Characters Changed: ${evo.changes.updatedCharacters.join(", ")}`)
-      if (evo.highlights?.length) parts.push(`Highlights: ${evo.highlights.join("; ")}`)
-      if (evo.contradictions?.length) parts.push(`⚠️ Contradictions: ${evo.contradictions.join("; ")}`)
+      if (evo.auditFlags?.length) parts.push(`⚠ Audit Flags: ${evo.auditFlags.map((f: any) => f.type).join(", ")}`)
     }
 
     return parts.join("\n")
-  }
-
-  /**
-   * Check for contradictions in current story vs state
-   */
-  async detectContradictions(storyText: string, currentState: any): Promise<string[]> {
-    const contradictions: string[] = []
-
-    // Check for deceased character actions
-    for (const [charName, char] of Object.entries(currentState.characters || {})) {
-      const c = char as any
-      if (c.status === "deceased" || c.status === "consciousness_lost") {
-        if (storyText.includes(charName) && !storyText.includes("memory") && !storyText.includes("flashback")) {
-          contradictions.push(`${charName} (${c.status}) appears in scene without flashback/memory context`)
-        }
-      }
-    }
-
-    return contradictions
   }
 }
 

@@ -18,15 +18,19 @@ export const TRAUMA_TAGS = {
   NEURAL: "Neural_Damage",
 
   // Psychological trauma
-  BETRAYAL: "Psychological_Betrayal",
-  GUILT: "Psychological_Guilt",
-  FEAR: "Psychological_Fear",
-  LOSS: "Psychological_Loss",
+  PSYCHOLOGICAL_FEAR: "Psychological_Fear",
+  PSYCHOLOGICAL_BETRAYAL: "Psychological_Betrayal",
+  PSYCHOLOGICAL_GUILT: "Psychological_Guilt",
+  PSYCHOLOGICAL_LOSS: "Psychological_Loss",
 
   // Social trauma
   HUMILIATION: "Social_Humiliation",
   ISOLATION: "Social_Isolation",
   PERSECUTION: "Social_Persecution",
+
+  // Physical aliases
+  PHYSICAL_PAIN: "Physical_Pain",
+  PHYSICAL_INJURY: "Physical_Injury",
 } as const
 
 /**

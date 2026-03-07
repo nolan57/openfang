@@ -137,9 +137,19 @@ export class EvolutionOrchestrator {
       if (!stateUpdates.characters[award.characterName]) {
         stateUpdates.characters[award.characterName] = {}
       }
-      if (!stateUpdates.characters[award.characterName].newSkill) {
-        stateUpdates.characters[award.characterName].newSkill = award.skill
+      const charUpdate = stateUpdates.characters[award.characterName]
+      if (!charUpdate.skills) {
+        charUpdate.skills = []
       }
+      charUpdate.skills.push({
+        name: award.skill.name,
+        category: award.skill.category,
+        level: award.skill.level,
+        description: award.skill.description,
+        source_event: `Turn ${this.storyState.chapterCount} challenge`,
+        difficulty: 5,
+        acquiredChapter: this.storyState.chapterCount,
+      })
     }
 
     for (const award of traumaAwards) {
@@ -147,9 +157,18 @@ export class EvolutionOrchestrator {
       if (!stateUpdates.characters[award.characterName]) {
         stateUpdates.characters[award.characterName] = {}
       }
-      if (!stateUpdates.characters[award.characterName].newTrauma) {
-        stateUpdates.characters[award.characterName].newTrauma = award.trauma
+      const charUpdate = stateUpdates.characters[award.characterName]
+      if (!charUpdate.trauma) {
+        charUpdate.trauma = []
       }
+      charUpdate.trauma.push({
+        name: `Trauma_${award.characterName}`,
+        description: award.trauma.description,
+        tags: award.trauma.tags || [],
+        severity: award.trauma.severity,
+        source_event: `Turn ${this.storyState.chapterCount} event`,
+        acquiredChapter: this.storyState.chapterCount,
+      })
     }
 
     this.storyState = this.stateExtractor.applyUpdates(this.storyState, stateUpdates)
