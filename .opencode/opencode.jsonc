@@ -1,4 +1,5 @@
 {
+  "$schema": "https://opencode.ai/config.json",
   "model": "bailian-coding-plan/qwen3-max-2026-01-23",
   "evolution": {
     "directions": ["literature", "creative-writing", "narrative-design", "detective-fiction"],
