@@ -167,24 +167,24 @@ export class NovelEngine {
     console.log("Generating story content...")
 
     // Placeholder implementation - in real system would use LLM
-    const sampleStory = `林墨站在警局门口，雨水打湿了他的外套。他刚接到陈雨薇的电话，说周远舟案有了新线索。
+    const chapterContent = `林墨站在警局门口，雨水打湿了他的外套。他刚接到陈雨薇的电话，说周远舟案有了新线索。
     
 "我们必须小心，" 陈雨薇低声说，"这个案子比我们想象的要复杂得多。"
     
 林墨点点头，他的手不自觉地摸向口袋里的那张神秘纸条。上面只写着一个数字：3728。
 
-他知道，这不仅仅是一个案件，而是一场关于Uploaded Souls的阴谋...
+他知道，这不仅仅是一个案件，而是一场关于Uploaded Souls的阴谋...`
 
-章节生成完成。故事状态已更新。`
+    const chapterTitle = "第一章：雨夜召唤"
 
-    this.storyState.currentChapter = sampleStory
-    this.storyState.fullStory += "\n\n" + sampleStory
+    this.storyState.currentChapter = chapterTitle
+    this.storyState.fullStory += "\n\n" + chapterContent
 
     // Auto-save state
     await this.saveState()
 
     console.log("✅ Chapter generated successfully!")
-    console.log("Preview:", sampleStory.substring(0, 100) + "...")
+    console.log("Preview:", chapterContent.substring(0, 100) + "...")
   }
 
   /**
