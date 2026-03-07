@@ -29,10 +29,17 @@ export const NovelCommand: CommandModule = {
   builder: (yargs) =>
     yargs
       .command("start [prompt]", "Initialize a new story session", (yargs) =>
-        yargs.positional("prompt", {
-          type: "string",
-          describe: "Path to initial prompt file",
-        }),
+        yargs
+          .positional("prompt", {
+            type: "string",
+            describe: "Path to initial prompt file",
+          })
+          .option("loops", {
+            type: "number",
+            default: 1,
+            alias: "l",
+            describe: "Number of self-evolution loops to run",
+          }),
       )
       .command("continue", "Resume the self-evolving loop from last saved state")
       .command("inject <file>", "Inject additional context into current memory", (yargs) =>
@@ -76,10 +83,24 @@ export const NovelCommand: CommandModule = {
             console.log(`📄 Loaded prompt from: ${args.prompt}`)
           }
         }
-        // Run novel cycle with the prompt
-        const result = await engine.runNovelCycle(promptContent)
-        console.log("\n✅ Chapter generated!")
-        console.log("Preview:", result.substring(0, 150) + "...")
+
+        const loops = (args.loops as number) || 1
+        console.log(`🔄 Running ${loops} self-evolution loop(s)...\n`)
+
+        for (let i = 0; i < loops; i++) {
+          if (i > 0) {
+            console.log(`\n--- Loop ${i + 1}/${loops} ---`)
+            // Trigger evolution before each loop after the first
+            await analyzeAndEvolve(promptContent, await loadDynamicPatterns())
+          }
+          const result = await engine.runNovelCycle(promptContent)
+          console.log(`\n✅ Loop ${i + 1} complete!`)
+          console.log("Preview:", result.substring(0, 150) + "...")
+        }
+
+        if (loops > 1) {
+          console.log(`\n🎉 Completed ${loops} self-evolution loops!`)
+        }
         break
       }
 
