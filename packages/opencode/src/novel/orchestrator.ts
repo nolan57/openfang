@@ -9,6 +9,7 @@ import { EvolutionRulesEngine } from "./evolution-rules"
 import { mkdir } from "fs/promises"
 import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
+import { stateAuditor } from "../middleware/state-auditor"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
@@ -140,64 +141,25 @@ export class EvolutionOrchestrator {
     const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
     console.log(`   Extracted: ${Object.keys(stateUpdates.characters || {}).length} characters updated`)
 
-    const skillAwards = EvolutionRulesEngine.checkSkillUnlocks({
-      chapterCount: this.storyState.chapterCount + 1,
-      characters: this.storyState.characters,
-      worldEvents: this.storyState.world?.events || [],
-      storySegment,
-    })
-
-    const traumaAwards = EvolutionRulesEngine.checkTraumaTriggers({
-      chapterCount: this.storyState.chapterCount + 1,
-      characters: this.storyState.characters,
-      worldEvents: this.storyState.world?.events || [],
-      storySegment,
-    })
-
-    for (const award of skillAwards) {
-      if (!stateUpdates.characters) stateUpdates.characters = {}
-      if (!stateUpdates.characters[award.characterName]) {
-        stateUpdates.characters[award.characterName] = {}
-      }
-      const charUpdate = stateUpdates.characters[award.characterName]
-      if (!charUpdate.skills) {
-        charUpdate.skills = []
-      }
-      charUpdate.skills.push({
-        name: award.skill.name,
-        category: award.skill.category,
-        level: award.skill.level,
-        description: award.skill.description,
-        source_event: `Turn ${this.storyState.chapterCount} challenge`,
-        difficulty: 5,
-        acquiredChapter: this.storyState.chapterCount,
-      })
-    }
-
-    for (const award of traumaAwards) {
-      if (!stateUpdates.characters) stateUpdates.characters = {}
-      if (!stateUpdates.characters[award.characterName]) {
-        stateUpdates.characters[award.characterName] = {}
-      }
-      const charUpdate = stateUpdates.characters[award.characterName]
-      if (!charUpdate.trauma) {
-        charUpdate.trauma = []
-      }
-      charUpdate.trauma.push({
-        name: `Trauma_${award.characterName}`,
-        description: award.trauma.description,
-        tags: award.trauma.tags || [],
-        severity: award.trauma.severity,
-        source_event: `Turn ${this.storyState.chapterCount} event`,
-        acquiredChapter: this.storyState.chapterCount,
-      })
-    }
-
     this.storyState = this.stateExtractor.applyUpdates(this.storyState, stateUpdates)
     log.info("state_changes_applied", {
       characters: Object.keys(this.storyState.characters).length,
       relationships: Object.keys(this.storyState.relationships || {}).length,
     })
+
+    // 审计与分析
+    const beforeState = { ...this.storyState } // 保存更新前的快照用于对比分析
+    const stats = stateAuditor.analyzeTurn({ ...this.storyState, turnCount: this.storyState.turnCount || 0 } as any, this.storyState as any, this.storyState.turnCount || 0)
+    const specialEvents = stateAuditor.detectSpecialEvents(this.storyState as any, stats)
+    const consistencyWarnings = stateAuditor.checkConsistency(this.storyState as any)
+
+    if (stats.skillsAwarded > 0 || stats.traumasInflicted > 0 || specialEvents.length > 0) {
+      console.log(stateAuditor.generateReport(stats, specialEvents))
+    }
+
+    if (consistencyWarnings.length > 0) {
+      log.warn("consistency_warnings", { warnings: consistencyWarnings })
+    }
 
     for (const [charName, char] of Object.entries(this.storyState.characters)) {
       const stressResult = EvolutionRulesEngine.enforceStressLimits(char)

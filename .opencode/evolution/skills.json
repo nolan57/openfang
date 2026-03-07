@@ -2159,6 +2159,7 @@
     "status": "draft"
   },
   {
+    "id": "b359db94-4d07-4b6e-bd0b-53c9e8f1aabf",
     "name": "auto-bash-task",
     "description": "Auto-generated skill for You are interacting with the novel writing engine.\n\nThe user wants to: Self-evolving novel writing e",
     "content": "# You are interacting with the novel writing engine.\n\n## Description\n\nAuto-generated skill for: You are interacting with the novel writing engine.\n\nThe user wants to: Self-evolving novel writing engine - use subcommands: start, continue, state, patterns, reset\n\nAvailable novel subcommands:\n- /novel start [prompt_file] - Start a new story session\n- /novel continue - Continue from last saved state  \n- /novel state - Display current story state\n- /novel patterns - Display discovered narrative patterns\n- /novel reset - Reset story state and start fresh\n- /novel inject <file> - Inject additional context\n- /novel evolve - Manually trigger PatternMiner evolution\n- /novel export <format> - Export story (md/json/pdf)\n\nPlease execute the appropriate novel subcommand using the opencode CLI.\n\nstart /Users/lpcw/Documents/opencode/todos/novel.md --loops 5 --print-logs\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-07\n",
@@ -2170,8 +2171,17 @@
       "engine"
     ],
     "sessionID": "ses_337b0dd41ffeBcqbu1E8H9YO5o",
-    "id": "b359db94-4d07-4b6e-bd0b-53c9e8f1aabf",
     "createdAt": 1772887315369,
+    "status": "draft"
+  },
+  {
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 推送项目到远程",
+    "content": "# 推送项目到远程\n\n## Description\n\nAuto-generated skill for: 推送项目到远程\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-07\n",
+    "triggerPatterns": [],
+    "sessionID": "ses_3379e55fdffexqZ5qdpqnlxTSE",
+    "id": "4bca59e6-40fb-478c-8d2e-4edbb88e6d7d",
+    "createdAt": 1772888425673,
     "status": "draft"
   }
 ]

@@ -273,13 +273,27 @@ export const ValidatedChangesSchema = ProposedChangesSchema.extend({
 })
 export type ValidatedChanges = z.infer<typeof ValidatedChangesSchema>
 
-// Validation helpers
+// Validation helpers - 可通过配置调整的阈值
+let config = {
+  minDifficultyForSkill: 5, // 技能阈值（原7，放宽到5让LLM更容易给技能）
+  traumaStressThreshold: 80, // stress > 80 必生创伤
+  traumaDeltaThreshold: 20, // 单次 delta > 20 建议生创伤
+}
+
+export function setValidationConfig(overrides: Partial<typeof config>) {
+  config = { ...config, ...overrides }
+}
+
+export function getValidationConfig() {
+  return { ...config }
+}
+
 export function validateTraumaSeverity(stress: number, hasHighStressEvent: boolean): boolean {
-  return stress > 80 || hasHighStressEvent
+  return stress > config.traumaStressThreshold || hasHighStressEvent
 }
 
 export function validateSkillAward(outcome: OutcomeType, difficulty: number): boolean {
-  return outcome === "SUCCESS" && difficulty >= 7
+  return outcome === "SUCCESS" && difficulty >= config.minDifficultyForSkill
 }
 
 export function calculateStressDelta(baseStress: number, eventSeverity: number): number {

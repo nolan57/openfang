@@ -1,277 +1,221 @@
 import { Log } from "../util/log"
-import type {
-  ProposedChanges,
-  ValidatedChanges,
-  CharacterState,
-  SkillEntry,
-  TraumaEntry,
-  TurnResult,
-  OutcomeType,
-} from "../types/novel-state"
-import { validateSkillAward, validateTraumaSeverity } from "../types/novel-state"
+import type { CharacterState, StoryBible } from "../types/novel-state"
 
 const log = Log.create({ service: "state-auditor" })
 
-export interface AuditResult {
-  validated: ValidatedChanges
-  correctionsApplied: number
-  warnings: string[]
+export interface TurnStatistics {
+  turnNumber: number
+  charactersAffected: number
+  skillsAwarded: number
+  traumasInflicted: number
+  stressChanges: { character: string; before: number; after: number; delta: number }[]
+  relationshipChanges: number
+  specialEvents: string[]
+}
+
+export interface SpecialEvent {
+  type: "BREAKDOWN" | "TRAUMA_FLASHBACK" | "RELATIONSHIP_RUPTURE" | "SKILL_MASTERED"
+  character: string
+  description: string
+  severity: number
 }
 
 export class StateAuditor {
-  private readonly MAX_STRESS = 100
-  private readonly CRITICAL_STRESS_THRESHOLD = 90
-  private readonly SKILL_COOLDOWN_TURNS = 3
-  private readonly MAX_TRUST_DELTA_PER_TURN = 50
+  private readonly BREAKDOWN_THRESHOLD = 90
+  private readonly HIGH_STRESS_THRESHOLD = 70
+  private readonly MAX_SKILLS_PER_TURN = 2
+  private readonly MAX_TRAUMAS_PER_TURN = 1
 
-  async auditAndFix(proposed: ProposedChanges, currentState: any, turnResult: TurnResult): Promise<AuditResult> {
-    const validated: ValidatedChanges = {
-      ...proposed,
-      auditFlags: [],
-      corrections_applied: 0,
+  analyzeTurn(beforeState: StoryBible, afterState: StoryBible, turnNumber: number): TurnStatistics {
+    const stats: TurnStatistics = {
+      turnNumber,
+      charactersAffected: 0,
+      skillsAwarded: 0,
+      traumasInflicted: 0,
+      stressChanges: [],
+      relationshipChanges: 0,
+      specialEvents: [],
     }
-    const warnings: string[] = []
 
-    const { outcome_type, challenge_difficulty } = turnResult
+    for (const [charName, afterChar] of Object.entries(afterState.characters || {})) {
+      const beforeChar = beforeState.characters?.[charName]
+      if (!beforeChar) {
+        stats.charactersAffected++
+        continue
+      }
 
-    for (const [charName, charUpdate] of Object.entries(proposed.characters || {})) {
-      const currentChar = currentState.characters?.[charName] || ({} as CharacterState)
-      const update = charUpdate as Partial<CharacterState>
+      // 统计 stress 变化
+      if (beforeChar.stress !== afterChar.stress) {
+        stats.stressChanges.push({
+          character: charName,
+          before: beforeChar.stress || 0,
+          after: afterChar.stress || 0,
+          delta: (afterChar.stress || 0) - (beforeChar.stress || 0),
+        })
+        stats.charactersAffected++
+      }
 
-      this.auditSkill(
-        validated,
-        update,
-        currentChar,
-        charName,
-        outcome_type,
-        challenge_difficulty || 5,
-        currentState.turnCount,
-        warnings,
+      // 统计技能获取
+      const newSkills = (afterChar.skills || []).filter(
+        (s: any) => !beforeChar.skills?.some((bs: any) => bs.name === s.name),
       )
+      stats.skillsAwarded += newSkills.length
 
-      this.auditTrauma(validated, update, currentChar, charName, outcome_type, currentState.turnCount || 0, warnings)
-
-      this.auditStress(validated, update, currentChar, charName, warnings)
-
-      this.auditRelationships(validated, update, currentChar, charName, warnings)
+      // 统计创伤
+      const newTraumas = (afterChar.trauma || []).filter(
+        (t: any) => !beforeChar.trauma?.some((bt: any) => bt.name === t.name),
+      )
+      stats.traumasInflicted += newTraumas.length
     }
 
-    for (const [relKey, relUpdate] of Object.entries(proposed.relationships || {})) {
-      this.auditRelationshipDelta(validated, relKey, relUpdate as any, warnings)
-    }
+    // 统计关系变化
+    const relBefore = Object.keys(beforeState.relationships || {}).length
+    const relAfter = Object.keys(afterState.relationships || {}).length
+    stats.relationshipChanges = Math.max(0, relAfter - relBefore)
 
-    log.info("audit_complete", {
-      flags: validated.auditFlags.length,
-      corrections: validated.corrections_applied,
-      warnings: warnings.length,
-      outcome: outcome_type,
-    })
-
-    return {
-      validated,
-      correctionsApplied: validated.corrections_applied,
-      warnings,
-    }
+    return stats
   }
 
-  private auditSkill(
-    validated: ValidatedChanges,
-    update: Partial<CharacterState>,
-    currentChar: CharacterState,
-    charName: string,
-    outcome: OutcomeType,
-    difficulty: number,
-    currentTurn: number,
-    warnings: string[],
-  ): void {
-    if (!update.skills || update.skills.length === 0) return
+  detectSpecialEvents(state: StoryBible, stats: TurnStatistics): SpecialEvent[] {
+    const events: SpecialEvent[] = []
 
-    const newSkills: SkillEntry[] = []
-    const rejectedSkills: SkillEntry[] = []
+    for (const [charName, char] of Object.entries(state.characters || {})) {
+      const stress = char.stress || 0
 
-    for (const skill of update.skills) {
-      const canAward = validateSkillAward(outcome, difficulty)
-
-      if (!canAward) {
-        validated.auditFlags.push({
-          type: "SKILL_IN_FAILURE",
-          description: `${charName} gained skill "${skill.name}" during ${outcome} (difficulty ${difficulty})`,
-          corrected: true,
-          correction: `Skill removed, converted to stress +15`,
+      // 角色崩溃风险
+      if (stress >= this.BREAKDOWN_THRESHOLD) {
+        events.push({
+          type: "BREAKDOWN",
+          character: charName,
+          description: `${charName} 心理压力达到 ${stress}，处于崩溃边缘`,
+          severity: 10,
         })
-        rejectedSkills.push(skill)
-        validated.corrections_applied++
-      } else {
-        const isDuplicate = this.checkSkillDuplicate(currentChar, skill)
-        if (isDuplicate) {
-          validated.auditFlags.push({
-            type: "INFLATION",
-            description: `${charName} skill "${skill.name}" is redundant with recent skills`,
-            corrected: true,
-            correction: "Skill merged into existing skill level",
-          })
-          validated.corrections_applied++
-        } else {
-          newSkills.push(skill)
+      }
+
+      // 高压力预警
+      if (stress >= this.HIGH_STRESS_THRESHOLD && stress < this.BREAKDOWN_THRESHOLD) {
+        events.push({
+          type: "TRAUMA_FLASHBACK",
+          character: charName,
+          description: `${charName} 压力过高 (${stress})，可能触发创伤闪回`,
+          severity: 6,
+        })
+      }
+
+      // 技能过多检查
+      const newSkillsThisTurn = (char.skills || []).filter((s: any) => s.acquiredTurn === state.turnCount)
+      if (newSkillsThisTurn.length > this.MAX_SKILLS_PER_TURN) {
+        log.warn("skill_inflation_risk", { character: charName, count: newSkillsThisTurn.length })
+      }
+    }
+
+    // 关系破裂检测
+    for (const [relKey, rel] of Object.entries(state.relationships || {})) {
+      if ((rel as any).trust <= -80) {
+        const [char1, char2] = relKey.split("-")
+        events.push({
+          type: "RELATIONSHIP_RUPTURE",
+          character: `${char1} & ${char2}`,
+          description: `${char1} 和 ${char2} 关系彻底破裂 (信任: ${(rel as any).trust})`,
+          severity: 8,
+        })
+      }
+    }
+
+    return events
+  }
+
+  checkConsistency(state: StoryBible): string[] {
+    const warnings: string[] = []
+
+    for (const [charName, char] of Object.entries(state.characters || {})) {
+      // 检查技能重复
+      const skillNames = (char.skills || []).map((s: any) => s.name)
+      const duplicates = skillNames.filter((name, idx) => skillNames.indexOf(name) !== idx)
+      if (duplicates.length > 0) {
+        warnings.push(`${charName}: 重复技能 ${duplicates.join(", ")}`)
+      }
+
+      // 检查 stress 范围
+      if ((char.stress || 0) > 100 || (char.stress || 0) < 0) {
+        warnings.push(`${charName}: stress 值异常 (${char.stress})`)
+      }
+
+      // 检查创伤严重度
+      for (const trauma of char.trauma || []) {
+        if ((trauma as any).severity > 10 || (trauma as any).severity < 1) {
+          warnings.push(`${charName}: 创伤 ${trauma.name} 严重度异常`)
         }
       }
     }
 
-    if (rejectedSkills.length > 0) {
-      update.stress = (update.stress || 0) + 15 * rejectedSkills.length
-      warnings.push(`${charName}: Rejected ${rejectedSkills.length} skill(s), added stress`)
-    }
-
-    update.skills = newSkills
+    return warnings
   }
 
-  private checkSkillDuplicate(currentChar: CharacterState, newSkill: SkillEntry): boolean {
-    if (!currentChar.skills || currentChar.skills.length === 0) return false
+  // 兜底逻辑：当 LLM 没有返回任何更新时，提供默认值
+  provideFallback(
+    state: StoryBible,
+    storyText: string,
+    outcome: string,
+    difficulty: number,
+  ): Partial<StoryBible> {
+    const fallback: Partial<StoryBible> = {}
 
-    const recentSkills = currentChar.skills.filter((s) => {
-      if (!s.acquiredTurn) return false
-      return currentChar.skills && s.acquiredTurn >= currentChar.skills.length - this.SKILL_COOLDOWN_TURNS
-    })
+    // 如果没有角色更新，添加默认 stress 变化
+    if (!fallback.characters || Object.keys(fallback.characters).length === 0) {
+      const stressMap: Record<string, number> = {
+        SUCCESS: 5,
+        COMPLICATION: 15,
+        FAILURE: 25,
+        NEUTRAL: 0,
+      }
+      const delta = stressMap[outcome] || 0
 
-    const sameCategory = recentSkills.filter((s) => s.category === newSkill.category)
-    return sameCategory.length >= 2
-  }
-
-  private auditTrauma(
-    validated: ValidatedChanges,
-    update: Partial<CharacterState>,
-    currentChar: CharacterState,
-    charName: string,
-    outcome: OutcomeType,
-    currentTurn: number,
-    warnings: string[],
-  ): void {
-    const currentStress = currentChar.stress || 0
-    const stressDelta = update.stress || 0
-    const newStress = currentStress + stressDelta
-
-    const hasHighStressEvent = stressDelta > 20 || newStress > this.CRITICAL_STRESS_THRESHOLD
-
-    if (validateTraumaSeverity(newStress, hasHighStressEvent) && (!update.trauma || update.trauma.length === 0)) {
-      validated.auditFlags.push({
-        type: "MISSING_TRAUMA",
-        description: `${charName} stress ${newStress} exceeds trauma threshold without trauma entry`,
-        corrected: true,
-        correction: "Auto-generated trauma entry",
-      })
-
-      if (!update.trauma) update.trauma = []
-
-      update.trauma.push({
-        id: this.generateId(),
-        name: this.generateTraumaName(charName, "stress_overload"),
-        description: `Psychological wound from cumulative stress and ${outcome.toLowerCase()}`,
-        tags: this.inferTraumaTags(outcome),
-        severity: Math.min(10, Math.floor(newStress / 10) + 1),
-        source_event: `Turn ${currentChar.skills?.[0]?.acquiredTurn || "?"} - ${outcome}`,
-        acquiredChapter: currentChar.skills?.[0]?.acquiredChapter || 1,
-        acquiredTurn: currentTurn,
-        triggers: [],
-      } as TraumaEntry)
-
-      validated.corrections_applied++
-      warnings.push(`${charName}: Auto-added trauma due to stress ${newStress}`)
-    }
-  }
-
-  private auditStress(
-    validated: ValidatedChanges,
-    update: Partial<CharacterState>,
-    currentChar: CharacterState,
-    charName: string,
-    warnings: string[],
-  ): void {
-    const currentStress = currentChar.stress || 0
-    const stressDelta = update.stress || 0
-    const newStress = currentStress + stressDelta
-
-    if (newStress > this.MAX_STRESS) {
-      validated.auditFlags.push({
-        type: "STRESS_OVERFLOW",
-        description: `${charName} stress would exceed ${this.MAX_STRESS} (calculated: ${newStress})`,
-        corrected: true,
-        correction: `Stress clamped to ${this.MAX_STRESS}`,
-      })
-      update.stress = this.MAX_STRESS - currentStress
-      validated.corrections_applied++
-      warnings.push(`${charName}: Stress clamped from ${newStress} to ${this.MAX_STRESS}`)
-    }
-
-    if (newStress > this.CRITICAL_STRESS_THRESHOLD) {
-      warnings.push(`⚠️ ${charName} approaching critical stress: ${newStress}/${this.MAX_STRESS}`)
-    }
-  }
-
-  private auditRelationships(
-    validated: ValidatedChanges,
-    update: Partial<CharacterState>,
-    currentChar: CharacterState,
-    charName: string,
-    warnings: string[],
-  ): void {
-    if (!update.relationships) return
-
-    for (const [otherChar, relData] of Object.entries(update.relationships)) {
-      const delta = typeof relData === "number" ? relData : (relData as any).trust || 0
-      if (Math.abs(delta) > this.MAX_TRUST_DELTA_PER_TURN) {
-        warnings.push(`${charName} -> ${otherChar}: Large trust delta (${delta}) should have dramatic justification`)
+      if (delta !== 0) {
+        for (const charName of Object.keys(state.characters || {})) {
+          if (!fallback.characters) fallback.characters = {}
+          fallback.characters[charName] = {
+            stress: delta,
+            status: "active",
+            traits: [],
+            trauma: [],
+            skills: [],
+            secrets: [],
+            clues: [],
+            goals: [],
+          }
+        }
+        log.info("fallback_stress_applied", { outcome, delta })
       }
     }
+
+    return fallback
   }
 
-  private auditRelationshipDelta(
-    validated: ValidatedChanges,
-    relKey: string,
-    relUpdate: any,
-    warnings: string[],
-  ): void {
-    const trustDelta = relUpdate.trust || 0
+  generateReport(stats: TurnStatistics, events: SpecialEvent[]): string {
+    const lines: string[] = []
+    lines.push(`📊 Turn ${stats.turnNumber} Analysis`)
+    lines.push(`- Characters affected: ${stats.charactersAffected}`)
+    lines.push(`- Skills awarded: ${stats.skillsAwarded}`)
+    lines.push(`- Traumas inflicted: ${stats.traumasInflicted}`)
+    lines.push(`- Relationship changes: ${stats.relationshipChanges}`)
 
-    if (Math.abs(trustDelta) > this.MAX_TRUST_DELTA_PER_TURN) {
-      validated.auditFlags.push({
-        type: "IMPOSSIBLE_CHANGE",
-        description: `Trust shift ${trustDelta} in ${relKey} exceeds maximum per-turn delta`,
-        corrected: true,
-        correction: `Delta clamped to ${Math.sign(trustDelta) * this.MAX_TRUST_DELTA_PER_TURN}`,
-      })
-      relUpdate.trust = Math.sign(trustDelta) * this.MAX_TRUST_DELTA_PER_TURN
-      validated.corrections_applied++
-      warnings.push(`${relKey}: Trust delta clamped to ±${this.MAX_TRUST_DELTA_PER_TURN}`)
+    if (stats.stressChanges.length > 0) {
+      lines.push("\n🔴 Stress Changes:")
+      for (const change of stats.stressChanges) {
+        const sign = change.delta > 0 ? "+" : ""
+        lines.push(`  ${change.character}: ${change.before} → ${change.after} (${sign}${change.delta})`)
+      }
     }
-  }
 
-  private generateId(): string {
-    return `_${Math.random().toString(36).substr(2, 9)}`
-  }
-
-  private generateTraumaName(character: string, cause: string): string {
-    const keywords = cause.split("_").map((k) => k.charAt(0).toUpperCase() + k.slice(1).toLowerCase())
-    const suffix = ["Shock", "Wound", "Scar", "Phobia", "PTSD"][Math.floor(Math.random() * 5)]
-    return `${character}_${keywords.join("")}_${suffix}`
-  }
-
-  private inferTraumaTags(outcome: OutcomeType): string[] {
-    switch (outcome) {
-      case "FAILURE":
-        return ["Psychological_Fear", "Social_Humiliation"]
-      case "COMPLICATION":
-        return ["Psychological_Guilt", "Social_Isolation"]
-      case "SUCCESS":
-        return []
-      case "NEUTRAL":
-        return ["Psychological_Fear"]
-      default:
-        return ["Psychological_Fear"]
+    if (events.length > 0) {
+      lines.push("\n⚠️  Special Events:")
+      for (const event of events) {
+        lines.push(`  [${event.type}] ${event.character}: ${event.description}`)
+      }
     }
-  }
 
-  get currentTurn(): number {
-    return 0
+    return lines.join("\n")
   }
 }
 
