@@ -5,6 +5,7 @@ import { Skill } from "../skill/skill"
 import { Log } from "../util/log"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
+import { getNovelLanguageModel } from "./model"
 
 const log = Log.create({ service: "pattern-miner" })
 
@@ -45,6 +46,8 @@ export async function analyzeAndEvolve(context: string, currentPatterns: any[] =
   log.info("pattern_analysis_started", { contextLength: context.length, patternCount: currentPatterns.length })
 
   try {
+    const languageModel = await getNovelLanguageModel()
+
     const prompt = `You are an expert novel editor and system architect.
 Analyze the following story fragment and context. Extract unique narrative patterns, character traits, or world rules NOT yet recorded by the system.
 
@@ -52,11 +55,6 @@ Current Known Patterns (Reference only): ${JSON.stringify(currentPatterns.slice(
 Story Context: ${context.substring(0, 2000)}
 
 Output a JSON list of NEW patterns to add. Return an empty array if none found.`
-
-    // Use Provider to get LLM
-    const model = await Provider.defaultModel()
-    const modelInfo = await Provider.getModel(model.providerID, model.modelID)
-    const languageModel = await Provider.getLanguage(modelInfo)
 
     const result = await generateText({
       model: languageModel,

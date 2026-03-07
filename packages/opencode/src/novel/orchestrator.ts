@@ -1,19 +1,32 @@
 import { Log } from "../util/log"
 import { readFile, writeFile } from "fs/promises"
-import { resolve, dirname } from "path"
+import { resolve, dirname, join } from "path"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
 import { Skill } from "../skill/skill"
 import { StateExtractor } from "./state-extractor"
 import { EvolutionRulesEngine } from "./evolution-rules"
 import { mkdir } from "fs/promises"
+import { getNovelLanguageModel } from "./model"
+import { Instance } from "../project/instance"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
-const StoryBiblePath = ".opencode/novel/state/story_bible.json"
-const DynamicPatternsPath = ".opencode/novel/patterns/dynamic-patterns.json"
-const SkillsPath = ".opencode/novel/skills"
-const SummariesPath = ".opencode/novel/summaries"
+function getStoryBiblePath() {
+  return join(Instance.directory, ".opencode/novel/state/story_bible.json")
+}
+
+function getDynamicPatternsPath() {
+  return join(Instance.directory, ".opencode/novel/patterns/dynamic-patterns.json")
+}
+
+function getSkillsPath() {
+  return join(Instance.directory, ".opencode/novel/skills")
+}
+
+function getSummariesPath() {
+  return join(Instance.directory, ".opencode/novel/summaries")
+}
 
 interface ChaosResult {
   roll: number
@@ -44,7 +57,7 @@ async function fileExists(path: string): Promise<boolean> {
 
 export async function loadDynamicPatterns(): Promise<any[]> {
   try {
-    const path = resolve(DynamicPatternsPath)
+    const path = resolve(getDynamicPatternsPath())
     if (await fileExists(path)) {
       const content = await readFile(path, "utf-8")
       const data = JSON.parse(content)
@@ -78,7 +91,7 @@ export class EvolutionOrchestrator {
 
   async loadState(): Promise<void> {
     try {
-      const path = resolve(StoryBiblePath)
+      const path = resolve(getStoryBiblePath())
       if (await fileExists(path)) {
         const content = await readFile(path, "utf-8")
         this.storyState = { ...this.storyState, ...JSON.parse(content) }
@@ -91,15 +104,18 @@ export class EvolutionOrchestrator {
   }
 
   async saveState(): Promise<void> {
-    const path = resolve(StoryBiblePath)
+    const path = resolve(getStoryBiblePath())
+    await mkdir(dirname(path), { recursive: true })
     await writeFile(path, JSON.stringify(this.storyState, null, 2))
     log.info("state_saved", { chapter: this.storyState.chapterCount })
   }
 
   async runNovelCycle(promptContent: string): Promise<string> {
     log.info("cycle_started", { chapter: this.storyState.chapterCount + 1 })
+    console.log(`\n📝 Starting Chapter ${this.storyState.chapterCount + 1}...`)
 
     this.patterns = await loadDynamicPatterns()
+    console.log(`   Loaded ${this.patterns.length} patterns`)
 
     const chaosEvent = EvolutionRulesEngine.rollChaos()
     const chaosResult: ChaosResult = {
@@ -109,14 +125,20 @@ export class EvolutionOrchestrator {
       category: chaosEvent.category,
     }
     this.lastChaosResult = chaosResult
+    console.log(`   🎲 Chaos Roll: ${chaosEvent.roll}/6 - ${chaosEvent.category.toUpperCase()}`)
 
+    console.log(`   📖 Parsing prompt...`)
     const elements = await this.parsePromptWithLLM(promptContent)
     log.info("prompt_parsed", elements)
 
+    console.log(`   ✍️  Generating story...`)
     const storySegment = await this.generateWithLLM(promptContent, elements, chaosResult)
+    console.log(`   Generated ${storySegment.length} chars`)
 
+    console.log(`   🔍 Extracting state changes...`)
     log.info("extracting_state_changes")
     const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
+    console.log(`   Extracted: ${Object.keys(stateUpdates.characters || {}).length} characters updated`)
 
     const skillAwards = EvolutionRulesEngine.checkSkillUnlocks({
       chapterCount: this.storyState.chapterCount + 1,
@@ -217,9 +239,7 @@ export class EvolutionOrchestrator {
    */
   private async parsePromptWithLLM(promptContent: string): Promise<any> {
     try {
-      const model = await Provider.defaultModel()
-      const modelInfo = await Provider.getModel(model.providerID, model.modelID)
-      const languageModel = await Provider.getLanguage(modelInfo)
+      const languageModel = await getNovelLanguageModel()
 
       const systemPrompt = `You are a story element extractor. Analyze the following prompt and extract story elements in JSON format.
 
@@ -286,9 +306,7 @@ If a field is not mentioned, use empty string or empty array.`
    */
   private async generateWithLLM(promptContent: string, elements: any, chaosResult: ChaosResult): Promise<string> {
     try {
-      const model = await Provider.defaultModel()
-      const modelInfo = await Provider.getModel(model.providerID, model.modelID)
-      const languageModel = await Provider.getLanguage(modelInfo)
+      const languageModel = await getNovelLanguageModel()
 
       const previousStory = this.storyState.fullStory || "(这是故事的开始)"
       const characterInfo = Object.keys(this.storyState.characters).join(", ") || "主角"
@@ -374,7 +392,7 @@ ${characters}站在昏暗的灯光下，空气中弥漫着紧张的气息。${ev
 
   private async saveTurnSummary(stateUpdates: any, chaosResult: ChaosResult): Promise<void> {
     try {
-      const summaryDir = resolve(SummariesPath)
+      const summaryDir = resolve(getSummariesPath())
       await mkdir(summaryDir, { recursive: true })
 
       const chaosEvent = {
@@ -412,9 +430,7 @@ export async function analyzeAndEvolve(context: string, currentPatterns: any[] =
   log.info("pattern_analysis_started", { contextLength: context.length, patternCount: currentPatterns.length })
 
   try {
-    const model = await Provider.defaultModel()
-    const modelInfo = await Provider.getModel(model.providerID, model.modelID)
-    const languageModel = await Provider.getLanguage(modelInfo)
+    const languageModel = await getNovelLanguageModel()
 
     const prompt = `You are a narrative pattern analyst.
 Analyze this story segment and extract unique patterns NOT in the existing list.
@@ -439,7 +455,7 @@ Output JSON array of new patterns. Each pattern:
 
     const newPatterns = JSON.parse(jsonMatch[0])
     if (newPatterns.length > 0) {
-      const dynamicPath = resolve(DynamicPatternsPath)
+      const dynamicPath = resolve(getDynamicPatternsPath())
       const existing = (await fileExists(dynamicPath))
         ? JSON.parse(await readFile(dynamicPath, "utf-8"))
         : { patterns: [], version: "1.0", lastUpdated: null }
@@ -483,7 +499,7 @@ Detected complex narrative structure in story
 - Use dramatic irony for suspense
 - Plant subtle clues for later revelation
 `
-      const fileName = `${SkillsPath}/auto-${Date.now()}.md`
+      const fileName = `${getSkillsPath()}/auto-${Date.now()}.md`
       await writeFile(resolve(fileName), skillContent)
       await Skill.reload()
       log.info("skill_generated", { fileName })

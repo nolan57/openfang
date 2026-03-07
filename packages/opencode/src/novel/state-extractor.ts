@@ -14,6 +14,7 @@ import type {
 } from "../types/novel-state"
 import { validateSkillAward, validateTraumaSeverity, calculateStressDelta } from "../types/novel-state"
 import { buildStateExtractionPrompt } from "../prompts/state-extraction-prompt"
+import { getNovelLanguageModel } from "./model"
 
 const log = Log.create({ service: "state-extractor" })
 
@@ -134,9 +135,7 @@ export class StateExtractor {
 
   async extract(storyText: string, currentState: any, turnResult?: Partial<TurnResult>): Promise<StateUpdate> {
     try {
-      const model = await Provider.defaultModel()
-      const modelInfo = await Provider.getModel(model.providerID, model.modelID)
-      const languageModel = await Provider.getLanguage(modelInfo)
+      const languageModel = await getNovelLanguageModel()
 
       const evaluation = await this.evaluateTurn(storyText, currentState, turnResult)
 
@@ -179,9 +178,7 @@ export class StateExtractor {
     currentState: any,
     turnResult?: Partial<TurnResult>,
   ): Promise<TurnEvaluation> {
-    const model = await Provider.defaultModel()
-    const modelInfo = await Provider.getModel(model.providerID, model.modelID)
-    const languageModel = await Provider.getLanguage(modelInfo)
+    const languageModel = await getNovelLanguageModel()
 
     const evaluationPrompt = `You are a strict narrative auditor. Evaluate this turn's outcome.
 
