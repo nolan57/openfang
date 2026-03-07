@@ -7,6 +7,7 @@ import { Log } from "../util/log"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
 import { getNovelLanguageModel } from "./model"
+import { Instance } from "../project/instance"
 
 const log = Log.create({ service: "pattern-miner" })
 
@@ -17,14 +18,18 @@ const PatternSchema = z.object({
   trigger_condition: z.string(),
 })
 
-// Get the project root directory
-function getProjectRoot(): string {
-  // Try to get from environment or use a reasonable default
-  return process.cwd()
+// Get the project directory from Instance
+function getProjectDirectory(): string {
+  try {
+    return Instance.directory
+  } catch {
+    // Fallback: go up from packages/opencode to project root
+    return resolve(process.cwd(), "..")
+  }
 }
 
-const DynamicPatternsPath = resolve(getProjectRoot(), ".opencode/novel/patterns/dynamic-patterns.json")
-const SkillsPath = resolve(getProjectRoot(), ".opencode/novel/skills")
+const DynamicPatternsPath = resolve(getProjectDirectory(), ".opencode/novel/patterns/dynamic-patterns.json")
+const SkillsPath = resolve(getProjectDirectory(), ".opencode/novel/skills")
 
 async function fileExists(path: string): Promise<boolean> {
   try {
