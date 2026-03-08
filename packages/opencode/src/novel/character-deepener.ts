@@ -24,26 +24,26 @@ export interface DeepenedCharacterProfile {
   psychologicalProfile: {
     // 大五人格推断
     bigFiveTraits: {
-      openness: number      // 开放性: 好奇心、创造力
+      openness: number // 开放性: 好奇心、创造力
       conscientiousness: number // 尽责性: 自律、责任感
-      extraversion: number  // 外向性: 社交能量
+      extraversion: number // 外向性: 社交能量
       agreeableness: number // 宜人性: 合作信任
-      neuroticism: number   // 神经质: 情绪稳定性
+      neuroticism: number // 神经质: 情绪稳定性
     }
     // 依恋风格
     attachmentStyle: "secure" | "anxious" | "avoidant" | "disorganized"
     // 核心心理
-    coreFear: string       // 核心恐惧
-    coreDesire: string     // 核心欲望
-    defenseMechanisms: string[]  // 防御机制
-    copingStrategies: string[]   // 应对策略
+    coreFear: string // 核心恐惧
+    coreDesire: string // 核心欲望
+    defenseMechanisms: string[] // 防御机制
+    copingStrategies: string[] // 应对策略
   }
   // 角色弧光
   characterArc: {
     currentPhase: "denial" | "resistance" | "exploration" | "integration" | "mastery"
     arcDirection: "growth" | "decline" | "complex" | "stagnation"
-    potentialBreakthrough: string   // 潜在突破点
-    potentialBreakdown: string     // 潜在崩溃点
+    potentialBreakthrough: string // 潜在突破点
+    potentialBreakdown: string // 潜在崩溃点
   }
   // 关系动态
   relationshipDynamics: {
@@ -55,55 +55,77 @@ export interface DeepenedCharacterProfile {
   }
   // 叙事建议
   narrativeSuggestions: {
-    internalConflict: string     // 内心冲突
-    externalConflict: string     // 外部冲突
+    internalConflict: string // 内心冲突
+    externalConflict: string // 外部冲突
     growthOpportunities: string[] // 成长机会
-    sceneTriggers: string[]      // 触发特定反应的场景
+    sceneTriggers: string[] // 触发特定反应的场景
   }
   // 深化后的属性（建议合并到角色）
   suggestedEnhancements: {
-    newTraits: string[]           // 建议添加的性格特质
-    newGoals: string[]           // 建议添加的目标
+    newTraits: string[] // 建议添加的性格特质
+    newGoals: string[] // 建议添加的目标
     backstoryFragments: string[] // 建议的背景碎片
-    dialogueTraits: string[]     // 建议的对话风格
+    dialogueTraits: string[] // 建议的对话风格
   }
 }
 
+export interface CharacterDeepenerConfig {
+  skillDefinitions?: Record<string, string>
+  traumaDefinitions?: Record<string, string>
+}
+
+const DEFAULT_CONFIG: CharacterDeepenerConfig = {
+  skillDefinitions: {},
+  traumaDefinitions: {},
+}
+
 /**
- * Character Deepener - 基于 LLM 的通用角色深化
- * 
- * 不硬编码任何角色类型，完全依靠 LLM 分析现有角色数据
- * 结合心理学理论（Big Five, 依恋理论, 创伤理论等）进行推理
+ * Character Deepener - LLM-based Universal Character Deepening
+ *
+ * Analyzes character psychology using frameworks like Big Five, Attachment Theory, etc.
+ * Uses dynamic world knowledge injection for genre-agnostic analysis.
  */
 export class CharacterDeepener {
-  
+  private config: CharacterDeepenerConfig
+
+  constructor(config: CharacterDeepenerConfig = DEFAULT_CONFIG) {
+    this.config = { ...DEFAULT_CONFIG, ...config }
+  }
+
   /**
-   * 深化单个角色 - 完全基于现有数据推理
+   * Update config dynamically (e.g., after loading new patterns)
    */
+  updateConfig(newConfig: Partial<CharacterDeepenerConfig>): void {
+    this.config = { ...this.config, ...newConfig }
+  }
   async deepenCharacter(character: CharacterStateInput): Promise<DeepenedCharacterProfile> {
     log.info("deepening_character", { name: character.name })
 
     const languageModel = await getNovelLanguageModel()
 
-    // 构建角色数据摘要
+    // Build character data summary
     const characterSummary = this.buildCharacterSummary(character)
 
-    const prompt = `你是一位角色心理学专家。你的任务是基于角色的现有状态数据，
-运用心理学理论进行深度分析，生成角色画像。
+    // Build world knowledge dictionary from config
+    const worldKnowledgeDict = this.buildWorldKnowledgeDictionary()
 
-=== 角色现有数据 ===
+    const prompt = `You are a character psychology expert. Your task is to analyze the character based on their current state data using psychological frameworks.
+
+=== Character Data ===
 ${characterSummary}
 
-=== 分析要求 ===
-请运用以下心理学框架进行分析：
+${worldKnowledgeDict}
 
-1. **大五人格 (Big Five)** - 从角色的 traits, skills, behavior 推断
-2. **依恋理论** - 从 relationships 和 trauma 推断依恋风格
-3. **创伤理论** - 从 trauma 和 stress 推断心理影响
-4. **马斯洛需求** - 从 goals 推断核心欲望
-5. **防御机制** - 从行为模式推断常用防御方式
+=== Analysis Requirements ===
+Use the following psychological frameworks for analysis:
 
-=== 输出格式 (严格 JSON) ===
+1. **Big Five Personality** - Infer from traits, skills, behavior
+2. **Attachment Theory** - Infer from relationships and trauma
+3. **Trauma Psychology** - Infer psychological impact from trauma and stress
+4. **Maslow's Hierarchy** - Infer core desires from goals
+5. **Defense Mechanisms** - Infer common defense patterns from behavior
+
+=== Output Format (strict JSON) ===
 {
   "psychologicalProfile": {
     "bigFiveTraits": {
@@ -114,43 +136,43 @@ ${characterSummary}
       "neuroticism": 1-10
     },
     "attachmentStyle": "secure|anxious|avoidant|disorganized",
-    "coreFear": "一句话描述角色最深的恐惧",
-    "coreDesire": "一句话描述角色最核心的欲望",
-    "defenseMechanisms": ["机制1", "机制2"],
-    "copingStrategies": ["策略1", "策略2"]
+    "coreFear": "One sentence describing character's deepest fear",
+    "coreDesire": "One sentence describing character's core desire",
+    "defenseMechanisms": ["mechanism1", "mechanism2"],
+    "copingStrategies": ["strategy1", "strategy2"]
   },
   "characterArc": {
     "currentPhase": "denial|resistance|exploration|integration|mastery",
     "arcDirection": "growth|decline|complex|stagnation",
-    "potentialBreakthrough": "角色可能的突破点",
-    "potentialBreakdown": "角色可能的崩溃点"
+    "potentialBreakthrough": "Character's potential breakthrough point",
+    "potentialBreakdown": "Character's potential breakdown point"
   },
   "relationshipDynamics": {
-    "其他角色名": {
-      "dynamicType": "ally|rival|mentor|protégé|love|enemy|unknown",
+    "otherCharacter": {
+      "dynamicType": "ally|rival|mentor|protégé|enemy|unknown",
       "powerBalance": "dominant|submissive|equal|shifting",
       "tension": "cooperating|conflicting|neutral|betrayal_risk"
     }
   },
   "narrativeSuggestions": {
-    "internalConflict": "角色内心的核心冲突",
-    "externalConflict": "角色面临的外部冲突",
-    "growthOpportunities": ["成长机会1", "成长机会2"],
-    "sceneTriggers": ["能触发角色特定反应的场景1", "场景2"]
+    "internalConflict": "Character's core internal conflict",
+    "externalConflict": "Character's external conflict",
+    "growthOpportunities": ["growth opportunity 1", "growth opportunity 2"],
+    "sceneTriggers": ["scene that triggers specific response 1", "scene 2"]
   },
   "suggestedEnhancements": {
-    "newTraits": ["建议添加的特质1", "特质2"],
-    "newGoals": ["建议添加的目标1"],
-    "backstoryFragments": ["建议的背景碎片1"],
-    "dialogueTraits": ["建议的对话风格1"]
+    "newTraits": ["suggested new trait 1"],
+    "newGoals": ["suggested new goal 1"],
+    "backstoryFragments": ["suggested backstory fragment 1"],
+    "dialogueTraits": ["suggested dialogue style 1"]
   }
 }
 
-注意：
-- 只输出 JSON，不要其他文字
-- 所有数值必须是 1-10
-- 如果数据不足某项推断，使用 "insufficient_data" 并给出合理默认值
-- 推理必须基于现有数据，禁止凭空编造`
+Note:
+- Output JSON only, no other text
+- All numbers must be 1-10
+- If insufficient data, use "insufficient_data" with reasonable defaults
+- Use the World Knowledge Dictionary to understand skill/trauma meanings`
 
     try {
       const result = await generateText({
@@ -161,11 +183,11 @@ ${characterSummary}
       const match = result.text.match(/\{[\s\S]*\}/)
       if (match) {
         const analysis = JSON.parse(match[0])
-        
-        log.info("character_deepened", { 
+
+        log.info("character_deepened", {
           name: character.name,
           attachmentStyle: analysis.psychologicalProfile?.attachmentStyle,
-          arcDirection: analysis.characterArc?.arcDirection
+          arcDirection: analysis.characterArc?.arcDirection,
         })
 
         return {
@@ -188,7 +210,7 @@ ${characterSummary}
    * 深化所有角色
    */
   async deepenAllCharacters(
-    characters: Record<string, CharacterStateInput>
+    characters: Record<string, CharacterStateInput>,
   ): Promise<Record<string, DeepenedCharacterProfile>> {
     const deepened: Record<string, DeepenedCharacterProfile> = {}
 
@@ -208,9 +230,7 @@ ${characterSummary}
   /**
    * 跨角色分析 - 分析角色之间的关系动态
    */
-  private async crossCharacterAnalysis(
-    profiles: Record<string, DeepenedCharacterProfile>
-  ): Promise<void> {
+  private async crossCharacterAnalysis(profiles: Record<string, DeepenedCharacterProfile>): Promise<void> {
     const languageModel = await getNovelLanguageModel()
 
     const profilesText = Object.entries(profiles)
@@ -248,14 +268,14 @@ ${profilesText}
             profiles[charA].relationshipDynamics[charB] = {
               dynamicType: value.dynamicType || "unknown",
               powerBalance: value.powerBalance || "equal",
-              tension: value.tension || "neutral"
+              tension: value.tension || "neutral",
             }
           }
           if (profiles[charB] && charA) {
             profiles[charB].relationshipDynamics[charA] = {
               dynamicType: value.dynamicType || "unknown",
               powerBalance: value.powerBalance || "equal",
-              tension: value.tension || "neutral"
+              tension: value.tension || "neutral",
             }
           }
         }
@@ -266,61 +286,94 @@ ${profilesText}
   }
 
   /**
-   * 构建角色数据摘要
+   * Build character data summary
    */
   private buildCharacterSummary(character: CharacterStateInput): string {
     const parts: string[] = []
 
-    parts.push(`角色名: ${character.name}`)
-    parts.push(`当前状态: ${character.status}`)
-    parts.push(`压力值: ${character.stress}/100`)
+    parts.push(`Character: ${character.name}`)
+    parts.push(`Status: ${character.status}`)
+    parts.push(`Stress: ${character.stress}/100`)
 
     if (character.traits?.length) {
-      parts.push(`性格特质: ${character.traits.join(", ")}`)
+      parts.push(`Traits: ${character.traits.join(", ")}`)
     }
 
     if (character.skills?.length) {
-      const skillSummary = character.skills.map(s => `${s.name}(${s.category})`).join(", ")
-      parts.push(`技能: ${skillSummary}`)
+      const skillSummary = character.skills.map((s) => `${s.name}(${s.category})`).join(", ")
+      parts.push(`Skills: ${skillSummary}`)
     }
 
     if (character.trauma?.length) {
-      const traumaSummary = character.trauma.map(t => `${t.name}${t.tags ? `[${t.tags.join(",")}]` : ""}`).join(", ")
-      parts.push(`创伤: ${traumaSummary}`)
+      const traumaSummary = character.trauma.map((t) => `${t.name}${t.tags ? `[${t.tags.join(",")}]` : ""}`).join(", ")
+      parts.push(`Trauma: ${traumaSummary}`)
     }
 
     if (character.secrets?.length) {
-      parts.push(`秘密: ${character.secrets.join(", ")}`)
+      parts.push(`Secrets: ${character.secrets.join(", ")}`)
     }
 
     if (character.clues?.length) {
-      parts.push(`线索: ${character.clues.join(", ")}`)
+      parts.push(`Clues: ${character.clues.join(", ")}`)
     }
 
     if (character.goals?.length) {
-      const goalSummary = character.goals.map(g => `${g.type}:${g.description}(${g.status})`).join("; ")
-      parts.push(`目标: ${goalSummary}`)
+      const goalSummary = character.goals.map((g) => `${g.type}:${g.description}(${g.status})`).join("; ")
+      parts.push(`Goals: ${goalSummary}`)
     }
 
     if (character.notes) {
-      parts.push(`备注: ${character.notes}`)
+      parts.push(`Notes: ${character.notes}`)
     }
 
     if (character.relationships) {
       const relSummary = Object.entries(character.relationships)
-        .map(([other, r]) => `${other}(信任:${r.trust}, 敌意:${r.hostility || 0})`)
+        .map(([other, r]) => `${other}(trust:${r.trust}, hostility:${r.hostility || 0})`)
         .join(", ")
-      parts.push(`关系: ${relSummary}`)
+      parts.push(`Relationships: ${relSummary}`)
     }
 
     return parts.join("\n")
   }
 
+  /**
+   * Build world knowledge dictionary from config for LLM context
+   */
+  private buildWorldKnowledgeDictionary(): string {
+    const lines: string[] = []
+
+    if (Object.keys(this.config.skillDefinitions || {}).length > 0) {
+      lines.push("=== Skill Dictionary ===")
+      for (const [skillName, definition] of Object.entries(this.config.skillDefinitions!)) {
+        lines.push(`- ${skillName}: ${definition}`)
+      }
+    }
+
+    if (Object.keys(this.config.traumaDefinitions || {}).length > 0) {
+      lines.push("=== Trauma Dictionary ===")
+      for (const [traumaName, definition] of Object.entries(this.config.traumaDefinitions!)) {
+        lines.push(`- ${traumaName}: ${definition}`)
+      }
+    }
+
+    if (lines.length === 0) {
+      return "=== World Knowledge ===\n(No specific definitions loaded - use general interpretation)"
+    }
+
+    return lines.join("\n")
+  }
+
   private fillDefaults(profile: any): DeepenedCharacterProfile["psychologicalProfile"] {
     if (!profile) return this.defaultPsychologicalProfile()
-    
+
     return {
-      bigFiveTraits: profile.bigFiveTraits || { openness: 5, conscientiousness: 5, extraversion: 5, agreeableness: 5, neuroticism: 5 },
+      bigFiveTraits: profile.bigFiveTraits || {
+        openness: 5,
+        conscientiousness: 5,
+        extraversion: 5,
+        agreeableness: 5,
+        neuroticism: 5,
+      },
       attachmentStyle: profile.attachmentStyle || "secure",
       coreFear: profile.coreFear || "未知",
       coreDesire: profile.coreDesire || "生存",
@@ -330,8 +383,9 @@ ${profilesText}
   }
 
   private fillArcDefaults(arc: any): DeepenedCharacterProfile["characterArc"] {
-    if (!arc) return { currentPhase: "exploration", arcDirection: "complex", potentialBreakthrough: "", potentialBreakdown: "" }
-    
+    if (!arc)
+      return { currentPhase: "exploration", arcDirection: "complex", potentialBreakthrough: "", potentialBreakdown: "" }
+
     return {
       currentPhase: arc.currentPhase || "exploration",
       arcDirection: arc.arcDirection || "complex",
@@ -342,7 +396,7 @@ ${profilesText}
 
   private fillNarrativeDefaults(suggestions: any): DeepenedCharacterProfile["narrativeSuggestions"] {
     if (!suggestions) return { internalConflict: "", externalConflict: "", growthOpportunities: [], sceneTriggers: [] }
-    
+
     return {
       internalConflict: suggestions.internalConflict || "",
       externalConflict: suggestions.externalConflict || "",
@@ -353,7 +407,7 @@ ${profilesText}
 
   private fillEnhancementDefaults(enhancements: any): DeepenedCharacterProfile["suggestedEnhancements"] {
     if (!enhancements) return { newTraits: [], newGoals: [], backstoryFragments: [], dialogueTraits: [] }
-    
+
     return {
       newTraits: enhancements.newTraits || [],
       newGoals: enhancements.newGoals || [],
@@ -377,7 +431,12 @@ ${profilesText}
     return {
       name,
       psychologicalProfile: this.defaultPsychologicalProfile(),
-      characterArc: { currentPhase: "exploration", arcDirection: "complex", potentialBreakthrough: "", potentialBreakdown: "" },
+      characterArc: {
+        currentPhase: "exploration",
+        arcDirection: "complex",
+        potentialBreakthrough: "",
+        potentialBreakdown: "",
+      },
       relationshipDynamics: {},
       narrativeSuggestions: { internalConflict: "", externalConflict: "", growthOpportunities: [], sceneTriggers: [] },
       suggestedEnhancements: { newTraits: [], newGoals: [], backstoryFragments: [], dialogueTraits: [] },
