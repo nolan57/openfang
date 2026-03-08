@@ -93,6 +93,11 @@ export async function loadDynamicPatterns(): Promise<any[]> {
   return []
 }
 
+export interface OrchestratorConfig {
+  branchOptions?: number
+  verbose?: boolean
+}
+
 export class EvolutionOrchestrator {
   private storyState: StoryState
   private patterns: any[]
@@ -100,9 +105,10 @@ export class EvolutionOrchestrator {
   private relationshipAnalyzer: RelationshipAnalyzer
   private characterDeepener: CharacterDeepener
   private lastChaosResult: ChaosResult | null = null
-  private branchOptions: number = 3 // Number of branches to generate
+  private branchOptions: number = 3
+  private verbose: boolean = false
 
-  constructor() {
+  constructor(config: OrchestratorConfig = {}) {
     this.storyState = {
       characters: {},
       world: {},
@@ -118,6 +124,14 @@ export class EvolutionOrchestrator {
     this.stateExtractor = new StateExtractor()
     this.relationshipAnalyzer = new RelationshipAnalyzer()
     this.characterDeepener = new CharacterDeepener()
+    this.branchOptions = config.branchOptions || 3
+    this.verbose = config.verbose || false
+  }
+
+  private log(message: string, ...args: any[]): void {
+    if (this.verbose) {
+      console.log(message, ...args)
+    }
   }
 
   /**
@@ -562,10 +576,10 @@ Output JSON:
       chapter: this.storyState.chapterCount + 1,
       useBranches,
     })
-    console.log(`\n📝 Starting Chapter ${this.storyState.chapterCount + 1}...`)
+    this.log(`\nStarting Chapter ${this.storyState.chapterCount + 1}...`)
 
     this.patterns = await loadDynamicPatterns()
-    console.log(`   Loaded ${this.patterns.length} patterns`)
+    this.log(`   Loaded ${this.patterns.length} patterns`)
 
     const chaosEvent = EvolutionRulesEngine.rollChaos()
     const chaosResult: ChaosResult = {
@@ -575,9 +589,9 @@ Output JSON:
       category: chaosEvent.category,
     }
     this.lastChaosResult = chaosResult
-    console.log(`   🎲 Chaos Roll: ${chaosEvent.roll}/6 - ${chaosEvent.category.toUpperCase()}`)
+    this.log(`   Chaos Roll: ${chaosEvent.roll}/6 - ${chaosEvent.category.toUpperCase()}`)
 
-    console.log(`   📖 Parsing prompt...`)
+    this.log(`   Parsing prompt...`)
     const elements = await this.parsePromptWithLLM(promptContent)
     log.info("prompt_parsed", elements)
 
@@ -586,7 +600,7 @@ Output JSON:
 
     if (useBranches) {
       // Generate multiple branches and select the best one
-      console.log(`   🌿 Generating story branches...`)
+      this.log(`   Generating story branches...`)
       const { selectedBranch, allBranches } = await this.generateBranches(
         promptContent,
         this.storyState,
@@ -596,24 +610,24 @@ Output JSON:
       storySegment = selectedBranch.storySegment
 
       // Log branch options
-      console.log(`   📋 Branch options:`)
+      this.log(`   Branch options:`)
       allBranches.forEach((b, i) => {
-        console.log(`      ${i + 1}. ${b.choiceMade} (quality: ${b.evaluation.narrativeQuality}/10)`)
+        this.log(`      ${i + 1}. ${b.choiceMade} (quality: ${b.evaluation.narrativeQuality}/10)`)
       })
-      console.log(`   ✅ Selected: ${selectedBranch.choiceMade}`)
+      this.log(`   Selected: ${selectedBranch.choiceMade}`)
 
       // Update state from selected branch
       this.storyState = selectedBranch.stateAfter
     } else {
       // Original single-story generation
-      console.log(`   ✍️  Generating story...`)
+      this.log(`   Generating story...`)
       storySegment = await this.generateWithLLM(promptContent, elements, chaosResult)
-      console.log(`   Generated ${storySegment.length} chars`)
+      this.log(`   Generated ${storySegment.length} chars`)
 
-      console.log(`   🔍 Extracting state changes...`)
+      this.log(`   Extracting state changes...`)
       log.info("extracting_state_changes")
       const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
-      console.log(`   Extracted: ${Object.keys(stateUpdates.characters || {}).length} characters updated`)
+      this.log(`   Extracted: ${Object.keys(stateUpdates.characters || {}).length} characters updated`)
 
       this.storyState = this.stateExtractor.applyUpdates(this.storyState, stateUpdates)
       log.info("state_changes_applied", {
@@ -622,8 +636,8 @@ Output JSON:
       })
     }
 
-    // 审计与分析
-    const beforeState = { ...this.storyState } // 保存更新前的快照用于对比分析
+    // Audit and analysis
+    const beforeState = { ...this.storyState }
     const stats = stateAuditor.analyzeTurn(
       { ...this.storyState, turnCount: this.storyState.turnCount || 0 } as any,
       this.storyState as any,
@@ -725,39 +739,15 @@ If a field is not mentioned, use empty string or empty array.`
       log.error("llm_parse_failed", { error: String(error) })
     }
 
-    // Fallback to simple extraction
-    return this.parsePromptSimple(promptContent)
+    // Fallback to LLM extraction
+    return this.parsePromptWithLLM(promptContent)
   }
 
   /**
-   * Simple fallback parsing - generic pattern extraction
-   * Note: This is a fallback when LLM parsing fails, so we don't use LLM here.
-   * We extract potential names using simple heuristics and let downstream LLM handle filtering.
+   * Simple fallback parsing - removed. Relies entirely on LLM.
    */
   private parsePromptSimple(promptContent: string): any {
-    const elements = {
-      time: "",
-      location: "",
-      characters: [] as string[],
-      event: "",
-      tone: "",
-      genre: "",
-    }
-
-    const timeMatch = promptContent.match(/\d{4}年\d{1,2}月\d{1,2}日.*?\d{1,2}:\d{2}/)
-    if (timeMatch) elements.time = timeMatch[0]
-
-    const namePattern = /[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|[一-龥]{2,4}(?:[一-龥]{2,4})?/g
-    const nameMatches = promptContent.match(namePattern)
-    if (nameMatches) {
-      elements.characters = [...new Set(nameMatches.filter((n) => n.length >= 2))]
-    }
-
-    const eventPattern = /[一-龥]+/
-    const eventMatch = promptContent.match(eventPattern)
-    if (eventMatch) elements.event = "待揭示"
-
-    return elements
+    return this.parsePromptWithLLM(promptContent)
   }
 
   /**
@@ -767,18 +757,18 @@ If a field is not mentioned, use empty string or empty array.`
     try {
       const languageModel = await getNovelLanguageModel()
 
-      const previousStory = this.storyState.fullStory || "(这是故事的开始)"
-      const characterInfo = Object.keys(this.storyState.characters).join(", ") || "主角"
+      const previousStory = this.storyState.fullStory || "(This is where the story begins)"
+      const characterInfo = Object.keys(this.storyState.characters).join(", ") || "The protagonist"
 
       const systemPrompt = `You are a creative story writer. Continue or start a story based on the given prompt and context.
 
 Rules:
-- Write in Chinese
+- Write in the same language as the prompt
 - If this is chapter 1, start fresh from the prompt
 - If continuing, pick up from where the story left off
 - Maintain consistency with established characters and plot
 - Create engaging, descriptive narrative
-- Chapter length: 300-500 Chinese characters
+- Chapter length: 300-500 words
 - INCORPORATE the chaos event naturally into the narrative`
 
       const userPrompt = `Story Context (previous chapters):
@@ -786,11 +776,11 @@ ${previousStory.substring(-2000)}
 
 Established Characters: ${characterInfo}
 
-Prompt/Timing: ${elements.time || "某个时刻"} ${elements.location || "某个地方"}
-Main Event: ${elements.event || "待揭示"}
-Tone: ${elements.tone || "悬疑"}
+Prompt/Timing: ${elements.time || "some time"} ${elements.location || "some location"}
+Main Event: ${elements.event || "unfolding events"}
+Tone: ${elements.tone || "neutral"}
 
-🎲 Chaos Event (Roll: ${chaosResult.roll}/6 - ${chaosResult.category.toUpperCase()}):
+Chaos Event (Roll: ${chaosResult.roll}/6 - ${chaosResult.category.toUpperCase()}):
 ${chaosResult.event}
 ${chaosResult.narrativePrompt}
 
@@ -814,21 +804,15 @@ Write Chapter ${this.storyState.chapterCount + 1}:`
   }
 
   /**
-   * Fallback generation when LLM fails
+   * Fallback generation when LLM fails - generic neutral content
    */
   private generateFallback(elements: any): string {
-    const time = elements.time || "某个时刻"
-    const location = elements.location || "某个地方"
-    const characters = elements.characters?.join("、") || "主角"
-    const event = elements.event || "神秘事件"
+    const time = elements.time || "At an uncertain time"
+    const location = elements.location || "in an unfamiliar place"
+    const characters = elements.characters?.join(", ") || "The protagonist"
+    const event = elements.event || "an unfolding situation"
 
-    return `${time}，${location}。
-
-${characters}站在昏暗的灯光下，空气中弥漫着紧张的气息。${event}的调查陷入了僵局，每一个线索都指向更深层的谜团。
-
-"我们必须找到真相，"其中一人低声说道，"不管代价是什么。"
-
-他们知道，这只是开始...`
+    return `${characters} found themselves ${location} ${time}. The nature of ${event} was unclear, but a sense of anticipation hung in the air. What would happen next?`
   }
 
   getState(): StoryState {
