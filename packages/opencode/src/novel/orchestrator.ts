@@ -731,6 +731,8 @@ If a field is not mentioned, use empty string or empty array.`
 
   /**
    * Simple fallback parsing - generic pattern extraction
+   * Note: This is a fallback when LLM parsing fails, so we don't use LLM here.
+   * We extract potential names using simple heuristics and let downstream LLM handle filtering.
    */
   private parsePromptSimple(promptContent: string): any {
     const elements = {
@@ -748,29 +750,7 @@ If a field is not mentioned, use empty string or empty array.`
     const namePattern = /[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|[一-龥]{2,4}(?:[一-龥]{2,4})?/g
     const nameMatches = promptContent.match(namePattern)
     if (nameMatches) {
-      const commonWords = [
-        "这个",
-        "那个",
-        "什么",
-        "怎么",
-        "为什么",
-        "如果",
-        "因为",
-        "所以",
-        "但是",
-        "而且",
-        "或者",
-        "已经",
-        "正在",
-        "可以",
-        "没有",
-        "一个",
-        "我们",
-        "他们",
-        "你们",
-        "自己",
-      ]
-      elements.characters = [...new Set(nameMatches.filter((n) => n.length >= 2 && !commonWords.includes(n)))]
+      elements.characters = [...new Set(nameMatches.filter((n) => n.length >= 2))]
     }
 
     const eventPattern = /[一-龥]+/
