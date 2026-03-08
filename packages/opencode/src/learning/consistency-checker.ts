@@ -2,6 +2,8 @@ import { KnowledgeGraph, type KnowledgeNode } from "./knowledge-graph"
 import { SemanticAnchor } from "./semantic-anchor"
 import { ConstraintLoader } from "./constraint-loader"
 import { Log } from "../util/log"
+import { generateText } from "ai"
+import { getNovelLanguageModel } from "../novel/model"
 
 const log = Log.create({ service: "consistency-checker" })
 const sevenDays = 7 * 24 * 60 * 60 * 1000
@@ -29,6 +31,22 @@ export interface ConsistencyReport {
   }
 }
 
+/**
+ * Conflict resolution recommendation
+ * [EVOLUTION]: LLM-based conflict analysis and resolution
+ */
+export interface ConflictResolution {
+  issue_id: string
+  resolution_type: "merge" | "keep_one" | "keep_newest" | "manual"
+  recommendation: string
+  confidence: number
+  merged_content?: string
+}
+
+/**
+ * Enhanced Consistency Checker with LLM-based conflict detection
+ * [EVOLUTION]: Detects logical conflicts between knowledge entries
+ */
 export class ConsistencyChecker {
   private graph: KnowledgeGraph
   private semantic: SemanticAnchor
@@ -58,6 +76,9 @@ export class ConsistencyChecker {
     const redundantIssues = await this.checkForRedundant()
     issues.push(...redundantIssues)
 
+    const constraintIssues = await this.checkConstraints()
+    issues.push(...constraintIssues)
+
     const summary = {
       conflicts: issues.filter((i) => i.type === "conflict").length,
       outdated: issues.filter((i) => i.type === "outdated").length,
@@ -79,27 +100,42 @@ export class ConsistencyChecker {
     return report
   }
 
+  /**
+   * Enhanced conflict detection using LLM
+   * [EVOLUTION]: Semantic analysis to find logical contradictions
+   */
   private async checkForConflicts(): Promise<ConsistencyIssue[]> {
     const issues: ConsistencyIssue[] = []
-
     const memories = await this.graph.findNodesByType("memory")
 
-    for (let i = 0; i < memories.length; i++) {
-      for (let j = i + 1; j < memories.length; j++) {
-        const a = memories[i]
-        const b = memories[j]
+    // Group memories by type for efficient comparison
+    const byType = new Map<string, KnowledgeNode[]>()
+    for (const memory of memories) {
+      const type = memory.type || "memory"
+      if (!byType.has(type)) {
+        byType.set(type, [])
+      }
+      byType.get(type)!.push(memory)
+    }
 
-        const conflicts = await this.semantic.findConflicting(a.content || "")
+    // Check for conflicts within each type
+    for (const [type, typeMemories] of byType.entries()) {
+      for (let i = 0; i < typeMemories.length; i++) {
+        for (let j = i + 1; j < typeMemories.length; j++) {
+          const a = typeMemories[i]
+          const b = typeMemories[j]
 
-        if (conflicts.some((c) => c.id === b.id)) {
-          issues.push({
-            id: crypto.randomUUID(),
-            type: "conflict",
-            severity: "medium",
-            description: `Potential conflict between "${a.title}" and "${b.title}"`,
-            affected_nodes: [a.id, b.id],
-            suggested_fix: "Review both memories for contradictory information",
-          })
+          const conflictResult = await this.detectConflict(a, b)
+          if (conflictResult.hasConflict) {
+            issues.push({
+              id: crypto.randomUUID(),
+              type: "conflict",
+              severity: conflictResult.severity,
+              description: `Conflict between "${a.title}" and "${b.title}": ${conflictResult.reason}`,
+              affected_nodes: [a.id, b.id],
+              suggested_fix: conflictResult.resolution,
+            })
+          }
         }
       }
     }
@@ -107,9 +143,67 @@ export class ConsistencyChecker {
     return issues
   }
 
+  /**
+   * Detect conflict between two nodes using LLM
+   */
+  private async detectConflict(
+    a: KnowledgeNode,
+    b: KnowledgeNode,
+  ): Promise<{ hasConflict: boolean; severity: "low" | "medium" | "high"; reason: string; resolution?: string }> {
+    try {
+      const languageModel = await getNovelLanguageModel()
+
+      const prompt = `Analyze these two knowledge entries for logical conflicts.
+
+Entry A: "${a.title}"
+${a.content}
+
+Entry B: "${b.title}"
+${b.content}
+
+Determine if there are any contradictions:
+- Do they make opposite claims about the same topic?
+- Do they recommend incompatible approaches?
+- Does one invalidate the other?
+
+Output JSON:
+{
+  "hasConflict": boolean,
+  "severity": "low|medium|high",
+  "reason": "explanation",
+  "resolution": "suggested fix"
+}`
+
+      const result = await generateText({
+        model: languageModel,
+        prompt: prompt,
+      })
+
+      const text = result.text.trim()
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0])
+      }
+    } catch (error) {
+      log.warn("conflict_detection_failed", { error: String(error) })
+    }
+
+    // Fallback: simple text similarity check
+    const similarity = this.textSimilarity(a.content || "", b.content || "")
+    if (similarity > 0.85) {
+      return {
+        hasConflict: false,
+        severity: "low",
+        reason: "High similarity but no clear conflict",
+      }
+    }
+
+    return { hasConflict: false, severity: "low", reason: "No conflict detected" }
+  }
+
   private async checkForOutdated(): Promise<ConsistencyIssue[]> {
     const issues: ConsistencyIssue[] = []
-
     const allNodes = [...(await this.graph.findNodesByType("memory")), ...(await this.graph.findNodesByType("agenda"))]
 
     const now = Date.now()
@@ -149,7 +243,6 @@ export class ConsistencyChecker {
 
   private async checkForOrphans(): Promise<ConsistencyIssue[]> {
     const issues: ConsistencyIssue[] = []
-
     const memories = await this.graph.findNodesByType("memory")
 
     for (const memory of memories) {
@@ -172,9 +265,7 @@ export class ConsistencyChecker {
 
   private async checkForRedundant(): Promise<ConsistencyIssue[]> {
     const issues: ConsistencyIssue[] = []
-
     const memories = await this.graph.findNodesByType("memory")
-
     const checked = new Set<string>()
 
     for (const memory of memories) {
@@ -208,7 +299,6 @@ export class ConsistencyChecker {
 
   async checkConstraints(): Promise<ConsistencyIssue[]> {
     const issues: ConsistencyIssue[] = []
-
     const files = await this.graph.findNodesByType("file")
 
     for (const file of files) {
@@ -229,6 +319,68 @@ export class ConsistencyChecker {
     }
 
     return issues
+  }
+
+  /**
+   * Resolve a conflict automatically
+   * [EVOLUTION]: LLM-based conflict resolution
+   */
+  async resolveConflict(issue: ConsistencyIssue): Promise<ConflictResolution | null> {
+    if (issue.type !== "conflict") return null
+
+    try {
+      const nodes = await Promise.all(issue.affected_nodes.map((id) => this.graph.getNode(id)))
+      if (nodes.some((n) => !n)) return null
+
+      const validNodes = nodes.filter((n): n is KnowledgeNode => n !== null)
+      const [a, b] = validNodes
+
+      const languageModel = await getNovelLanguageModel()
+
+      const prompt = `Resolve this knowledge conflict.
+
+Entry A: "${a?.title}"
+${a?.content}
+
+Entry B: "${b?.title}"
+${b?.content}
+
+Conflict: ${issue.description}
+
+Recommend how to resolve:
+- Merge both into one coherent entry
+- Keep the newer one
+- Keep the more accurate one
+- Flag for manual review
+
+Output JSON:
+{
+  "resolution_type": "merge|keep_one|keep_newest|manual",
+  "recommendation": "detailed explanation",
+  "confidence": 0-1,
+  "merged_content": "optional merged content"
+}`
+
+      const result = await generateText({
+        model: languageModel,
+        prompt: prompt,
+      })
+
+      const text = result.text.trim()
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+
+      if (jsonMatch) {
+        const resolution = JSON.parse(jsonMatch[0])
+        return {
+          issue_id: issue.id,
+          ...resolution,
+        }
+      }
+    } catch (error) {
+      log.warn("conflict_resolution_failed", { error: String(error) })
+    }
+
+    return null
   }
 
   async autoFix(issue: ConsistencyIssue): Promise<boolean> {
@@ -263,5 +415,27 @@ export class ConsistencyChecker {
       default:
         return false
     }
+  }
+
+  private textSimilarity(a: string, b: string): number {
+    const setA = new Set(
+      a
+        .toLowerCase()
+        .split(/\W+/)
+        .filter((w) => w.length > 2),
+    )
+    const setB = new Set(
+      b
+        .toLowerCase()
+        .split(/\W+/)
+        .filter((w) => w.length > 2),
+    )
+
+    if (setA.size === 0 && setB.size === 0) return 0
+
+    const intersection = new Set([...setA].filter((x) => setB.has(x)))
+    const union = new Set([...setA, ...setB])
+
+    return intersection.size / union.size
   }
 }
