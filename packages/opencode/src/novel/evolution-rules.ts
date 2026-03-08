@@ -1,7 +1,41 @@
 import { Log } from "../util/log"
+import { generateText } from "ai"
 import { TRAUMA_TAGS, SKILL_CATEGORIES, CHARACTER_STATUS, SALIENCE_LEVELS } from "./types"
+import { getNovelLanguageModel } from "./model"
 
 const log = Log.create({ service: "evolution-rules" })
+
+const STATE_CHANGE_EVALUATION_PROMPT = `You are a strict game master (GM) responsible for extracting state changes from story text based on the following rules.
+
+Character State Rules:
+- Skill Award: A character can only receive a new skill when they successfully overcome a specific and challenging obstacle.
+- Trauma Trigger: A character receives trauma when experiencing life-threatening events, extreme pressure (witnessing death, betrayal), or cumulative stress exceeds critical threshold (>90).
+
+Your task:
+Carefully read the story segment below. Identify and output ALL skill awards and trauma triggers that match the above rules.
+
+Output Format (strict JSON):
+{
+  "skill_awards": [
+    {
+      "character_name": "Character name from the story",
+      "skill_category": "Skill category (e.g., Technical_Hacking, Social_Persuasion, Mental_Analysis, Combat_Stealth)",
+      "reason_in_story": "Specific event description from the story"
+    }
+  ],
+  "trauma_awards": [
+    {
+      "character_name": "Character name from the story",
+      "trauma_tags": ["Trauma tags array (e.g., Psychological_Fear, Physical_Injury, Psychological_Betrayal)"],
+      "reason_in_story": "Specific event description from the story"
+    }
+  ]
+}
+
+Story Segment:
+{{STORY_SEGMENT}}
+
+Output only JSON, no other text.`
 
 interface CharacterState {
   stress: number
@@ -96,6 +130,80 @@ export class EvolutionRulesEngine {
     const event = CHAOS_TABLE[roll - 1]
     log.info("chaos_rolled", { roll, category: event.category, description: event.description })
     return { ...event, roll }
+  }
+
+  static async checkStateChanges(context: EvolutionContext): Promise<{ skills: SkillAward[]; traumas: TraumaAward[] }> {
+    const storyText = context.storySegment
+
+    if (storyText.length < 20) {
+      return { skills: [], traumas: [] }
+    }
+
+    try {
+      const languageModel = await getNovelLanguageModel()
+
+      const prompt = STATE_CHANGE_EVALUATION_PROMPT.replace("{{STORY_SEGMENT}}", storyText)
+
+      const result = await generateText({
+        model: languageModel,
+        prompt,
+      })
+
+      const match = result.text.match(/\{[\s\S]*\}/)
+      if (!match) {
+        log.warn("llm_no_json_in_response")
+        return { skills: [], traumas: [] }
+      }
+
+      const evaluation = JSON.parse(match[0])
+
+      const skillAwards: SkillAward[] = (evaluation.skill_awards || []).map((award: any) => ({
+        characterName: award.character_name,
+        skill: {
+          name: this.generateSkillNameFromCategory(award.skill_category, award.reason_in_story),
+          category: award.skill_category || SKILL_CATEGORIES.ANALYSIS,
+          level: 1,
+          description: `In Chapter ${context.chapterCount}, due to: "${award.reason_in_story}"`,
+        },
+        reason: "LLM semantic analysis",
+      }))
+
+      const traumaAwards: TraumaAward[] = (evaluation.trauma_awards || []).map((award: any) => ({
+        characterName: award.character_name,
+        trauma: {
+          description: `In Chapter ${context.chapterCount}, due to: "${award.reason_in_story}"`,
+          tags: award.trauma_tags || [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR],
+          severity: this.calculateTraumaSeverityFromTags(award.trauma_tags || []),
+        },
+        reason: "LLM semantic analysis",
+      }))
+
+      for (const [charName, char] of Object.entries(context.characters)) {
+        if (char.stress >= this.STRESS_THRESHOLD_CRITICAL) {
+          traumaAwards.push({
+            characterName: charName,
+            trauma: {
+              description: `Cumulative stress exceeded critical threshold (${char.stress}/100), psychological breakdown`,
+              tags: [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR, TRAUMA_TAGS.PSYCHOLOGICAL_GUILT],
+              severity: 8,
+            },
+            reason: `Stress level reached ${char.stress}`,
+          })
+        }
+      }
+
+      if (skillAwards.length > 0 || traumaAwards.length > 0) {
+        log.info("llm_state_evaluation_complete", {
+          skills: skillAwards.length,
+          traumas: traumaAwards.length,
+        })
+      }
+
+      return { skills: skillAwards, traumas: traumaAwards }
+    } catch (error) {
+      log.error("llm_state_evaluation_failed", { error: String(error) })
+      return { skills: [], traumas: [] }
+    }
   }
 
   static checkSkillUnlocks(context: EvolutionContext): SkillAward[] {
@@ -302,6 +410,35 @@ export class EvolutionRulesEngine {
     return lines.join("\n")
   }
 
+  private static generateSkillNameFromCategory(category: string, reason: string): string {
+    const parts = category.split("_")
+    const baseName = parts.pop() || "Ability"
+    const prefixes = ["Advanced", "Mastery", "Expert", "Skilled", "Enhanced"]
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
+    return `${prefix} ${baseName}`
+  }
+
+  private static calculateTraumaSeverityFromTags(tags: string[]): number {
+    const severityMap: Record<string, number> = {
+      [TRAUMA_TAGS.PHYSICAL_INJURY]: 7,
+      [TRAUMA_TAGS.NEURAL]: 9,
+      [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR]: 5,
+      [TRAUMA_TAGS.PSYCHOLOGICAL_BETRAYAL]: 6,
+      [TRAUMA_TAGS.PSYCHOLOGICAL_GUILT]: 5,
+      [TRAUMA_TAGS.PSYCHOLOGICAL_LOSS]: 7,
+      [TRAUMA_TAGS.ISOLATION]: 4,
+      [TRAUMA_TAGS.PERSECUTION]: 6,
+      [TRAUMA_TAGS.VISUAL]: 4,
+      [TRAUMA_TAGS.NIGHTMARE]: 5,
+      [TRAUMA_TAGS.FLASHBACK]: 6,
+    }
+
+    if (tags.length === 0) return 3
+
+    const maxSeverity = Math.max(...tags.map((tag) => severityMap[tag] || 3), 3)
+    return maxSeverity
+  }
+
   private static detectTechnicalBreakthrough(charName: string, storyText: string): boolean {
     const technicalKeywords = [
       "破解",
@@ -369,7 +506,7 @@ export class EvolutionRulesEngine {
 
   private static generateSkillName(type: string, storyText: string): string {
     const skillPrefixes: Record<string, string[]> = {
-      technical: ["神经", "数据", "系统", "网络", "量子"],
+      technical: ["技术", "系统", "网络", "量子", "数据"],
       social: ["心理", "言语", "情感", "社交", "谈判"],
       analysis: ["洞察", "推理", "分析", "直觉", "逻辑"],
     }
