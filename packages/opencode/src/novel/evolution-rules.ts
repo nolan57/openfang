@@ -1,6 +1,6 @@
 import { Log } from "../util/log"
 import { generateText } from "ai"
-import { TRAUMA_TAGS, SKILL_CATEGORIES, CHARACTER_STATUS, SALIENCE_LEVELS } from "./types"
+import { TRAUMA_TAGS, SKILL_CATEGORIES, CHARACTER_STATUS } from "./types"
 import { getNovelLanguageModel } from "./model"
 
 const log = Log.create({ service: "evolution-rules" })
@@ -142,7 +142,7 @@ export class EvolutionRulesEngine {
     try {
       const languageModel = await getNovelLanguageModel()
 
-      const prompt = STATE_CHANGE_EVALUATION_PROMPT.replace("{{STORY_SEGMENT}}", storyText)
+      const prompt = STATE_CHANGE_EVALUATION_PROMPT.split("{{STORY_SEGMENT}}").join(storyText)
 
       const result = await generateText({
         model: languageModel,
@@ -204,130 +204,6 @@ export class EvolutionRulesEngine {
       log.error("llm_state_evaluation_failed", { error: String(error) })
       return { skills: [], traumas: [] }
     }
-  }
-
-  static checkSkillUnlocks(context: EvolutionContext): SkillAward[] {
-    const awards: SkillAward[] = []
-    const storyText = context.storySegment.toLowerCase()
-
-    for (const [charName, char] of Object.entries(context.characters)) {
-      if (char.status === "deceased" || char.status === "consciousness_lost") {
-        continue
-      }
-
-      const skillAwards = this.evaluateSkillConditions(charName, char, storyText, context)
-      awards.push(...skillAwards)
-    }
-
-    if (awards.length > 0) {
-      log.info("skills_unlocked", { count: awards.length, characters: awards.map((a) => a.characterName) })
-    }
-
-    return awards
-  }
-
-  private static evaluateSkillConditions(
-    charName: string,
-    char: CharacterState,
-    storyText: string,
-    context: EvolutionContext,
-  ): SkillAward[] {
-    const awards: SkillAward[] = []
-
-    if (this.detectTechnicalBreakthrough(charName, storyText)) {
-      awards.push({
-        characterName: charName,
-        skill: {
-          name: this.generateSkillName("technical", storyText),
-          category: SKILL_CATEGORIES.HACKING,
-          level: 1,
-          description: `在第${context.chapterCount}章中展现的技术突破`,
-        },
-        reason: "技术突破",
-      })
-    }
-
-    if (this.detectSocialManipulation(charName, storyText)) {
-      awards.push({
-        characterName: charName,
-        skill: {
-          name: this.generateSkillName("social", storyText),
-          category: SKILL_CATEGORIES.PERSUASION,
-          level: 1,
-          description: `在第${context.chapterCount}章中展现的社交操控能力`,
-        },
-        reason: "社交操控成功",
-      })
-    }
-
-    if (this.detectInvestigativeInsight(charName, storyText)) {
-      awards.push({
-        characterName: charName,
-        skill: {
-          name: this.generateSkillName("analysis", storyText),
-          category: SKILL_CATEGORIES.ANALYSIS,
-          level: 1,
-          description: `在第${context.chapterCount}章中展现的分析洞察力`,
-        },
-        reason: "关键洞察",
-      })
-    }
-
-    if (this.detectStressResistance(charName, char, storyText)) {
-      awards.push({
-        characterName: charName,
-        skill: {
-          name: "心理韧性",
-          category: SKILL_CATEGORIES.INTERROGATION_RESIST,
-          level: 1,
-          description: `在第${context.chapterCount}章高压环境下保持功能`,
-        },
-        reason: "高压抵抗",
-      })
-    }
-
-    return awards
-  }
-
-  static checkTraumaTriggers(context: EvolutionContext): TraumaAward[] {
-    const awards: TraumaAward[] = []
-    const storyText = context.storySegment
-
-    for (const [charName, char] of Object.entries(context.characters)) {
-      if (char.status === "deceased" || char.status === "consciousness_lost") {
-        continue
-      }
-
-      if (char.stress >= this.STRESS_THRESHOLD_CRITICAL) {
-        awards.push({
-          characterName: charName,
-          trauma: {
-            description: `累积压力突破临界值 (${char.stress}/100)，心理防线崩溃`,
-            tags: [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR, TRAUMA_TAGS.PSYCHOLOGICAL_GUILT],
-            severity: 8,
-          },
-          reason: `压力值达到 ${char.stress}`,
-        })
-      }
-
-      if (this.detectLifeThreateningEvent(charName, storyText)) {
-        awards.push({
-          characterName: charName,
-          trauma: {
-            description: this.extractTraumaDescription(charName, storyText),
-            tags: [TRAUMA_TAGS.FLASHBACK, TRAUMA_TAGS.PSYCHOLOGICAL_FEAR],
-            severity: this.calculateTraumaSeverity(storyText),
-          },
-          reason: "生命威胁事件",
-        })
-      }
-    }
-
-    if (awards.length > 0) {
-      log.info("trauma_triggered", { count: awards.length, characters: awards.map((a) => a.characterName) })
-    }
-
-    return awards
   }
 
   static enforceStressLimits(character: CharacterState): { stressed: boolean; breakdown: boolean } {
@@ -437,86 +313,6 @@ export class EvolutionRulesEngine {
 
     const maxSeverity = Math.max(...tags.map((tag) => severityMap[tag] || 3), 3)
     return maxSeverity
-  }
-
-  private static detectTechnicalBreakthrough(charName: string, storyText: string): boolean {
-    const technicalKeywords = [
-      "破解",
-      "入侵",
-      "解码",
-      "接入",
-      "加密",
-      "系统",
-      "突破",
-      "解码",
-      "关闭",
-      "启动",
-      "修复",
-      "构建",
-      "发明",
-    ]
-    const successKeywords = ["成功", "突破", "完成", "解锁", "获取", "揭示"]
-    const hasTechnical = technicalKeywords.some((k) => storyText.includes(k))
-    const hasSuccess = successKeywords.some((k) => storyText.includes(k))
-    return hasTechnical && hasSuccess
-  }
-
-  private static detectSocialManipulation(charName: string, storyText: string): boolean {
-    const socialKeywords = ["说服", "欺骗", "谈判", "审问", "误导", "操控", "威胁", "诱导", "蛊惑", "安抚"]
-    const successKeywords = ["相信", "接受", "同意", "动摇", "妥协"]
-    const hasSocial = socialKeywords.some((k) => storyText.includes(k))
-    const hasSuccess = successKeywords.some((k) => storyText.includes(k))
-    return hasSocial && hasSuccess
-  }
-
-  private static detectInvestigativeInsight(charName: string, storyText: string): boolean {
-    const insightKeywords = ["发现", "意识到", "推断", "分析", "线索", "真相", "揭示", "看穿", "识破", "领悟"]
-    return insightKeywords.some((k) => storyText.includes(k))
-  }
-
-  private static detectStressResistance(charName: string, char: CharacterState, storyText: string): boolean {
-    const highStressKeywords = ["威胁", "危险", "压力", "紧张", "恐惧", "痛苦", "逼迫"]
-    const resilienceKeywords = ["坚持", "冷静", "镇定", "抵抗", "承受", "保持"]
-    const hasHighStress = highStressKeywords.some((k) => storyText.includes(k))
-    const hasResilience = resilienceKeywords.some((k) => storyText.includes(k))
-    return hasHighStress && hasResilience && char.stress >= 50
-  }
-
-  private static detectLifeThreateningEvent(charName: string, storyText: string): boolean {
-    const dangerKeywords = ["死亡", "致命", "袭击", "受伤", "追杀", "爆炸", "枪击", "格式化", "抹除"]
-    return dangerKeywords.some((k) => storyText.includes(charName) && storyText.includes(k))
-  }
-
-  private static extractTraumaDescription(charName: string, storyText: string): string {
-    const relevantSentences = storyText.split(/[.!?]/).filter((s) => s.includes(charName))
-    if (relevantSentences.length > 0) {
-      return relevantSentences[0].trim().substring(0, 100)
-    }
-    return `在第 ${Math.floor(Math.random() * 10) + 1} 章经历的创伤事件`
-  }
-
-  private static calculateTraumaSeverity(storyText: string): number {
-    const intensityKeywords = ["极度", "剧烈", "严重", "致命", "崩溃", "毁灭"]
-    const count = intensityKeywords.filter((k) => storyText.includes(k)).length
-    if (count >= 3) return 9
-    if (count >= 2) return 7
-    if (count >= 1) return 5
-    return 3
-  }
-
-  private static generateSkillName(type: string, storyText: string): string {
-    const skillPrefixes: Record<string, string[]> = {
-      technical: ["技术", "系统", "网络", "量子", "数据"],
-      social: ["心理", "言语", "情感", "社交", "谈判"],
-      analysis: ["洞察", "推理", "分析", "直觉", "逻辑"],
-    }
-
-    const prefixes = skillPrefixes[type] || skillPrefixes.analysis
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
-    const suffixes = ["突破", "掌控", "专精", "技巧", "能力"]
-    const suffix = suffixes[Math.floor(Math.random() * suffixes.length)]
-
-    return `${prefix}${suffix}`
   }
 }
 

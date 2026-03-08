@@ -10,48 +10,6 @@ describe("EvolutionRulesEngine", () => {
     expect(result.category).toBeDefined()
   })
 
-  test("checkSkillUnlocks detects technical breakthrough", () => {
-    const context = {
-      chapterCount: 1,
-      characters: {
-        TestChar: {
-          stress: 50,
-          trauma: [],
-          skills: [],
-          status: "active",
-          traits: [],
-        },
-      },
-      worldEvents: [],
-      storySegment: "TestChar成功破解了系统，获取了关键数据",
-    }
-
-    const awards = EvolutionRulesEngine.checkSkillUnlocks(context)
-    expect(awards.length).toBeGreaterThan(0)
-    expect(awards[0].characterName).toBe("TestChar")
-  })
-
-  test("checkTraumaTriggers on high stress", () => {
-    const context = {
-      chapterCount: 1,
-      characters: {
-        TestChar: {
-          stress: 95,
-          trauma: [],
-          skills: [],
-          status: "active",
-          traits: [],
-        },
-      },
-      worldEvents: [],
-      storySegment: "压力持续累积",
-    }
-
-    const awards = EvolutionRulesEngine.checkTraumaTriggers(context)
-    expect(awards.length).toBeGreaterThan(0)
-    expect(awards[0].trauma.severity).toBeGreaterThanOrEqual(1)
-  })
-
   test("enforceStressLimits caps stress", () => {
     const character = {
       stress: 120,
@@ -64,6 +22,20 @@ describe("EvolutionRulesEngine", () => {
     const result = EvolutionRulesEngine.enforceStressLimits(character)
     expect(character.stress).toBe(100)
     expect(result.breakdown).toBe(true)
+  })
+
+  test("enforceStressLimits marks stressed", () => {
+    const character = {
+      stress: 75,
+      trauma: [],
+      skills: [],
+      status: "active" as const,
+      traits: [],
+    }
+
+    const result = EvolutionRulesEngine.enforceStressLimits(character)
+    expect(result.stressed).toBe(true)
+    expect(result.breakdown).toBe(false)
   })
 
   test("generateTurnSummary produces markdown", () => {
