@@ -32,15 +32,15 @@ async function handleStart(args: any) {
       const path = resolve(args.prompt as string)
       if (await fileExists(path)) {
         promptContent = await readFile(path, "utf-8")
-        console.log(`📄 Loaded prompt from: ${args.prompt}`)
+        console.log(` Loaded prompt from: ${args.prompt}`)
       } else {
-        console.error(`❌ Prompt file not found: ${path}`)
+        console.error(`× Prompt file not found: ${path}`)
         return
       }
     }
 
     const loops = (args.loops as number) || 1
-    console.log(`🔄 Running ${loops} self-evolution loop(s)...\n`)
+    console.log(` Running ${loops} self-evolution loop(s)...\n`)
 
     const engine = await getOrchestrator()
 
@@ -51,7 +51,7 @@ async function handleStart(args: any) {
           await analyzeAndEvolve(promptContent, await loadDynamicPatterns())
         }
         const result = await engine.runNovelCycle(promptContent)
-        console.log(`\n✅ Loop ${i + 1} complete!`)
+        console.log(`\n ✓ Loop ${i + 1} complete!`)
         console.log("Preview:", result.substring(0, 150) + "...")
       }
 
@@ -59,7 +59,7 @@ async function handleStart(args: any) {
         console.log(`\n🎉 Completed ${loops} self-evolution loops!`)
       }
     } catch (error) {
-      console.error("❌ Error during novel cycle:", error)
+      console.error("× Error during novel cycle:", error)
       if (error instanceof Error) {
         console.error("Stack:", error.stack)
       }
@@ -72,7 +72,7 @@ async function handleContinue() {
   const state = engine.getState()
   console.log(`Continuing from Chapter ${state.chapterCount}: ${state.currentChapter || "Untitled"}`)
   const result = await engine.runNovelCycle("Continue the story from the current state.")
-  console.log("\n✅ Next chapter generated!")
+  console.log("\n ✓ Next chapter generated!")
   console.log("Preview:", result.substring(0, 150) + "...")
 }
 
@@ -82,16 +82,16 @@ async function handleInject(args: any) {
   console.log(`💉 Injecting context from: ${args.file}`)
 
   await analyzeAndEvolve(content, await loadDynamicPatterns())
-  console.log("✅ Context injected and patterns updated!")
+  console.log(" ✓ Context injected and patterns updated!")
 }
 
 async function handleEvolve() {
-  console.log("🔄 Triggering PatternMiner evolution...")
+  console.log(" Triggering PatternMiner evolution...")
   const patterns = await loadDynamicPatterns()
   const engine = await getOrchestrator()
   const state = engine.getState()
   await analyzeAndEvolve(state.fullStory || "", patterns)
-  console.log("✅ Evolution complete!")
+  console.log(" ✓ Evolution complete!")
 }
 
 async function handleState(args: any) {
@@ -101,7 +101,7 @@ async function handleState(args: any) {
 
   if (target === "world") {
     console.log(
-      "📊 World State:",
+      " World State:",
       JSON.stringify(
         {
           chapter: state.currentChapter,
@@ -114,7 +114,7 @@ async function handleState(args: any) {
       ),
     )
   } else {
-    console.log(`📊 State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
+    console.log(` State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
   }
 }
 
@@ -126,11 +126,11 @@ async function handleExport(args: any) {
 
     if (format === "json") {
       await writeFile("novel_export.json", JSON.stringify(state, null, 2))
-      console.log("✅ Exported to novel_export.json")
+      console.log(" ✓ Exported to novel_export.json")
     } else if (format === "md") {
       const md = `# Novel Export\n\nChapter: ${state.currentChapter}\n\n${state.fullStory || "No content yet."}`
       await writeFile("novel_export.md", md)
-      console.log("✅ Exported to novel_export.md")
+      console.log(" ✓ Exported to novel_export.md")
     } else {
       console.log("PDF export not implemented yet")
     }
@@ -139,7 +139,7 @@ async function handleExport(args: any) {
 
 async function handlePatterns() {
   const patterns = await loadDynamicPatterns()
-  console.log("📚 Discovered Patterns:")
+  console.log("  Discovered Patterns:")
   if (patterns.length === 0) {
     console.log("  (No patterns discovered yet)")
   } else {
@@ -152,7 +152,7 @@ async function handlePatterns() {
 async function handleReset() {
   const engine = await getOrchestrator()
   await engine.reset()
-  console.log("✅ Story state reset!")
+  console.log(" ✓ Story state reset!")
 }
 
 export const NovelCommand: CommandModule = {

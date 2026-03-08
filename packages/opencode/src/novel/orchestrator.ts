@@ -719,6 +719,9 @@ Output JSON:
       })
     }
 
+    // Extract title from generated content
+    const extractedTitle = await this.extractChapterTitle(storySegment)
+
     // Audit and analysis
     const beforeState = { ...this.storyState }
     const stats = stateAuditor.analyzeTurn(
@@ -749,7 +752,7 @@ Output JSON:
 
     this.storyState.chapterCount++
     this.storyState.currentChapter = {
-      title: `第${this.storyState.chapterCount}章`,
+      title: extractedTitle || `第${this.storyState.chapterCount}章`,
       content: storySegment,
     }
     this.storyState.fullStory = (this.storyState.fullStory || "") + "\n\n" + storySegment
@@ -914,6 +917,35 @@ Write Chapter ${this.storyState.chapterCount + 1}:`
     const event = elements.event || "an unfolding situation"
 
     return `${characters} found themselves ${location} ${time}. The nature of ${event} was unclear, but a sense of anticipation hung in the air. What would happen next?`
+  }
+
+  /**
+   * Extract a concise title from the generated chapter content using LLM
+   */
+  private async extractChapterTitle(content: string): Promise<string> {
+    try {
+      const languageModel = await getNovelLanguageModel()
+
+      const systemPrompt = `You are a story title generator. Extract a concise, evocative title (max 12 characters in Chinese or 50 characters in English) that captures the main theme or event of the chapter.`
+
+      const userPrompt = `Analyze this chapter and generate a title:
+
+${content.substring(0, 2000)}
+
+Generate only the title, nothing else:`
+
+      const result = await generateText({
+        model: languageModel,
+        system: systemPrompt,
+        prompt: userPrompt,
+      })
+
+      return result.text.trim()
+    } catch (error) {
+      log.error("extract_title_failed", { error: String(error) })
+    }
+
+    return `第${this.storyState.chapterCount}章`
   }
 
   getState(): StoryState {
