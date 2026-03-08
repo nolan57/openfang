@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { readFile, writeFile } from "fs/promises"
+import { readFile, writeFile, access } from "fs/promises"
 import { resolve, dirname } from "path"
 import { fileURLToPath } from "url"
 import { Skill } from "../skill/skill"
@@ -11,20 +11,79 @@ import { Instance } from "../project/instance"
 
 const log = Log.create({ service: "pattern-miner" })
 
-const PatternSchema = z.object({
-  keyword: z.string(),
-  category: z.enum(["character_trait", "plot_device", "world_rule", "tone"]),
+// Structured Pattern Types
+const CharacterTraitPatternSchema = z.object({
+  type: z.literal("character_trait"),
+  name: z.string(),
   description: z.string(),
-  trigger_condition: z.string(),
+  associated_skills: z.array(z.string()).optional(),
 })
 
-// Get the project directory from Instance
+const WorldRulePatternSchema = z.object({
+  type: z.literal("world_rule"),
+  name: z.string(),
+  description: z.string(),
+  condition: z.string(),
+  effect: z.string(),
+})
+
+const SkillPatternSchema = z.object({
+  type: z.literal("skill"),
+  name: z.string(),
+  category: z.string(),
+  description: z.string(),
+  trigger: z.string().optional(),
+})
+
+const PlotDevicePatternSchema = z.object({
+  type: z.literal("plot_device"),
+  name: z.string(),
+  description: z.string(),
+  narrative_function: z.string().optional(),
+})
+
+const TonePatternSchema = z.object({
+  type: z.literal("tone"),
+  name: z.string(),
+  description: z.string(),
+  emotional_impact: z.string().optional(),
+})
+
+const PatternSchema = z.discriminatedUnion("type", [
+  CharacterTraitPatternSchema,
+  WorldRulePatternSchema,
+  SkillPatternSchema,
+  PlotDevicePatternSchema,
+  TonePatternSchema,
+])
+
+type Pattern = z.infer<typeof PatternSchema>
+
+// Improved project root detection
+async function findProjectRoot(startDir: string): Promise<string> {
+  let currentDir = startDir
+  const rootMarkerFiles = ["package.json", ".git", "pnpm-workspace.yaml", "bun.lock"]
+
+  while (currentDir !== dirname(currentDir)) {
+    for (const marker of rootMarkerFiles) {
+      try {
+        await access(resolve(currentDir, marker))
+        return currentDir
+      } catch {
+        // Marker not found, continue searching
+      }
+    }
+    currentDir = dirname(currentDir)
+  }
+
+  throw new Error("Could not find project root")
+}
+
 function getProjectDirectory(): string {
   try {
     return Instance.directory
   } catch {
-    // Fallback: go up from packages/opencode to project root
-    return resolve(process.cwd(), "..")
+    return resolve(process.cwd())
   }
 }
 
@@ -110,20 +169,28 @@ Output a JSON list of NEW patterns to add. Return an empty array if none found.`
 
 async function checkAndGenerateSkills(context: string): Promise<void> {
   try {
-    // Use LLM to determine if skill generation is needed
     const languageModel = await getNovelLanguageModel()
 
-    const prompt = `Analyze this story context. Determine if a new narrative skill should be generated.
+    const prompt = `Analyze this story context. Determine if a NEW narrative skill should be generated.
 
-Story context (last 1000 chars):
-${context.slice(-1000)}
+A skill is warranted when:
+- A character performs a complex, specialized action that requires expertise
+- A significant plot development requires specific narrative treatment
+- A unique world rule or ability is demonstrated
+
+Story context (last 1500 chars):
+${context.slice(-1500)}
 
 Output JSON:
 {
   "needsSkill": true/false,
-  "reason": "why skill is/isn't needed",
-  "skillType": "character_development|plot_twist|world_rule|combat|investigation" (if needsSkill)
-}`
+  "reason": "Detailed explanation of why skill is or isn't needed",
+  "skillName": "Proposed skill name if needsSkill is true",
+  "skillCategory": "Technical|Combat|Social|Mental|World|Plot",
+  "triggerCondition": "When should this skill be applied"
+}
+
+Be conservative - only recommend a skill if the story demonstrates something genuinely novel and actionable.`
 
     const result = await generateText({
       model: languageModel,
@@ -132,33 +199,35 @@ Output JSON:
 
     const match = result.text.match(/\{[\s\S]*\}/)
     let needsSkill = false
+    let skillInfo = { name: "", category: "Mental", trigger: "" }
 
     if (match) {
       const analysis = JSON.parse(match[0])
-      needsSkill = analysis.needsSkill
+      needsSkill = analysis.needsSkill === true
+      skillInfo = {
+        name: analysis.skillName || "",
+        category: analysis.skillCategory || "Mental",
+        trigger: analysis.triggerCondition || "",
+      }
     }
 
-    // Also check simple patterns as fallback
-    if (!needsSkill) {
-      const complexPatterns = ["时间循环", "非线性叙事", "多重人格", "梦境", "幻觉"]
-      needsSkill = complexPatterns.some((p) => context.includes(p))
-    }
-
-    if (needsSkill) {
-      const skillContent = await generateSkillContent(context)
+    if (needsSkill && skillInfo.name) {
+      const skillContent = await generateSkillContent(context, skillInfo)
       const fileName = `${SkillsPath}/auto-${Date.now()}.md`
       await writeFile(resolve(fileName), skillContent)
 
-      // Trigger Hot Reload
       await Skill.reload()
-      log.info("skill_generated_and_loaded", { fileName })
+      log.info("skill_generated_and_loaded", { fileName, skillName: skillInfo.name })
     }
   } catch (error) {
     log.error("skill_generation_failed", { error: String(error) })
   }
 }
 
-async function generateSkillContent(context: string): Promise<string> {
+async function generateSkillContent(
+  context: string,
+  skillInfo: { name: string; category: string; trigger: string } = { name: "", category: "Mental", trigger: "" },
+): Promise<string> {
   const languageModel = await getNovelLanguageModel()
 
   const prompt = `Based on this story context, generate a specific, actionable narrative skill instruction.
