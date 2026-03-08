@@ -1,5 +1,5 @@
 import { Log } from "../util/log"
-import { readFile, writeFile } from "fs/promises"
+import { readFile, writeFile, readdir } from "fs/promises"
 import { resolve, dirname, join } from "path"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
@@ -93,6 +93,60 @@ export async function loadDynamicPatterns(): Promise<any[]> {
   return []
 }
 
+/**
+ * Load skill definitions from patterns and skill files
+ */
+export async function loadSkillDefinitions(): Promise<Record<string, string>> {
+  const definitions: Record<string, string> = {}
+
+  try {
+    // Load from dynamic patterns
+    const patterns = await loadDynamicPatterns()
+    for (const pattern of patterns) {
+      if (pattern.type === "skill" && pattern.name && pattern.description) {
+        definitions[pattern.name] = pattern.description
+      }
+    }
+
+    // Try loading from skills directory if it exists
+    const skillsDir = resolve(dirname(getStoryBiblePath()), "skills")
+    if (await fileExists(skillsDir)) {
+      const files = await readdir(skillsDir)
+      for (const file of files) {
+        if (file.endsWith(".md")) {
+          const content = await readFile(resolve(skillsDir, file), "utf-8")
+          const name = file.replace(".md", "")
+          definitions[name] = content.substring(0, 200)
+        }
+      }
+    }
+  } catch (error) {
+    log.warn("failed_to_load_skill_definitions", { error: String(error) })
+  }
+
+  return definitions
+}
+
+/**
+ * Load trauma definitions from patterns
+ */
+export async function loadTraumaDefinitions(): Promise<Record<string, string>> {
+  const definitions: Record<string, string> = {}
+
+  try {
+    const patterns = await loadDynamicPatterns()
+    for (const pattern of patterns) {
+      if (pattern.type === "trauma" && pattern.name && pattern.description) {
+        definitions[pattern.name] = pattern.description
+      }
+    }
+  } catch (error) {
+    log.warn("failed_to_load_trauma_definitions", { error: String(error) })
+  }
+
+  return definitions
+}
+
 export interface OrchestratorConfig {
   branchOptions?: number
   verbose?: boolean
@@ -126,6 +180,28 @@ export class EvolutionOrchestrator {
     this.characterDeepener = new CharacterDeepener()
     this.branchOptions = config.branchOptions || 3
     this.verbose = config.verbose || false
+  }
+
+  /**
+   * Initialize character deepener with world knowledge from patterns
+   */
+  private async initializeCharacterDeepener(): Promise<void> {
+    try {
+      const skillDefs = await loadSkillDefinitions()
+      const traumaDefs = await loadTraumaDefinitions()
+
+      this.characterDeepener.updateConfig({
+        skillDefinitions: skillDefs,
+        traumaDefinitions: traumaDefs,
+      })
+
+      this.log("Initialized character deepener with world knowledge", {
+        skills: Object.keys(skillDefs).length,
+        traumas: Object.keys(traumaDefs).length,
+      })
+    } catch (error) {
+      log.warn("failed_to_initialize_character_deepener", { error: String(error) })
+    }
   }
 
   private log(message: string, ...args: any[]): void {
@@ -559,6 +635,7 @@ Output JSON:
         log.info("state_loaded", { chapter: this.storyState.chapterCount })
       }
       this.patterns = await loadDynamicPatterns()
+      await this.initializeCharacterDeepener()
     } catch {
       log.info("no_existing_state")
     }
@@ -579,6 +656,7 @@ Output JSON:
     this.log(`\nStarting Chapter ${this.storyState.chapterCount + 1}...`)
 
     this.patterns = await loadDynamicPatterns()
+    await this.initializeCharacterDeepener()
     this.log(`   Loaded ${this.patterns.length} patterns`)
 
     const chaosEvent = EvolutionRulesEngine.rollChaos()
