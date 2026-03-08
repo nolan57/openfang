@@ -810,6 +810,35 @@ export type EventTuiSessionSelect = {
   }
 }
 
+export type EventTuiLog = {
+  type: "tui.log"
+  properties: {
+    source: string
+    level: "info" | "warning" | "error"
+    message: string
+  }
+}
+
+export type EventTuiMemoryConfirm = {
+  type: "tui.memory.confirm"
+  properties: {
+    sessionID: string
+    memories: Array<{
+      key: string
+      value: string
+      context?: string
+    }>
+  }
+}
+
+export type EventTuiSessionExiting = {
+  type: "tui.session.exiting"
+  properties: {
+    sessionID: string
+    reason: "new_session" | "switch_session" | "session_end"
+  }
+}
+
 export type EventMcpToolsChanged = {
   type: "mcp.tools.changed"
   properties: {
@@ -1015,6 +1044,9 @@ export type Event =
   | EventTuiCommandExecute
   | EventTuiToastShow
   | EventTuiSessionSelect
+  | EventTuiLog
+  | EventTuiMemoryConfirm
+  | EventTuiSessionExiting
   | EventMcpToolsChanged
   | EventMcpBrowserOpenFailed
   | EventCommandExecuted
@@ -1932,6 +1964,60 @@ export type Config = {
      * Timeout in milliseconds for model context protocol (MCP) requests
      */
     mcp_timeout?: number
+  }
+  /**
+   * ZeroClaw backend configuration
+   */
+  zeroclaw?: {
+    enabled?: boolean
+    url?: string
+    token?: string
+    timeout?: number
+    /**
+     * Auto-start ZeroClaw if not running
+     */
+    autoStart?: boolean
+    /**
+     * Port to use when auto-starting ZeroClaw
+     */
+    startPort?: number
+    routing?: {
+      shell?: boolean
+      file?: boolean
+      http?: boolean
+      hardware?: boolean
+      memory?: boolean
+      cron?: boolean
+    }
+    security?: {
+      policy?: "supervised" | "read_only" | "full"
+      estopEnabled?: boolean
+    }
+  }
+  /**
+   * Self-evolution configuration for AI-driven improvements
+   */
+  evolution?: {
+    /**
+     * Enable self-evolution system
+     */
+    enabled?: boolean
+    /**
+     * Keywords/topic directions for self-evolution research (e.g., ['AI agents', 'code generation'])
+     */
+    directions?: Array<string>
+    /**
+     * Sources to collect from during evolution
+     */
+    sources?: Array<"search" | "arxiv" | "github" | "blogs" | "pypi">
+    /**
+     * Maximum items to collect per evolution run
+     */
+    maxItemsPerRun?: number
+    /**
+     * Hours between major evolution cycles
+     */
+    cooldownHours?: number
   }
 }
 
@@ -4947,6 +5033,9 @@ export type TuiPublishData = {
     | EventTuiCommandExecute
     | EventTuiToastShow
     | EventTuiSessionSelect
+    | EventTuiLog
+    | EventTuiMemoryConfirm
+    | EventTuiSessionExiting
   path?: never
   query?: {
     directory?: string
@@ -5008,6 +5097,77 @@ export type TuiSelectSessionResponses = {
 
 export type TuiSelectSessionResponse = TuiSelectSessionResponses[keyof TuiSelectSessionResponses]
 
+export type TuiMemoryConfirmData = {
+  body?: {
+    sessionID: string
+    memories: Array<{
+      key: string
+      value: string
+      context?: string
+    }>
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/tui/memory/confirm"
+}
+
+export type TuiMemoryConfirmErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type TuiMemoryConfirmError = TuiMemoryConfirmErrors[keyof TuiMemoryConfirmErrors]
+
+export type TuiMemoryConfirmResponses = {
+  /**
+   * Memory confirmation received
+   */
+  200: boolean
+}
+
+export type TuiMemoryConfirmResponse = TuiMemoryConfirmResponses[keyof TuiMemoryConfirmResponses]
+
+export type TuiSessionExtractMemoriesData = {
+  body?: {
+    sessionID: string
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/tui/session/extract-memories"
+}
+
+export type TuiSessionExtractMemoriesErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+  /**
+   * Not found
+   */
+  404: NotFoundError
+}
+
+export type TuiSessionExtractMemoriesError = TuiSessionExtractMemoriesErrors[keyof TuiSessionExtractMemoriesErrors]
+
+export type TuiSessionExtractMemoriesResponses = {
+  /**
+   * Memory extraction completed
+   */
+  200: {
+    extracted: number
+    keys: Array<string>
+  }
+}
+
+export type TuiSessionExtractMemoriesResponse =
+  TuiSessionExtractMemoriesResponses[keyof TuiSessionExtractMemoriesResponses]
+
 export type TuiControlNextData = {
   body?: never
   path?: never
@@ -5046,6 +5206,104 @@ export type TuiControlResponseResponses = {
 }
 
 export type TuiControlResponseResponse = TuiControlResponseResponses[keyof TuiControlResponseResponses]
+
+export type ControlStatusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/control/status"
+}
+
+export type ControlStatusResponses = {
+  /**
+   * OpenCode status
+   */
+  200: {
+    status: string
+    version: string
+    uptime: number
+    sessionCount: number
+  }
+}
+
+export type ControlStatusResponse = ControlStatusResponses[keyof ControlStatusResponses]
+
+export type ControlZeroclawUpdateData = {
+  body?: {
+    target?: "local" | string
+    version?: string
+    channel?: "stable" | "beta" | "nightly"
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/control/zeroclaw/update"
+}
+
+export type ControlZeroclawUpdateResponses = {
+  /**
+   * Update result
+   */
+  200: {
+    success: boolean
+    version?: string
+    target: string
+    error?: string
+  }
+}
+
+export type ControlZeroclawUpdateResponse = ControlZeroclawUpdateResponses[keyof ControlZeroclawUpdateResponses]
+
+export type ControlZeroclawRestartData = {
+  body?: {
+    target?: "local" | string
+  }
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/control/zeroclaw/restart"
+}
+
+export type ControlZeroclawRestartResponses = {
+  /**
+   * Restart result
+   */
+  200: {
+    success: boolean
+    target: string
+    error?: string
+  }
+}
+
+export type ControlZeroclawRestartResponse = ControlZeroclawRestartResponses[keyof ControlZeroclawRestartResponses]
+
+export type ControlZeroclawStatusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+  }
+  url: "/control/zeroclaw/status"
+}
+
+export type ControlZeroclawStatusResponses = {
+  /**
+   * ZeroClaw status
+   */
+  200: {
+    status: string
+    version: string
+    uptime: number
+    memory: string
+    tools: Array<string>
+  }
+}
+
+export type ControlZeroclawStatusResponse = ControlZeroclawStatusResponses[keyof ControlZeroclawStatusResponses]
 
 export type InstanceDisposeData = {
   body?: never

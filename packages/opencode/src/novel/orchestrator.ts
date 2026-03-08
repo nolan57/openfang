@@ -57,11 +57,16 @@ interface StoryBranch {
   selected: boolean
 }
 
+interface CurrentChapter {
+  title: string
+  content: string
+}
+
 interface StoryState {
   characters: Record<string, any>
   world: Record<string, any>
   relationships: Record<string, any>
-  currentChapter: string
+  currentChapter: CurrentChapter | null
   chapterCount: number
   timestamps: Record<string, number>
   fullStory: string
@@ -167,7 +172,7 @@ export class EvolutionOrchestrator {
       characters: {},
       world: {},
       relationships: {},
-      currentChapter: "",
+      currentChapter: null,
       chapterCount: 0,
       timestamps: {},
       fullStory: "",
@@ -743,7 +748,10 @@ Output JSON:
     }
 
     this.storyState.chapterCount++
-    this.storyState.currentChapter = `第${this.storyState.chapterCount}章`
+    this.storyState.currentChapter = {
+      title: `第${this.storyState.chapterCount}章`,
+      content: storySegment,
+    }
     this.storyState.fullStory = (this.storyState.fullStory || "") + "\n\n" + storySegment
     this.storyState.timestamps.lastGeneration = Date.now()
 
@@ -917,7 +925,7 @@ Write Chapter ${this.storyState.chapterCount + 1}:`
       characters: {},
       world: {},
       relationships: {},
-      currentChapter: "",
+      currentChapter: null,
       chapterCount: 0,
       timestamps: {},
       fullStory: "",

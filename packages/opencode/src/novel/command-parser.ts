@@ -144,7 +144,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
         console.log(
           JSON.stringify(
             {
-              chapter: state.currentChapter,
+              chapter: state.currentChapter?.title || "N/A",
               chapterCount: state.chapterCount,
               characters: Object.keys(state.characters || {}),
               lastUpdated: state.timestamps?.lastGeneration
@@ -184,7 +184,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       } else {
         const md = `# Novel Export
 
-## Chapter ${state.chapterCount}: ${state.currentChapter || "Untitled"}
+## Chapter ${state.chapterCount}: ${state.currentChapter?.title || "Untitled"}
 
 ${state.fullStory || "No content yet."}
 
@@ -235,7 +235,7 @@ Exported: ${new Date().toISOString()}
             characters: {},
             world: {},
             relationships: {},
-            currentChapter: "",
+            currentChapter: null,
             chapterCount: 0,
             timestamps: {},
             fullStory: "",

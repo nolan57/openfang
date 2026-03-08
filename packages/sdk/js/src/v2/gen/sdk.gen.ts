@@ -19,13 +19,20 @@ import type {
   ConfigProvidersResponses,
   ConfigUpdateErrors,
   ConfigUpdateResponses,
+  ControlStatusResponses,
+  ControlZeroclawRestartResponses,
+  ControlZeroclawStatusResponses,
+  ControlZeroclawUpdateResponses,
   EventSubscribeResponses,
   EventTuiCommandExecute,
+  EventTuiLog,
+  EventTuiMemoryConfirm,
   EventTuiPluginStatus,
   EventTuiPromptAppend,
   EventTuiSchedulerJobCompleted,
   EventTuiSchedulerJobFailed,
   EventTuiSchedulerJobStarted,
+  EventTuiSessionExiting,
   EventTuiSessionSelect,
   EventTuiToastShow,
   ExperimentalResourceListResponses,
@@ -160,6 +167,8 @@ import type {
   TuiControlResponseResponses,
   TuiExecuteCommandErrors,
   TuiExecuteCommandResponses,
+  TuiMemoryConfirmErrors,
+  TuiMemoryConfirmResponses,
   TuiOpenHelpResponses,
   TuiOpenModelsResponses,
   TuiOpenSessionsResponses,
@@ -168,6 +177,8 @@ import type {
   TuiPublishResponses,
   TuiSelectSessionErrors,
   TuiSelectSessionResponses,
+  TuiSessionExtractMemoriesErrors,
+  TuiSessionExtractMemoriesResponses,
   TuiShowToastResponses,
   TuiSubmitPromptResponses,
   VcsGetResponses,
@@ -2711,6 +2722,90 @@ export class Mcp extends HeyApiClient {
   }
 }
 
+export class Memory extends HeyApiClient {
+  /**
+   * Memory confirm response
+   *
+   * Handle user response to memory confirmation dialog
+   */
+  public confirm<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      sessionID?: string
+      memories?: Array<{
+        key: string
+        value: string
+        context?: string
+      }>
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "body", key: "sessionID" },
+            { in: "body", key: "memories" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<TuiMemoryConfirmResponses, TuiMemoryConfirmErrors, ThrowOnError>({
+      url: "/tui/memory/confirm",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
+export class Session3 extends HeyApiClient {
+  /**
+   * Extract memories from session
+   *
+   * Extract and save memories when session ends or switches
+   */
+  public extractMemories<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      sessionID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "body", key: "sessionID" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      TuiSessionExtractMemoriesResponses,
+      TuiSessionExtractMemoriesErrors,
+      ThrowOnError
+    >({
+      url: "/tui/session/extract-memories",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
 export class Control extends HeyApiClient {
   /**
    * Get next TUI request
@@ -3010,6 +3105,9 @@ export class Tui extends HeyApiClient {
         | EventTuiCommandExecute
         | EventTuiToastShow
         | EventTuiSessionSelect
+        | EventTuiLog
+        | EventTuiMemoryConfirm
+        | EventTuiSessionExiting
     },
     options?: Options<never, ThrowOnError>,
   ) {
@@ -3071,9 +3169,140 @@ export class Tui extends HeyApiClient {
     })
   }
 
+  private _memory?: Memory
+  get memory(): Memory {
+    return (this._memory ??= new Memory({ client: this.client }))
+  }
+
+  private _session?: Session3
+  get session(): Session3 {
+    return (this._session ??= new Session3({ client: this.client }))
+  }
+
   private _control?: Control
   get control(): Control {
     return (this._control ??= new Control({ client: this.client }))
+  }
+}
+
+export class Zeroclaw extends HeyApiClient {
+  /**
+   * Update ZeroClaw
+   *
+   * Update ZeroClaw to a specific version
+   */
+  public update<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      target?: "local" | string
+      version?: string
+      channel?: "stable" | "beta" | "nightly"
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "body", key: "target" },
+            { in: "body", key: "version" },
+            { in: "body", key: "channel" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<ControlZeroclawUpdateResponses, unknown, ThrowOnError>({
+      url: "/control/zeroclaw/update",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Restart ZeroClaw
+   *
+   * Restart ZeroClaw service
+   */
+  public restart<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      target?: "local" | string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "body", key: "target" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<ControlZeroclawRestartResponses, unknown, ThrowOnError>({
+      url: "/control/zeroclaw/restart",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+
+  /**
+   * Get ZeroClaw status
+   *
+   * Get current status of ZeroClaw
+   */
+  public status<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "query", key: "directory" }] }])
+    return (options?.client ?? this.client).get<ControlZeroclawStatusResponses, unknown, ThrowOnError>({
+      url: "/control/zeroclaw/status",
+      ...options,
+      ...params,
+    })
+  }
+}
+
+export class Control2 extends HeyApiClient {
+  /**
+   * Get OpenCode status
+   *
+   * Get current status of OpenCode
+   */
+  public status<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "query", key: "directory" }] }])
+    return (options?.client ?? this.client).get<ControlStatusResponses, unknown, ThrowOnError>({
+      url: "/control/status",
+      ...options,
+      ...params,
+    })
+  }
+
+  private _zeroclaw?: Zeroclaw
+  get zeroclaw(): Zeroclaw {
+    return (this._zeroclaw ??= new Zeroclaw({ client: this.client }))
   }
 }
 
@@ -3398,6 +3627,11 @@ export class OpencodeClient extends HeyApiClient {
   private _tui?: Tui
   get tui(): Tui {
     return (this._tui ??= new Tui({ client: this.client }))
+  }
+
+  private _control?: Control2
+  get control(): Control2 {
+    return (this._control ??= new Control2({ client: this.client }))
   }
 
   private _instance?: Instance
