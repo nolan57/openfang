@@ -10,10 +10,126 @@ import { Log } from "../util/log"
 import { NamedError } from "@opencode-ai/util/error"
 import z from "zod"
 import path from "path"
-import { readFileSync, readdirSync, existsSync } from "fs"
+import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync, statSync, unlinkSync } from "fs"
 import * as schema from "./schema"
 
 declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number }[] | undefined
+
+// ====== Database Backup & Recovery Logic ======
+const DB_PATH = path.join(Global.Path.data, "opencode.db")
+const BACKUP_DIR = path.join(Global.Path.data, "backups")
+const MAX_BACKUPS = 5
+
+function isDatabaseHealthy(dbPath: string): boolean {
+  try {
+    const db = new BunDatabase(dbPath)
+    const result = db.query("PRAGMA quick_check;").all()
+    db.close()
+    return result.length === 0 || (result.length === 1 && (result[0] as Record<string, unknown>)["quick_check"] === "ok")
+  } catch (err) {
+    log.warn("database health check failed", { path: dbPath, error: err })
+    return false
+  }
+}
+
+function getLatestBackup(): string | null {
+  if (!existsSync(BACKUP_DIR)) return null
+
+  const backups = readdirSync(BACKUP_DIR)
+    .filter((f) => f.startsWith("opencode.db.bak."))
+    .map((f) => ({ name: f, time: statSync(path.join(BACKUP_DIR, f)).mtimeMs }))
+    .sort((a, b) => b.time - a.time)
+
+  return backups.length > 0 ? path.join(BACKUP_DIR, backups[0].name) : null
+}
+
+export function createBackup(): void {
+  try {
+    if (!existsSync(BACKUP_DIR)) {
+      mkdirSync(BACKUP_DIR, { recursive: true })
+    }
+
+    if (!existsSync(DB_PATH)) {
+      log.info("database does not exist, skipping backup")
+      return
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
+    const backupPath = path.join(BACKUP_DIR, `opencode.db.bak.${timestamp}`)
+    copyFileSync(DB_PATH, backupPath)
+    log.info("database backup created", { backupPath })
+
+    // Clean up old backups - keep only the most recent MAX_BACKUPS
+    const backups = readdirSync(BACKUP_DIR).filter((f) => f.startsWith("opencode.db.bak."))
+    if (backups.length > MAX_BACKUPS) {
+      backups
+        .map((f) => ({ name: f, time: statSync(path.join(BACKUP_DIR, f)).mtimeMs }))
+        .sort((a, b) => a.time - b.time)
+        .slice(0, backups.length - MAX_BACKUPS)
+        .forEach((b) => {
+          try {
+            unlinkSync(path.join(BACKUP_DIR, b.name))
+            log.debug("removed old backup", { name: b.name })
+          } catch (e) {
+            log.warn("failed to remove old backup", { name: b.name, error: e })
+          }
+        })
+    }
+  } catch (err) {
+    log.error("failed to create database backup", { error: err })
+  }
+}
+
+function ensureDatabaseIntegrity(): void {
+  // If database doesn't exist, let Drizzle create it later
+  if (!existsSync(DB_PATH)) {
+    log.info("database does not exist, will be created on first use")
+    return
+  }
+
+  if (isDatabaseHealthy(DB_PATH)) {
+    log.info("database is healthy")
+    return
+  }
+
+  log.warn("database is corrupted or unreadable, attempting recovery...")
+
+  // First, backup the corrupted database for debugging
+  const corruptedPath = path.join(BACKUP_DIR, `opencode.db.corrupted.${Date.now()}`)
+  try {
+    if (!existsSync(BACKUP_DIR)) mkdirSync(BACKUP_DIR, { recursive: true })
+    copyFileSync(DB_PATH, corruptedPath)
+    log.info("corrupted database saved for inspection", { path: corruptedPath })
+  } catch (e) {
+    log.error("failed to save corrupted database", { error: e })
+  }
+
+  // Try to restore from latest backup
+  const latestBackup = getLatestBackup()
+  if (latestBackup) {
+    log.info("restoring database from backup", { backup: latestBackup })
+    try {
+      copyFileSync(latestBackup, DB_PATH)
+      if (isDatabaseHealthy(DB_PATH)) {
+        log.info("database recovery successful!")
+        return
+      } else {
+        log.error("backup is also corrupted, will try other options")
+      }
+    } catch (e) {
+      log.error("failed to restore from backup", { error: e })
+    }
+  }
+
+  // All backups failed, delete corrupted database and let Drizzle recreate it
+  try {
+    unlinkSync(DB_PATH)
+    log.info("deleted corrupted database, will recreate on next use")
+  } catch (e) {
+    log.error("failed to delete corrupted database", { error: e })
+  }
+}
+// ====== End of Backup & Recovery Logic ======
 
 export const NotFoundError = NamedError.create(
   "NotFoundError",
@@ -68,9 +184,13 @@ export namespace Database {
   export const Client = lazy(() => {
     // On macOS, Apple's SQLite doesn't support dynamic extensions
     // Use Homebrew's vanilla SQLite which supports extensions
+    // Must be called before any SQLite operations
     if (process.platform === "darwin") {
       BunDatabase.setCustomSQLite("/opt/homebrew/Cellar/sqlite/3.51.2_1/lib/libsqlite3.dylib")
     }
+
+    // Ensure database integrity before first use
+    ensureDatabaseIntegrity()
 
     const sqlite = new BunDatabase(path.join(Global.Path.data, "opencode.db"), { create: true })
 
@@ -129,9 +249,14 @@ export namespace Database {
           log.info("loading sqlite-vec from", { vecPath })
           try {
             sqlite.loadExtension(vecPath)
-            // Verify the extension is loaded by testing vec0
-            sqlite.exec("SELECT vec0_version()")
-            log.info("sqlite-vec loaded successfully", { vecPath })
+            // Verify the extension is loaded by testing vec0 (some versions don't have vec0_version)
+            try {
+              sqlite.exec("SELECT vec0_version()")
+              log.info("sqlite-vec loaded successfully", { vecPath })
+            } catch {
+              // Extension loaded but vec0_version doesn't exist - that's ok
+              log.info("sqlite-vec loaded (vec0_version not available)", { vecPath })
+            }
             loaded = true
             break
           } catch (loadError) {

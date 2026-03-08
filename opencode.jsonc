@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "evolution": {
+    "directions": [
+      "AI",
+      "code generation",
+      "agent systems",
+      "Self-evolution",
+      "Long-range consistency"
+    ]
+  }
+}

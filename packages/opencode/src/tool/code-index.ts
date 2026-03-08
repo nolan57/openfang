@@ -1,7 +1,7 @@
 import { Tool } from "./tool"
 import { glob } from "glob"
 import { readFile } from "fs/promises"
-import { resolve } from "path"
+import { resolve, join } from "path"
 import { Database } from "../storage/db"
 import { vector_memory } from "../learning/learning.sql"
 import { eq } from "drizzle-orm"
@@ -107,17 +107,19 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
       "Build multi-level vector index for a codebase enabling semantic search across module architecture. Supports generating JSON files or writing directly to database.",
     parameters: params,
     async execute(args, ctx) {
-      const srcDir = resolve(args.packagePath, "src")
+      const baseDir = args.sourceDir ? join(args.packagePath, args.sourceDir) : resolve(args.packagePath, "src")
+      const sourceDir = resolve(baseDir)
       const packageName = args.packagePath.split("/").pop() || "unknown"
 
-      const files = await glob(`${srcDir}/**/*.ts`, {
-        ignore: ["**/*.test.ts", "**/*.d.ts", "**/node_modules/**"],
+      const files = await glob(`${sourceDir}/**/*.ts`, {
+        ignore: ["**/*.test.ts", "**/*.d.ts", "**/node_modules/**", "**/gen/**"],
       })
 
       const entries: Array<{
         node_id: string
         entity_title: string
         node_type: string
+        vector_type: string
         content_text: string
         metadata: Record<string, unknown>
       }> = []
@@ -125,7 +127,7 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
       for (const file of files) {
         try {
           const content = await readFile(file, "utf-8")
-          const relativePath = file.replace(srcDir + "/", "")
+          const relativePath = file.replace(sourceDir + "/", "")
           const exports = extractExports(content)
           const purpose = extractPurpose(content)
 
@@ -138,6 +140,7 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
             node_id: moduleName,
             entity_title: relativePath,
             node_type: isIndex ? "module" : "file",
+            vector_type: "code",
             content_text: `${relativePath}: ${purpose}. Exports: ${exports.join(", ")}`,
             metadata: {
               file: relativePath,
@@ -171,53 +174,62 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
         }
       }
 
-      Database.Client
-
-      const existingCount = Database.use((db) =>
-        db.select({ count: vector_memory.id }).from(vector_memory).where(eq(vector_memory.vector_type, "code")).all(),
-      ).length
-
+      // Write directly to database using raw SQLite
+      const sqlite = Database.raw()
       const now = Date.now()
       let added = 0
 
-      for (const entry of entries) {
-        const embedding = simpleEmbedding(entry.content_text)
+      const checkStmt = sqlite.prepare("SELECT 1 FROM vector_memory WHERE id = ?")
+      const insertStmt = sqlite.prepare(`
+        INSERT INTO vector_memory (id, node_type, node_id, entity_title, vector_type, embedding, model, dimensions, metadata, time_created, time_updated)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `)
 
+      for (const entry of entries) {
         try {
-          Database.use((db) => {
-            db.insert(vector_memory).values({
-              id: entry.node_id,
-              node_type: entry.node_type,
-              node_id: entry.node_id,
-              entity_title: entry.entity_title,
-              vector_type: "code",
-              embedding: JSON.stringify(embedding),
-              model: "simple",
-              dimensions: embedding.length,
-              metadata: JSON.stringify(entry.metadata),
-              time_created: now,
-              time_updated: now,
-            })
-          })
+          // Skip if already exists
+          const existing = checkStmt.get(entry.node_id)
+          if (existing) continue
+
+          const embedding = simpleEmbedding(entry.content_text)
+          const embeddingJson = JSON.stringify(embedding)
+          const metadataJson = JSON.stringify(entry.metadata)
+
+          insertStmt.run(
+            entry.node_id,
+            entry.node_type,
+            entry.node_id,
+            entry.entity_title,
+            "code",
+            embeddingJson,
+            "simple",
+            embedding.length,
+            metadataJson,
+            now,
+            now,
+          )
           added++
-        } catch {}
+        } catch (error) {}
       }
 
-      const newCount = Database.use((db) =>
-        db.select({ count: vector_memory.id }).from(vector_memory).where(eq(vector_memory.vector_type, "code")).all(),
-      ).length
+      const totalStmt = sqlite.prepare("SELECT COUNT(*) as cnt FROM vector_memory")
+      const newCount = totalStmt.get() as { cnt: number }
 
       return {
         title: "Code Index Built",
-        metadata: { package: packageName, entries: entries.length, added: added, total: newCount },
-        output: `Built vector index for ${packageName}. Added ${added} entries. Total code vectors: ${newCount}`,
+        metadata: { package: packageName, entries: entries.length, added: added, total: newCount.cnt },
+        output: `Built vector index for ${packageName}. Added ${added} entries. Total code vectors: ${newCount.cnt}`,
       }
     },
   }),
 }
 
-const params = z.object({
+export const params = z.object({
   packagePath: z.string().describe("Path to the package to index (e.g., packages/opencode or packages/plugin-qqbot)"),
+  sourceDir: z
+    .string()
+    .optional()
+    .describe("Source directory relative to packagePath (default: 'src', e.g., 'js/src' for SDK)"),
   outputMode: z
     .enum(["json", "database"])
     .optional()

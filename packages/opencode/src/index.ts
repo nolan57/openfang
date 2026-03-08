@@ -33,8 +33,15 @@ import { NovelCommand } from "./cli/cmd/novel"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
-import { Database } from "./storage/db"
+import { Database, createBackup } from "./storage/db"
 import { checkAndStartMcpCron } from "./util/mcp-cron"
+
+// Backup database on graceful exit
+const cleanup = () => {
+  createBackup()
+}
+process.on("SIGINT", cleanup)
+process.on("SIGTERM", cleanup)
 
 process.on("unhandledRejection", (e) => {
   Log.Default.error("rejection", {

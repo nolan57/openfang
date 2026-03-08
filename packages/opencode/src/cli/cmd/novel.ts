@@ -120,19 +120,21 @@ async function handleState(args: any) {
 
 async function handleExport(args: any) {
   const format = args.format as "md" | "json" | "pdf"
-  const engine = await getOrchestrator()
-  const state = engine.getState()
+  await bootstrap(process.cwd(), async () => {
+    const engine = await getOrchestrator()
+    const state = engine.getState()
 
-  if (format === "json") {
-    await writeFile("novel_export.json", JSON.stringify(state, null, 2))
-    console.log("✅ Exported to novel_export.json")
-  } else if (format === "md") {
-    const md = `# Novel Export\n\nChapter: ${state.currentChapter}\n\n${state.fullStory || "No content yet."}`
-    await writeFile("novel_export.md", md)
-    console.log("✅ Exported to novel_export.md")
-  } else {
-    console.log("PDF export not implemented yet")
-  }
+    if (format === "json") {
+      await writeFile("novel_export.json", JSON.stringify(state, null, 2))
+      console.log("✅ Exported to novel_export.json")
+    } else if (format === "md") {
+      const md = `# Novel Export\n\nChapter: ${state.currentChapter}\n\n${state.fullStory || "No content yet."}`
+      await writeFile("novel_export.md", md)
+      console.log("✅ Exported to novel_export.md")
+    } else {
+      console.log("PDF export not implemented yet")
+    }
+  })
 }
 
 async function handlePatterns() {

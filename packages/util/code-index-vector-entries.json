@@ -1,0 +1,190 @@
+{
+  "format_version": "1.0",
+  "package": "util",
+  "vector_entries": [
+    {
+      "node_id": "file_binary",
+      "entity_title": "binary.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "binary.ts: Function left. Exports: search, insert",
+      "metadata": {
+        "file": "binary.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/binary.ts",
+        "exports": [
+          "search",
+          "insert"
+        ],
+        "purpose": "Function left",
+        "lineCount": 42
+      }
+    },
+    {
+      "node_id": "file_error",
+      "entity_title": "error.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "error.ts: Class NamedError. Exports: ",
+      "metadata": {
+        "file": "error.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/error.ts",
+        "exports": [],
+        "purpose": "Class NamedError",
+        "lineCount": 55
+      }
+    },
+    {
+      "node_id": "file_encode",
+      "entity_title": "encode.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "encode.ts: Function bytes. Exports: base64Encode, base64Decode, checksum, sampledChecksum",
+      "metadata": {
+        "file": "encode.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/encode.ts",
+        "exports": [
+          "base64Encode",
+          "base64Decode",
+          "checksum",
+          "sampledChecksum"
+        ],
+        "purpose": "Function bytes",
+        "lineCount": 52
+      }
+    },
+    {
+      "node_id": "file_retry",
+      "entity_title": "retry.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "retry.ts: Function TRANSIENT_MESSAGES. Exports: RetryOptions",
+      "metadata": {
+        "file": "retry.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/retry.ts",
+        "exports": [
+          "RetryOptions"
+        ],
+        "purpose": "Function TRANSIENT_MESSAGES",
+        "lineCount": 42
+      }
+    },
+    {
+      "node_id": "file_fn",
+      "entity_title": "fn.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "fn.ts: Function result. Exports: fn",
+      "metadata": {
+        "file": "fn.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/fn.ts",
+        "exports": [
+          "fn"
+        ],
+        "purpose": "Function result",
+        "lineCount": 12
+      }
+    },
+    {
+      "node_id": "file_lazy",
+      "entity_title": "lazy.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "lazy.ts: Function loaded. Exports: lazy",
+      "metadata": {
+        "file": "lazy.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/lazy.ts",
+        "exports": [
+          "lazy"
+        ],
+        "purpose": "Function loaded",
+        "lineCount": 12
+      }
+    },
+    {
+      "node_id": "file_array",
+      "entity_title": "array.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "array.ts: Function i. Exports: findLast",
+      "metadata": {
+        "file": "array.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/array.ts",
+        "exports": [
+          "findLast"
+        ],
+        "purpose": "Function i",
+        "lineCount": 11
+      }
+    },
+    {
+      "node_id": "file_identifier",
+      "entity_title": "identifier.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "identifier.ts: Function LENGTH. Exports: ascending, descending, create",
+      "metadata": {
+        "file": "identifier.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/identifier.ts",
+        "exports": [
+          "ascending",
+          "descending",
+          "create"
+        ],
+        "purpose": "Function LENGTH",
+        "lineCount": 49
+      }
+    },
+    {
+      "node_id": "file_path",
+      "entity_title": "path.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "path.ts: Function trimmed. Exports: getFilename, getDirectory, getFileExtension, getFilenameTruncated, truncateMiddle",
+      "metadata": {
+        "file": "path.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/path.ts",
+        "exports": [
+          "getFilename",
+          "getDirectory",
+          "getFileExtension",
+          "getFilenameTruncated",
+          "truncateMiddle"
+        ],
+        "purpose": "Function trimmed",
+        "lineCount": 38
+      }
+    },
+    {
+      "node_id": "file_slug",
+      "entity_title": "slug.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "slug.ts: Function ADJECTIVES. Exports: create",
+      "metadata": {
+        "file": "slug.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/slug.ts",
+        "exports": [
+          "create"
+        ],
+        "purpose": "Function ADJECTIVES",
+        "lineCount": 75
+      }
+    },
+    {
+      "node_id": "file_iife",
+      "entity_title": "iife.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "iife.ts: Module file. Exports: iife",
+      "metadata": {
+        "file": "iife.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/util/src/iife.ts",
+        "exports": [
+          "iife"
+        ],
+        "purpose": "Module file",
+        "lineCount": 4
+      }
+    }
+  ]
+}

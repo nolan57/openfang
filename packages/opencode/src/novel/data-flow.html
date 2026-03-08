@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 叙事引擎 - 数据流闭环</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #f9f9fb;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      h1 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+      }
+      .mermaid {
+        max-width: 900px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>AI 自进化叙事引擎：数据流闭环</h1>
+    <div class="mermaid">
+      graph LR A[1. 启动与加载<br />(orchestrator.loadState)<br />← story_bible.json] --> B[2. 注入世界观知识<br />(initializeCharacterDeepener)<br />←
+      dynamic-patterns.json] B --> C[3. 深度洞察<br />• CharacterDeepener<br />• RelationshipAnalyzer] C --> D[4.
+      内容生成<br />(LLM + generationPrompt)] D --> E[5. 状态感知<br />(stateExtractor.extractStateChanges)] E --> F[6.
+      状态应用与持久化<br />(saveState → story_bible.json)] F --> G[7. 知识进化<br />(patternMiner.onTurn)] G --> H[8.
+      保存新知识<br />(→ dynamic-patterns.json)] H --> A style A fill:#e1f5fe,stroke:#0288d1 style B
+      fill:#f3e5f5,stroke:#7b1fa2 style C fill:#e8f5e9,stroke:#388e3c style D fill:#fff8e1,stroke:#ffa000 style E
+      fill:#ffebee,stroke:#d32f2f style F fill:#e1f5fe,stroke:#0288d1 style G fill:#f3e5f5,stroke:#7b1fa2 style H
+      fill:#f3e5f5,stroke:#7b1fa2 classDef io fill:#e1f5fe,stroke:#0288d1; classDef knowledge
+      fill:#f3e5f5,stroke:#7b1fa2; classDef insight fill:#e8f5e9,stroke:#388e3c; classDef generate
+      fill:#fff8e1,stroke:#ffa000; classDef perceive fill:#ffebee,stroke:#d32f2f; class A,F io class B,G,H knowledge
+      class C insight class D generate class E perceive
+    </div>
+
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"
+      mermaid.initialize({ startOnLoad: true, theme: "default" })
+    </script>
+  </body>
+</html>

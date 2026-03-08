@@ -21,7 +21,7 @@ async function fileExists(filePath: string): Promise<boolean> {
 export function resolveSafePath(cwd: string, userInput: string): string {
   const resolved = path.resolve(cwd, userInput)
   if (!resolved.startsWith(cwd)) {
-    throw new Error("⛔ Security Error: Access outside project directory denied.")
+    throw new Error(" Security Error: Access outside project directory denied.")
   }
   return resolved
 }
@@ -42,9 +42,9 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       if (filePath) {
         const safePath = resolveSafePath(cwd, filePath)
         promptContent = await readFile(safePath, "utf-8")
-        console.log(`📄 Loaded initial setup from: ${filePath}`)
+        console.log(` Loaded initial setup from: ${filePath}`)
       } else {
-        console.log("📝 Starting new session (no prompt file)")
+        console.log(" Starting new session (no prompt file)")
       }
 
       const orchestrator = new EvolutionOrchestrator()
@@ -52,33 +52,33 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
 
       const result = await orchestrator.runNovelCycle(promptContent)
 
-      console.log("\n✅ Story started!")
+      console.log("\n✓ Story started!")
       console.log("Preview:", result.substring(0, 150) + "...")
       break
     }
 
     case "/continue": {
-      console.log("🔄 Continuing story...")
+      console.log(" Continuing story...")
 
       const orchestrator = new EvolutionOrchestrator()
       await orchestrator.loadState()
 
       const state = orchestrator.getState()
       if (state.chapterCount === 0) {
-        console.log("❌ No existing story. Use /start first.")
+        console.log("× No existing story. Use /start first.")
         break
       }
 
       const result = await orchestrator.runNovelCycle("Continue the story from the current state.")
 
-      console.log("\n✅ Chapter generated!")
+      console.log("\n✓ Chapter generated!")
       console.log("Preview:", result.substring(0, 150) + "...")
       break
     }
 
     case "/inject": {
       if (!args[0]) {
-        console.log("❌ Usage: /inject <file>")
+        console.log("× Usage: /inject <file>")
         break
       }
 
@@ -86,12 +86,12 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       const safePath = resolveSafePath(cwd, filePath)
 
       if (!(await fileExists(safePath))) {
-        console.log(`❌ File not found: ${filePath}`)
+        console.log(`× File not found: ${filePath}`)
         break
       }
 
       const content = await readFile(safePath, "utf-8")
-      console.log(`💉 Injecting context from: ${filePath}`)
+      console.log(` Injecting context from: ${filePath}`)
 
       const orchestrator = new EvolutionOrchestrator()
       await orchestrator.loadState()
@@ -105,12 +105,12 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       state.injectedContext = content
       await orchestrator.saveState()
 
-      console.log("✅ Context injected and patterns updated!")
+      console.log("✓ Context injected and patterns updated!")
       break
     }
 
     case "/evolve": {
-      console.log("🔄 Forcing evolution cycle...")
+      console.log(" Forcing evolution cycle...")
 
       const orchestrator = new EvolutionOrchestrator()
       await orchestrator.loadState()
@@ -119,11 +119,11 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       const patterns = await loadDynamicPatterns()
       await analyzeAndEvolve(state.fullStory || "", patterns)
 
-      console.log("✅ Evolution complete!")
+      console.log("✓ Evolution complete!")
 
       // Show updated patterns
       const updatedPatterns = await loadDynamicPatterns()
-      console.log(`📚 Total patterns: ${updatedPatterns.length}`)
+      console.log(` Total patterns: ${updatedPatterns.length}`)
       break
     }
 
@@ -132,7 +132,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       const safePath = resolveSafePath(cwd, StoryBiblePath)
 
       if (!(await fileExists(safePath))) {
-        console.log("❌ No story state found. Start a story first with /start")
+        console.log("× No story state found. Start a story first with /start")
         break
       }
 
@@ -140,7 +140,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       const state = JSON.parse(content)
 
       if (target === "world") {
-        console.log("📊 World State:")
+        console.log(" World State:")
         console.log(
           JSON.stringify(
             {
@@ -156,7 +156,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
           ),
         )
       } else {
-        console.log(`📊 State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
+        console.log(` State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
       }
       break
     }
@@ -164,13 +164,13 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
     case "/export": {
       const format = args[0] || "md"
       if (!["md", "json"].includes(format)) {
-        console.log("❌ Usage: /export <md|json>")
+        console.log("× Usage: /export <md|json>")
         break
       }
 
       const safePath = resolveSafePath(cwd, StoryBiblePath)
       if (!(await fileExists(safePath))) {
-        console.log("❌ No story to export. Start with /start")
+        console.log("× No story to export. Start with /start")
         break
       }
 
@@ -180,7 +180,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       if (format === "json") {
         const outPath = resolveSafePath(cwd, "novel_export.json")
         await writeFile(outPath, JSON.stringify(state, null, 2))
-        console.log(`✅ Exported to: ${outPath}`)
+        console.log(`✓ Exported to: ${outPath}`)
       } else {
         const md = `# Novel Export
 
@@ -196,7 +196,7 @@ Exported: ${new Date().toISOString()}
 `
         const outPath = resolveSafePath(cwd, "novel_export.md")
         await writeFile(outPath, md)
-        console.log(`✅ Exported to: ${outPath}`)
+        console.log(`✓ Exported to: ${outPath}`)
       }
       break
     }
@@ -205,7 +205,7 @@ Exported: ${new Date().toISOString()}
       const safePath = resolveSafePath(cwd, DynamicPatternsPath)
 
       if (!(await fileExists(safePath))) {
-        console.log("📚 No patterns discovered yet.")
+        console.log(" No patterns discovered yet.")
         break
       }
 
@@ -213,7 +213,7 @@ Exported: ${new Date().toISOString()}
       const data = JSON.parse(content)
       const patterns = data.patterns || []
 
-      console.log("📚 Discovered Patterns:")
+      console.log(" Discovered Patterns:")
       if (patterns.length === 0) {
         console.log("  (No patterns discovered yet)")
       } else {
@@ -225,7 +225,7 @@ Exported: ${new Date().toISOString()}
     }
 
     case "/reset": {
-      console.log("🔄 Resetting story state...")
+      console.log(" Resetting story state...")
 
       const safePath = resolveSafePath(cwd, StoryBiblePath)
       await writeFile(
@@ -245,7 +245,7 @@ Exported: ${new Date().toISOString()}
         ),
       )
 
-      console.log("✅ Story state reset!")
+      console.log("✓ Story state reset!")
       break
     }
 

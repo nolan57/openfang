@@ -92,6 +92,27 @@ export const scene_graph = sqliteTable("scene_graph", {
   ...Timestamps,
 })
 
+export const knowledge_node = sqliteTable("knowledge_node", {
+  id: text().primaryKey(),
+  type: text().notNull(), // "file" | "skill" | "memory" | "constraint" | "agenda"
+  entity_type: text().notNull(),
+  entity_id: text().notNull(),
+  title: text().notNull(),
+  content: text(),
+  embedding: text(), // JSON vector for semantic search
+  metadata: text(), // JSON additional data
+  ...Timestamps,
+})
+
+export const knowledge_edge = sqliteTable("knowledge_edge", {
+  id: text().primaryKey(),
+  source_id: text().notNull(),
+  target_id: text().notNull(),
+  relation: text().notNull(), // "depends_on" | "related_to" | "conflicts_with" | "derives_from"
+  weight: integer().default(1),
+  ...Timestamps,
+})
+
 export const vector_sync_meta = sqliteTable("vector_sync_meta", {
   id: text().primaryKey(), // always "sync_state"
   sync_version: integer().notNull().default(1),
