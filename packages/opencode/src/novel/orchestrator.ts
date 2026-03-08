@@ -697,8 +697,23 @@ Output JSON:
 
   /**
    * LLM-based prompt parsing - extracts story elements intelligently
+   * Uses retry logic to prevent infinite recursion
    */
-  private async parsePromptWithLLM(promptContent: string): Promise<any> {
+  private async parsePromptWithLLM(promptContent: string, retries: number = 0): Promise<any> {
+    const maxRetries = 2
+
+    if (retries > maxRetries) {
+      log.warn("parse_prompt_max_retries_exceeded")
+      return {
+        time: "",
+        location: "",
+        characters: [],
+        event: "unspecified event",
+        tone: "",
+        genre: "",
+      }
+    }
+
     try {
       const languageModel = await getNovelLanguageModel()
 
@@ -736,11 +751,11 @@ If a field is not mentioned, use empty string or empty array.`
         }
       }
     } catch (error) {
-      log.error("llm_parse_failed", { error: String(error) })
+      log.error("llm_parse_failed", { error: String(error), retry: retries })
     }
 
-    // Fallback to LLM extraction
-    return this.parsePromptWithLLM(promptContent)
+    // Retry with exponential backoff
+    return this.parsePromptWithLLM(promptContent, retries + 1)
   }
 
   /**
