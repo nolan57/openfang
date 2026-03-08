@@ -44,8 +44,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1772975222849,
-    "usageCount": 152
+    "lastUsedAt": 1772978394012,
+    "usageCount": 154
   },
   {
     "id": "2294419a-c504-4b71-bfdc-5c9eac6cfb66",
@@ -56,8 +56,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1772975222875,
-    "usageCount": 106
+    "lastUsedAt": 1772978394210,
+    "usageCount": 108
   },
   {
     "id": "5ad51b23-acfa-47fa-b354-065fe8180941",
@@ -116,8 +116,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1772975222864,
-    "usageCount": 128
+    "lastUsedAt": 1772978570166,
+    "usageCount": 133
   },
   {
     "id": "eda4fb93-b8db-423c-9c4d-00686903150c",
@@ -152,8 +152,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1772975222827,
-    "usageCount": 153
+    "lastUsedAt": 1772978570044,
+    "usageCount": 156
   },
   {
     "id": "150ff0cd-9bd4-45c9-9a74-5a708e471e05",
@@ -176,8 +176,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1772975222886,
-    "usageCount": 84
+    "lastUsedAt": 1772978394253,
+    "usageCount": 86
   },
   {
     "id": "8c4fc0b0-20f3-48d9-9b1b-fafb4d466c12",
@@ -3286,5 +3286,65 @@
     "createdAt": 1772963438437,
     "lastUsedAt": 1772963438437,
     "usageCount": 0
+  },
+  {
+    "id": "3e49d0d2-d7b5-4dc0-a52e-1bd4328f03c5",
+    "key": "cron-timezone-configuration",
+    "value": "Verify the cron scheduler's timezone settings to ensure daily tasks trigger at the intended local time instead of defaulting to UTC.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1772978451115,
+    "lastUsedAt": 1772978570277,
+    "usageCount": 2
+  },
+  {
+    "id": "74aa1f57-e45b-4c30-8f50-2890b93ea5f4",
+    "key": "repository-quality-filters",
+    "value": "Define concrete quality metrics such as minimum star count or recent activity when searching GitHub to ensure relevant recommendations.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1772978451423,
+    "lastUsedAt": 1772978451423,
+    "usageCount": 0
+  },
+  {
+    "id": "04c43a95-4069-450b-98ab-b6c7510ea86e",
+    "key": "cron-schedule-config",
+    "value": "Verify cron expressions match the intended timezone and frequency to ensure tasks run at the correct local time.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1772978505981,
+    "lastUsedAt": 1772978569906,
+    "usageCount": 1
+  },
+  {
+    "id": "dd5b09d1-2e89-4652-93a1-f834447e8df8",
+    "key": "github-quality-filters",
+    "value": "Use GitHub search filters like minimum star count or recent activity to curate high-quality open-source recommendations automatically.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1772978506158,
+    "lastUsedAt": 1772978506158,
+    "usageCount": 0
+  },
+  {
+    "id": "c0964761-eb25-4bc1-83bc-6d1cab9f61cf",
+    "key": "immediate-task-verification",
+    "value": "Execute a manual run immediately after scheduling to validate the workflow and output before relying on the automated trigger.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1772978506252,
+    "lastUsedAt": 1772978569739,
+    "usageCount": 1
   }
 ]

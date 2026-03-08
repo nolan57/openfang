@@ -12,6 +12,16 @@ import { mkdir } from "fs/promises"
 import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
 import { stateAuditor } from "../middleware/state-auditor"
+import {
+  createNarrativeSkeleton,
+  loadNarrativeSkeleton,
+  saveNarrativeSkeleton,
+  getNextKeyBeat,
+  getActiveStoryLines,
+  getThematicMotifString,
+  type NarrativeSkeleton,
+} from "./narrative-skeleton"
+import { runThematicReflection, getLatestReflectionTurn } from "./thematic-analyst"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
@@ -72,6 +82,7 @@ interface StoryState {
   fullStory: string
   branchHistory: StoryBranch[]
   currentBranchId: string | null
+  narrativeSkeleton?: NarrativeSkeleton
   [key: string]: any
 }
 
@@ -152,6 +163,8 @@ export async function loadTraumaDefinitions(): Promise<Record<string, string>> {
   return definitions
 }
 
+const THEMATIC_REFLECTION_INTERVAL = 5
+
 export interface OrchestratorConfig {
   branchOptions?: number
   verbose?: boolean
@@ -213,6 +226,41 @@ export class EvolutionOrchestrator {
     if (this.verbose) {
       console.log(message, ...args)
     }
+  }
+
+  private async ensureNarrativeSkeleton(initialPrompt: string): Promise<void> {
+    try {
+      const existingSkeleton = await loadNarrativeSkeleton()
+
+      if (existingSkeleton) {
+        this.storyState.narrativeSkeleton = existingSkeleton
+        this.log(`   Loaded existing narrative skeleton with ${existingSkeleton.storyLines.length} story lines`)
+      } else {
+        this.log(`   Creating new narrative skeleton...`)
+        const theme = this.extractThemeFromPrompt(initialPrompt)
+        const tone = this.extractToneFromPrompt(initialPrompt)
+
+        const skeleton = await createNarrativeSkeleton(theme, tone, initialPrompt)
+        this.storyState.narrativeSkeleton = skeleton
+        this.log(
+          `   Created skeleton with ${skeleton.storyLines.length} story lines, ${Object.keys(skeleton.thematicMotifs).length} motifs`,
+        )
+      }
+    } catch (error) {
+      log.error("narrative_skeleton_initialization_failed", { error: String(error) })
+    }
+  }
+
+  private extractThemeFromPrompt(prompt: string): string {
+    const match = prompt.match(/theme[:：]\s*([^,\n.]+)/i)
+    if (match) return match[1].trim()
+    return prompt.substring(0, 100)
+  }
+
+  private extractToneFromPrompt(prompt: string): string {
+    const match = prompt.match(/tone[:：]\s*([^,\n.]+)/i)
+    if (match) return match[1].trim()
+    return "epic narrative"
   }
 
   /**
@@ -660,6 +708,8 @@ Output JSON:
     })
     this.log(`\nStarting Chapter ${this.storyState.chapterCount + 1}...`)
 
+    await this.ensureNarrativeSkeleton(promptContent)
+
     this.patterns = await loadDynamicPatterns()
     await this.initializeCharacterDeepener()
     this.log(`   Loaded ${this.patterns.length} patterns`)
@@ -717,6 +767,22 @@ Output JSON:
         characters: Object.keys(this.storyState.characters).length,
         relationships: Object.keys(this.storyState.relationships || {}).length,
       })
+
+      const majorCharacters = Object.keys(this.storyState.characters).slice(0, 5)
+      if (majorCharacters.length > 0) {
+        this.log(`   Extracting mind models for ${majorCharacters.length} characters...`)
+        const mindModels = await this.stateExtractor.extractMindModelsForCharacters(
+          majorCharacters,
+          storySegment,
+          this.storyState,
+        )
+        for (const [charName, mindModel] of Object.entries(mindModels)) {
+          if (this.storyState.characters[charName]) {
+            this.storyState.characters[charName].mindModel = mindModel
+          }
+        }
+        this.log(`   Extracted ${Object.keys(mindModels).length} mind models`)
+      }
     }
 
     // Extract title from generated content
@@ -752,7 +818,7 @@ Output JSON:
 
     this.storyState.chapterCount++
     this.storyState.currentChapter = {
-      title: extractedTitle || `第${this.storyState.chapterCount}章`,
+      title: extractedTitle || `${this.storyState.chapterCount}`,
       content: storySegment,
     }
     this.storyState.fullStory = (this.storyState.fullStory || "") + "\n\n" + storySegment
@@ -777,6 +843,18 @@ Output JSON:
 
     // Analyze and evolve patterns/skills
     await analyzeAndEvolve(storySegment, this.patterns)
+
+    const currentTurn = this.storyState.turnCount || 0
+    if (currentTurn > 0 && currentTurn % THEMATIC_REFLECTION_INTERVAL === 0) {
+      this.log(`   Running thematic reflection (turn ${currentTurn})...`)
+      try {
+        const theme = this.storyState.narrativeSkeleton?.theme || "Story themes"
+        await runThematicReflection(currentTurn, theme)
+        this.log(`   Thematic reflection completed`)
+      } catch (error) {
+        log.error("thematic_reflection_failed", { error: String(error) })
+      }
+    }
 
     await this.saveState()
     await this.saveTurnSummary(stateUpdates, chaosResult)
@@ -863,6 +941,9 @@ If a field is not mentioned, use empty string or empty array.`
 
       const previousStory = this.storyState.fullStory || "(This is where the story begins)"
       const characterInfo = Object.keys(this.storyState.characters).join(", ") || "The protagonist"
+      const currentChapter = this.storyState.chapterCount + 1
+
+      const skeletonContext = this.buildSkeletonContextForChapter(currentChapter)
 
       const systemPrompt = `You are a creative story writer. Continue or start a story based on the given prompt and context.
 
@@ -873,13 +954,14 @@ Rules:
 - Maintain consistency with established characters and plot
 - Create engaging, descriptive narrative
 - Chapter length: 300-500 words
-- INCORPORATE the chaos event naturally into the narrative`
+- INCORPORATE the chaos event naturally into the narrative
+- ALIGN with the narrative skeleton and thematic motifs provided`
 
       const userPrompt = `Story Context (previous chapters):
 ${previousStory.substring(-2000)}
 
 Established Characters: ${characterInfo}
-
+${skeletonContext}
 Prompt/Timing: ${elements.time || "some time"} ${elements.location || "some location"}
 Main Event: ${elements.event || "unfolding events"}
 Tone: ${elements.tone || "neutral"}
@@ -888,9 +970,9 @@ Chaos Event (Roll: ${chaosResult.roll}/6 - ${chaosResult.category.toUpperCase()}
 ${chaosResult.event}
 ${chaosResult.narrativePrompt}
 
-Force the narrative to address this chaos event naturally.
+Force the narrative to address this chaos event naturally while advancing the story lines and reinforcing thematic motifs.
 
-Write Chapter ${this.storyState.chapterCount + 1}:`
+Write Chapter ${currentChapter}:`
 
       const result = await generateText({
         model: languageModel,
@@ -905,6 +987,35 @@ Write Chapter ${this.storyState.chapterCount + 1}:`
 
     // Fallback
     return this.generateFallback(elements)
+  }
+
+  private buildSkeletonContextForChapter(chapter: number): string {
+    const skeleton = this.storyState.narrativeSkeleton
+    if (!skeleton) return ""
+
+    const parts: string[] = []
+
+    const nextBeats = getNextKeyBeat(skeleton, chapter)
+    if (nextBeats.length > 0) {
+      parts.push("\n=== Narrative Skeleton - Current Story Lines ===")
+      for (const { storyLine, beat } of nextBeats) {
+        const chars = beat.characters?.join(", ") || "Various characters"
+        parts.push(`\n${storyLine}:`)
+        parts.push(`  Chapter ${beat.chapter}: ${beat.description}`)
+        parts.push(`  Characters: ${chars}`)
+        if (beat.thematicRelevance) {
+          parts.push(`  Theme: ${beat.thematicRelevance}`)
+        }
+      }
+    }
+
+    const motifs = getThematicMotifString(skeleton)
+    if (motifs) {
+      parts.push("\n=== Thematic Motifs ===")
+      parts.push(motifs)
+    }
+
+    return parts.length > 0 ? parts.join("\n") + "\n" : ""
   }
 
   /**

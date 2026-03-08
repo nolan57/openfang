@@ -82,6 +82,16 @@ export const EmotionStateSchema = z.object({
 export type EmotionState = z.infer<typeof EmotionStateSchema>
 
 /**
+ * Character mind model - Theory of Mind (three-layer self)
+ */
+export const MindModelSchema = z.object({
+  publicSelf: z.string().describe("How the character presents themselves to others"),
+  privateSelf: z.string().describe("Inner thoughts, fears, and true motivations"),
+  blindSpot: z.string().describe("Aspects of themselves they cannot see but others notice"),
+})
+export type MindModel = z.infer<typeof MindModelSchema>
+
+/**
  * Character goal tracking
  */
 export const GoalSchema = z.object({
@@ -121,6 +131,7 @@ export const CharacterStateSchema = z.object({
   goals: z.array(GoalSchema).default([]),
   notes: z.string().optional(),
   relationships: z.record(z.string(), RelationshipSchema).optional().describe("Character's view of others"),
+  mindModel: MindModelSchema.optional().describe("Three-layer Theory of Mind model"),
 })
 export type CharacterState = z.infer<typeof CharacterStateSchema>
 

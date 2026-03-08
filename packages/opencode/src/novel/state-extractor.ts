@@ -11,6 +11,7 @@ import type {
   StateUpdate,
   ProposedChanges,
   ValidatedChanges,
+  MindModel,
 } from "../types/novel-state"
 import { validateSkillAward, validateTraumaSeverity, calculateStressDelta } from "../types/novel-state"
 import { buildStateExtractionPrompt } from "../prompts/state-extraction-prompt"
@@ -47,6 +48,11 @@ interface CharacterUpdate {
   goals?: GoalUpdate[]
   notes?: string
   relationships?: Record<string, number>
+  mindModel?: {
+    publicSelf?: string
+    privateSelf?: string
+    blindSpot?: string
+  }
 }
 
 interface GoalUpdate {
@@ -235,6 +241,73 @@ Output JSON only:
       relationship_changes: [],
       key_events: [],
     }
+  }
+
+  async extractMindModel(characterName: string, storyText: string, currentState: any): Promise<MindModel | null> {
+    try {
+      const languageModel = await getNovelLanguageModel()
+
+      const currentChar = currentState.characters?.[characterName]
+      const existingMindModel = currentChar?.mindModel
+        ? JSON.stringify(currentChar.mindModel, null, 2)
+        : "None (will create new)"
+
+      const prompt = `You are a psychological profiler analyzing a character's Theory of Mind.
+
+THREE-LAYER MODEL DEFINITIONS:
+1. Public Self: How the character presents themselves to others. Their social mask, reputation, and outward behavior patterns.
+2. Private Self: Inner thoughts, true motivations, secret fears, and unspoken desires. What they admit only to themselves.
+3. Blind Spot: Aspects of their personality/behavior that others notice but they cannot see. Contradictions between intent and impact.
+
+Character: ${characterName}
+Existing Mind Model: ${existingMindModel}
+Story Context (this turn): ${storyText.substring(0, 2000)}
+
+Output JSON only with this exact structure:
+{
+  "publicSelf": "...",
+  "privateSelf": "...",
+  "blindSpot": "..."
+}
+
+Each field should be 1-3 concise sentences.`
+
+      const result = await generateText({
+        model: languageModel,
+        prompt: prompt,
+      })
+
+      const text = result.text.trim()
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+
+      if (jsonMatch) {
+        const mindModel = JSON.parse(jsonMatch[0])
+        log.info("mind_model_extracted", { character: characterName })
+        return mindModel as MindModel
+      }
+    } catch (error) {
+      log.error("mind_model_extraction_failed", { character: characterName, error: String(error) })
+    }
+
+    return null
+  }
+
+  async extractMindModelsForCharacters(
+    characterNames: string[],
+    storyText: string,
+    currentState: any,
+  ): Promise<Record<string, MindModel>> {
+    const results: Record<string, MindModel> = {}
+
+    for (const charName of characterNames) {
+      const mindModel = await this.extractMindModel(charName, storyText, currentState)
+      if (mindModel) {
+        results[charName] = mindModel
+      }
+    }
+
+    log.info("mind_models_extracted", { count: Object.keys(results).length })
+    return results
   }
 
   private buildSystemPrompt(currentState: any, evaluation: TurnEvaluation): string {
@@ -588,6 +661,11 @@ Output JSON only:
             goals: [],
             notes: "",
             relationships: {},
+            mindModel: {
+              publicSelf: "",
+              privateSelf: "",
+              blindSpot: "",
+            },
           }
         }
 
@@ -686,6 +764,25 @@ Output JSON only:
 
         if (update.notes) {
           current.notes = update.notes
+        }
+
+        if (update.mindModel) {
+          if (!current.mindModel) {
+            current.mindModel = {
+              publicSelf: "",
+              privateSelf: "",
+              blindSpot: "",
+            }
+          }
+          if (update.mindModel.publicSelf) {
+            current.mindModel.publicSelf = update.mindModel.publicSelf
+          }
+          if (update.mindModel.privateSelf) {
+            current.mindModel.privateSelf = update.mindModel.privateSelf
+          }
+          if (update.mindModel.blindSpot) {
+            current.mindModel.blindSpot = update.mindModel.blindSpot
+          }
         }
       }
     }
