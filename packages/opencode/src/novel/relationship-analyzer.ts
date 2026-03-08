@@ -5,9 +5,9 @@ import { getNovelLanguageModel } from "./model"
 const log = Log.create({ service: "relationship-analyzer" })
 
 export interface RelationshipState {
-  trust: number        // -100 to 100
-  hostility: number    // 0 to 100
-  dominance: number    // -100 to 100
+  trust: number // -100 to 100
+  hostility: number // 0 to 100
+  dominance: number // -100 to 100
   friendliness: number // -100 to 100
   dynamic?: string
   attachmentStyle?: "secure" | "anxious" | "avoidant" | "disorganized"
@@ -23,35 +23,52 @@ export interface RelationshipHistoryEntry {
   delta: number
 }
 
+// Faction types for group dynamics
+export interface Faction {
+  id: string
+  name: string
+  members: string[]
+  core_belief: string
+}
+
+export interface InterFactionRelation {
+  from: string
+  to: string
+  trust: number // -100 to 100
+  hostility: number // 0 to 100
+  dynamic: string
+  narrative_hook: string
+}
+
 export interface DeepenedRelationship {
   // 关系类型推断
   dynamicType: "ally" | "rival" | "mentor" | "protégé" | "love" | "enemy" | "stranger" | "family" | "unknown"
-  
+
   // 权力关系
   powerBalance: "dominant" | "submissive" | "equal" | "shifting" | "unclear"
-  
+
   // 情感张力
   tension: "cooperating" | "conflicting" | "neutral" | "betrayal_risk" | "rupture" | "reconciliation"
-  
+
   // 关系阶段
   stage: "formation" | "development" | "stable" | "crisis" | "transformation" | "dissolution"
-  
+
   // 核心冲突
-  coreConflict: string    // 关系中最主要的矛盾
-  sharedHistory: string   // 共同的过去（推断）
-  
+  coreConflict: string // 关系中最主要的矛盾
+  sharedHistory: string // 共同的过去（推断）
+
   // 发展潜力
   developmentPotential: {
     direction: "closer" | "distant" | "complex" | "stagnant"
-    catalysts: string[]    // 能推动关系发展的事件
-    obstacles: string[]  // 阻碍关系发展的事件
+    catalysts: string[] // 能推动关系发展的事件
+    obstacles: string[] // 阻碍关系发展的事件
   }
-  
+
   // 叙事建议
   narrativeHooks: {
-    conflictOpportunities: string[]  // 可以制造冲突的场景
-    bondingOpportunities: string[]   // 可以加深关系的场景
-    betrayalSetup: string[]          // 可以埋下背叛伏笔的场景
+    conflictOpportunities: string[] // 可以制造冲突的场景
+    bondingOpportunities: string[] // 可以加深关系的场景
+    betrayalSetup: string[] // 可以埋下背叛伏笔的场景
   }
 }
 
@@ -60,39 +77,40 @@ export interface RelationshipAnalysisResult {
     [pairKey: string]: DeepenedRelationship
   }
   groupDynamics: {
-    factionName: string
-    members: string[]
-    alliances: string[]
-    conflicts: string[]
-  }[]
+    summary: string
+    factions: Faction[]
+    interFactionRelations: InterFactionRelation[]
+  }
   narrativeSuggestions: {
-    relationshipFocus: string   // 建议关注哪段关系
-    suggestedEvent: string      // 建议的事件类型
-    expectedOutcome: string    // 期望的结果
+    relationshipFocus: string // 建议关注哪段关系
+    suggestedEvent: string // 建议的事件类型
+    expectedOutcome: string // 期望的结果
   }
 }
 
 /**
  * Relationship Analyzer - 角色关系深化分析
- * 
+ *
  * 分析角色之间的关系动态，生成叙事建议
  * 独立于单个角色的心理分析，专注于关系维度
  */
 export class RelationshipAnalyzer {
-
   /**
    * 分析所有角色之间的关系
    */
   async analyzeAllRelationships(
-    characters: Record<string, {
-      name: string
-      relationships?: Record<string, RelationshipState>
-      trauma?: { name: string }[]
-      skills?: { name: string }[]
-    }>
+    characters: Record<
+      string,
+      {
+        name: string
+        relationships?: Record<string, RelationshipState>
+        trauma?: { name: string }[]
+        skills?: { name: string }[]
+      }
+    >,
   ): Promise<RelationshipAnalysisResult> {
-    log.info("analyzing_relationships", { 
-      characterCount: Object.keys(characters).length 
+    log.info("analyzing_relationships", {
+      characterCount: Object.keys(characters).length,
     })
 
     const languageModel = await getNovelLanguageModel()
@@ -151,12 +169,54 @@ Output JSON:
       const match = result.text.match(/\{[\s\S]*\}/)
       if (match) {
         const analysis = JSON.parse(match[0])
-        
-        log.info("relationships_analyzed", { 
-          pairCount: Object.keys(analysis.relationships || {}).length 
+
+        // Add LLM-driven group dynamics analysis
+        let groupDynamicsResult = {
+          summary: "No significant group dynamics detected.",
+          factions: [] as Faction[],
+          interFactionRelations: [] as InterFactionRelation[],
+        }
+
+        const characterNames = Object.keys(characters)
+        if (characterNames.length >= 3) {
+          try {
+            // Build all relationships summary for group analysis
+            const allRels: Record<string, RelationshipState> = {}
+            for (const [name, char] of Object.entries(characters)) {
+              if (char.relationships) {
+                for (const [other, rel] of Object.entries(char.relationships)) {
+                  allRels[`${name}-${other}`] = rel
+                }
+              }
+            }
+
+            const allRelsSummary = this.buildAllRelationshipsSummaryForGroups(characterNames, allRels)
+            const storyContext = Object.values(characters)
+              .map((c) => c.name)
+              .join(", ")
+
+            const groupResult = await this.analyzeGroupDynamicsWithLLM(characterNames, allRelsSummary, storyContext)
+
+            if (groupResult.factions.length > 0) {
+              groupDynamicsResult = {
+                summary: `LLM identified ${groupResult.factions.length} narrative factions.`,
+                factions: groupResult.factions,
+                interFactionRelations: groupResult.interFactionRelations,
+              }
+            }
+          } catch (error) {
+            log.warn("group_dynamics_llm_integration_failed", { error: String(error) })
+          }
+        }
+
+        log.info("relationships_analyzed", {
+          pairCount: Object.keys(analysis.relationships || {}).length,
         })
-        
-        return analysis
+
+        return {
+          ...analysis,
+          groupDynamics: groupDynamicsResult,
+        }
       }
     } catch (e) {
       log.error("relationship_analysis_failed", { error: String(e) })
@@ -173,7 +233,7 @@ Output JSON:
     characterB: string,
     currentState: RelationshipState,
     recentEvent: string,
-    storyContext: string
+    storyContext: string,
   ): Promise<{
     newTrust: number
     newHostility: number
@@ -225,7 +285,7 @@ OUTPUT JSON:
       newHostility: currentState.hostility,
       newDynamic: currentState.dynamic || "unchanged",
       relationshipShift: "stable",
-      reasoning: "Analysis failed, maintaining current state"
+      reasoning: "Analysis failed, maintaining current state",
     }
   }
 
@@ -234,12 +294,12 @@ OUTPUT JSON:
    */
   async generateRelationshipBranches(
     characters: Record<string, any>,
-    currentFocus: string | null
+    currentFocus: string | null,
   ): Promise<{
     branchPoint: string
     options: {
       choice: string
-      characters: string[]  // 涉及的角色
+      characters: string[] // 涉及的角色
       relationshipImpact: string
       rationale: string
     }[]
@@ -294,9 +354,9 @@ Output JSON:
           choice: "角色之间进行深入对话",
           characters: [],
           relationshipImpact: "加深了解",
-          rationale: "促进关系发展"
-        }
-      ]
+          rationale: "促进关系发展",
+        },
+      ],
     }
   }
 
@@ -304,12 +364,15 @@ Output JSON:
    * 构建关系摘要字符串
    */
   private buildRelationshipSummary(
-    characters: Record<string, {
-      name: string
-      relationships?: Record<string, RelationshipState>
-      trauma?: { name: string }[]
-      skills?: { name: string }[]
-    }>
+    characters: Record<
+      string,
+      {
+        name: string
+        relationships?: Record<string, RelationshipState>
+        trauma?: { name: string }[]
+        skills?: { name: string }[]
+      }
+    >,
   ): string {
     const lines: string[] = []
 
@@ -327,15 +390,106 @@ Output JSON:
     return lines.join("\n") || "No relationships defined"
   }
 
+  /**
+   * Build all relationships summary for group dynamics analysis
+   */
+  private buildAllRelationshipsSummaryForGroups(
+    characters: string[],
+    allRels: Record<string, RelationshipState>,
+  ): string {
+    const lines: string[] = []
+
+    for (let i = 0; i < characters.length; i++) {
+      for (let j = i + 1; j < characters.length; j++) {
+        const charA = characters[i]
+        const charB = characters[j]
+        const rel = allRels[`${charA}-${charB}`] || allRels[`${charB}-${charA}`]
+
+        if (rel) {
+          lines.push(`${charA} <-> ${charB}:`)
+          lines.push(`  Trust: ${rel.trust}, Hostility: ${rel.hostility || 0}`)
+          if (rel.dynamic) lines.push(`  Dynamic: ${rel.dynamic}`)
+        }
+      }
+    }
+
+    return lines.join("\n") || "No relationships defined"
+  }
+
+  /**
+   * LLM-driven group dynamics analysis - pure AI-powered faction detection
+   */
+  private async analyzeGroupDynamicsWithLLM(
+    characters: string[],
+    allRelsSummary: string,
+    storyContext: string,
+  ): Promise<{ factions: Faction[]; interFactionRelations: InterFactionRelation[] }> {
+    const prompt = `You are an expert narrative analyst. Your task is to identify hidden factions and analyze macro-level group dynamics.
+
+Instructions:
+1. Identify Factions: Group the characters into coherent factions based on their relationships, shared goals, or ideological alignment.
+   - A faction must have at least 1 member.
+   - Give each faction a thematic name and a concise "core_belief" (1 sentence).
+2. Analyze Inter-Faction Relations: For EVERY pair of distinct factions, determine:
+   - Trust (-100 to 100)
+   - Hostility (0 to 100)
+   - A dynamic label (e.g., "Cold War", "Unstable Alliance", "Ideological Rivals")
+   - A compelling narrative hook for future conflict or cooperation.
+
+Characters & Pairwise Relationships:
+${allRelsSummary}
+
+Story Context:
+${storyContext.substring(0, 1500)}
+
+Output Format:
+Respond ONLY with a JSON object in this exact format:
+{
+  "factions": [
+    { "id": "faction_1", "name": "...", "members": ["CharA", "CharB"], "core_belief": "..." }
+  ],
+  "interFactionRelations": [
+    { "from": "faction_1", "to": "faction_2", "trust": number, "hostility": number, "dynamic": "...", "narrative_hook": "..." }
+  ]
+}`
+
+    try {
+      const result = await generateText({
+        model: await getNovelLanguageModel(),
+        prompt,
+      })
+
+      const jsonMatch = result.text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        log.warn("no_json_in_group_dynamics_response")
+        return { factions: [], interFactionRelations: [] }
+      }
+
+      const parsed = JSON.parse(jsonMatch[0])
+
+      return {
+        factions: Array.isArray(parsed.factions) ? parsed.factions : [],
+        interFactionRelations: Array.isArray(parsed.interFactionRelations) ? parsed.interFactionRelations : [],
+      }
+    } catch (error) {
+      log.warn("llm_group_dynamics_failed", { error: String(error) })
+      return { factions: [], interFactionRelations: [] }
+    }
+  }
+
   private createDefaultAnalysis(): RelationshipAnalysisResult {
     return {
       relationships: {},
-      groupDynamics: [],
+      groupDynamics: {
+        summary: "No significant group dynamics detected.",
+        factions: [],
+        interFactionRelations: [],
+      },
       narrativeSuggestions: {
         relationshipFocus: "",
         suggestedEvent: "",
-        expectedOutcome: ""
-      }
+        expectedOutcome: "",
+      },
     }
   }
 }
