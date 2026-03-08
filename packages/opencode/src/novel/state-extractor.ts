@@ -176,14 +176,14 @@ export class StateExtractor {
 			});
 
 			const text = result.text.trim();
-			log.info("llm_raw_output", { text: text.slice(0, 500) })
+			console.log("   [DEBUG] LLM output:", text.slice(0, 300))
 			
 			const jsonMatch = text.match(/\{[\s\S]*\}/);
 
 			if (jsonMatch) {
 				try {
 					const updates = JSON.parse(jsonMatch[0]);
-					log.info("parsed_updates", { keys: Object.keys(updates) })
+					console.log("   [DEBUG] Parsed keys:", Object.keys(updates))
 					const validated = await this.validateAndEnhance(
 						updates,
 						currentState,
@@ -208,11 +208,97 @@ export class StateExtractor {
 			} else {
 				log.warn("no_json_found_in_output", { text: text.slice(0, 300) })
 			}
+
+			// Fallback: extract state directly from story text using simple pattern matching
+			console.log("   [DEBUG] Using fallback state extraction...")
+			const fallbackUpdates = this.extractStateFromText(storyText, currentState, evaluation)
+			if (fallbackUpdates && Object.keys(fallbackUpdates).length > 0) {
+				console.log("   [DEBUG] Fallback extracted:", JSON.stringify(fallbackUpdates).slice(0, 200))
+				return fallbackUpdates
+			}
 		} catch (error) {
 			log.error("state_extraction_failed", { error: String(error) });
 		}
 
 		return {};
+	}
+
+	/**
+	 * Fallback: Extract state directly from story text using simple pattern matching
+	 */
+	private extractStateFromText(storyText: string, currentState: any, evaluation: TurnEvaluation): StateUpdate {
+		const updates: StateUpdate = { characters: {}, world: {} }
+		
+		// Extract characters mentioned in the story
+		const characterNames = Object.keys(currentState.characters || {})
+		
+		for (const charName of characterNames) {
+			if (storyText.includes(charName)) {
+				let stressDelta = 0
+				
+				// Check for stress-inducing events
+				if (storyText.includes("疼痛") || storyText.includes("剧痛") || storyText.includes("受伤")) {
+					stressDelta += 15
+				}
+				if (storyText.includes("奔跑") || storyText.includes("逃跑") || storyText.includes("追逐")) {
+					stressDelta += 10
+				}
+				if (storyText.includes("绝望") || storyText.includes("恐惧") || storyText.includes("害怕")) {
+					stressDelta += 10
+				}
+				if (storyText.includes("紧张") || storyText.includes("焦虑") || storyText.includes("担心")) {
+					stressDelta += 5
+				}
+				if (storyText.includes("冷静") || storyText.includes("放松") || storyText.includes("喘息")) {
+					stressDelta -= 5
+				}
+				
+				// Check for skill acquisition
+				let newSkill = null
+				if (storyText.includes("解码") || storyText.includes("破解") || storyText.includes("黑客")) {
+					newSkill = {
+						name: "Quick_Hack_Extraction",
+						category: "Technical_Hacking",
+						level: 1,
+						description: "Emergency hacking in high-pressure situation",
+						source_event: "Survival in dangerous environment",
+						difficulty: evaluation.challenge_difficulty || 5
+					}
+				}
+				
+				// Check for trauma
+				let newTrauma = null
+				if (stressDelta > 20) {
+					newTrauma = {
+						name: "Acute_Stress_Reaction",
+						description: "High-stress survival situation",
+						tags: ["Psychological_Fear"],
+						severity: Math.min(10, Math.floor(stressDelta / 5)),
+						source_event: "Life-threatening chase"
+					}
+				}
+				
+				updates.characters![charName] = {
+					stress: stressDelta,
+					status: stressDelta > 50 ? "stressed" : "active",
+					...(newTrauma && { trauma: [newTrauma] }),
+					...(newSkill && { skills: [newSkill] })
+				}
+			}
+		}
+		
+		// Extract world events
+		const events: string[] = []
+		if (storyText.includes("无人机")) events.push("无人机追击")
+		if (storyText.includes("污水") || storyText.includes("洪水")) events.push("洪水")
+		if (storyText.includes("神经")) events.push("神经接口过载")
+		if (storyText.includes("数据") || storyText.includes("记忆")) events.push("数据读取")
+		
+		if (events.length > 0) {
+			updates.world = { events }
+		}
+		
+		return updates
 	}
 
 	private async evaluateTurn(
