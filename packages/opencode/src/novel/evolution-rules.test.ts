@@ -14,7 +14,7 @@ describe("EvolutionRulesEngine", () => {
     const context = {
       chapterCount: 1,
       characters: {
-        "Lin Mo": {
+        TestChar: {
           stress: 50,
           trauma: [],
           skills: [],
@@ -23,19 +23,19 @@ describe("EvolutionRulesEngine", () => {
         },
       },
       worldEvents: [],
-      storySegment: "林墨成功破解了防火墙，获取了关键数据",
+      storySegment: "TestChar成功破解了系统，获取了关键数据",
     }
 
     const awards = EvolutionRulesEngine.checkSkillUnlocks(context)
     expect(awards.length).toBeGreaterThan(0)
-    expect(awards[0].characterName).toBe("Lin Mo")
+    expect(awards[0].characterName).toBe("TestChar")
   })
 
   test("checkTraumaTriggers on high stress", () => {
     const context = {
       chapterCount: 1,
       characters: {
-        "Lin Mo": {
+        TestChar: {
           stress: 95,
           trauma: [],
           skills: [],

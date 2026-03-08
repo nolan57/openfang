@@ -303,7 +303,21 @@ export class EvolutionRulesEngine {
   }
 
   private static detectTechnicalBreakthrough(charName: string, storyText: string): boolean {
-    const technicalKeywords = ["破解", "入侵", "解码", "接入", "防火墙", "神经接口", "数据流", "加密", "系统", "端口"]
+    const technicalKeywords = [
+      "破解",
+      "入侵",
+      "解码",
+      "接入",
+      "加密",
+      "系统",
+      "突破",
+      "解码",
+      "关闭",
+      "启动",
+      "修复",
+      "构建",
+      "发明",
+    ]
     const successKeywords = ["成功", "突破", "完成", "解锁", "获取", "揭示"]
     const hasTechnical = technicalKeywords.some((k) => storyText.includes(k))
     const hasSuccess = successKeywords.some((k) => storyText.includes(k))
@@ -311,7 +325,7 @@ export class EvolutionRulesEngine {
   }
 
   private static detectSocialManipulation(charName: string, storyText: string): boolean {
-    const socialKeywords = ["说服", "欺骗", "谈判", "审问", "误导", "操控", "威胁", "诱导"]
+    const socialKeywords = ["说服", "欺骗", "谈判", "审问", "误导", "操控", "威胁", "诱导", "蛊惑", "安抚"]
     const successKeywords = ["相信", "接受", "同意", "动摇", "妥协"]
     const hasSocial = socialKeywords.some((k) => storyText.includes(k))
     const hasSuccess = successKeywords.some((k) => storyText.includes(k))
@@ -319,7 +333,7 @@ export class EvolutionRulesEngine {
   }
 
   private static detectInvestigativeInsight(charName: string, storyText: string): boolean {
-    const insightKeywords = ["发现", "意识到", "推断", "分析", "线索", "真相", "揭示", "看穿"]
+    const insightKeywords = ["发现", "意识到", "推断", "分析", "线索", "真相", "揭示", "看穿", "识破", "领悟"]
     return insightKeywords.some((k) => storyText.includes(k))
   }
 
