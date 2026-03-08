@@ -27,6 +27,28 @@ You are the Narrative State Auditor, a core component of a deterministic story s
 Your sole function is to analyze narrative text and extract structured, causal state changes (JSON).
 You are NOT a creative writer. You are a logic enforcer. Your output must strictly adhere to physical and psychological cause-and-effect laws.
 
+=== CURRENT TURN CONTEXT (MANDATORY) ===
+【Turn Outcome】: {{CHAOS_OUTCOME}}
+【Challenge Difficulty】: {{DIFFICULTY_RATING}}/10
+
+【YOUR STRICT RULES BASED ON CURRENT TURN】:
+IF Turn Outcome is "SUCCESS" AND Difficulty >= 7:
+  - You MAY add a specific skill directly related to overcoming the challenge
+  - Add small stress increase (+5 to +15) for effort cost
+  - DO NOT add trauma unless cumulative stress > 80
+ELSE IF Turn Outcome is "COMPLICATION":
+  - FORBIDDEN: Do NOT add any new skills
+  - REQUIRED: Add significant stress (+15 to +25) for frustration/setback
+  - REQUIRED: If cumulative stress > 80, MUST generate a specific trauma
+ELSE IF Turn Outcome is "FAILURE":
+  - FORBIDDEN: Do NOT add any new skills
+  - REQUIRED: Add severe stress (+20 to +35) for psychological impact
+  - REQUIRED: Generate a specific trauma (high probability)
+ELSE IF Turn Outcome is "NEUTRAL":
+  - DO NOT add skills
+  - Small stress change (-5 to +5) only
+  - No trauma needed
+
 INPUT CONTEXT
 Current State: {{CURRENT_STATE_JSON}}
 Narrative Text: {{NARRATIVE_TEXT}}
@@ -171,28 +193,28 @@ Structure:
 === FEW-SHOT LOGIC EXAMPLES ===
 
 EXAMPLE 1: High Difficulty Success
-Input: Outcome=SUCCESS, Difficulty=8, Text="Lin Mo barely managed to decrypt the firewall using a zero-day exploit, sweating profusely."
+Input: Outcome=SUCCESS, Difficulty=8, Text="{{PROTAGONIST}} barely managed to decrypt the firewall using a zero-day exploit, sweating profusely."
 Output Logic: 
 - Skill: ALLOWED (Success + Diff≥7). Name: "ZeroDay_Firewall_Exploit".
 - Stress: +10 (Exertion).
 - Trauma: None (unless stress > 80).
 
 EXAMPLE 2: Complication/Failure
-Input: Outcome=COMPLICATION, Difficulty=6, Text="Lin Mo tried to hack the terminal but triggered an alarm and got shocked."
+Input: Outcome=COMPLICATION, Difficulty=6, Text="{{PROTAGONIST}} tried to hack the terminal but triggered an alarm and got shocked."
 Output Logic:
 - Skill: FORBIDDEN (Outcome not Success). Set new_skill to null.
 - Stress: +20 (Failure + Pain).
 - Trauma: Check if total stress > 80. If yes, add "Electrical_Shock_Trauma".
 
 EXAMPLE 3: Routine Interaction
-Input: Outcome=NEUTRAL, Difficulty=2, Text="Lin Mo ate lunch and chatted with Chen."
+Input: Outcome=NEUTRAL, Difficulty=2, Text="{{PROTAGONIST}} ate lunch and chatted with {{COMPANION}}."
 Output Logic:
 - Skill: FORBIDDEN (Too easy).
 - Stress: -5 (Rest).
 - Relationship: Small +5 if chat was friendly.
 
 EXAMPLE 4: High Stress Breakdown
-Input: Outcome=FAILURE, Difficulty=9, Text="After hours of interrogation, Lin Mo collapsed, unable to process the psychological pressure."
+Input: Outcome=FAILURE, Difficulty=9, Text="After hours of interrogation, {{PROTAGONIST}} collapsed, unable to process the psychological pressure."
 Output Logic:
 - Skill: FORBIDDEN (Failure).
 - Stress: +35 (Severe psychological impact).
@@ -217,10 +239,28 @@ export function buildStateExtractionPrompt(params: {
 }): string {
   const { currentStateJson, narrativeText, chaosOutcome, difficultyRating } = params
 
+  let protagonist = "The protagonist"
+  let companion = "a companion"
+
+  try {
+    const state = JSON.parse(currentStateJson)
+    const chars = Object.keys(state.characters || {})
+    if (chars.length > 0) {
+      protagonist = chars[0]
+      if (chars.length > 1) {
+        companion = chars[1]
+      }
+    }
+  } catch {
+    // Use defaults
+  }
+
   return NOVEL_STATE_EXTRACTION_PROMPT.replace("{{CURRENT_STATE_JSON}}", currentStateJson)
     .replace("{{NARRATIVE_TEXT}}", narrativeText)
     .replace("{{CHAOS_OUTCOME}}", chaosOutcome)
     .replace("{{DIFFICULTY_RATING}}", difficultyRating.toString())
+    .replace(/\{\{PROTAGONIST\}\}/g, protagonist)
+    .replace(/\{\{COMPANION\}\}/g, companion)
 }
 
 export default {

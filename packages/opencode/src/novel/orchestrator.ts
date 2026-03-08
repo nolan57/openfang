@@ -41,18 +41,18 @@ interface ChaosResult {
 interface StoryBranch {
   id: string
   storySegment: string
-  branchPoint: string      // 分支点描述
-  choiceMade: string       // 选择的行动
-  choiceRationale: string  // 选择的原因分析
+  branchPoint: string // 分支点描述
+  choiceMade: string // 选择的行动
+  choiceRationale: string // 选择的原因分析
   stateAfter: StoryState
   evaluation: {
     narrativeQuality: number
     tensionLevel: number
     characterDevelopment: number
     plotProgression: number
-    characterGrowth: number  // 角色成长潜力
-    riskReward: number        // 风险/回报比
-    thematicRelevance: number  // 主题相关性
+    characterGrowth: number // 角色成长潜力
+    riskReward: number // 风险/回报比
+    thematicRelevance: number // 主题相关性
   }
   selected: boolean
 }
@@ -130,9 +130,12 @@ export class EvolutionOrchestrator {
     promptContent: string,
     baseState: StoryState,
     chaosResult: ChaosResult,
-    numBranches: number = 3
+    numBranches: number = 3,
   ): Promise<{ selectedBranch: StoryBranch; allBranches: StoryBranch[] }> {
-    log.info("generating_branches_llm_driven", { numBranches, chapter: baseState.chapterCount + 1 })
+    log.info("generating_branches_llm_driven", {
+      numBranches,
+      chapter: baseState.chapterCount + 1,
+    })
 
     const languageModel = await getNovelLanguageModel()
     const charSummary = this.stateExtractor.generateContextString(baseState)
@@ -143,16 +146,19 @@ export class EvolutionOrchestrator {
       const relationshipAnalysis = await this.relationshipAnalyzer.analyzeAllRelationships(baseState.characters)
       relationshipContext = `
 RELATIONSHIP ANALYSIS:
-${Object.entries(relationshipAnalysis.relationships || {}).map(([pair, rel]: [string, any]) => 
-  `${pair}: ${rel.dynamicType} (${rel.tension}), Power: ${rel.powerBalance}, Stage: ${rel.stage}`
-).join("\n")}
+${Object.entries(relationshipAnalysis.relationships || {})
+  .map(
+    ([pair, rel]: [string, any]) =>
+      `${pair}: ${rel.dynamicType} (${rel.tension}), Power: ${rel.powerBalance}, Stage: ${rel.stage}`,
+  )
+  .join("\n")}
 
 NARRATIVE SUGGESTIONS:
 - Focus on: ${relationshipAnalysis.narrativeSuggestions?.relationshipFocus || "any relationship"}
 - Suggested event: ${relationshipAnalysis.narrativeSuggestions?.suggestedEvent || "any"}
 `
-      log.info("relationship_context_generated", { 
-        pairs: Object.keys(relationshipAnalysis.relationships || {}).length 
+      log.info("relationship_context_generated", {
+        pairs: Object.keys(relationshipAnalysis.relationships || {}).length,
       })
     } catch (e) {
       log.warn("relationship_analysis_failed", { error: String(e) })
@@ -220,27 +226,24 @@ Output JSON array:
 
     // Fallback if generation failed
     if (branchData.length === 0) {
-      branchData = [{
-        branchPoint: "继续前进",
-        choice: "按照原计划行动",
-        rationale: "最直接的方式",
-        storySegment: "林墨深吸一口气，继续向前。命运已经将他推到了这一步，无论前方是什么，他都必须面对。"
-      }]
+      branchData = [
+        {
+          branchPoint: "Continue forward",
+          choice: "Proceed with original plan",
+          rationale: "The most direct path forward",
+          storySegment: "continue forward, proceed with original plan, the most direct path forward",
+        },
+      ]
     }
 
     // Step 2: Evaluate each branch
     const branches: StoryBranch[] = []
-    
+
     for (let i = 0; i < branchData.length; i++) {
       const data = branchData[i]
       log.info("evaluating_branch", { branch: i + 1, choice: data.choice })
 
-      const evaluation = await this.evaluateBranch(
-        data.storySegment, 
-        baseState, 
-        chaosResult,
-        data.rationale
-      )
+      const evaluation = await this.evaluateBranch(data.storySegment, baseState, chaosResult, data.rationale)
 
       branches.push({
         id: `branch_${baseState.chapterCount}_${i}`,
@@ -268,7 +271,7 @@ Output JSON array:
     log.info("branch_selected", {
       branchId: selectedBranch.id,
       choice: selectedBranch.choiceMade,
-      quality: selectedBranch.evaluation.narrativeQuality
+      quality: selectedBranch.evaluation.narrativeQuality,
     })
 
     return { selectedBranch, allBranches: branches }
@@ -280,13 +283,16 @@ Output JSON array:
   private async selectBestBranchLLM(
     branches: StoryBranch[],
     baseState: StoryState,
-    chaosResult: ChaosResult
+    chaosResult: ChaosResult,
   ): Promise<StoryBranch> {
     const languageModel = await getNovelLanguageModel()
 
-    const branchesSummary = branches.map((b, i) => 
-      `[Branch ${i + 1}] Choice: ${b.choiceMade}\nRationale: ${b.choiceRationale}\nPreview: ${b.storySegment.slice(0, 200)}...`
-    ).join("\n\n")
+    const branchesSummary = branches
+      .map(
+        (b, i) =>
+          `[Branch ${i + 1}] Choice: ${b.choiceMade}\nRationale: ${b.choiceRationale}\nPreview: ${b.storySegment.slice(0, 200)}...`,
+      )
+      .join("\n\n")
 
     const charSummary = this.stateExtractor.generateContextString(baseState)
 
@@ -330,21 +336,21 @@ OUTPUT JSON:
       if (match) {
         const selection = JSON.parse(match[0])
         const selected = branches[selection.selectedIndex]
-        
+
         // Update evaluation with LLM's assessment
         if (selected && selection.evaluation) {
           selected.evaluation = {
             ...selected.evaluation,
-            ...selection.evaluation
+            ...selection.evaluation,
           }
           selected.choiceRationale = selection.reasoning
         }
-        
-        log.info("llm_branch_selection", { 
-          index: selection.selectedIndex, 
-          reasoning: selection.reasoning?.slice(0, 100) 
+
+        log.info("llm_branch_selection", {
+          index: selection.selectedIndex,
+          reasoning: selection.reasoning?.slice(0, 100),
         })
-        
+
         return selected
       }
     } catch (e) {
@@ -352,9 +358,10 @@ OUTPUT JSON:
     }
 
     // Fallback: select highest scoring branch
-    return branches.reduce((best, b) => 
-      (b.evaluation.narrativeQuality > best.evaluation.narrativeQuality) ? b : best
-    , branches[0])
+    return branches.reduce(
+      (best, b) => (b.evaluation.narrativeQuality > best.evaluation.narrativeQuality ? b : best),
+      branches[0],
+    )
   }
 
   private async generateBranchStory(
@@ -362,7 +369,7 @@ OUTPUT JSON:
     baseState: StoryState,
     chaosResult: ChaosResult,
     branchPoint: string,
-    choice: string
+    choice: string,
   ): Promise<string> {
     const languageModel = await getNovelLanguageModel()
 
@@ -407,7 +414,7 @@ Write Chapter ${baseState.chapterCount + 1}:`
     storySegment: string,
     baseState: StoryState,
     chaosResult: ChaosResult,
-    rationale?: string
+    rationale?: string,
   ): Promise<StoryBranch["evaluation"]> {
     const languageModel = await getNovelLanguageModel()
 
@@ -471,13 +478,18 @@ Output JSON:
 
   private selectBestBranch(branches: StoryBranch[]): StoryBranch {
     // Weighted scoring: narrative quality 30%, tension 25%, character dev 25%, plot 20%
-    const weights = { narrativeQuality: 0.3, tensionLevel: 0.25, characterDevelopment: 0.25, plotProgression: 0.2 }
+    const weights = {
+      narrativeQuality: 0.3,
+      tensionLevel: 0.25,
+      characterDevelopment: 0.25,
+      plotProgression: 0.2,
+    }
 
     let bestBranch = branches[0]
     let bestScore = -1
 
     for (const branch of branches) {
-      const score = 
+      const score =
         branch.evaluation.narrativeQuality * weights.narrativeQuality +
         branch.evaluation.tensionLevel * weights.tensionLevel +
         branch.evaluation.characterDevelopment * weights.characterDevelopment +
@@ -497,14 +509,14 @@ Output JSON:
    * Switch to a different branch (time travel / alternate timeline)
    */
   async switchBranch(branchId: string): Promise<boolean> {
-    const branch = this.storyState.branchHistory.find(b => b.id === branchId)
+    const branch = this.storyState.branchHistory.find((b) => b.id === branchId)
     if (!branch) {
       log.error("branch_not_found", { branchId })
       return false
     }
 
     // Save current state before switching
-    const currentBranch = this.storyState.branchHistory.find(b => b.id === this.storyState.currentBranchId)
+    const currentBranch = this.storyState.branchHistory.find((b) => b.id === this.storyState.currentBranchId)
     if (currentBranch) {
       currentBranch.stateAfter = { ...this.storyState }
     }
@@ -521,9 +533,7 @@ Output JSON:
    * Get available branches for current chapter
    */
   getAvailableBranches(): StoryBranch[] {
-    return this.storyState.branchHistory.filter(b => 
-      b.id.startsWith(`branch_${this.storyState.chapterCount}`)
-    )
+    return this.storyState.branchHistory.filter((b) => b.id.startsWith(`branch_${this.storyState.chapterCount}`))
   }
 
   async loadState(): Promise<void> {
@@ -548,7 +558,10 @@ Output JSON:
   }
 
   async runNovelCycle(promptContent: string, useBranches: boolean = false): Promise<string> {
-    log.info("cycle_started", { chapter: this.storyState.chapterCount + 1, useBranches })
+    log.info("cycle_started", {
+      chapter: this.storyState.chapterCount + 1,
+      useBranches,
+    })
     console.log(`\n📝 Starting Chapter ${this.storyState.chapterCount + 1}...`)
 
     this.patterns = await loadDynamicPatterns()
@@ -578,17 +591,17 @@ Output JSON:
         promptContent,
         this.storyState,
         chaosResult,
-        this.branchOptions
+        this.branchOptions,
       )
       storySegment = selectedBranch.storySegment
-      
+
       // Log branch options
       console.log(`   📋 Branch options:`)
       allBranches.forEach((b, i) => {
         console.log(`      ${i + 1}. ${b.choiceMade} (quality: ${b.evaluation.narrativeQuality}/10)`)
       })
       console.log(`   ✅ Selected: ${selectedBranch.choiceMade}`)
-      
+
       // Update state from selected branch
       this.storyState = selectedBranch.stateAfter
     } else {
@@ -611,7 +624,11 @@ Output JSON:
 
     // 审计与分析
     const beforeState = { ...this.storyState } // 保存更新前的快照用于对比分析
-    const stats = stateAuditor.analyzeTurn({ ...this.storyState, turnCount: this.storyState.turnCount || 0 } as any, this.storyState as any, this.storyState.turnCount || 0)
+    const stats = stateAuditor.analyzeTurn(
+      { ...this.storyState, turnCount: this.storyState.turnCount || 0 } as any,
+      this.storyState as any,
+      this.storyState.turnCount || 0,
+    )
     const specialEvents = stateAuditor.detectSpecialEvents(this.storyState as any, stats)
     const consistencyWarnings = stateAuditor.checkConsistency(this.storyState as any)
 
@@ -626,7 +643,10 @@ Output JSON:
     for (const [charName, char] of Object.entries(this.storyState.characters)) {
       const stressResult = EvolutionRulesEngine.enforceStressLimits(char)
       if (stressResult.breakdown) {
-        log.warn("character_breakdown", { character: charName, stress: char.stress })
+        log.warn("character_breakdown", {
+          character: charName,
+          stress: char.stress,
+        })
       }
     }
 
@@ -635,22 +655,25 @@ Output JSON:
     this.storyState.fullStory = (this.storyState.fullStory || "") + "\n\n" + storySegment
     this.storyState.timestamps.lastGeneration = Date.now()
 
-    if (elements.characters) {
-      for (const char of elements.characters) {
-        if (!this.storyState.characters[char]) {
-          this.storyState.characters[char] = {
-            traits: [],
-            stress: 0,
-            status: "active",
-            trauma: [],
-            skills: [],
-            secrets: [],
-            clues: [],
-            notes: "",
-          }
+    // Ensure characters is an array before iterating
+    const characters = Array.isArray(elements.characters) ? elements.characters : []
+    for (const char of characters) {
+      if (!this.storyState.characters[char]) {
+        this.storyState.characters[char] = {
+          traits: [],
+          stress: 0,
+          status: "active",
+          trauma: [],
+          skills: [],
+          secrets: [],
+          clues: [],
+          notes: "",
         }
       }
     }
+
+    // Analyze and evolve patterns/skills
+    await analyzeAndEvolve(storySegment, this.patterns)
 
     await this.saveState()
     await this.saveTurnSummary(stateUpdates, chaosResult)
@@ -692,7 +715,7 @@ If a field is not mentioned, use empty string or empty array.`
         return {
           time: parsed.time || "",
           location: parsed.location || "",
-          characters: parsed.characters || [],
+          characters: Array.isArray(parsed.characters) ? parsed.characters : [],
           event: parsed.event || "",
           tone: parsed.tone || "",
           genre: parsed.genre || "",
@@ -707,20 +730,52 @@ If a field is not mentioned, use empty string or empty array.`
   }
 
   /**
-   * Simple fallback parsing
+   * Simple fallback parsing - generic pattern extraction
    */
   private parsePromptSimple(promptContent: string): any {
-    const elements = { time: "", location: "", characters: [] as string[], event: "", tone: "", genre: "" }
+    const elements = {
+      time: "",
+      location: "",
+      characters: [] as string[],
+      event: "",
+      tone: "",
+      genre: "",
+    }
 
     const timeMatch = promptContent.match(/\d{4}年\d{1,2}月\d{1,2}日.*?\d{1,2}:\d{2}/)
     if (timeMatch) elements.time = timeMatch[0]
 
-    const charPattern = /(林墨|陈雨薇|周远舟|李明|王雪|张伟|赵敏)/g
-    const charMatches = promptContent.match(charPattern)
-    if (charMatches) elements.characters = [...new Set(charMatches)]
+    const namePattern = /[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|[一-龥]{2,4}(?:[一-龥]{2,4})?/g
+    const nameMatches = promptContent.match(namePattern)
+    if (nameMatches) {
+      const commonWords = [
+        "这个",
+        "那个",
+        "什么",
+        "怎么",
+        "为什么",
+        "如果",
+        "因为",
+        "所以",
+        "但是",
+        "而且",
+        "或者",
+        "已经",
+        "正在",
+        "可以",
+        "没有",
+        "一个",
+        "我们",
+        "他们",
+        "你们",
+        "自己",
+      ]
+      elements.characters = [...new Set(nameMatches.filter((n) => n.length >= 2 && !commonWords.includes(n)))]
+    }
 
-    const eventMatch = promptContent.match(/(案|事件|调查|谋杀|失踪)/)
-    if (eventMatch) elements.event = eventMatch[0]
+    const eventPattern = /[一-龥]+/
+    const eventMatch = promptContent.match(eventPattern)
+    if (eventMatch) elements.event = "待揭示"
 
     return elements
   }
@@ -853,7 +908,10 @@ ${characters}站在昏暗的灯光下，空气中弥漫着紧张的气息。${ev
  * Standalone function to analyze and evolve patterns
  */
 export async function analyzeAndEvolve(context: string, currentPatterns: any[] = []): Promise<void> {
-  log.info("pattern_analysis_started", { contextLength: context.length, patternCount: currentPatterns.length })
+  log.info("pattern_analysis_started", {
+    contextLength: context.length,
+    patternCount: currentPatterns.length,
+  })
 
   try {
     const languageModel = await getNovelLanguageModel()
@@ -882,6 +940,7 @@ Output JSON array of new patterns. Each pattern:
     const newPatterns = JSON.parse(jsonMatch[0])
     if (newPatterns.length > 0) {
       const dynamicPath = resolve(getDynamicPatternsPath())
+      await mkdir(dirname(dynamicPath), { recursive: true })
       const existing = (await fileExists(dynamicPath))
         ? JSON.parse(await readFile(dynamicPath, "utf-8"))
         : { patterns: [], version: "1.0", lastUpdated: null }
@@ -905,31 +964,52 @@ Output JSON array of new patterns. Each pattern:
 
 async function checkAndGenerateSkills(context: string): Promise<void> {
   try {
-    const complexPatterns = ["时间循环", "非线性", "多重人格", "梦境", "幻觉", "逆转", "悬疑"]
-    const needsSkill = complexPatterns.some((p) => context.includes(p))
+    const languageModel = await getNovelLanguageModel()
 
-    if (needsSkill) {
-      const skillContent = `# Auto-Generated Narrative Skill
+    const prompt = `Analyze this story segment and determine if a narrative skill should be generated.
+
+Story Segment (last 500 chars):
+${context.slice(-500)}
+
+Output JSON:
+{
+  "shouldGenerate": true/false,
+  "trigger": "brief reason if true",
+  "skillName": "camelCase skill name if true",
+  "guidelines": ["guideline 1", "guideline 2", "guideline 3"],
+  "examples": ["example 1", "example 2"]
+}`
+
+    const result = await generateText({
+      model: languageModel,
+      prompt: prompt,
+    })
+
+    const match = result.text.match(/\{[\s\S]*\}/)
+    if (!match) return
+
+    const decision = JSON.parse(match[0])
+    if (!decision.shouldGenerate) return
+
+    const skillContent = `# Auto-Generated Narrative Skill
 
 Generated: ${new Date().toISOString()}
 
 ## Trigger
-Detected complex narrative structure in story
+${decision.trigger}
 
 ## Guidelines
-- Maintain consistency with established plot twists
-- Track character psychology accurately
-- Honor the established mystery elements
+${(decision.guidelines || []).map((g: string) => `- ${g}`).join("\n")}
 
 ## Examples
-- Use dramatic irony for suspense
-- Plant subtle clues for later revelation
+${(decision.examples || []).map((e: string) => `- ${e}`).join("\n")}
 `
-      const fileName = `${getSkillsPath()}/auto-${Date.now()}.md`
-      await writeFile(resolve(fileName), skillContent)
-      await Skill.reload()
-      log.info("skill_generated", { fileName })
-    }
+    const skillsDir = resolve(getSkillsPath())
+    await mkdir(skillsDir, { recursive: true })
+    const fileName = `${skillsDir}/${decision.skillName || "auto"}-${Date.now()}.md`
+    await writeFile(fileName, skillContent)
+    await Skill.reload()
+    log.info("skill_generated", { fileName })
   } catch (error) {
     log.error("skill_generation_failed", { error: String(error) })
   }

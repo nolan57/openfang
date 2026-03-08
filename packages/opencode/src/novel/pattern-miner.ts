@@ -132,7 +132,7 @@ Output JSON:
 
     const match = result.text.match(/\{[\s\S]*\}/)
     let needsSkill = false
-    
+
     if (match) {
       const analysis = JSON.parse(match[0])
       needsSkill = analysis.needsSkill
@@ -140,7 +140,7 @@ Output JSON:
 
     // Also check simple patterns as fallback
     if (!needsSkill) {
-      const complexPatterns = ["时间循环", "非线性叙事", "多重人格", "梦境", "幻觉", "缸中之脑", "数据病毒", "神经接口"]
+      const complexPatterns = ["时间循环", "非线性叙事", "多重人格", "梦境", "幻觉"]
       needsSkill = complexPatterns.some((p) => context.includes(p))
     }
 
