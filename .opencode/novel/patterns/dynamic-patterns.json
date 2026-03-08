@@ -1,0 +1,46 @@
+{
+  "patterns": [
+    {
+      "keyword": "Benevolent Specter",
+      "category": "character_trait",
+      "description": "A supernatural entity appears threatening but offers mercy or protection instead of harm, subverting horror expectations."
+    },
+    {
+      "keyword": "Nested Threat Hierarchy",
+      "category": "plot_device",
+      "description": "The initial antagonist is revealed to be containing or shielding the protagonist from a far more dangerous underlying entity."
+    },
+    {
+      "keyword": "Conditional Reality Stability",
+      "category": "world_rule",
+      "description": "The physical environment remains intact only while a supernatural condition is met, decaying rapidly once the condition is broken."
+    },
+    {
+      "keyword": "Symbolic Artifact Disintegration",
+      "category": "plot_device",
+      "description": "A key object representing safety or ownership turns to ash to signal the immediate loss of protection or legal claim."
+    },
+    {
+      "keyword": "Chromatic Danger Escalation",
+      "category": "tone",
+      "description": "Ambient elements change color visibly to mark the transition from suspenseful eerie atmosphere to immediate lethal danger."
+    },
+    {
+      "keyword": "Deceptive Intimacy",
+      "category": "character_trait",
+      "description": "Protagonist simulates emotional or physical alignment with a hostile entity to lower its defenses, exploiting the resulting trust to assert dominance."
+    },
+    {
+      "keyword": "Karmic Career Reward",
+      "category": "world_rule",
+      "description": "Resolution of supernatural conflicts directly triggers immediate tangible worldly advancement, linking spiritual victory to social status."
+    },
+    {
+      "keyword": "Verbal Exorcism",
+      "category": "plot_device",
+      "description": "Supernatural threats are neutralized through logical reframing or verbal dominance rather than physical weapons or ritual tools."
+    }
+  ],
+  "version": "1.0",
+  "lastUpdated": 1773004124401
+}

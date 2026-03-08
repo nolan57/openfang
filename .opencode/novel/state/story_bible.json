@@ -1,0 +1,105 @@
+{
+  "characters": {
+    "Cai_Xiansheng": {
+      "status": "stressed",
+      "stress": 25,
+      "emotions": {
+        "valence": -40,
+        "arousal": 50,
+        "dominant": "fear"
+      },
+      "traits": [],
+      "trauma": [
+        {
+          "name": "Cai_Xiansheng_StressEvent_Shock",
+          "description": "Psychological wound from: high stress event",
+          "tags": [
+            "Psychological_Fear"
+          ],
+          "severity": 3,
+          "source_event": "Cumulative stress",
+          "acquiredChapter": 0,
+          "triggers": []
+        }
+      ],
+      "skills": [],
+      "secrets": [],
+      "clues": [],
+      "goals": [],
+      "notes": "",
+      "relationships": {}
+    },
+    "Cai": {
+      "traits": [],
+      "stress": 0,
+      "status": "active",
+      "trauma": [],
+      "skills": [],
+      "secrets": [],
+      "clues": [],
+      "notes": ""
+    },
+    "The Ghostly Maiden": {
+      "traits": [],
+      "stress": 0,
+      "status": "active",
+      "trauma": [],
+      "skills": [],
+      "secrets": [],
+      "clues": [],
+      "notes": ""
+    }
+  },
+  "world": {
+    "events": [
+      "Ghost_Woman_Encounter"
+    ],
+    "threats": [
+      "Rapid_House_Decay",
+      "Awakened_True_Entity",
+      "15_Minute_Survival_Timer"
+    ],
+    "opportunities": [],
+    "activeClues": [
+      "Ghost_Was_Benevolent",
+      "Deed_Was_Protective_Ward"
+    ]
+  },
+  "relationships": {},
+  "currentChapter": "第1章",
+  "chapterCount": 1,
+  "timestamps": {
+    "lastGeneration": 1773003896011
+  },
+  "fullStory": "\n\n午夜更鼓敲过三响，杭州北关门外的雾气浓得化不开。蔡先生捏着那张泛黄的地契，站在了这座荒废已久的宅院前。世人皆道此处凶险，唯有他知晓，这是唯一的归宿。\n\n庭中枯井旁，一抹白衣悄然浮现。女子面容惨白，眸中却无半分戾气，只有无尽的哀婉。“此处冷清，不如随我去。”她的声音似断弦琴音，邀他共赴黄泉。这是鬼魅的仁慈，亦是最后的试探。\n\n蔡先生整了整衣襟，神色平静：“尘缘未了，我不能死。”\n\n女子怔然片刻，唇角扬起一抹解脱的笑，身影如烟般消散。周遭的寒意随之退去，看似一切归于平静。然而，脚下的青砖突然发出清脆的碎裂声，原本古旧的宅院竟以肉眼可见的速度腐朽。墙皮剥落，露出森森白骨般的木柱。雾气不再是白色，转而泛起猩红。\n\n空气中传来低语，非那女子之声，而是更深沉、更贪婪的窥视。地契在蔡先生手中迅速发黑，化作飞灰。他猛然意识到，那女鬼并非害他，而是将他从真正的陷阱中引开。如今护佑消失，真正的“东西”醒了。黑暗正在吞噬仅剩的立足之地，留给他的时间，恐怕连一刻钟都不到。",
+  "branchHistory": [],
+  "currentBranchId": null,
+  "last_turn_evolution": {
+    "skills_awarded_count": 0,
+    "traumas_inflicted_count": 1,
+    "total_stress_delta": 25,
+    "critical_flags": [
+      "HIGH_IMPACT_EVENT",
+      "ENVIRONMENT_HOSTILE"
+    ],
+    "auditFlags": [
+      {
+        "type": "MISSING_TRAUMA",
+        "description": "Cai_Xiansheng experienced stress 25 without trauma",
+        "corrected": true,
+        "correction": "Auto-generated trauma entry"
+      }
+    ],
+    "changes": {
+      "newTraumas": 0,
+      "newSkills": 0,
+      "newCharacters": 0,
+      "updatedCharacters": [],
+      "newRelationships": 0,
+      "updatedRelationships": [],
+      "newEvents": 0,
+      "stressChanges": []
+    }
+  },
+  "turnCount": 1
+}
