@@ -5,29 +5,32 @@ import { getNovelLanguageModel } from "./model"
 
 const log = Log.create({ service: "evolution-rules" })
 
-const STATE_CHANGE_EVALUATION_PROMPT = `You are a strict game master (GM) responsible for extracting state changes from story text based on the following rules.
+const STATE_CHANGE_EVALUATION_PROMPT = `You are a strict game master (GM) responsible for extracting state changes from story text.
 
 Character State Rules:
-- Skill Award: A character can only receive a new skill when they successfully overcome a specific and challenging obstacle.
-- Trauma Trigger: A character receives trauma when experiencing life-threatening events, extreme pressure (witnessing death, betrayal), or cumulative stress exceeds critical threshold (>90).
+- Skill Award: A character can only receive a new skill when they successfully overcome a specific and challenging obstacle. Skills represent learned competence through adversity.
+- Trauma Trigger: A character receives trauma when experiencing life-threatening events, extreme pressure (witnessing death, betrayal), or cumulative stress exceeds critical threshold.
 
 Your task:
-Carefully read the story segment below. Identify and output ALL skill awards and trauma triggers that match the above rules.
+Analyze the story segment below. Identify ALL skill awards and trauma triggers following the rules above.
 
 Output Format (strict JSON):
 {
   "skill_awards": [
     {
       "character_name": "Character name from the story",
-      "skill_category": "Skill category (e.g., Technical_Hacking, Social_Persuasion, Mental_Analysis, Combat_Stealth)",
-      "reason_in_story": "Specific event description from the story"
+      "skill_name": "Descriptive name for the new skill (e.g., 'Quick Reflexes', 'Deceptive Charm')",
+      "skill_category": "General category (e.g., Combat, Social, Mental, Technical, Physical, Survival)",
+      "reason_in_story": "What happened in the story that warrants this skill"
     }
   ],
   "trauma_awards": [
     {
       "character_name": "Character name from the story",
-      "trauma_tags": ["Trauma tags array (e.g., Psychological_Fear, Physical_Injury, Psychological_Betrayal)"],
-      "reason_in_story": "Specific event description from the story"
+      "trauma_name": "Descriptive name for the trauma (e.g., 'Fear of Fire', 'Trust Issues')",
+      "trauma_tags": ["General tags: Physical, Psychological, Social, Loss, Betrayal, Fear, Pain"],
+      "severity": 1-10,
+      "reason_in_story": "What happened in the story that caused this trauma"
     }
   ]
 }
@@ -160,10 +163,10 @@ export class EvolutionRulesEngine {
       const skillAwards: SkillAward[] = (evaluation.skill_awards || []).map((award: any) => ({
         characterName: award.character_name,
         skill: {
-          name: this.generateSkillNameFromCategory(award.skill_category, award.reason_in_story),
-          category: award.skill_category || SKILL_CATEGORIES.ANALYSIS,
+          name: award.skill_name || this.generateSkillNameFromCategory(award.skill_category, award.reason_in_story),
+          category: this.normalizeSkillCategory(award.skill_category),
           level: 1,
-          description: `In Chapter ${context.chapterCount}, due to: "${award.reason_in_story}"`,
+          description: `In Chapter ${context.chapterCount}: ${award.reason_in_story}`,
         },
         reason: "LLM semantic analysis",
       }))
@@ -171,9 +174,9 @@ export class EvolutionRulesEngine {
       const traumaAwards: TraumaAward[] = (evaluation.trauma_awards || []).map((award: any) => ({
         characterName: award.character_name,
         trauma: {
-          description: `In Chapter ${context.chapterCount}, due to: "${award.reason_in_story}"`,
-          tags: award.trauma_tags || [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR],
-          severity: this.calculateTraumaSeverityFromTags(award.trauma_tags || []),
+          description: award.trauma_name || `Trauma from: ${award.reason_in_story}`,
+          tags: award.trauma_tags || ["Psychological"],
+          severity: award.severity || this.calculateTraumaSeverityFromTags(award.trauma_tags || []),
         },
         reason: "LLM semantic analysis",
       }))
@@ -286,12 +289,40 @@ export class EvolutionRulesEngine {
     return lines.join("\n")
   }
 
-  private static generateSkillNameFromCategory(category: string, reason: string): string {
-    const parts = category.split("_")
+  private static generateSkillNameFromCategory(category: string | undefined, reason: string): string {
+    if (!category) return "Learned Ability"
+
+    const parts = category.split(" ")
     const baseName = parts.pop() || "Ability"
-    const prefixes = ["Advanced", "Mastery", "Expert", "Skilled", "Enhanced"]
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)]
-    return `${prefix} ${baseName}`
+    return `${baseName}`
+  }
+
+  private static normalizeSkillCategory(category: string | undefined): string {
+    if (!category) return SKILL_CATEGORIES.ANALYSIS
+
+    const normalized = category.toLowerCase().replace(/[^a-z]/g, "")
+    const categoryMap: Record<string, string> = {
+      combat: SKILL_CATEGORIES.COMBAT,
+      physical: SKILL_CATEGORIES.COMBAT,
+      fighting: SKILL_CATEGORIES.COMBAT,
+      social: SKILL_CATEGORIES.PERSUASION,
+      persuasion: SKILL_CATEGORIES.PERSUASION,
+      deception: SKILL_CATEGORIES.DECEPTION,
+      mental: SKILL_CATEGORIES.ANALYSIS,
+      analysis: SKILL_CATEGORIES.ANALYSIS,
+      deduction: SKILL_CATEGORIES.DEDUCTION,
+      intuition: SKILL_CATEGORIES.INTUITION,
+      technical: SKILL_CATEGORIES.HACKING,
+      hacking: SKILL_CATEGORIES.HACKING,
+      encryption: SKILL_CATEGORIES.ENCRYPTION,
+      stealth: SKILL_CATEGORIES.STEALTH,
+      escape: SKILL_CATEGORIES.ESCAPE,
+      interrogation: SKILL_CATEGORIES.INTERROGATION,
+      pain: SKILL_CATEGORIES.PAIN_TOLERANCE,
+      fear: SKILL_CATEGORIES.FEAR_RESIST,
+    }
+
+    return categoryMap[normalized] || SKILL_CATEGORIES.ANALYSIS
   }
 
   private static calculateTraumaSeverityFromTags(tags: string[]): number {
