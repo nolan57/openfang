@@ -23,12 +23,7 @@ import {
   type CharacterState,
   type CharacterStateSnapshot,
 } from "./visual-translator"
-import type {
-  VisualGenerationContext,
-  LLMPromptEngineeringResult,
-  VisualPanelSpec,
-  CameraSpec,
-} from "./types"
+import type { VisualGenerationContext, LLMPromptEngineeringResult, VisualPanelSpec, CameraSpec } from "./types"
 
 const log = Log.create({ service: "visual-prompt-engineer" })
 
@@ -57,6 +52,8 @@ export async function initVisualPromptEngineer(): Promise<void> {
  */
 function getConfig(): VisualConfig {
   if (!config) {
+    // Use cached config from loadVisualConfig if available
+    // If not loaded, this will throw - caller should ensure initVisualPromptEngineer() was called
     config = getVisualConfig()
   }
   return config
@@ -147,11 +144,11 @@ ${context.previousPanels.map((p, i) => `Panel ${i + 1}: ${p.visualPrompt?.slice(
   return `Context:
 Story Beat: ${context.beat.description}
 Character State: ${JSON.stringify({
-  name: context.character.name,
-  emotion: context.character.emotionalState,
-  action: context.character.currentAction,
-  outfit: context.character.outfitDetails,
-})}
+    name: context.character.name,
+    emotion: context.character.emotionalState,
+    action: context.character.currentAction,
+    outfit: context.character.outfitDetails,
+  })}
 Camera: ${JSON.stringify(context.camera)}
 Global Style: ${context.globalStyle || "realistic"}
 ${continuityContext}
@@ -245,9 +242,7 @@ function generateHardcodedPrompt(context: VisualGenerationContext): LLMPromptEng
   const elements: string[] = []
 
   // Priority 1: Subject & Action (characters)
-  const emotionData = character.emotionalState
-    ? translateEmotionToVisuals(character.emotionalState, 0.5)
-    : null
+  const emotionData = character.emotionalState ? translateEmotionToVisuals(character.emotionalState, 0.5) : null
 
   if (character.visualDescription) {
     elements.push(`(${character.name}: ${character.visualDescription})`)
@@ -265,9 +260,7 @@ function generateHardcodedPrompt(context: VisualGenerationContext): LLMPromptEng
   }
 
   // Priority 2: Camera & Lighting
-  const lighting = beat.timeOfDay
-    ? selectLightingPreset(beat.timeOfDay)
-    : "natural lighting"
+  const lighting = beat.timeOfDay ? selectLightingPreset(beat.timeOfDay) : "natural lighting"
   elements.push(`lighting: ${lighting}`)
 
   // Priority 3: Style & Atmosphere
@@ -309,13 +302,9 @@ function generateHardcodedPrompt(context: VisualGenerationContext): LLMPromptEng
         ? ["happy", "joy", "smiling", "laughing"]
         : []
 
-  const allNegatives = [...new Set([
-    ...baseNegatives,
-    ...styleNegatives,
-    ...shotNegatives,
-    ...movementNegatives,
-    ...emotionNegatives,
-  ])]
+  const allNegatives = [
+    ...new Set([...baseNegatives, ...styleNegatives, ...shotNegatives, ...movementNegatives, ...emotionNegatives]),
+  ]
 
   const negativePrompt = allNegatives.join(", ") + ", " + cfg.negative_prompts.quality_suffix
 
@@ -371,7 +360,11 @@ export async function generateOptimizedVisuals(
   const llmResult = await callLLMForPromptEngineering(context)
 
   // Check if LLM succeeded with sufficient confidence (threshold from config)
-  if (llmResult && llmResult.confidenceScore >= cfg.llm.min_confidence_score && llmResult.refinedVisualPrompt.length > 0) {
+  if (
+    llmResult &&
+    llmResult.confidenceScore >= cfg.llm.min_confidence_score &&
+    llmResult.refinedVisualPrompt.length > 0
+  ) {
     log.info("llm_succeeded", {
       confidence: llmResult.confidenceScore,
       promptLength: llmResult.refinedVisualPrompt.length,
@@ -410,7 +403,7 @@ function detectActionFallback(text: string): string {
   const textLower = text.toLowerCase()
 
   for (const [action, keywords] of Object.entries(cfg.action_keywords)) {
-    if (keywords.some(kw => textLower.includes(kw.toLowerCase()))) {
+    if (keywords.some((kw) => textLower.includes(kw.toLowerCase()))) {
       return action
     }
   }
@@ -464,18 +457,16 @@ export async function buildPanelSpecWithHybridEngine(
   // Build ControlNet signals
   const controlNetSignals = {
     poseReference: characterRefUrl,
-    depthReference: context.beat.location
-      ? `mock://loc/${context.beat.location.replace(/\s+/g, "-")}/depth.png`
-      : null,
+    depthReference: context.beat.location ? `mock://loc/${context.beat.location.replace(/\s+/g, "-")}/depth.png` : null,
     characterRefUrl,
     scribbleReference: null,
     normalMapReference: null,
   }
 
   // Determine lighting from action camera data or time of day
-  const lighting = actionCameraData.lighting || (context.beat.timeOfDay
-    ? selectLightingPreset(context.beat.timeOfDay)
-    : cfg.lighting_presets.natural)
+  const lighting =
+    actionCameraData.lighting ||
+    (context.beat.timeOfDay ? selectLightingPreset(context.beat.timeOfDay) : cfg.lighting_presets.natural)
 
   const panel: VisualPanelSpec = {
     id: `panel-${panelIndex}-${Date.now()}`,

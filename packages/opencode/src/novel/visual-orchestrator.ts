@@ -2,7 +2,7 @@ import { Log } from "../util/log"
 import { writeFile, mkdir } from "fs/promises"
 import { resolve, join } from "path"
 import { Instance } from "../project/instance"
-import { buildPanelSpecWithHybridEngine } from "./visual-prompt-engineer"
+import { buildPanelSpecWithHybridEngine, initVisualPromptEngineer } from "./visual-prompt-engineer"
 import type { VisualPanelSpec } from "./types"
 
 const log = Log.create({ service: "visual-orchestrator" })
@@ -64,6 +64,9 @@ export async function generateVisualPanels(
   const { maxPanels = 4, defaultStyle = "realistic", verbose = false } = options
 
   try {
+    // Initialize visual config if not already loaded
+    await initVisualPromptEngineer()
+
     // Extract character states for visual generation
     const characterStates = extractCharacterStates(input.characters)
 
@@ -145,10 +148,7 @@ export async function generateVisualPanels(
  * @param chapterCount - Current chapter number
  * @returns Path to saved file, or null if failed
  */
-export async function saveVisualPanels(
-  panels: VisualPanelSpec[],
-  chapterCount: number,
-): Promise<string | null> {
+export async function saveVisualPanels(panels: VisualPanelSpec[], chapterCount: number): Promise<string | null> {
   if (panels.length === 0) {
     return null
   }

@@ -1,7 +1,7 @@
 {
   "id": "ev-2026-0304-004",
   "type": "code_change",
-  "status": "pending",
+  "status": "failed",
   "title": "Benchmark Integration for Performance Measurement",
   "description": "Integrate SWE-bench style evaluation for measuring OpenCode's coding assistant performance. Reference: smallcloudai/refact-bench for benchmarking AI coding assistants.",
   "priority": "P2",
@@ -20,8 +20,16 @@
     "git commit -m 'feat(benchmark): add SWE-bench style evaluation'",
     "bun run build"
   ],
-  "rollback_commands": ["git reset --hard HEAD~1", "bun run build"],
-  "research_links": ["https://github.com/smallcloudai/refact-bench"],
+  "rollback_commands": [
+    "git reset --hard HEAD~1",
+    "bun run build"
+  ],
+  "research_links": [
+    "https://github.com/smallcloudai/refact-bench"
+  ],
   "created_at": 1777939200000,
-  "updated_at": 1777939200000
+  "updated_at": 1773092900973,
+  "executed_at": 1773092898967,
+  "completed_at": 1773092900973,
+  "error": "instance: No context found for instance"
 }

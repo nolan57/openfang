@@ -57,6 +57,55 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
+/**
+ * Creates a fallback skeleton when LLM parsing fails.
+ * This ensures the novel can continue even if skeleton generation fails.
+ */
+function createFallbackSkeleton(theme: string, tone: string, initialPrompt: string): NarrativeSkeleton {
+  log.info("creating_fallback_skeleton", { theme, tone })
+
+  const now = Date.now()
+  const skeleton: NarrativeSkeleton = {
+    theme,
+    tone,
+    initialPrompt,
+    createdAt: now,
+    lastUpdated: now,
+    storyLines: [
+      {
+        name: "Main Story",
+        status: "active",
+        currentBeatIndex: 0,
+        keyBeats: Array.from({ length: 20 }, (_, i) => ({
+          chapter: i + 1,
+          description: `Chapter ${i + 1}: Continue developing the story`,
+          characters: [],
+          thematicRelevance: theme,
+        })),
+      },
+    ],
+    thematicMotifs: {
+      core_theme: {
+        description: theme,
+        chapters: [1, 5, 10, 15, 20],
+        variations: [
+          "Initial introduction",
+          "First development",
+          "Deepening complexity",
+          "Climax expression",
+          "Resolution",
+        ],
+      },
+    },
+  }
+
+  saveNarrativeSkeleton(skeleton).catch((err) => {
+    log.error("fallback_skeleton_save_failed", { error: String(err) })
+  })
+
+  return skeleton
+}
+
 export async function createNarrativeSkeleton(
   theme: string,
   tone: string,
@@ -131,15 +180,33 @@ Generate a JSON structure with this exact format:
     })
 
     const text = result.text.trim()
-    log.info("llm_skeleton_output", { textLength: text.length })
+    log.info("llm_skeleton_output", { textLength: text.length, preview: text.slice(0, 500) })
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      log.error("no_json_in_skeleton_output")
-      throw new Error("LLM did not return valid JSON for narrative skeleton")
+    // Extract JSON from response (handle markdown code blocks)
+    let jsonText = text
+    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+    if (codeBlockMatch) {
+      jsonText = codeBlockMatch[1].trim()
+    } else {
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        jsonText = jsonMatch[0]
+      }
     }
 
-    const skeleton: NarrativeSkeleton = JSON.parse(jsonMatch[0])
+    log.info("extracted_json", { jsonLength: jsonText.length, preview: jsonText.slice(0, 500) })
+
+    let skeleton: NarrativeSkeleton
+    try {
+      skeleton = JSON.parse(jsonText)
+    } catch (parseError) {
+      log.error("json_parse_failed", {
+        error: String(parseError),
+        jsonPreview: jsonText.slice(0, 1000),
+      })
+      // Return fallback skeleton instead of throwing
+      return createFallbackSkeleton(theme, tone, initialPrompt)
+    }
 
     skeleton.createdAt = Date.now()
     skeleton.lastUpdated = Date.now()

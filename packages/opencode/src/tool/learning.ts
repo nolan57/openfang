@@ -64,7 +64,7 @@ export const EvolveTool = Tool.define("evolve", async () => {
     description: "Trigger OpenCode self-evolution system - collect, analyze, and evolve",
     parameters: z.object({
       mode: z
-        .enum(["full", "execute", "status", "check", "trigger", "monitor", "spec"])
+        .enum(["full", "execute", "status", "check", "trigger", "monitor", "spec", "tasks"])
         .optional()
         .default("full")
         .describe("Evolution mode"),
@@ -141,8 +141,37 @@ export const EvolveTool = Tool.define("evolve", async () => {
 
         return {
           title: "Evolution Monitor",
-          output: `📡 Monitor started (checking every 60s)\n\nUse /evolve --status to check progress`,
+          output: `📡 Monitor started (checking every 60s)
+
+Use /evolve --status to check progress`,
           metadata: {} as any,
+        }
+      }
+
+      if (mode === "tasks") {
+        const { Deployer } = await import("../learning/deployer")
+        const deployer = new Deployer()
+        const tasks = await deployer.getPendingTasks()
+
+        if (tasks.length === 0) {
+          return {
+            title: "Evolution Tasks",
+            output: "No pending tasks",
+            metadata: {} as any,
+          }
+        }
+
+        const taskList = tasks
+          .map(
+            (t: any) =>
+              `- **${t.id}**: ${t.title}\n  Type: ${t.type}\n  Status: ${t.status}\n  Created: ${new Date(t.created_at).toLocaleString()}\n  Files: ${t.changes?.files?.join(", ") || "N/A"}`,
+          )
+          .join("\n\n")
+
+        return {
+          title: "Pending Evolution Tasks",
+          output: `Found ${tasks.length} pending task(s):\n\n${taskList}`,
+          metadata: { tasks } as any,
         }
       }
 
