@@ -21,8 +21,8 @@ export class EvolutionExecutor {
   private max_retries: number
   private health_check_url: string
 
-  constructor(options?: { max_retries?: number; health_check_url?: string }) {
-    this.deployer = new Deployer()
+  constructor(options?: { max_retries?: number; health_check_url?: string; tasksDir?: string }) {
+    this.deployer = new Deployer(options?.tasksDir ?? "docs/learning/tasks")
     this.graph = new KnowledgeGraph()
     this.safety = new Safety()
     this.max_retries = options?.max_retries ?? 2

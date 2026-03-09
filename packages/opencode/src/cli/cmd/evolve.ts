@@ -1,4 +1,5 @@
 import type { CommandModule } from "yargs"
+import * as path from "path"
 import { cmd } from "./cmd"
 import { getSkillEvolutions, getPromptEvolutions, getMemories } from "../../evolution/store"
 import { approveSkill, rejectSkill, getPendingSkills } from "../../evolution/skill"
@@ -12,6 +13,8 @@ import { Config } from "../../config/config"
 import { defaultLearningConfig } from "../../learning/config"
 import { runLearning } from "../../learning/command"
 import { Instance } from "../../project/instance"
+import { Deployer } from "../../learning/deployer"
+import { EvolutionExecutor } from "../../learning/evolution-executor"
 
 export const EvolveCommand: CommandModule = {
   command: "evolve",
@@ -20,7 +23,7 @@ export const EvolveCommand: CommandModule = {
     yargs
       .option("mode", {
         type: "string",
-        choices: ["full", "execute", "status", "check", "trigger", "monitor", "spec"],
+        choices: ["full", "execute", "status", "check", "trigger", "monitor", "spec", "tasks"],
         default: "full",
         describe: "Evolution mode",
       })
@@ -45,6 +48,7 @@ export const EvolveCommand: CommandModule = {
       .command("memories", "List learned memories", {}, listMemories)
       .command("pending", "List pending skill approvals", {}, listPending)
       .command("status", "Show evolution system status", {}, showStatus)
+      .command("tasks", "List pending deployment tasks", {}, listTasks)
       // New self-evolution commands
       .command("scan", "Scan and report code issues", {}, scanCode)
       .command("fix", "Auto-fix code issues", {}, fixCode)
@@ -59,28 +63,30 @@ export const EvolveCommand: CommandModule = {
       .command("overview", "Generate project overview", {}, generateOverview)
       .demandCommand(0, ""),
   handler: async (args: any) => {
-    console.log("DEBUG: evolve handler called with args:", JSON.stringify(args, null, 2))
     if (args.mode === "spec") {
       if (!args.specFile) {
         console.error("Error: --spec-file is required for spec mode")
         process.exit(1)
       }
-      console.log("DEBUG: Running spec implementation with file:", args.specFile)
       const result = await Instance.provide({
         directory: process.cwd(),
         fn: async () => {
           return await runLearning({ spec_file: args.specFile as string })
         },
       })
-      console.log("DEBUG: Spec implementation result:", JSON.stringify(result, null, 2))
       if (result.success) {
         console.log(`✅ Spec Implementation Complete\n\nFiles created: ${result.suggestions}`)
       } else {
         console.error(`❌ Spec Implementation Failed: ${result.error}`)
         process.exit(1)
       }
+    } else if (args.mode === "execute") {
+      const executor = new EvolutionExecutor({ tasksDir: "docs/learning/tasks" })
+      const results = await executor.executeAll()
+      const success = results.filter((r: any) => r.success).length
+      const failed = results.filter((r: any) => !r.success).length
+      console.log(`⚡ Execution Complete\n\nTotal: ${results.length}\n✅ Success: ${success}\n❌ Failed: ${failed}`)
     }
-    // For other modes, the subcommands handle them
   },
 }
 
@@ -181,6 +187,44 @@ async function showStatus() {
     `⏱️ Last check: ${triggerStatus.last_check ? new Date(triggerStatus.last_check).toLocaleString() : "Never"}`,
   )
   console.log(`📋 Pending tasks: ${triggerStatus.pending_tasks}`)
+}
+
+async function listTasks() {
+  const dir = process.cwd()
+  const tasksDir = path.resolve(dir, "docs/learning/tasks")
+  const deployer = new Deployer(tasksDir)
+  const tasks = await deployer.getPendingTasks()
+
+  console.log("\n=== Pending Deployment Tasks ===\n")
+
+  if (tasks.length === 0) {
+    console.log("No pending tasks")
+    return
+  }
+
+  for (const task of tasks) {
+    console.log(`[${task.id}] ${task.title}`)
+    console.log(`  Status: ${task.status}`)
+    console.log(`  Type: ${task.type}`)
+    if (task.description) {
+      console.log(`  Description: ${task.description}`)
+    }
+    if ((task as any).source) {
+      console.log(`  Source: ${(task as any).source}`)
+    }
+    if ((task as any).priority) {
+      console.log(`  Priority: ${(task as any).priority}`)
+    }
+    if (task.changes?.files) {
+      console.log(`  Files: ${task.changes.files.join(", ")}`)
+    }
+    if (task.commands) {
+      console.log(`  Commands: ${task.commands.join(" && ")}`)
+    }
+    console.log("")
+  }
+
+  console.log(`Total: ${tasks.length} pending task(s)`)
 }
 
 // Self-evolution: scan code for issues
