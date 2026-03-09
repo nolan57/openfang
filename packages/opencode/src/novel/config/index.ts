@@ -1,0 +1,16 @@
+export {
+  loadVisualConfig,
+  getVisualConfig,
+  clearConfigCache,
+  reloadVisualConfig,
+  getEmotionVisual,
+  getActionMapping,
+  getLightingPreset,
+  getStyleModifiers,
+  isComplexEmotion,
+  isComplexAction,
+  type VisualConfig,
+  type EmotionVisual,
+  type ActionMapping,
+  type CameraSpec,
+} from "./config-loader"

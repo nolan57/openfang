@@ -22,6 +22,7 @@ import {
   type NarrativeSkeleton,
 } from "./narrative-skeleton"
 import { runThematicReflection, getLatestReflectionTurn } from "./thematic-analyst"
+import { generateAndSaveVisualPanels, type VisualGenerationInput } from "./visual-orchestrator"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
@@ -858,6 +859,25 @@ Output JSON:
 
     await this.saveState()
     await this.saveTurnSummary(stateUpdates, chaosResult)
+
+    // Generate visual panels using dedicated visual orchestrator
+    const visualInput: VisualGenerationInput = {
+      storySegment,
+      characters: this.storyState.characters,
+      narrativeSkeleton: this.storyState.narrativeSkeleton,
+      chapterCount: this.storyState.chapterCount,
+      currentChapterTitle: this.storyState.currentChapter?.title,
+    }
+
+    const { panels, savedPath } = await generateAndSaveVisualPanels(visualInput, {
+      maxPanels: 4,
+      defaultStyle: "realistic",
+      verbose: this.verbose,
+    })
+
+    if (panels.length > 0) {
+      this.log(`   Generated ${panels.length} visual panels${savedPath ? ` -> ${savedPath}` : ""}`)
+    }
 
     return storySegment
   }

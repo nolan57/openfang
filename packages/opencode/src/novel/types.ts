@@ -143,6 +143,135 @@ export const SALIENCE_LEVELS = {
   TRIVIAL: 0.1, // Background detail, quickly forgotten
 } as const
 
+export type CameraShot =
+  | "extreme-close-up"
+  | "close-up"
+  | "medium-close-up"
+  | "medium"
+  | "medium-wide"
+  | "wide"
+  | "extreme-wide"
+  | "insert"
+  | "over-shoulder"
+  | "point-of-view"
+export type CameraAngle = "eye-level" | "high" | "low" | "dutch" | "birds-eye" | "worms-eye" | "overhead"
+export type CameraMovement =
+  | "static"
+  | "pan"
+  | "tilt"
+  | "dolly"
+  | "track"
+  | "crane"
+  | "handheld"
+  | "steadicam"
+  | "zoom"
+  | "rack-focus"
+
+export interface CameraSpec {
+  shot: CameraShot
+  angle: CameraAngle
+  movement: CameraMovement
+  depthOfField?: "shallow" | "deep" | "none"
+}
+
+export interface ControlNetSignals {
+  poseReference: string | null
+  depthReference: string | null
+  characterRefUrl: string | null
+  scribbleReference?: string | null
+  normalMapReference?: string | null
+}
+
+export interface VisualPanelSpec {
+  id: string
+  panelIndex: number
+  camera: CameraSpec
+  lighting: string
+  composition: string
+  visualPrompt: string
+  negativePrompt: string
+  controlNetSignals: ControlNetSignals
+  styleModifiers: string[]
+  colorPalette?: string[]
+  atmosphericEffects?: string[]
+  notes?: string
+  /** Version of the prompt generation algorithm (e.g., "v2" for prioritized prompts) */
+  promptVersion?: string
+  /** Hash strategy used for character references (e.g., "deterministic") */
+  hashStrategy?: string
+}
+
+export interface EnrichedBeat {
+  originalText: string
+  visualSpec: VisualPanelSpec | null
+  charactersOnScreen: string[]
+  sceneDescription: string
+}
+
+// ============================================================================
+// LLM-based Visual Prompt Engineering Types
+// ============================================================================
+
+/**
+ * Context provided to the visual prompt engineer for generating optimized prompts.
+ */
+export interface VisualGenerationContext {
+  /** The current story beat being visualized */
+  beat: {
+    description: string
+    action?: string
+    emotion?: string
+    location?: string
+    timeOfDay?: string
+    tone?: string
+  }
+  /** Character state for the current scene */
+  character: {
+    name: string
+    emotionalState?: string
+    currentAction?: string
+    outfitDetails?: string
+    injuryDetails?: string
+    visualDescription?: string
+  }
+  /** Camera specification for the shot */
+  camera: CameraSpec
+  /** Global style (e.g., "Cyberpunk Noir", "Watercolor") */
+  globalStyle: string
+  /** Previous panels for maintaining continuity */
+  previousPanels: VisualPanelSpec[]
+}
+
+/**
+ * Result from LLM prompt engineering.
+ */
+export interface LLMPromptEngineeringResult {
+  /** The refined visual prompt optimized for image generation */
+  refinedVisualPrompt: string
+  /** Negative prompts specific to the scene */
+  refinedNegativePrompt: string
+  /** LLM's artistic reasoning for debugging */
+  artisticNotes?: string
+  /** Confidence score (0-1). Low scores trigger fallback to hardcoded. */
+  confidenceScore: number
+  /** Detected action type (e.g., "fight", "conversation", "chase") */
+  detectedAction?: string
+  /** How the prompt was generated */
+  generationMethod?: "hardcoded" | "llm" | "hybrid"
+}
+
+/**
+ * Metadata for tracking generation method.
+ */
+export interface VisualGenerationMetadata {
+  /** How the prompt was generated: "hardcoded" | "llm" | "hybrid" */
+  generationMethod: "hardcoded" | "llm" | "hybrid"
+  /** LLM's notes if available */
+  notes?: string
+  /** Timestamp of generation */
+  timestamp: number
+}
+
 log.info("novel_types_loaded", {
   traumaTags: Object.keys(TRAUMA_TAGS).length,
   skillCategories: Object.keys(SKILL_CATEGORIES).length,
