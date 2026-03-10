@@ -10,6 +10,8 @@ import { iife } from "@/util/iife"
 import { defer } from "@/util/defer"
 import { Config } from "../config/config"
 import { PermissionNext } from "@/permission/next"
+import { Memory } from "../memory"
+import type { MemoryResult } from "../memory/service"
 
 const parameters = z.object({
   description: z.string().describe("A short (3-5 words) description of the task"),
@@ -123,7 +125,29 @@ export const TaskTool = Tool.define("task", async (ctx) => {
       }
       ctx.abort.addEventListener("abort", cancel)
       using _ = defer(() => ctx.abort.removeEventListener("abort", cancel))
-      const promptParts = await SessionPrompt.resolvePromptParts(params.prompt)
+
+      const isNewSession = !params.task_id || !(await Session.get(params.task_id).catch(() => {}))
+      let memoryContext = ""
+
+      if (isNewSession) {
+        await Memory.getSessionService().createSession([agent.name])
+
+        const [evolution, project] = await Promise.all([
+          Memory.search({ query: params.prompt, memoryType: "evolution", limit: 3 }),
+          Memory.search({ query: params.prompt, memoryType: "project", limit: 3 }),
+        ])
+
+        const relevantMemories: MemoryResult[] = [...evolution, ...project]
+        if (relevantMemories.length > 0) {
+          memoryContext =
+            "\n\n## Relevant Context from Memory\n" +
+            relevantMemories.map((m) => `- [${m.type}] ${m.content.slice(0, 500)}`).join("\n") +
+            "\n\n"
+        }
+      }
+
+      const promptWithMemory = memoryContext + params.prompt
+      const promptParts = await SessionPrompt.resolvePromptParts(promptWithMemory)
 
       const result = await SessionPrompt.prompt({
         messageID,
@@ -143,6 +167,18 @@ export const TaskTool = Tool.define("task", async (ctx) => {
       })
 
       const text = result.parts.findLast((x) => x.type === "text")?.text ?? ""
+
+      if (isNewSession) {
+        await Memory.add({
+          memoryType: "session",
+          content: `Task: ${params.description}\nPrompt: ${params.prompt}\nResult: ${text.slice(0, 1000)}`,
+          metadata: {
+            sessionId: session.id,
+            agentType: agent.name,
+            role: "task_result",
+          },
+        })
+      }
 
       const output = [
         `task_id: ${session.id} (for resuming to continue this task if needed)`,
