@@ -1246,6 +1246,10 @@ export namespace Config {
         })
         .optional()
         .describe("Self-evolution configuration for AI-driven improvements"),
+      mcpCronPath: z
+        .string()
+        .optional()
+        .describe("Path to mcp-cron executable (e.g., /path/to/opencode-mcp-cron/dist/index.js)"),
     })
     .strict()
     .meta({

@@ -11,21 +11,24 @@
 ```
 packages/
 ├── app/           # SolidJS web app (main UI)
-├── console/       # Console sub-packages (app, core, mail, resource, function)
+├── console/       # Console sub-packages
 │   ├── app/       # Console web app
 │   ├── core/      # Core logic with DB scripts
-│   ├── mail/      # Email handling
+│   ├── function/  # Cloud functions for console
+│   ├── mail/      # Email templates
 │   └── resource/  # Resources
+├── containers/    # Docker container configs (base, bun-node, publish, rust, tauri-linux)
 ├── desktop/       # Tauri desktop app
-├── docs/          # Documentation
+├── docs/          # Documentation assets
 ├── enterprise/    # Enterprise web app
 ├── extensions/    # IDE extensions (zed)
 ├── function/      # Cloud functions
+├── identity/      # Branding assets (logos, icons)
 ├── opencode/      # Main CLI package
 ├── plugin/        # Plugin SDK
 ├── plugin-qqbot/  # QQ Bot plugin
 ├── script/        # Build scripts
-├── sdk/           # JavaScript SDK
+├── sdk/           # JavaScript SDK (js/)
 ├── slack/         # Slack integration
 ├── ui/            # Shared UI components
 ├── util/          # Shared utilities
@@ -50,6 +53,7 @@ bun test                           # Run all tests
 bun test src/foo.test.ts           # Run single test file
 bun test -t "test name pattern"    # Run tests matching pattern
 bun test --watch                   # Watch mode
+bun test --timeout 30000           # For longer running tests
 
 # packages/app
 bun test                    # Run all unit tests
@@ -122,6 +126,43 @@ bun run dev             # Enterprise web app
 ```bash
 # From packages/sdk/js
 bun run build           # Generate SDK from OpenAPI spec
+```
+
+### MCP Commands
+
+```bash
+opencode mcp list                 # List MCP servers and status
+opencode mcp add                  # Add an MCP server interactively
+opencode mcp auth [name]          # Authenticate with OAuth-enabled MCP server
+opencode mcp auth list            # List OAuth-capable servers and auth status
+opencode mcp logout [name]        # Remove OAuth credentials
+opencode mcp debug <name>         # Debug OAuth connection for MCP server
+```
+
+### Evolution Commands
+
+```bash
+opencode evolve list              # List evolution artifacts (prompts, skills, memories)
+opencode evolve status            # Show evolution system status
+opencode evolve pending           # List pending skill approvals
+opencode evolve approve <id>      # Approve a skill proposal
+opencode evolve reject <id>       # Reject a skill proposal
+opencode evolve memories          # List learned memories
+opencode evolve reload            # Reload skills cache
+opencode evolve tasks             # List pending deployment tasks
+opencode evolve scan              # Scan code for issues
+opencode evolve fix               # Auto-fix code issues
+opencode evolve stats             # Show code statistics
+opencode evolve summaries build   # Build module summaries
+opencode evolve summaries search <query>  # Search module summaries
+opencode evolve overview          # Generate project overview
+```
+
+### ACP (Agent Client Protocol)
+
+```bash
+opencode acp                      # Start ACP server
+opencode acp --cwd <dir>          # Start ACP server with custom working directory
 ```
 
 ## Style Guide
@@ -223,6 +264,9 @@ Core workflow:
 - **Output**: creates `migration/<timestamp>_<slug>/migration.sql` and `snapshot.json`.
 - **Tests**: migration tests should read the per-folder layout (no `_journal.json`).
 - **Language**: Generate all documentation in English by default.
+- **MCP**: Full MCP (Model Context Protocol) integration with OAuth support. See `src/mcp/` for implementation.
+- **Evolution**: Self-evolution system with knowledge graph and hierarchical memory. See `src/learning/` and `src/evolution/`.
+- **ACP**: Agent Client Protocol support for IDE integration. See `src/acp/`.
 
 ### packages/app
 
@@ -234,6 +278,41 @@ Core workflow:
   - Open `http://localhost:4444` to verify UI changes (it targets the backend at `http://localhost:4096`).
 
 ## Integrations
+
+### MCP (Model Context Protocol)
+
+MCP enables extensible tool capabilities. Configuration in `opencode.json`:
+
+```json
+{
+  "mcp": {
+    "my-server": {
+      "type": "remote",
+      "url": "https://example.com/mcp"
+    },
+    "local-server": {
+      "type": "local",
+      "command": ["node", "server.js"],
+      "environment": { "API_KEY": "xxx" }
+    }
+  }
+}
+```
+
+For OAuth-enabled servers:
+```json
+{
+  "mcp": {
+    "oauth-server": {
+      "type": "remote",
+      "url": "https://example.com/mcp",
+      "oauth": {
+        "clientId": "your-client-id"
+      }
+    }
+  }
+}
+```
 
 ### Slack (packages/slack)
 
@@ -258,6 +337,25 @@ Use `catalog:` to reference catalog versions in package dependencies:
   "dependencies": {
     "zod": "catalog:",
     "typescript": "catalog:"
+  }
+}
+```
+
+## Evolution System
+
+The evolution system enables self-improvement through:
+- **Knowledge Graph**: Stores learned concepts and relationships
+- **Hierarchical Memory**: Multi-level memory with module summaries
+- **Safety**: Cooldown periods and human review requirements
+- **Skills**: Dynamically loaded capabilities that can be proposed and approved
+
+Configuration in `opencode.json`:
+```json
+{
+  "evolution": {
+    "enabled": true,
+    "directions": ["code quality", "performance optimization"],
+    "sources": ["web", "github"]
   }
 }
 ```

@@ -3,10 +3,10 @@ import path from "path"
 import { Global } from "../global"
 import { Filesystem } from "./filesystem"
 import { Log } from "./log"
+import { Config } from "../config/config"
 
 const log = Log.create({ service: "mcp-cron" })
 
-const MCP_CRON_PATH = "/Users/lpcw/Documents/opencode-mcp-cron/dist/index.js"
 const PID_FILE = path.join(Global.Path.data, "mcp-cron.pid")
 
 async function isRunning(pid: number): Promise<boolean> {
@@ -32,13 +32,22 @@ async function savePid(pid: number): Promise<void> {
 }
 
 export async function checkAndStartMcpCron(): Promise<{ started: boolean; pid?: number }> {
+  // Read mcpCronPath from global config (root level)
+  const globalConfig = await Config.getGlobal()
+  const mcpCronPath = globalConfig.mcpCronPath
+
+  if (!mcpCronPath) {
+    log.debug("mcp-cron path not configured, skipping")
+    return { started: false }
+  }
+
   const storedPid = await getStoredPid()
   if (storedPid && (await isRunning(storedPid))) {
     log.info("mcp-cron already running", { pid: storedPid })
     return { started: false, pid: storedPid }
   }
 
-  const mcpCron = spawn("node", [MCP_CRON_PATH], {
+  const mcpCron = spawn("node", [mcpCronPath], {
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
     env: {
@@ -59,7 +68,7 @@ export async function checkAndStartMcpCron(): Promise<{ started: boolean; pid?: 
 
   await savePid(mcpCron.pid!)
 
-  log.info("mcp-cron started", { pid: mcpCron.pid })
+  log.info("mcp-cron started", { pid: mcpCron.pid, path: mcpCronPath })
 
   return { started: true, pid: mcpCron.pid }
 }
