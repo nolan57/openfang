@@ -15,6 +15,7 @@ export interface QQBotPluginConfig {
   responseMode: "blocking" | "streaming"
   maxReconnectAttempts: number
   maxChunkSize: number
+  sandbox: boolean
 }
 
 export interface Attachment {

@@ -44,8 +44,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1773155697301,
-    "usageCount": 199
+    "lastUsedAt": 1773184019405,
+    "usageCount": 227
   },
   {
     "id": "2294419a-c504-4b71-bfdc-5c9eac6cfb66",
@@ -56,8 +56,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1773155697325,
-    "usageCount": 148
+    "lastUsedAt": 1773184019438,
+    "usageCount": 176
   },
   {
     "id": "5ad51b23-acfa-47fa-b354-065fe8180941",
@@ -116,8 +116,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1773155697314,
-    "usageCount": 179
+    "lastUsedAt": 1773184019423,
+    "usageCount": 208
   },
   {
     "id": "eda4fb93-b8db-423c-9c4d-00686903150c",
@@ -152,8 +152,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1773155697287,
-    "usageCount": 209
+    "lastUsedAt": 1773184019393,
+    "usageCount": 243
   },
   {
     "id": "150ff0cd-9bd4-45c9-9a74-5a708e471e05",
@@ -176,8 +176,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1773155697342,
-    "usageCount": 125
+    "lastUsedAt": 1773184019460,
+    "usageCount": 150
   },
   {
     "id": "8c4fc0b0-20f3-48d9-9b1b-fafb4d466c12",
@@ -3741,6 +3741,294 @@
     ],
     "createdAt": 1773148907817,
     "lastUsedAt": 1773148907817,
+    "usageCount": 0
+  },
+  {
+    "id": "cb3b5b21-3621-43ca-baac-dc8a64a863f1",
+    "key": "use-external-api-for-public-ip",
+    "value": "Local machines don't know their public IP; use external services like ipify.org, ifconfig.me, or icanhazip.com via curl to retrieve it.",
+    "context": "用skill获取本机公网IP4地址",
+    "sessionIDs": [
+      "ses_326544296ffewB7fKeAIFgQOy7"
+    ],
+    "createdAt": 1773178491664,
+    "lastUsedAt": 1773178491664,
+    "usageCount": 0
+  },
+  {
+    "id": "a34dba4e-116e-4e64-979e-88b4d9e4f318",
+    "key": "curl-simple-ip-check",
+    "value": "Use 'curl -s ifconfig.me' or 'curl -s https://api.ipify.org?format=json' for quick public IP checks.",
+    "context": "用skill获取本机公网IP4地址",
+    "sessionIDs": [
+      "ses_326544296ffewB7fKeAIFgQOy7"
+    ],
+    "createdAt": 1773178491687,
+    "lastUsedAt": 1773178491687,
+    "usageCount": 0
+  },
+  {
+    "id": "0cf6ef8e-0535-4194-94df-1ca836a3f6f9",
+    "key": "fallback-ip-services",
+    "value": "Have backup IP checking services (like icanhazip.com) ready in case the primary service is unavailable.",
+    "context": "用skill获取本机公网IP4地址",
+    "sessionIDs": [
+      "ses_326544296ffewB7fKeAIFgQOy7"
+    ],
+    "createdAt": 1773178491701,
+    "lastUsedAt": 1773178491701,
+    "usageCount": 0
+  },
+  {
+    "id": "f0ce2eb5-5dcd-4569-95b7-2e47ce968325",
+    "key": "plugin-health-check",
+    "value": "Use a combination of bash commands to verify process status and connectivity when checking plugin health.",
+    "context": "检查plugin-qqbot插件是否正常",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773178678403,
+    "lastUsedAt": 1773178678403,
+    "usageCount": 0
+  },
+  {
+    "id": "d5e07198-f883-4cca-a05c-c8c48643fbe7",
+    "key": "log-inspection",
+    "value": "Read plugin log files directly to confirm there are no runtime errors during health checks.",
+    "context": "检查plugin-qqbot插件是否正常",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773178678412,
+    "lastUsedAt": 1773178678412,
+    "usageCount": 0
+  },
+  {
+    "id": "2c737593-7062-44a9-a9b0-21be9f7fe462",
+    "key": "cli-based-diagnosis",
+    "value": "Leverage bash scripts to automate repetitive health check steps for faster validation.",
+    "context": "检查plugin-qqbot插件是否正常",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773178678421,
+    "lastUsedAt": 1773178678421,
+    "usageCount": 0
+  },
+  {
+    "id": "d104ae84-35e5-4c25-b729-f40e90b03a16",
+    "key": "plugin-health-verification",
+    "value": "Combine process checks with file system verification to confirm plugin status comprehensively.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773178755169,
+    "lastUsedAt": 1773178755169,
+    "usageCount": 0
+  },
+  {
+    "id": "1dc8906a-3657-41de-a036-e3718eb7007b",
+    "key": "scheduled-task-validation",
+    "value": "Include cron status checks when verifying plugins that rely on scheduled tasks for functionality.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773178755190,
+    "lastUsedAt": 1773178755190,
+    "usageCount": 0
+  },
+  {
+    "id": "950f13a1-9574-43cb-a358-c0083cb4f70f",
+    "key": "config-path-verification",
+    "value": "When auto-loaded plugins fail, explicitly verify the configuration file path and content to ensure settings are correctly applied.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773178875260,
+    "lastUsedAt": 1773178875260,
+    "usageCount": 0
+  },
+  {
+    "id": "ad31da34-ba1b-4ab0-9f2b-00322e433204",
+    "key": "process-status-validation",
+    "value": "Use system commands to confirm the plugin process is actively running rather than relying solely on configuration presence.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773178875278,
+    "lastUsedAt": 1773178875278,
+    "usageCount": 0
+  },
+  {
+    "id": "595f82e5-fc30-48f8-bf5c-839de67bc193",
+    "key": "config-path-verification",
+    "value": "排查插件问题时，首先确认配置文件路径（如 ~/.config/opencode/opencode.json）是否正确且已加载。",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179104591,
+    "lastUsedAt": 1773179104591,
+    "usageCount": 0
+  },
+  {
+    "id": "0dc92ae5-36c9-4b63-b59e-a6126e87cbd7",
+    "key": "log-analysis",
+    "value": "通过查看应用日志可以快速定位插件启动失败或运行异常的具体错误信息。",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179104612,
+    "lastUsedAt": 1773179104612,
+    "usageCount": 0
+  },
+  {
+    "id": "1937648d-2264-43b9-86bc-b428c3179e8e",
+    "key": "external-connection-check",
+    "value": "对于依赖外部服务的插件，需同时检查内部进程状态及外部网关连接是否正常。",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179104625,
+    "lastUsedAt": 1773179104625,
+    "usageCount": 0
+  },
+  {
+    "id": "62876d5b-bb25-4c49-8ccb-2ef99d199141",
+    "key": "distributed-config-check",
+    "value": "Check both application config files and shell environment files for plugin credentials and settings.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179330135,
+    "lastUsedAt": 1773179384521,
+    "usageCount": 1
+  },
+  {
+    "id": "97320633-53bd-4d94-8796-e2daed6e5861",
+    "key": "plugin-restart-step",
+    "value": "Always restart the host application after modifying plugin configurations to trigger a reload.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179330157,
+    "lastUsedAt": 1773179330157,
+    "usageCount": 0
+  },
+  {
+    "id": "25073c6d-648b-49ac-9d23-818a00f9c4b2",
+    "key": "multi-source-debugging",
+    "value": "Correlate application logs with external service connection status to isolate connectivity failures.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179330170,
+    "lastUsedAt": 1773179330170,
+    "usageCount": 0
+  },
+  {
+    "id": "808e4780-ce27-4648-b4eb-77c4c7ce32c0",
+    "key": "config-location-awareness",
+    "value": "Verify configuration files across both application-specific directories (e.g., ~/.config/opencode/) and shell environment files (e.g., ~/.zshrc) when troubleshooting plugin authentication.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启 可能需要使用qqbot_pair进行再次配对",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179558068,
+    "lastUsedAt": 1773179680550,
+    "usageCount": 2
+  },
+  {
+    "id": "6ee7e100-1cbf-488f-9d32-2013b85ca946",
+    "key": "plugin-repair-strategy",
+    "value": "If a bot plugin fails after a restart, re-execute the specific pairing command (e.g., qqbot_pair) instead of solely relying on application restarts to refresh connections.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启 可能需要使用qqbot_pair进行再次配对",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179558090,
+    "lastUsedAt": 1773179680538,
+    "usageCount": 3
+  },
+  {
+    "id": "10435610-1293-4e19-80da-8fb76606f671",
+    "key": "multi-layer-debugging",
+    "value": "Diagnose plugin issues by systematically checking plugin runtime status, application logs, and external gateway connection states.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启 可能需要使用qqbot_pair进行再次配对",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179558110,
+    "lastUsedAt": 1773179558110,
+    "usageCount": 0
+  },
+  {
+    "id": "383bf9c4-b28d-4c79-adaa-09a78afce4e9",
+    "key": "config-file-locations",
+    "value": "Document plugin configuration paths like ~/.config/opencode/opencode.json and shell configs for quick access during debugging.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启 可能需要使用qqbot_pair进行再次配对 在~/.zshrc改成open进行测试 改成Open还是不行，请恢复修改",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179789142,
+    "lastUsedAt": 1773179789142,
+    "usageCount": 0
+  },
+  {
+    "id": "570750b1-e572-4a14-b4ca-8605dcfda380",
+    "key": "bot-plugin-troubleshooting",
+    "value": "When a bot plugin fails, check service logs and gateway connection status, and attempt re-pairing if authentication is suspected.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启 可能需要使用qqbot_pair进行再次配对 在~/.zshrc改成open进行测试 改成Open还是不行，请恢复修改",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179789173,
+    "lastUsedAt": 1773179789173,
+    "usageCount": 0
+  },
+  {
+    "id": "150c8731-99bc-49c7-b638-d45e5e90c73d",
+    "key": "revert-test-changes",
+    "value": "Always revert temporary configuration modifications made during testing, such as edits to .zshrc, to prevent unintended side effects.",
+    "context": "检查plugin-qqbot插件是否正常 检查plugin-qqbot是否在运行 配置文件在 ~/.config/opencode/opencode.json，启动时会自动加载plugin-qqbot插件，但现在不可用 查看opencode 日志和检查 QQ Bot 网关连接状态 和qq bot相关验证配置在~/.zshrc opencode已重启 可能需要使用qqbot_pair进行再次配对 在~/.zshrc改成open进行测试 改成Open还是不行，请恢复修改",
+    "sessionIDs": [
+      "ses_326523334ffeI0jlvRdvz4w62v"
+    ],
+    "createdAt": 1773179789194,
+    "lastUsedAt": 1773179789194,
+    "usageCount": 0
+  },
+  {
+    "id": "5726e1c0-8b8b-43b5-a5c0-0f62df676da6",
+    "key": "public-ip-query-method",
+    "value": "Use external APIs via curl in bash to accurately retrieve the public IP address instead of relying on local network interface configurations.",
+    "context": "检查本机公网地址",
+    "sessionIDs": [
+      "ses_326367c2fffeDRVFJs6C0LVuVO"
+    ],
+    "createdAt": 1773180482855,
+    "lastUsedAt": 1773180482855,
+    "usageCount": 0
+  },
+  {
+    "id": "6da6a9be-6db7-439f-aac1-5b9cc39176d9",
+    "key": "skill-and-bash-integration",
+    "value": "Combine predefined skills with direct bash commands to balance automation efficiency with low-level diagnostic control.",
+    "context": "检查本机公网地址",
+    "sessionIDs": [
+      "ses_326367c2fffeDRVFJs6C0LVuVO"
+    ],
+    "createdAt": 1773180482889,
+    "lastUsedAt": 1773180482889,
     "usageCount": 0
   }
 ]

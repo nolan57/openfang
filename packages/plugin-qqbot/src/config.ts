@@ -67,6 +67,7 @@ export function loadConfig(input: PluginInput): QQBotPluginConfig {
     responseMode: (Bun.env.QQBOT_RESPONSE_MODE as "blocking" | "streaming") || "streaming",
     maxReconnectAttempts: parseInt(Bun.env.QQBOT_MAX_RECONNECT_ATTEMPTS || "10", 10),
     maxChunkSize: parseInt(Bun.env.QQBOT_MAX_CHUNK_SIZE || "1500", 10),
+    sandbox: Bun.env.QQBOT_SANDBOX === "true",
   }
 
   const validation = validateConfig(config)
