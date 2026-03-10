@@ -1,0 +1,76 @@
+{
+  "version": "7",
+  "engine": "sqlite",
+  "tables": {
+    "collab_agents": {
+      "name": "collab_agents",
+      "columns": [
+        { "name": "id", "type": "text", "primary": true },
+        { "name": "name", "type": "text", "notnull": true },
+        { "name": "type", "type": "text", "notnull": true },
+        { "name": "role", "type": "text", "notnull": true },
+        { "name": "state", "type": "text", "notnull": true, "default": "idle" },
+        { "name": "capabilities", "type": "text", "notnull": true },
+        { "name": "config", "type": "text", "notnull": true },
+        { "name": "created_at", "type": "integer", "notnull": true },
+        { "name": "last_active_at", "type": "integer", "notnull": true }
+      ],
+      "indexes": [
+        { "name": "idx_collab_agents_type", "columns": ["type"] },
+        { "name": "idx_collab_agents_role", "columns": ["role"] },
+        { "name": "idx_collab_agents_state", "columns": ["state"] }
+      ]
+    },
+    "collab_tasks": {
+      "name": "collab_tasks",
+      "columns": [
+        { "name": "id", "type": "text", "primary": true },
+        { "name": "agent_id", "type": "text", "notnull": true },
+        { "name": "action", "type": "text", "notnull": true },
+        { "name": "payload", "type": "text", "notnull": true },
+        { "name": "requirements", "type": "text", "notnull": true },
+        { "name": "priority", "type": "text", "notnull": true, "default": "normal" },
+        { "name": "timeout", "type": "integer" },
+        { "name": "dependencies", "type": "text" },
+        { "name": "status", "type": "text", "notnull": true, "default": "pending" },
+        { "name": "result", "type": "text" },
+        { "name": "error", "type": "text" },
+        { "name": "created_at", "type": "integer", "notnull": true },
+        { "name": "started_at", "type": "integer" },
+        { "name": "completed_at", "type": "integer" }
+      ],
+      "indexes": [
+        { "name": "idx_collab_tasks_agent", "columns": ["agent_id"] },
+        { "name": "idx_collab_tasks_status", "columns": ["status"] }
+      ]
+    },
+    "collab_messages": {
+      "name": "collab_messages",
+      "columns": [
+        { "name": "id", "type": "text", "primary": true },
+        { "name": "type", "type": "text", "notnull": true },
+        { "name": "from_agent", "type": "text", "notnull": true },
+        { "name": "to_agent", "type": "text" },
+        { "name": "content", "type": "text", "notnull": true },
+        { "name": "timestamp", "type": "integer", "notnull": true }
+      ],
+      "indexes": [
+        { "name": "idx_collab_messages_from", "columns": ["from_agent"] },
+        { "name": "idx_collab_messages_to", "columns": ["to_agent"] },
+        { "name": "idx_collab_messages_type", "columns": ["type"] }
+      ]
+    },
+    "collab_sessions": {
+      "name": "collab_sessions",
+      "columns": [
+        { "name": "id", "type": "text", "primary": true },
+        { "name": "name", "type": "text", "notnull": true },
+        { "name": "agent_ids", "type": "text", "notnull": true },
+        { "name": "context_summary", "type": "text" },
+        { "name": "created_at", "type": "integer", "notnull": true },
+        { "name": "expires_at", "type": "integer" }
+      ],
+      "indexes": [{ "name": "idx_collab_sessions_expires", "columns": ["expires_at"] }]
+    }
+  }
+}

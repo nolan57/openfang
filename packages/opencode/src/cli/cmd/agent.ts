@@ -4,6 +4,7 @@ import { UI } from "../ui"
 import { Global } from "../../global"
 import { Agent } from "../../agent/agent"
 import { Provider } from "../../provider/provider"
+import { Registry, Coordinator } from "../../collab"
 import path from "path"
 import fs from "fs/promises"
 import { Filesystem } from "../../util/filesystem"
@@ -252,6 +253,121 @@ const AgentListCommand = cmd({
 export const AgentCommand = cmd({
   command: "agent",
   describe: "manage agents",
-  builder: (yargs) => yargs.command(AgentCreateCommand).command(AgentListCommand).demandCommand(),
+  builder: (yargs) =>
+    yargs.command(AgentCreateCommand).command(AgentListCommand).command(CollabAgentCommand).demandCommand(),
+  async handler() {},
+})
+
+const CollabListCommand = cmd({
+  command: "list",
+  describe: "list collaborative agents",
+  async handler() {
+    const agents = await Registry.list()
+    if (agents.length === 0) {
+      console.log("No collaborative agents registered")
+      return
+    }
+    for (const agent of agents) {
+      console.log(`${agent.name} [${agent.type}] - ${agent.state}`)
+      console.log(`  ID: ${agent.id}`)
+      console.log(`  Role: ${agent.role}`)
+      console.log(`  Capabilities: ${agent.capabilities.join(", ")}`)
+      console.log()
+    }
+  },
+})
+
+const CollabAddCommand = cmd({
+  command: "add <name>",
+  describe: "register a new collaborative agent",
+  builder: (yargs: Argv) =>
+    yargs
+      .option("type", {
+        type: "string",
+        describe: "agent type",
+        choices: ["build", "review", "test", "explore", "general", "custom"] as const,
+        default: "general",
+      })
+      .option("role", {
+        type: "string",
+        describe: "agent role",
+        choices: ["coordinator", "worker", "specialist"] as const,
+        default: "worker",
+      })
+      .option("capabilities", {
+        type: "string",
+        describe: "comma-separated capabilities",
+      }),
+  async handler(args) {
+    const name = args.name as string
+    const type = args.type as "build" | "review" | "test" | "explore" | "general" | "custom"
+    const role = args.role as "coordinator" | "worker" | "specialist"
+    const capabilities = args.capabilities ? (args.capabilities as string).split(",") : []
+
+    await Registry.register({
+      id: crypto.randomUUID(),
+      name,
+      type,
+      role,
+      state: "idle",
+      capabilities,
+      config: {
+        model: { providerID: "openai", modelID: "gpt-4" },
+        tools: [],
+        permission: {},
+      },
+      createdAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
+    })
+
+    console.log(`Agent "${name}" registered successfully`)
+  },
+})
+
+const CollabRemoveCommand = cmd({
+  command: "remove <agentId>",
+  describe: "unregister a collaborative agent",
+  async handler(args) {
+    const agentId = args.agentId as string
+    await Registry.unregister(agentId)
+    console.log(`Agent "${agentId}" removed`)
+  },
+})
+
+const CollabStatusCommand = cmd({
+  command: "status [agentId]",
+  describe: "show agent status",
+  async handler(args) {
+    if (args.agentId) {
+      const agent = await Registry.get(args.agentId as string)
+      if (!agent) {
+        console.log("Agent not found")
+        return
+      }
+      console.log(`${agent.name} [${agent.type}] - ${agent.state}`)
+      console.log(`  ID: ${agent.id}`)
+      console.log(`  Role: ${agent.role}`)
+      console.log(`  Capabilities: ${agent.capabilities.join(", ")}`)
+      console.log(`  Last active: ${agent.lastActiveAt}`)
+    } else {
+      const agents = await Registry.list()
+      console.log(`Total agents: ${agents.length}`)
+      const idle = agents.filter((a) => a.state === "idle").length
+      const busy = agents.filter((a) => a.state === "busy").length
+      console.log(`  Idle: ${idle}, Busy: ${busy}`)
+    }
+  },
+})
+
+export const CollabAgentCommand = cmd({
+  command: "collab",
+  describe: "manage collaborative agents",
+  builder: (yargs) =>
+    yargs
+      .command(CollabListCommand)
+      .command(CollabAddCommand)
+      .command(CollabRemoveCommand)
+      .command(CollabStatusCommand)
+      .demandCommand(),
   async handler() {},
 })
