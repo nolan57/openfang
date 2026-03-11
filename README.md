@@ -3,43 +3,47 @@
 <p align="center">
   <a href="https://opencode.ai">
     <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo" width="200">
+      <source srcset="packages/identity/logo/opencode-dark.svg" media="(prefers-color-scheme: dark)">
+      <source srcset="packages/identity/logo/opencode-light.svg" media="(prefers-color-scheme: light)">
+      <img src="packages/identity/logo/opencode-light.svg" alt="OpenCode" width="200">
     </picture>
   </a>
 </p>
-<p align="center">The open source AI coding agent - Enhanced with <strong>self-evolving</strong> capabilities.</p>
+
 <p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/anomalyco/opencode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
+  <strong>The open-source AI coding agent with self-evolving capabilities.</strong>
+</p>
+
+<p align="center">
+  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord"></a>
+  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square"></a>
+  <a href="https://github.com/nolan57/opencodeclaw/actions/workflows/opencode.yml"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/nolan57/opencodeclaw/opencode.yml?style=flat-square"></a>
 </p>
 
 ---
 
-## The Unique Advantage: Self-Evolution & Long-Term Consistency
+## Overview
 
-OpenCode is not just another AI coding assistant. It is designed to **remember, learn, and improve** over time, establishing true long-term consistency across sessions, projects, and conversations.
+OpenCode is an AI coding agent designed to **remember, learn, and improve** over time. Unlike traditional AI assistants that start fresh each session, OpenCode builds persistent memory across sessions, enabling true long-term consistency and continuous self-improvement.
 
-### What Makes OpenCode Different?
+### Key Differentiators
 
-| Feature                    | Traditional AI Assistants    | OpenCode                                     |
-| -------------------------- | ---------------------------- | -------------------------------------------- |
-| **Session Memory**         | Lost after conversation ends | Permanent, searchable memories               |
-| **Pattern Learning**       | None                         | Auto-detects and preserves reusable patterns |
-| **Skill Development**      | Manual setup only            | Auto-generates skills from usage             |
-| **Failure Learning**       | Repeats same mistakes        | Negative memory prevents repeated failures   |
-| **Codebase Understanding** | Starts fresh each time       | Hierarchical memory of project structure     |
-| **Self-Improvement**       | None                         | Continuous prompt/skill/memory evolution     |
+| Feature | Traditional AI Assistants | OpenCode |
+|---------|--------------------------|----------|
+| **Session Memory** | Lost after conversation | Permanent, searchable |
+| **Pattern Learning** | None | Auto-detects reusable patterns |
+| **Skill Development** | Manual setup only | Auto-generates skills |
+| **Failure Learning** | Repeats mistakes | Negative memory prevents repetition |
+| **Project Understanding** | Starts fresh each time | Hierarchical code memory |
+| **Self-Improvement** | None | Continuous evolution |
 
 ---
 
-## Core Features
+## Features
 
 ### 🤖 Self-Evolving Agent System
 
-The heart of OpenCode's uniqueness - a three-layer evolution system:
+A three-layer evolution system that continuously improves:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -50,38 +54,29 @@ The heart of OpenCode's uniqueness - a three-layer evolution system:
 │  • Generates prompt improvements                            │
 │  • Stores optimized prompts for future use                  │
 ├─────────────────────────────────────────────────────────────┤
-│  Layer 2: Skill Dynamic Generation                          │
-│  • Detects reusable task patterns                           │
-│  • Auto-generates SKILL.md files                            │
+│  Layer 2: Skill Dynamic Generation                         │
+│  • Detects reusable task patterns                          │
+│  • Auto-generates SKILL.md files                           │
 │  • Requires approval before activation                     │
 ├─────────────────────────────────────────────────────────────┤
-│  Layer 3: Memory Enhancement                               │
+│  Layer 3: Memory Enhancement                                │
 │  • Extracts learnings from sessions                         │
-│  • Cross-session pattern recognition                        │
+│  • Cross-session pattern recognition                       │
 │  • Relevance-based memory retrieval                         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**What it does:**
+### 🧠 Three-Layer Memory Architecture
 
-- After each session, automatically reflects on success/failure
-- Identifies reusable patterns and generates new skills
-- Extracts memories that persist across sessions
-- Uses vector embeddings for semantic search
+- **Session Memory**: Ephemeral context for current session
+- **Evolution Memory**: Long-term skills, constraints, learned patterns
+- **Project Memory**: Knowledge graph with code entities and relationships
 
-### 🧠 Permanent Memory System
+### ⚠️ Negative Memory System
 
-- **Long-term consistency**: Memories persist across sessions
-- **Semantic search**: Vector-based similarity matching
-- **Multi-level**: Session, project, and global memory tiers
-- **Hierarchical Code Memory**: Understands project structure with module-level summaries
-
-### ⚠️ Negative Memory (Anti-Pattern Learning)
-
-The system that prevents repeated failures:
+Prevents repeated failures by tracking what didn't work:
 
 ```typescript
-// Records failures to avoid repeating them
 negativeMemory.recordFailure({
   failure_type: "install_failed",
   description: "npm install timeout",
@@ -90,26 +85,17 @@ negativeMemory.recordFailure({
 })
 ```
 
-- Tracks failed approaches (installation, skills, performance)
-- Increments severity on repeated failures
-- Blocks similar attempts above threshold
-- Provides actionable recommendations based on failure history
-
 ### 📚 Learning from External Sources
 
-Periodically learns from the web:
-
-- **Multi-source collection**: Web search, arXiv papers, GitHub
-- **Smart analysis**: Value scoring (0-100), tag extraction
-- **Auto-installation**: High-value items become skills
-- **Code suggestions**: Generates improvement proposals
+- Web search, arXiv papers, GitHub integration
+- Auto-scoring and tag extraction
+- High-value items become skills automatically
 
 ### 🔧 Skill System
 
-- **Reusable prompts**: SKILL.md format with metadata
-- **Auto-discovery**: Scans multiple directories
-- **Dynamic generation**: Creates skills from usage patterns
-- **Approval workflow**: Human-in-the-loop for new skills
+- SKILL.md format with metadata
+- Auto-discovery across multiple directories
+- Approval workflow for new skills
 
 ### 💻 Multi-Agent Architecture
 
@@ -120,23 +106,21 @@ Periodically learns from the web:
 
 ### 🌐 Plugin System
 
-Extensible integrations for communication platforms:
-
-- **QQ Bot**: Tencent QQ messaging
-- **Slack**: Workspace integration
-- **iMessage**: macOS support
-- **Custom**: Plugin SDK for any platform
+- QQ Bot (Tencent messaging)
+- Slack integration
+- iMessage support (macOS)
+- Plugin SDK for custom platforms
 
 ### 🎨 Multiple Interfaces
 
 - **TUI**: Rich terminal interface
-- **Desktop**: Native app (macOS/Windows/Linux)
+- **Desktop**: Native app (Tauri)
 - **Web**: Browser-based access
 - **Console**: Server management
 
 ### 🔌 Multi-Provider Support
 
-Works with 20+ AI providers:
+20+ AI providers including:
 
 - Anthropic (Claude)
 - OpenAI (GPT-4/4o)
@@ -154,7 +138,9 @@ Works with 20+ AI providers:
 curl -fsSL https://opencode.ai/install | bash
 
 # Package managers
-npm i -g opencode-ai@latest        # or bun/pnpm/yarn
+npm i -g opencode-ai@latest        # npm
+bun add -g opencode-ai@latest       # bun
+pnpm add -g opencode-ai@latest     # pnpm
 brew install anomalyco/tap/opencode # macOS/Linux
 scoop install opencode              # Windows
 ```
@@ -170,8 +156,16 @@ opencode "Create a REST API for user management"
 # Continue a conversation
 opencode -c
 
-# List available commands
-opencode --help
+# Start ACP server (Agent Client Protocol)
+opencode acp
+
+# List MCP servers
+opencode mcp list
+
+# Evolution commands
+opencode evolve list              # List skills
+opencode evolve status            # Show system status
+opencode evolve approve <id>       # Approve skill proposal
 ```
 
 ---
@@ -181,31 +175,34 @@ opencode --help
 ```
 packages/
 ├── opencode/           # Core CLI application
-├── plugin/            # Plugin SDK and system
-├── plugin-qqbot/      # QQ Bot plugin
-├── slack/             # Slack integration
-├── desktop/           # Desktop application
-├── web/               # Web interface
-├── console/           # Console app system
-├── app/               # Main application
-├── enterprise/        # Enterprise features
-├── ui/                # Shared UI components
-├── sdk/               # Client SDK
-└── util/              # Utilities
+├── app/               # Main SolidJS web application
+├── desktop/           # Tauri desktop application
+├── console/          # Console web application
+├── enterprise/       # Enterprise features
+├── ui/               # Shared UI components
+├── plugin/           # Plugin SDK
+├── plugin-qqbot/     # QQ Bot plugin
+├── slack/            # Slack integration
+├── sdk/              # JavaScript/TypeScript SDK
+├── function/         # Cloud functions
+├── util/             # Utilities
+├── identity/         # Logos and assets
+├── web/              # Documentation site
+└── containers/       # Docker configurations
 ```
 
 ---
 
-## Architecture Deep Dive
+## Architecture
 
-### Evolution Data Flow
+### Data Flow
 
 ```
 Session Complete
       │
       ▼
 ┌─────────────┐
-│  Integration│ ─── Extracts tool calls & success status
+│ Integration │ ─── Extracts tool calls & success status
 └─────────────┘
       │
       ▼
@@ -226,73 +223,88 @@ Semantic Search for Future Sessions
 
 ### Database Schema
 
-```
-Sessions
-  └─ Messages
-       └─ Parts (text, tool calls, reasoning)
-
-Knowledge Graph
-  └─ Nodes + Edges (relationships)
-
-Vector Memory
-  ├─ content    (general knowledge)
-  ├─ code       (codebase understanding)
-  ├─ constraint (rules, limits)
-  ├─ character (personality)
-  └─ scene     (context)
-
-Negative Memory
-  ├─ failure_type
-  ├─ severity
-  └─ blocked_items
-
-Evolution Store
-  ├─ prompts.json
-  ├─ skills.json
-  └─ memories.json
-```
+- **Sessions**: Messages, parts (text, tool calls, reasoning)
+- **Knowledge Graph**: Nodes + Edges (relationships)
+- **Vector Memory**: content, code, constraint, character, scene
+- **Negative Memory**: failure_type, severity, blocked_items
+- **Evolution Store**: prompts.json, skills.json, memories.json
 
 ---
 
 ## Configuration
 
-```json
+Create `opencode.jsonc` in your project:
+
+```jsonc
 {
   "model": "claude-sonnet-4-20250514",
   "agent": "build",
-  "learning": {
+  "mcp": {
+    "server-name": {
+      "type": "remote",
+      "url": "https://example.com/mcp"
+    }
+  },
+  "evolution": {
     "enabled": true,
-    "schedule": {
-      "cron": "0 10 * * 1,3,5",
-      "idle_check": true
-    },
-    "sources": ["search", "arxiv", "github"]
+    "directions": ["code quality", "performance optimization"],
+    "sources": ["web", "github"]
   }
 }
 ```
 
 ---
 
-## Documentation
-
-- [Self-Evolving Agent Framework](./packages/opencode/SELF_EVOLVING_AGENT.md)
-- [Memory System](./docs/memory-system-comparison.md)
-- [Code Indexer Skill](./packages/opencode/skills/code-indexer/SKILL.md)
-
----
-
-## Building from Source
+## Development
 
 ```bash
 # Install dependencies
 bun install
 
-# Build
-bun run build
+# Build all packages
+bun turbo build
+
+# Run tests
+bun test                    # From package directory
+bun test src/foo.test.ts    # Single file
+
+# Type checking
+bun typecheck               # Root or per package
 
 # Development
-bun run dev
+bun run dev                 # CLI
+bun run dev:desktop         # Desktop app
+bun run dev:web             # Web app
 ```
+
+---
+
+## Observability
+
+OpenCode includes an **X-Ray Mode** observability system for debugging:
+
+```bash
+cd deploy/observability
+docker-compose up -d
+```
+
+- Jaeger UI: http://localhost:16686
+- Grafana: http://localhost:3000
+
+Features:
+- Distributed tracing with OpenTelemetry
+- Data lineage tracking (trace memory origins)
+- Smart span truncation (prevent bloat)
+- Background task context propagation
+
+---
+
+## Documentation
+
+- [Architecture Specification](./SPEC.md)
+- [Self-Evolving Agent](./packages/opencode/src/evolution/README.md)
+- [Memory System](./docs/memory-system-comparison.md)
+- [X-Ray Mode Guide](./docs/x-ray-mode-observability-guide.md)
 
 ---
 
@@ -310,18 +322,16 @@ OpenCode focuses on **long-term consistency** and **self-improvement**:
 
 ### What models are supported?
 
-20+ providers including:
-
-- Anthropic (Claude)
-- OpenAI (GPT-4/4o)
-- Google (Gemini)
-- Azure OpenAI
-- Amazon Bedrock
-- OpenRouter
-- Local models via compatible APIs
+20+ providers including Anthropic, OpenAI, Google, Azure, Bedrock, and more via the SDK.
 
 ---
 
-**Community**: [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+## License
+
+MIT License - see [LICENSE](./LICENSE) for details.
+
+---
+
+**Community**: [Discord](https://discord.gg/opencode) | [X](https://x.com/opencode)
 
 <p align="center">Built with ❤️ by the OpenCode community</p>
