@@ -1,8 +1,8 @@
-import { Span, SpanStatusCode, context, trace } from "@opentelemetry/api"
-import { v4 as uuidv4 } from "uuid"
-import { Log } from "../util/log"
+import type { Span } from "@opentelemetry/api"
+import { SpanStatusCode, context, trace } from "@opentelemetry/api"
+import { Log } from "../util/log.js"
 import * as crypto from "crypto"
-import { observability, traceUtils } from "./init"
+import { observability, traceUtils } from "./init.js"
 
 const log = Log.create({ service: "observability.spans" })
 
@@ -179,7 +179,7 @@ export const criticSpans = {
       promptLength: number
     },
   ): void {
-    span.setName("agent.critic.evaluate")
+    span.updateName("agent.critic.evaluate")
     span.setAttribute("critic.type", options.criticType)
     span.setAttribute("target.module", options.targetModule)
     span.setAttribute("prompt.length", options.promptLength)
@@ -301,7 +301,7 @@ export const refactorSpans = {
       triggerSource: "scheduler" | "manual" | "critic"
     },
   ): void {
-    span.setName("agent.evolution.refactor")
+    span.updateName("agent.evolution.refactor")
     span.setAttribute("target.module", options.targetModule)
     span.setAttribute("target.path", options.targetPath)
     span.setAttribute("complexity.score", options.complexity)
@@ -358,7 +358,7 @@ export const sandboxSpans = {
       codeHash: string
     },
   ): void {
-    span.setName("agent.sandbox.execute")
+    span.updateName("agent.sandbox.execute")
     span.setAttribute("sandbox.id", options.sandboxId)
     span.setAttribute("sandbox.type", options.sandboxType)
     span.setAttribute("resource.cpu.limit", options.resourceLimits.cpu)
@@ -450,7 +450,7 @@ export const memorySpans = {
       taskId?: string
     },
   ): void {
-    span.setName("agent.memory.operation")
+    span.updateName("agent.memory.operation")
     span.setAttribute("operation.type", options.operationType)
     span.setAttribute("memory.type", options.memoryType)
     span.setAttribute("vector.space", options.vectorSpace)
@@ -488,7 +488,7 @@ export const evolutionSpans = {
       phase: "collect" | "analyze" | "plan" | "execute" | "validate"
     },
   ): void {
-    span.setName("agent.evolution")
+    span.updateName("agent.evolution")
     span.setAttribute("evolution.taskId", options.taskId)
     span.setAttribute("evolution.phase", options.phase)
     if (options.parentTaskId) span.setAttribute("evolution.parentTaskId", options.parentTaskId)
@@ -535,7 +535,7 @@ export const spanUtils = {
   recordException(span: Span, error: Error): void {
     span.setStatus({ code: SpanStatusCode.ERROR, message: error.message })
     span.recordException(error)
-    log.error("span_exception", { spanName: span.name, error: error.message, stack: error.stack })
+    log.error("span_exception", { error: error.message, stack: error.stack })
   },
 
   addUserContext(span: Span, userId: string, sessionId: string): void {

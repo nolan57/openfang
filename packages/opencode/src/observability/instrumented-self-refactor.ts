@@ -1,4 +1,4 @@
-import { Span, SpanStatusCode, context, trace } from "@opentelemetry/api"
+import { type Span, SpanStatusCode, context, trace } from "@opentelemetry/api"
 import { Log } from "../util/log"
 import { Snapshot } from "../snapshot"
 import {
@@ -184,8 +184,8 @@ export class InstrumentedSelfRefactor {
   }
 
   private async analyzeComplexity(targetPath: string): Promise<number> {
-    const { FileSystem } = await import("../util/filesystem")
-    const content = await FileSystem.readText(targetPath)
+    const { Filesystem } = await import("../util/filesystem")
+    const content = await Filesystem.readText(targetPath)
 
     const lines = content.split("\n").length
     const functions = (content.match(/function\s+\w+|const\s+\w+\s*=\s*(?:async\s*)?\(/g) || []).length

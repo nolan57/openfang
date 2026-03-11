@@ -9,15 +9,27 @@
       "code generation",
       "agent systems",
       "Self-evolution",
-      "Long-range consistency"
+      "Long-range consistency",
+      "Code Generation",
+      "Agent Systems",
+      "RAG",
+      "Function Calling",
+      "Multi-agent Collaboration",
+      "Memory Systems",
+      "Benchmark Evaluation",
+      "Self-improving",
+      "Context Management",
+      "Code Understanding",
+      "RLHF",
+      "DPO",
     ],
-    "sources": ["search", "arxiv", "github"],
+    "sources": ["search", "arxiv", "github", "pypi", "blogs"],
     "maxItemsPerRun": 10,
-    "cooldownHours": 24
+    "cooldownHours": 24,
   },
   "experimental": {
     "openTelemetry": true,
     "batch_tool": false,
-    "mcp_timeout": 60000
-  }
+    "mcp_timeout": 60000,
+  },
 }

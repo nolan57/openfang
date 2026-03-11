@@ -1,4 +1,4 @@
-import { Span, SpanStatusCode, context, trace } from "@opentelemetry/api"
+import { type Span, SpanStatusCode, context, trace } from "@opentelemetry/api"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
 import { Log } from "../util/log"
@@ -6,8 +6,8 @@ import {
   criticSpans,
   spanUtils,
   SPAN_CONFIG,
-  type CriticSpanAttributes,
 } from "./spans"
+import type { CriticSpanAttributes } from "./spans"
 import { NamedError } from "@opencode-ai/util/error"
 
 const log = Log.create({ service: "critic.instrumented" })
@@ -89,8 +89,8 @@ Provide your evaluation in the following JSON format:
 }`
 
 export class InstrumentedCritic {
-  private config: CriticConfig
-  private tracer: ReturnType<typeof trace.getTracer>
+  protected config: CriticConfig
+  protected tracer: ReturnType<typeof trace.getTracer>
 
   constructor(config: Partial<CriticConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
@@ -219,11 +219,11 @@ export class InstrumentedCritic {
     return parts.join("\n\n") || "No additional context"
   }
 
-  private parseEvaluationResult(text: string): {
+  protected parseEvaluationResult(text: string): {
     score: number
     feedback: string
     risks: string[]
-    suggestions: Array<{ type: string; description: string; diff?: string }>
+    suggestions: Array<{ type: "code" | "test" | "docs"; description: string; diff?: string }>
     reasoningSteps?: string[]
   } {
     try {
@@ -233,12 +233,21 @@ export class InstrumentedCritic {
       }
 
       const parsed = JSON.parse(jsonMatch[0])
+      const validTypes = ["code", "test", "docs"] as const
 
       return {
         score: typeof parsed.score === "number" ? Math.min(10, Math.max(0, parsed.score)) : 5,
         feedback: parsed.feedback || "",
         risks: Array.isArray(parsed.risks) ? parsed.risks : [],
-        suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+        suggestions: Array.isArray(parsed.suggestions)
+          ? parsed.suggestions.map((s: { type: string; description: string; diff?: string }) => ({
+              type: validTypes.includes(s.type as typeof validTypes[number])
+                ? (s.type as "code" | "test" | "docs")
+                : "code",
+              description: s.description || "",
+              diff: s.diff,
+            }))
+          : [],
         reasoningSteps: Array.isArray(parsed.reasoningSteps) ? parsed.reasoningSteps : undefined,
       }
     } catch (error) {
@@ -253,7 +262,7 @@ export class InstrumentedCritic {
     }
   }
 
-  private determineDecision(score: number, threshold: number): "PASS" | "FAIL" | "MODIFY" {
+  protected determineDecision(score: number, threshold: number): "PASS" | "FAIL" | "MODIFY" {
     if (score >= threshold) {
       return "PASS"
     } else if (score >= threshold * 0.5) {

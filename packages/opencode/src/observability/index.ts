@@ -1,4 +1,5 @@
-export { observability, initObservability, traceUtils, type ObservabilityConfig } from "./init"
+export { observability, initObservability, traceUtils } from "./init"
+export type { ObservabilityConfig } from "./init"
 export * from "./spans"
 export {
   InstrumentedCritic,
@@ -31,8 +32,8 @@ export {
 } from "./instrumented-hierarchical-memory"
 export {
   SchedulerContextManager,
-  SchedulerTaskContext,
   createSchedulerMiddleware,
   createChildTraceFromParent,
   executeWithTracedBackgroundTask,
 } from "./scheduler-context-fix"
+export type { SchedulerTaskContext } from "./scheduler-context-fix"

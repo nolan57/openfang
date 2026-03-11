@@ -1,4 +1,4 @@
-import { Span, SpanStatusCode, trace, context } from "@opentelemetry/api"
+import { type Span, SpanStatusCode, trace, context } from "@opentelemetry/api"
 import { Log } from "../util/log"
 import {
   memorySpans,
@@ -48,8 +48,8 @@ export interface HierarchicalMemoryOutput {
     value: string
     similarity: number
     lineage?: {
-      sourceSpanId: string
-      sourceTraceId: string
+      sourceSpanId?: string
+      sourceTraceId?: string
     }
   }>
   memory?: {
@@ -116,7 +116,7 @@ export class InstrumentedHierarchicalMemory {
         node_type: input.memoryType,
         node_id: `memory_${Date.now()}`,
         entity_title: `${input.key}: ${input.value}`,
-        vector_type: input.vectorSpace,
+        vector_type: input.vectorSpace as import("../learning/vector-store").VectorType,
         metadata: {
           key: input.key,
           value: input.value,
@@ -183,7 +183,11 @@ export class InstrumentedHierarchicalMemory {
     try {
       const vs = await this.getVectorStore()
 
-      const results = await vs.searchByNodeId(input.memoryId)
+      // Use search with the memoryId as query since searchByNodeId doesn't exist
+      const results = await vs.search(input.memoryId, {
+        limit: 1,
+        node_type: input.memoryType,
+      })
 
       const sourceSpanIds = results
         .map((r) => (r.metadata as Record<string, unknown>)?.source_span_id as string | undefined)
@@ -203,9 +207,9 @@ export class InstrumentedHierarchicalMemory {
         success: true,
         results: results.map((r) => ({
           id: r.node_id,
-          key: (r.metadata as any)?.key || "",
-          value: (r.metadata as any)?.value || "",
-          similarity: r.score || 0,
+          key: (r.metadata as Record<string, unknown>)?.key as string || "",
+          value: (r.metadata as Record<string, unknown>)?.value as string || "",
+          similarity: r.similarity || 0,
           lineage: {
             sourceSpanId: (r.metadata as Record<string, unknown>)?.source_span_id as string | undefined,
             sourceTraceId: (r.metadata as Record<string, unknown>)?.source_trace_id as string | undefined,
@@ -251,9 +255,7 @@ export class InstrumentedHierarchicalMemory {
 
       const results = await vs.search(input.query, {
         limit: input.limit || 10,
-        filters: {
-          node_type: input.memoryType,
-        },
+        node_type: input.memoryType,
       })
 
       const latencyMs = Date.now() - startTime
@@ -286,9 +288,9 @@ export class InstrumentedHierarchicalMemory {
         success: true,
         results: results.map((r) => ({
           id: r.node_id,
-          key: (r.metadata as any)?.key || r.entity_title,
-          value: (r.metadata as any)?.value || "",
-          similarity: r.score || 0,
+          key: (r.metadata as Record<string, unknown>)?.key as string || "",
+          value: (r.metadata as Record<string, unknown>)?.value as string || "",
+          similarity: r.similarity || 0,
           lineage: {
             sourceSpanId: (r.metadata as Record<string, unknown>)?.source_span_id as string | undefined,
             sourceTraceId: (r.metadata as Record<string, unknown>)?.source_trace_id as string | undefined,
@@ -326,7 +328,7 @@ export class InstrumentedHierarchicalMemory {
 
     try {
       const { generateText } = await import("ai")
-      const { Provider } = await import("../../provider/provider")
+      const { Provider } = await import("../provider/provider")
 
       const model = await Provider.getModel("openai", "gpt-4")
       const languageModel = await Provider.getLanguage(model)

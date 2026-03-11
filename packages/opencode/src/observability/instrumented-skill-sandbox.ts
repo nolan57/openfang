@@ -1,4 +1,5 @@
-import { Span, SpanStatusCode, trace } from "@opentelemetry/api"
+import type { Span } from "@opentelemetry/api"
+import { SpanStatusCode, trace } from "@opentelemetry/api"
 import { Log } from "../util/log"
 import {
   sandboxSpans,
@@ -117,10 +118,10 @@ export class InstrumentedSkillSandbox {
             success: false,
             exitCode: -1,
             stdout: "",
-            stderr: interception.reason,
+            stderr: interception.reason || "Security interception",
             executionTime: Date.now() - startTime,
             securityIntercepted: true,
-            interceptReason,
+            ...(interceptReason && { interceptReason }),
           }
         }
       }

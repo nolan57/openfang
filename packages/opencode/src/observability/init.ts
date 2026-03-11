@@ -1,7 +1,7 @@
 import { NodeSDK } from "@opentelemetry/sdk-node"
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
-import { BatchSpanProcessor, ParentBasedSampler, TraceIdRatioBased, AlwaysOnSampler, AlwaysOffSampler } from "@opentelemetry/sdk-trace-base"
+import { BatchSpanProcessor, ParentBasedSampler, TraceIdRatioBasedSampler, AlwaysOnSampler, AlwaysOffSampler } from "@opentelemetry/sdk-trace-base"
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http"
 import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express"
 import { RuntimeNodeInstrumentation } from "@opentelemetry/instrumentation-runtime-node"
@@ -11,11 +11,14 @@ import {
   W3CTraceContextPropagator,
   W3CBaggagePropagator,
 } from "@opentelemetry/core"
-import { trace, context, Span, SpanStatusCode, diag, DiagLogLevel, propagation } from "@opentelemetry/api"
+import { trace, context, type Span, SpanStatusCode, diag, DiagLogLevel, propagation } from "@opentelemetry/api"
 import { Resource } from "@opentelemetry/resources"
-import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions"
 import * as os from "os"
 import { Log } from "../util/log.js"
+
+// Semantic convention constants
+const ATTR_SERVICE_NAME = "service.name"
+const ATTR_SERVICE_VERSION = "service.version"
 
 const log = Log.create({ service: "observability" })
 
@@ -106,10 +109,9 @@ class ObservabilitySDK {
       }),
       spanProcessor,
       instrumentations,
-      textMapPropagator: new CompositePropagator([
-        new W3CTraceContextPropagator(),
-        new W3CBaggagePropagator(),
-      ]),
+      textMapPropagator: new CompositePropagator({
+        propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()],
+      }),
       sampler: this.createSampler(),
     })
 
@@ -142,7 +144,7 @@ class ObservabilitySDK {
     }
 
     return new ParentBasedSampler({
-      root: new TraceIdRatioBased(this.config.sampleRate),
+      root: new TraceIdRatioBasedSampler(this.config.sampleRate),
       remoteParentSampled: new AlwaysOnSampler(),
       remoteParentNotSampled: new AlwaysOffSampler(),
       localParentSampled: new AlwaysOnSampler(),
@@ -181,7 +183,7 @@ export function initObservability(config?: Partial<ObservabilityConfig>): void {
   observability.start()
 }
 
-export { ObservabilitySDK, type ObservabilityConfig }
+export { ObservabilitySDK }
 
 export const traceUtils = {
   getSpan(spanName: string): Span | undefined {
@@ -248,7 +250,9 @@ export const traceUtils = {
   setBaggage(key: string, value: string): void {
     const currentBaggage = propagation.getBaggage(context.active()) || propagation.createBaggage()
     const newBaggage = currentBaggage.setEntry(key, { value })
-    const propagator = new CompositePropagator([new W3CTraceContextPropagator(), new W3CBaggagePropagator()])
+    const propagator = new CompositePropagator({
+      propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()],
+    })
     propagation.setGlobalPropagator(propagator)
     context.with(propagation.setBaggage(context.active(), newBaggage), () => {})
   },
@@ -258,7 +262,7 @@ export const traceUtils = {
     return baggage?.getEntry(key)?.value
   },
 
-  extractContext(carrier: Record<string, string>): typeof context {
+  extractContext(carrier: Record<string, string>): ReturnType<typeof context.active> {
     const propagator = new W3CTraceContextPropagator()
     return propagation.extract(context.active(), carrier)
   },
@@ -335,7 +339,7 @@ export const traceUtils = {
     const tracer = observability.getTracer()
     const parentSpan = trace.getSpan(context.active())
 
-    return tracer.startActiveSpan(name, { links: parentSpan ? [{ spanContext: parentSpan.spanContext() }] : [] }, async (span) => {
+    return tracer.startActiveSpan(name, async (span) => {
       try {
         if (parentSpan) {
           span.setAttribute("background.task.parent_span_id", parentSpan.spanContext().spanId)
