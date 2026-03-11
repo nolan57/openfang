@@ -1,13 +1,13 @@
 import { Span, SpanStatusCode, context, trace } from "@opentelemetry/api"
 import { generateText } from "ai"
-import { Provider } from "../../provider/provider"
-import { Log } from "../../util/log"
+import { Provider } from "../provider/provider"
+import { Log } from "../util/log"
 import {
   criticSpans,
   spanUtils,
   SPAN_CONFIG,
   type CriticSpanAttributes,
-} from "../spans"
+} from "./spans"
 import { NamedError } from "@opencode-ai/util/error"
 
 const log = Log.create({ service: "critic.instrumented" })

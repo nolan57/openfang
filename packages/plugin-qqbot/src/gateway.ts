@@ -1,10 +1,7 @@
-import type { OpencodeClient } from "@opencode-ai/sdk"
-import type { QQBotPluginConfig, MessageContext, GatewayOptions, SessionInfo } from "./types.js"
+import type { ResolvedQQBotAccount, GatewayOptions, SessionInfo, MessageContext } from "./types.js"
 import { getAccessToken, getGatewayUrl, sendC2CMessage, sendGroupMessage, sendChannelMessage } from "./api.js"
 
 declare const WebSocket: any
-
-const SESSIONS_FILE = "sessions.json"
 
 const MESSAGE_REPLY_LIMIT = 4
 const MESSAGE_REPLY_TTL = 60 * 60 * 1000
@@ -54,14 +51,15 @@ function recordMessageReply(messageId: string): void {
 }
 
 export class QQBotGateway {
-  private config: QQBotPluginConfig
-  private client: OpencodeClient
+  private account: ResolvedQQBotAccount
   private directory: string
   private sessionsPath: string
+  private sessions: Map<string, SessionInfo> = new Map()
+  private client: any
   private defaultAgent: string
   private maxChunkSize: number
   private onStatus: GatewayOptions["onStatus"]
-  private pluginState: GatewayOptions["state"]
+  private onMessage?: GatewayOptions["onMessage"]
   private ws: any = null
   private heartbeatInterval: any = null
   private reconnectAttempts = 0
@@ -77,15 +75,15 @@ export class QQBotGateway {
   private sessionsLoaded = false
 
   constructor(options: GatewayOptions) {
-    this.config = options.config
-    this.client = options.client
+    this.account = options.account
     this.directory = options.directory
     this.sessionsPath = options.sessionsPath
-    this.defaultAgent = options.defaultAgent
-    this.maxChunkSize = options.maxChunkSize
+    this.client = options.client
+    this.defaultAgent = options.defaultAgent || "build"
+    this.maxChunkSize = options.maxChunkSize || 1500
     this.onStatus = options.onStatus
-    this.pluginState = options.state
-    this.maxReconnectAttempts = options.config.maxReconnectAttempts || 10
+    this.onMessage = options.onMessage
+    this.maxReconnectAttempts = 10
   }
 
   private getSessionKey(ctx: MessageContext): string {
@@ -111,9 +109,9 @@ export class QQBotGateway {
       if (await file.exists()) {
         const data = await file.json()
         for (const [key, value] of Object.entries(data)) {
-          this.pluginState.sessions.set(key, value as SessionInfo)
+          this.sessions.set(key, value as SessionInfo)
         }
-        this.onStatus.message(`Loaded ${this.pluginState.sessions.size} sessions`)
+        this.onStatus.message(`Loaded ${this.sessions.size} sessions`)
       }
     } catch (err) {
       this.onStatus.error(`Failed to load sessions: ${err}`)
@@ -125,7 +123,7 @@ export class QQBotGateway {
       const dir = this.sessionsPath.replace(/\/[^/]+$/, "")
       await Bun.$`mkdir -p ${dir}`.quiet()
       const data: Record<string, SessionInfo> = {}
-      for (const [key, value] of this.pluginState.sessions) {
+      for (const [key, value] of this.sessions) {
         data[key] = value
       }
       await Bun.write(this.sessionsPath, JSON.stringify(data, null, 2))
@@ -135,7 +133,7 @@ export class QQBotGateway {
   }
 
   async start(): Promise<void> {
-    if (!this.config.enabled) {
+    if (!this.account.enabled) {
       this.onStatus.message("QQ Bot plugin disabled")
       return
     }
@@ -154,11 +152,11 @@ export class QQBotGateway {
 
     try {
       this.onStatus.message("Getting access token...")
-      this.accessToken = await getAccessToken(this.config)
+      this.accessToken = await getAccessToken(this.account)
       this.onStatus.message(`Access token obtained (${this.accessToken.slice(0, 10)}...)`)
 
       this.onStatus.message("Getting gateway URL...")
-      const gatewayUrl = await getGatewayUrl(this.config)
+      const gatewayUrl = await getGatewayUrl(this.account)
 
       this.onStatus.message("Connecting to gateway...")
       await this.connect(gatewayUrl)
@@ -477,7 +475,7 @@ export class QQBotGateway {
       if (content.startsWith("#new") || content.startsWith("/new")) {
         const query = content.replace(/^#new\s*/, "").replace(/^\/new\s*/, "")
         if (query) {
-          this.pluginState.sessions.delete(sessionKey)
+          this.sessions.delete(sessionKey)
           await this.saveSessions()
           await this.doProcessMessage(ctx, query)
         } else {
@@ -485,7 +483,7 @@ export class QQBotGateway {
             query: { directory: this.directory },
           })
           const sessionId = sessionResult.data.id
-          this.pluginState.sessions.set(sessionKey, { sessionId, createdAt: Date.now() })
+          this.sessions.set(sessionKey, { sessionId, createdAt: Date.now() })
           await this.saveSessions()
           await this.sendReply(ctx, "New session created. What would you like to discuss?")
         }
@@ -494,8 +492,8 @@ export class QQBotGateway {
 
       if (content.startsWith("#switch ")) {
         const sessionId = content.slice(8).trim()
-        const oldSession = this.pluginState.sessions.get(sessionKey)
-        this.pluginState.sessions.set(sessionKey, { sessionId, createdAt: Date.now() })
+        const oldSession = this.sessions.get(sessionKey)
+        this.sessions.set(sessionKey, { sessionId, createdAt: Date.now() })
         await this.saveSessions()
         await this.sendReply(ctx, `Switched to session: ${sessionId}`)
         return
@@ -503,7 +501,7 @@ export class QQBotGateway {
 
       if (content === "#list") {
         const sessions: string[] = []
-        for (const [key, info] of this.pluginState.sessions) {
+        for (const [key, info] of this.sessions) {
           sessions.push(`${key}: ${info.sessionId}`)
         }
         await this.sendReply(ctx, sessions.length > 0 ? sessions.join("\n") : "No active sessions")
@@ -511,7 +509,7 @@ export class QQBotGateway {
       }
 
       if (content === "#clear") {
-        this.pluginState.sessions.delete(sessionKey)
+        this.sessions.delete(sessionKey)
         await this.saveSessions()
         await this.sendReply(ctx, "Session cleared. Send a message to start a new conversation.")
         return
@@ -552,7 +550,7 @@ export class QQBotGateway {
 
     let currentSessionId: string | undefined
     const sessionKey = this.getSessionKey(ctx)
-    const sessionInfo = this.pluginState.sessions.get(sessionKey)
+    const sessionInfo = this.sessions.get(sessionKey)
     currentSessionId = sessionInfo?.sessionId
 
     if (!currentSessionId) {
@@ -561,7 +559,7 @@ export class QQBotGateway {
           query: { directory: this.directory },
         })
         currentSessionId = sessionResult.data.id as string
-        this.pluginState.sessions.set(sessionKey, { sessionId: currentSessionId, createdAt: Date.now() })
+        this.sessions.set(sessionKey, { sessionId: currentSessionId, createdAt: Date.now() })
         await this.saveSessions()
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
@@ -654,11 +652,11 @@ export class QQBotGateway {
 
     for (const chunk of chunks) {
       if (ctx.type === "C2C") {
-        await sendC2CMessage(this.config, ctx.senderId, chunk, replyToId ?? undefined)
+        await sendC2CMessage(this.account, ctx.senderId, chunk, replyToId ?? undefined)
       } else if (ctx.type === "GROUP") {
-        await sendGroupMessage(this.config, ctx.groupId!, chunk, replyToId ?? undefined)
+        await sendGroupMessage(this.account, ctx.groupId!, chunk, replyToId ?? undefined)
       } else if (ctx.type === "CHANNEL") {
-        await sendChannelMessage(this.config, ctx.channelId!, chunk, replyToId ?? undefined)
+        await sendChannelMessage(this.account, ctx.channelId!, chunk, replyToId ?? undefined)
       }
       if (replyToId) {
         recordMessageReply(replyToId)
@@ -669,13 +667,13 @@ export class QQBotGateway {
   private async sendToTarget(target: string, message: string): Promise<void> {
     if (target.startsWith("user:")) {
       const userId = target.slice(5)
-      await sendC2CMessage(this.config, userId, message)
+      await sendC2CMessage(this.account, userId, message)
     } else if (target.startsWith("group:")) {
       const groupId = target.slice(6)
-      await sendGroupMessage(this.config, groupId, message)
+      await sendGroupMessage(this.account, groupId, message)
     } else if (target.startsWith("channel:")) {
       const channelId = target.slice(8)
-      await sendChannelMessage(this.config, channelId, message)
+      await sendChannelMessage(this.account, channelId, message)
     }
   }
 
@@ -697,9 +695,10 @@ export class QQBotGateway {
   }
 
   private isAllowed(userId: string, type: "C2C" | "GROUP"): boolean {
-    if (this.config.allowFrom === "*") return true
+    const allowFrom = this.account.config.allowFrom
+    if (!allowFrom || allowFrom.length === 0 || allowFrom.includes("*")) return true
 
-    const policy = type === "C2C" ? this.config.dmPolicy : this.config.groupPolicy
+    const policy = type === "C2C" ? this.account.config.dmPolicy : this.account.config.groupPolicy
 
     switch (policy) {
       case "open":
@@ -707,10 +706,9 @@ export class QQBotGateway {
       case "disabled":
         return false
       case "allowlist":
-        return this.pluginState.allowedUsers.has(userId) || this.pluginState.allowedGroups.has(userId)
       case "pairing":
       default:
-        return this.pluginState.pendingPairing.has(userId)
+        return allowFrom.includes(userId)
     }
   }
 

@@ -82,6 +82,8 @@
     "@opencode-ai/plugin": "workspace:*",
     "@opencode-ai/script": "workspace:*",
     "@opencode-ai/sdk": "workspace:*",
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/sdk-node": "0.213.0",
     "ink": "6.8.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",

@@ -2935,6 +2935,7 @@
     "status": "draft"
   },
   {
+    "id": "33004899-621e-47f0-81bb-b82d939d96f1",
     "name": "auto-bash-task",
     "description": "Auto-generated skill for 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题",
     "content": "# 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读\n\n## Description\n\nAuto-generated skill for: 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with grep operations\n- Working with webfetch operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-10\n",
@@ -2944,8 +2945,128 @@
       "httpsbotqqqcomwiki"
     ],
     "sessionID": "ses_3267aae95ffeCUWCp86v2pFSZi",
-    "id": "33004899-621e-47f0-81bb-b82d939d96f1",
     "createdAt": 1773181506442,
+    "status": "draft"
+  },
+  {
+    "id": "b245dd92-7fcd-4802-9d64-8f2e93bbeac1",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 ",
+    "content": "# 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读\n\n## Description\n\nAuto-generated skill for: 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 阅读 https://docs.qq.com/doc/DS2FmdkJZZEJJWEFF?dver= 修复plugin-qqbot\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with grep operations\n- Working with webfetch operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-11\n",
+    "triggerPatterns": [
+      "pluginqqbot",
+      "skillip4",
+      "httpsbotqqqcomwiki",
+      "httpsdocsqqcomdocds2fmdkjzzejjweffdver"
+    ],
+    "sessionID": "ses_3267aae95ffeCUWCp86v2pFSZi",
+    "createdAt": 1773234618112,
+    "status": "draft"
+  },
+  {
+    "id": "33254327-9477-49d5-845d-7fea884f38be",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 ",
+    "content": "# 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读\n\n## Description\n\nAuto-generated skill for: 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 阅读 https://docs.qq.com/doc/DS2FmdkJZZEJJWEFF?dver= 修复plugin-qqbot 根据下面内容修复plugin-qqbot:[Pasted 原生 OpenClaw 安装插件 QQBot 插件\n安装插件\n●通过npm包安装【推荐】\nopenclaw plugins install @tencent-connect/openclaw-qqbot\n\n \n●通过源码安装\nQQ机器人openclaw插件官方仓库：https://github.com/tencent-connect/openclaw-qqbot \ngit clone https://github.com/tencent-connect/openclaw-qqbot.git\ncd openclaw-qqbot\nopenclaw plugins install .\n\n \n●确认是否安装成功，返回loaded表示安装成功，最后一列是版本号\nopenclaw plugins list | grep openclaw-qqbot\n\n\n\n配置密钥\n●【推荐】一键配置\nopenclaw channels add --channel qqbot --token \"AppID:AppSecret\"\n\n \n●注意：配置完成后需要重启openclaw后才生效\nopenclaw gateway restart\n\n \n插件升级\n插件迭代更新频繁，需要维持本地插件版本在最新才能用上最新的能力。如果是从其他渠道的qqbot插件想升级到官方插件，可以参考FAQ里的指引，如果之前没有装过其他渠道的qqbot插件，可以参考以下流程：\n升级区分源码安装和使用npm包安装。\n●通过npm包安装：\nopenclaw plugins update openclaw-qqbot\n\n\n●通过源码安装升级qqbot插件：\nqqbot插件源码里已经提供了升级脚本upgrade-and-run.sh，这个脚本会先备份现有qqbot通道配置，卸载旧版并安装当前目录下的新 qqbot 插件，按传入参数或已有配置恢复/设置机器人通道和 Markdown 开关，最后可选择重启openclaw网关并输出日志：\n升级命令如下：\ngit clone https://github.com/tencent-connect/openclaw-qqbot.git && cd openclaw-qqbot\nbash ./scripts/upgrade-and-run.sh\n\n说明：脚本执行到后面会让选择“后台重启（推荐）”或者“不启动”，一般选择后台启动，如果后台启动正常，最终会进入 openclaw logs --follow 的实时日志界面，持续打印OpenClaw运行日志，后面看到有日志持续输出代表已经正常启动了，不代表还没升级完，可以Ctrl+C关掉前台日志。\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with grep operations\n- Working with webfetch operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-11\n",
+    "triggerPatterns": [
+      "pluginqqbot",
+      "skillip4",
+      "httpsbotqqqcomwiki",
+      "httpsdocsqqcomdocds2fmdkjzzejjweffdver",
+      "pluginqqbotpasted"
+    ],
+    "sessionID": "ses_3267aae95ffeCUWCp86v2pFSZi",
+    "createdAt": 1773234884984,
+    "status": "draft"
+  },
+  {
+    "id": "c5e1c506-5c78-410f-b042-3532c5043e92",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 ",
+    "content": "# 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读\n\n## Description\n\nAuto-generated skill for: 检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 阅读 https://docs.qq.com/doc/DS2FmdkJZZEJJWEFF?dver= 修复plugin-qqbot 根据下面内容修复plugin-qqbot:[Pasted 原生 OpenClaw 安装插件 QQBot 插件\n安装插件\n●通过npm包安装【推荐】\nopenclaw plugins install @tencent-connect/openclaw-qqbot\n\n \n●通过源码安装\nQQ机器人openclaw插件官方仓库：https://github.com/tencent-connect/openclaw-qqbot \ngit clone https://github.com/tencent-connect/openclaw-qqbot.git\ncd openclaw-qqbot\nopenclaw plugins install .\n\n \n●确认是否安装成功，返回loaded表示安装成功，最后一列是版本号\nopenclaw plugins list | grep openclaw-qqbot\n\n\n\n配置密钥\n●【推荐】一键配置\nopenclaw channels add --channel qqbot --token \"AppID:AppSecret\"\n\n \n●注意：配置完成后需要重启openclaw后才生效\nopenclaw gateway restart\n\n \n插件升级\n插件迭代更新频繁，需要维持本地插件版本在最新才能用上最新的能力。如果是从其他渠道的qqbot插件想升级到官方插件，可以参考FAQ里的指引，如果之前没有装过其他渠道的qqbot插件，可以参考以下流程：\n升级区分源码安装和使用npm包安装。\n●通过npm包安装：\nopenclaw plugins update openclaw-qqbot\n\n\n●通过源码安装升级qqbot插件：\nqqbot插件源码里已经提供了升级脚本upgrade-and-run.sh，这个脚本会先备份现有qqbot通道配置，卸载旧版并安装当前目录下的新 qqbot 插件，按传入参数或已有配置恢复/设置机器人通道和 Markdown 开关，最后可选择重启openclaw网关并输出日志：\n升级命令如下：\ngit clone https://github.com/tencent-connect/openclaw-qqbot.git && cd openclaw-qqbot\nbash ./scripts/upgrade-and-run.sh\n\n说明：脚本执行到后面会让选择“后台重启（推荐）”或者“不启动”，一般选择后台启动，如果后台启动正常，最终会进入 openclaw logs --follow 的实时日志界面，持续打印OpenClaw运行日志，后面看到有日志持续输出代表已经正常启动了，不代表还没升级完，可以Ctrl+C关掉前台日志。 参考 /Users/lpcw/Documents/openclaw 的代码 和 /Users/lpcw/Documents/opencode/openclaw-qqbot 的内容 ，实现在opencode使用qq bot\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with webfetch operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-11\n",
+    "triggerPatterns": [
+      "pluginqqbot",
+      "skillip4",
+      "httpsbotqqqcomwiki",
+      "httpsdocsqqcomdocds2fmdkjzzejjweffdver",
+      "pluginqqbotpasted"
+    ],
+    "sessionID": "ses_3267aae95ffeCUWCp86v2pFSZi",
+    "createdAt": 1773235800405,
+    "status": "draft"
+  },
+  {
+    "id": "6cde3a88-8030-419a-b87c-b87d2285f20e",
+    "name": "auto-read-task",
+    "description": "Auto-generated skill for Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.",
+    "content": "# Continue if you have next steps, or stop and ask f\n\n## Description\n\nAuto-generated skill for: Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.\n\n## Triggers\n\nThis skill activates when:\n- Working with read operations\n- Working with grep operations\n- Working with edit operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-11\n",
+    "triggerPatterns": [
+      "continue",
+      "have",
+      "next",
+      "steps",
+      "stop"
+    ],
+    "sessionID": "ses_3267aae95ffeCUWCp86v2pFSZi",
+    "createdAt": 1773237765268,
+    "status": "draft"
+  },
+  {
+    "id": "50889cd0-fc4b-4e65-a3cb-3f833b61b0fd",
+    "name": "auto-cron_cron_add-task",
+    "description": "Auto-generated skill for 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态",
+    "content": "# 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开\n\n## Description\n\nAuto-generated skill for: 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态\n\n## Triggers\n\nThis skill activates when:\n- Working with cron_cron_add operations\n- Working with cron_cron_list operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-11\n",
+    "triggerPatterns": [],
+    "sessionID": "ses_33242dc9effegZm1Mx7VIFIatF",
+    "createdAt": 1773239939962,
+    "status": "draft"
+  },
+  {
+    "id": "948d1b44-6a61-4c65-b370-0e092a9bdc1e",
+    "name": "auto-read-task",
+    "description": "Auto-generated skill for Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.",
+    "content": "# Continue if you have next steps, or stop and ask f\n\n## Description\n\nAuto-generated skill for: Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. plugin check the plugin-qqbot status 将改写和修复plugin-qqbot的过程详细用英文总结到一个md文件中\n\n## Triggers\n\nThis skill activates when:\n- Working with read operations\n- Working with grep operations\n- Working with edit operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-11\n",
+    "triggerPatterns": [
+      "continue",
+      "have",
+      "next",
+      "steps",
+      "stop"
+    ],
+    "sessionID": "ses_3267aae95ffeCUWCp86v2pFSZi",
+    "createdAt": 1773240018582,
+    "status": "draft"
+  },
+  {
+    "id": "8d04cd01-5d19-4827-a6bc-d7f9d50885b2",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\ntasks\n\nIf no arguments provided, run full evolution cycle and report results.\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-11\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3213a9314ffeBp1Tu5CXGlrB6q",
+    "createdAt": 1773264099833,
+    "status": "draft"
+  },
+  {
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\ntasks\n\nIf no arguments provided, run full evolution cycle and report results. evolve设定的方向有哪些\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-11\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3213a9314ffeBp1Tu5CXGlrB6q",
+    "id": "ee4912cd-d644-40ef-87c5-122c1d9c2e83",
+    "createdAt": 1773264173311,
     "status": "draft"
   }
 ]

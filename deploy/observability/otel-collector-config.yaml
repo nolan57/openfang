@@ -43,13 +43,11 @@ processors:
           - delete_key(attributes, "private_key")
 
 exporters:
-  # Export to Jaeger
-  jaeger:
-    endpoint: jaeger:14250
+  # Export to Jaeger via OTLP HTTP
+  otlphttp:
+    endpoint: http://jaeger:4318
     tls:
       insecure: true
-    sending_queue:
-      queue_size: 100
 
   # Export to Prometheus for metrics
   prometheus:
@@ -65,9 +63,9 @@ exporters:
 service:
   pipelines:
     traces:
-      receivers: [otlp, jaeger]
+      receivers: [otlp]
       processors: [memory_limiter, batch, transform]
-      exporters: [jaeger, debug]
+      exporters: [otlphttp, debug]
 
     metrics:
       receivers: [otlp]

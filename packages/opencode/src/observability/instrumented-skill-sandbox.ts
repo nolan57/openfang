@@ -1,11 +1,11 @@
 import { Span, SpanStatusCode, trace } from "@opentelemetry/api"
-import { Log } from "../../util/log"
+import { Log } from "../util/log"
 import {
   sandboxSpans,
   spanUtils,
   SPAN_CONFIG,
   type SandboxSpanAttributes,
-} from "../spans"
+} from "./spans"
 
 const log = Log.create({ service: "skill-sandbox.instrumented" })
 

@@ -44,8 +44,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1773184019405,
-    "usageCount": 227
+    "lastUsedAt": 1773264063323,
+    "usageCount": 238
   },
   {
     "id": "2294419a-c504-4b71-bfdc-5c9eac6cfb66",
@@ -56,8 +56,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1773184019438,
-    "usageCount": 176
+    "lastUsedAt": 1773264009391,
+    "usageCount": 186
   },
   {
     "id": "5ad51b23-acfa-47fa-b354-065fe8180941",
@@ -116,8 +116,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1773184019423,
-    "usageCount": 208
+    "lastUsedAt": 1773264009380,
+    "usageCount": 219
   },
   {
     "id": "eda4fb93-b8db-423c-9c4d-00686903150c",
@@ -152,8 +152,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1773184019393,
-    "usageCount": 243
+    "lastUsedAt": 1773264144531,
+    "usageCount": 257
   },
   {
     "id": "150ff0cd-9bd4-45c9-9a74-5a708e471e05",
@@ -176,8 +176,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1773184019460,
-    "usageCount": 150
+    "lastUsedAt": 1773264009402,
+    "usageCount": 160
   },
   {
     "id": "8c4fc0b0-20f3-48d9-9b1b-fafb4d466c12",
@@ -3188,8 +3188,8 @@
       "ses_333ee46c5ffeBS4l8R6HhhTbvB"
     ],
     "createdAt": 1772950557810,
-    "lastUsedAt": 1772950660993,
-    "usageCount": 3
+    "lastUsedAt": 1773264144464,
+    "usageCount": 4
   },
   {
     "id": "ae968c3b-4180-4dfa-8c0d-e9bf0294bdc6",
@@ -4029,6 +4029,246 @@
     ],
     "createdAt": 1773180482889,
     "lastUsedAt": 1773180482889,
+    "usageCount": 0
+  },
+  {
+    "id": "c593eda0-b687-4248-9d63-65efd49a43a2",
+    "key": "pre-push-validation",
+    "value": "Verify local branch status and commit history before pushing to ensure the correct changes are being shared.",
+    "context": "push loca to remote",
+    "sessionIDs": [
+      "ses_325ffac37ffetME89UdDsQUs0j"
+    ],
+    "createdAt": 1773184034240,
+    "lastUsedAt": 1773184034240,
+    "usageCount": 0
+  },
+  {
+    "id": "91da2c71-9629-43c7-b400-99451de22d12",
+    "key": "remote-upstream-configuration",
+    "value": "Ensure local branches track the correct remote branches to simplify commands and prevent pushing to wrong locations.",
+    "context": "push loca to remote",
+    "sessionIDs": [
+      "ses_325ffac37ffetME89UdDsQUs0j"
+    ],
+    "createdAt": 1773184034281,
+    "lastUsedAt": 1773184034281,
+    "usageCount": 0
+  },
+  {
+    "id": "42087a48-dadb-4d28-b28b-46691804c647",
+    "key": "pre-push-verification",
+    "value": "Run status checks via bash before pushing to confirm staged changes match intended updates.",
+    "context": "push loca to remote 1",
+    "sessionIDs": [
+      "ses_325ffac37ffetME89UdDsQUs0j"
+    ],
+    "createdAt": 1773184119986,
+    "lastUsedAt": 1773184119986,
+    "usageCount": 0
+  },
+  {
+    "id": "bcee418b-d2c2-42cf-83d0-c5b610039b48",
+    "key": "check-plugin-status-first",
+    "value": "Always verify plugin status and check logs before attempting fixes to understand the actual issue.",
+    "context": "检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 阅读 https://docs.qq.com/doc/DS2FmdkJZZEJJWEFF?dver= 修复plugin-qqbot",
+    "sessionIDs": [
+      "ses_3267aae95ffeCUWCp86v2pFSZi"
+    ],
+    "createdAt": 1773234614826,
+    "lastUsedAt": 1773234706896,
+    "usageCount": 2
+  },
+  {
+    "id": "f6445925-662f-4545-b32d-738d2d5b2b96",
+    "key": "use-official-docs",
+    "value": "When fixing plugin issues, consult the official documentation first as it contains specific configuration requirements.",
+    "context": "检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 阅读 https://docs.qq.com/doc/DS2FmdkJZZEJJWEFF?dver= 修复plugin-qqbot",
+    "sessionIDs": [
+      "ses_3267aae95ffeCUWCp86v2pFSZi"
+    ],
+    "createdAt": 1773234614850,
+    "lastUsedAt": 1773234614850,
+    "usageCount": 0
+  },
+  {
+    "id": "5b08fbe2-b9d3-4869-8f55-0fc67f6fde8d",
+    "key": "manual-restart-capability",
+    "value": "Know how to manually trigger plugin restarts as part of standard recovery and troubleshooting procedures.",
+    "context": "检查plugin-qqbot插件是否正常 手动触发插件重启 用skill获取本机公网IP4地址 阅读 https://bot.q.qq.com/wiki/ 来修复plugin-qqbot不可用的问题 阅读 https://docs.qq.com/doc/DS2FmdkJZZEJJWEFF?dver= 修复plugin-qqbot",
+    "sessionIDs": [
+      "ses_3267aae95ffeCUWCp86v2pFSZi"
+    ],
+    "createdAt": 1773234614862,
+    "lastUsedAt": 1773234706862,
+    "usageCount": 1
+  },
+  {
+    "id": "907a5cd6-f0bd-4c83-b95f-dc4a3b96ebd8",
+    "key": "cron-job-idempotency",
+    "value": "Check for existing cron jobs before adding new ones to prevent duplicate executions and resource waste.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1773239919517,
+    "lastUsedAt": 1773239944171,
+    "usageCount": 1
+  },
+  {
+    "id": "c8522358-29b7-4c06-88d1-e36f926c5655",
+    "key": "scheduled-task-verification",
+    "value": "Verify cron job status and execution history immediately after creation to ensure the schedule is active and correct.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1773239919547,
+    "lastUsedAt": 1773239944145,
+    "usageCount": 1
+  },
+  {
+    "id": "50065fd6-0ee3-4f93-b916-e507f4b29291",
+    "key": "dynamic-content-strategy",
+    "value": "Design search queries within scheduled tasks to use time-based filters or randomness to ensure fresh content recommendations.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1773239919616,
+    "lastUsedAt": 1773239919616,
+    "usageCount": 0
+  },
+  {
+    "id": "4c5c6645-bc90-4139-b58e-c8bf2704b91e",
+    "key": "check-plugin-status-first",
+    "value": "Always check the plugin status before making changes to understand the current state and what needs to be fixed.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. plugin check the plugin-qqbot status 将改写和修复plugin-qqbot的过程详细用英文总结到一个md文件中",
+    "sessionIDs": [
+      "ses_3267aae95ffeCUWCp86v2pFSZi"
+    ],
+    "createdAt": 1773240012987,
+    "lastUsedAt": 1773240012987,
+    "usageCount": 0
+  },
+  {
+    "id": "6db4f33b-aa7a-4c2e-993e-725a70ea1b1f",
+    "key": "systematic-file-exploration",
+    "value": "Use glob and grep systematically to locate relevant files and understand the plugin structure before making modifications.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. plugin check the plugin-qqbot status 将改写和修复plugin-qqbot的过程详细用英文总结到一个md文件中",
+    "sessionIDs": [
+      "ses_3267aae95ffeCUWCp86v2pFSZi"
+    ],
+    "createdAt": 1773240013012,
+    "lastUsedAt": 1773240013012,
+    "usageCount": 0
+  },
+  {
+    "id": "a857fbc3-8c1e-41f0-86aa-c2b9db98053e",
+    "key": "document-changes-in-md",
+    "value": "Summarize rewriting and fixing processes in English markdown files to maintain clear documentation of changes made.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. plugin check the plugin-qqbot status 将改写和修复plugin-qqbot的过程详细用英文总结到一个md文件中",
+    "sessionIDs": [
+      "ses_3267aae95ffeCUWCp86v2pFSZi"
+    ],
+    "createdAt": 1773240013030,
+    "lastUsedAt": 1773240013030,
+    "usageCount": 0
+  },
+  {
+    "id": "bf456d0d-ec61-4b34-b37a-b38d78ab9c9d",
+    "key": "safe-automation-flags",
+    "value": "Use verification flags like --check or --status to inspect system state before enabling automatic execution with --execute.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_3213a9314ffeBp1Tu5CXGlrB6q"
+    ],
+    "createdAt": 1773264055488,
+    "lastUsedAt": 1773264144516,
+    "usageCount": 3
+  },
+  {
+    "id": "de9a2345-ed63-4f2d-9523-269bae19e251",
+    "key": "evolution-cycle-flow",
+    "value": "Expect the system to follow a collect-analyze-plan-deploy sequence when triggering self-evolution tasks.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_3213a9314ffeBp1Tu5CXGlrB6q"
+    ],
+    "createdAt": 1773264055510,
+    "lastUsedAt": 1773264144502,
+    "usageCount": 2
+  },
+  {
+    "id": "12c99f6d-3b61-4080-9a35-0d491f57d58e",
+    "key": "tool-outcome-verification",
+    "value": "Always confirm the tool call outcome is 'completed' before assuming the evolution cycle successfully finished.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_3213a9314ffeBp1Tu5CXGlrB6q"
+    ],
+    "createdAt": 1773264055524,
+    "lastUsedAt": 1773264063297,
+    "usageCount": 2
+  },
+  {
+    "id": "02ef67fa-5aeb-476f-b527-b66668956975",
+    "key": "safe-execution-flags",
+    "value": "Use dry-run modes like --check before enabling --execute to validate autonomous plans without risk. This separation prevents unintended changes during the planning phase.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\ntasks\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_3213a9314ffeBp1Tu5CXGlrB6q"
+    ],
+    "createdAt": 1773264108451,
+    "lastUsedAt": 1773264108451,
+    "usageCount": 0
+  },
+  {
+    "id": "91b6a486-3814-450f-8fa1-f31fa7dd1441",
+    "key": "modular-workflow-stages",
+    "value": "Structure automated improvement loops into distinct phases like collection, analysis, and deployment for better control. Monitoring each stage ensures issues are caught before deployment.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\ntasks\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_3213a9314ffeBp1Tu5CXGlrB6q"
+    ],
+    "createdAt": 1773264108472,
+    "lastUsedAt": 1773264144483,
+    "usageCount": 1
+  },
+  {
+    "id": "91b705d5-1b95-4f4f-96f9-5eb9791d3477",
+    "key": "safe-execution-flow",
+    "value": "Separate planning from execution using explicit flags to prevent unintended automated changes during self-evolution cycles.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\ntasks\n\nIf no arguments provided, run full evolution cycle and report results. evolve设定的方向有哪些",
+    "sessionIDs": [
+      "ses_3213a9314ffeBp1Tu5CXGlrB6q"
+    ],
+    "createdAt": 1773264203443,
+    "lastUsedAt": 1773264203443,
+    "usageCount": 0
+  },
+  {
+    "id": "d335f12f-c9f8-4759-9a7d-afbf8bc0dcc5",
+    "key": "system-observability",
+    "value": "Implement status and dry-run commands to verify system state and check for issues before triggering irreversible actions.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\ntasks\n\nIf no arguments provided, run full evolution cycle and report results. evolve设定的方向有哪些",
+    "sessionIDs": [
+      "ses_3213a9314ffeBp1Tu5CXGlrB6q"
+    ],
+    "createdAt": 1773264203469,
+    "lastUsedAt": 1773264203469,
+    "usageCount": 0
+  },
+  {
+    "key": "defined-knowledge-sources",
+    "value": "Define specific technical sources like arXiv or PyPI for automated information gathering to ensure update relevance.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\ntasks\n\nIf no arguments provided, run full evolution cycle and report results. evolve设定的方向有哪些",
+    "sessionIDs": [
+      "ses_3213a9314ffeBp1Tu5CXGlrB6q"
+    ],
+    "id": "32dc236f-0357-447e-ba0a-2200a83c3e06",
+    "createdAt": 1773264203481,
+    "lastUsedAt": 1773264203481,
     "usageCount": 0
   }
 ]

@@ -1,13 +1,27 @@
 import { Span, SpanStatusCode, context, trace } from "@opentelemetry/api"
-import { Log } from "../../util/log"
-import { SnapshotManager } from "../snapshot/manager"
-import { RollbackManager } from "./rollback-manager"
+import { Log } from "../util/log"
+import { Snapshot } from "../snapshot"
 import {
   refactorSpans,
   spanUtils,
-} from "../spans"
+} from "./spans"
 
 const log = Log.create({ service: "self-refactor.instrumented" })
+
+// Stub implementation for rollback functionality
+class RollbackManager {
+  async rollback(snapshotId: string): Promise<void> {
+    await Snapshot.restore(snapshotId)
+  }
+}
+
+// Stub implementation for snapshot manager
+class SnapshotManager {
+  async createSnapshot(options: { taskId: string; module: string; path: string }): Promise<string> {
+    const hash = await Snapshot.track()
+    return hash || `snapshot-${Date.now()}`
+  }
+}
 
 export interface RefactorInput {
   taskId: string
@@ -170,7 +184,7 @@ export class InstrumentedSelfRefactor {
   }
 
   private async analyzeComplexity(targetPath: string): Promise<number> {
-    const { FileSystem } = await import("../../util/filesystem")
+    const { FileSystem } = await import("../util/filesystem")
     const content = await FileSystem.readText(targetPath)
 
     const lines = content.split("\n").length

@@ -35,6 +35,7 @@ import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
 import { Database, createBackup } from "./storage/db"
 import { checkAndStartMcpCron } from "./util/mcp-cron"
+import { initObservability } from "./observability"
 
 // Backup database on graceful exit
 const cleanup = () => {
@@ -81,6 +82,12 @@ const cli = yargs(hideBin(process.argv))
         if (Installation.isLocal()) return "DEBUG"
         return "INFO"
       })(),
+    })
+
+    // Initialize OpenTelemetry observability (X-Ray Mode)
+    initObservability({
+      serviceName: "opencode-agent",
+      serviceVersion: Installation.VERSION,
     })
 
     process.env.AGENT = "1"

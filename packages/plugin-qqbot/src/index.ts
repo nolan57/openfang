@@ -1,9 +1,9 @@
 import type { Plugin, PluginInput, Hooks } from "@opencode-ai/plugin"
-import type { QQBotPluginConfig, PluginState } from "./types.js"
-import { loadConfig } from "./config.js"
+import type { ResolvedQQBotAccount, QQBotPluginConfig, PluginState } from "./types.js"
+import { loadConfig, resolveQQBotAccount } from "./config.js"
 import { QQBotGateway } from "./gateway.js"
 import { appendFileSync, existsSync, mkdirSync } from "fs"
-import { dirname, join } from "path"
+import { join } from "path"
 
 const PLUGIN_NAME = "qqbot"
 
@@ -44,11 +44,7 @@ async function publishLog(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: "tui.log",
-        properties: {
-          source,
-          level,
-          message,
-        },
+        properties: { source, level, message },
       }),
     })
   } catch {}
@@ -69,12 +65,7 @@ async function publishStatus(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type: "tui.plugin.status",
-        properties: {
-          plugin: PLUGIN_NAME,
-          status,
-          log,
-          error,
-        },
+        properties: { plugin: PLUGIN_NAME, status, log, error },
       }),
     })
   } catch {}
@@ -90,6 +81,8 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
     allowedGroups: new Set(),
   }
 
+  const account = resolveQQBotAccount(config)
+
   const publishPluginLog = (type: "info" | "message" | "warning" | "error" | "status" | "execution", msg: string) => {
     const level = type === "error" || type === "warning" ? "error" : "info"
     publishStatus(input.client, input.directory, "connected", { type, message: msg })
@@ -97,9 +90,7 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
   }
 
   const onStatus = {
-    message: (msg: string) => {
-      publishPluginLog("message", msg)
-    },
+    message: (msg: string) => publishPluginLog("message", msg),
     connected: () => {
       publishStatus(input.client, input.directory, "connected", { type: "status", message: "Connected" })
       publishLog(input.client, input.directory, PLUGIN_NAME, "info", "Connected")
@@ -117,16 +108,13 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
   publishStatus(input.client, input.directory, "connecting", { type: "status", message: "Starting QQ Bot..." })
   publishLog(input.client, input.directory, PLUGIN_NAME, "info", "Starting QQ Bot...")
 
-  const sessionsPath = input.directory + "/.qqbot/sessions.json"
+  const sessionsPath = join(input.directory, ".qqbot", "sessions.json")
 
   let gateway = new QQBotGateway({
-    config,
-    client: input.client,
+    account,
     directory: input.directory,
     sessionsPath,
-    state: pluginState,
-    defaultAgent: config.defaultAgent,
-    maxChunkSize: config.maxChunkSize || 1500,
+    client: input.client,
     onStatus,
   })
 
@@ -151,13 +139,10 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
       try {
         await gateway.stop()
         gateway = new QQBotGateway({
-          config,
-          client: input.client,
+          account,
           directory: input.directory,
           sessionsPath,
-          state: pluginState,
-          defaultAgent: config.defaultAgent,
-          maxChunkSize: config.maxChunkSize || 1500,
+          client: input.client,
           onStatus,
         })
         await gateway.start()
@@ -170,5 +155,4 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
 }
 
 export default plugin
-
 export const QQBotPlugin = plugin

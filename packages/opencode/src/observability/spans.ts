@@ -1,7 +1,8 @@
 import { Span, SpanStatusCode, context, trace } from "@opentelemetry/api"
 import { v4 as uuidv4 } from "uuid"
-import { Log } from "../../util/log"
+import { Log } from "../util/log"
 import * as crypto from "crypto"
+import { observability, traceUtils } from "./init"
 
 const log = Log.create({ service: "observability.spans" })
 
@@ -516,7 +517,6 @@ export const spanUtils = {
     attributes: Record<string, string | number | boolean>,
     fn: (span: Span) => Promise<T>,
   ): Promise<T> {
-    const { traceUtils } = require("./init")
     return traceUtils.runWithSpan(name, async (span: Span) => {
       for (const [key, value] of Object.entries(attributes)) {
         span.setAttribute(key, value)
@@ -526,7 +526,7 @@ export const spanUtils = {
   },
 
   createChildSpan(name: string, parentSpan?: Span): Span {
-    const tracer = require("./init").observability.getTracer()
+    const tracer = observability.getTracer()
     const activeSpan = trace.getSpan(context.active())
     const parent = parentSpan || activeSpan
     return tracer.startSpan(name, undefined, parent ? trace.setSpan(context.active(), parent) : undefined)

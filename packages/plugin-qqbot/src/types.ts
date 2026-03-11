@@ -18,28 +18,69 @@ export interface QQBotPluginConfig {
   sandbox: boolean
 }
 
-export interface Attachment {
-  content_type: string
-  url: string
-  filename?: string
+export interface QQBotAccountConfig {
+  enabled?: boolean
+  name?: string
+  appId?: string
+  clientSecret?: string
+  dmPolicy?: "open" | "pairing" | "allowlist" | "disabled"
+  groupPolicy?: "open" | "pairing" | "allowlist" | "disabled"
+  allowFrom?: string[]
+  systemPrompt?: string
+  imageServerBaseUrl?: string
+  markdownSupport?: boolean
+  sandbox?: boolean
 }
 
-export interface MessageContext {
+export interface ResolvedQQBotAccount {
+  accountId: string
+  name?: string
+  enabled: boolean
+  appId: string
+  clientSecret: string
+  secretSource: "config" | "file" | "env" | "none"
+  systemPrompt?: string
+  imageServerBaseUrl?: string
+  markdownSupport: boolean
+  config: QQBotAccountConfig
+}
+
+export interface QQBotMessage {
   id: string
-  type: "C2C" | "GROUP" | "CHANNEL"
+  author: {
+    id: string
+    union_openid?: string
+    user_openid?: string
+    member_openid?: string
+  }
   content: string
-  senderId: string
-  senderName?: string
-  groupId?: string
-  channelId?: string
-  guildId?: string
-  timestamp: number
-  attachments?: Attachment[]
+  timestamp: string
+  message_scene?: {
+    source: string
+  }
+  group_id?: string
+  group_openid?: string
+  channel_id?: string
+  guild_id?: string
+  attachments?: MessageAttachment[]
 }
 
-export interface SessionInfo {
-  sessionId: string
-  createdAt: number
+export interface MessageAttachment {
+  content_type: string
+  filename?: string
+  height?: number
+  width?: number
+  size?: number
+  url: string
+  voice_wav_url?: string
+  asr_refer_text?: string
+}
+
+export interface WSPayload {
+  op: number
+  d?: unknown
+  s?: number
+  t?: string
 }
 
 export interface PluginState {
@@ -49,14 +90,18 @@ export interface PluginState {
   allowedGroups: Set<string>
 }
 
+export interface SessionInfo {
+  sessionId: string
+  createdAt: number
+}
+
 export interface GatewayOptions {
-  config: QQBotPluginConfig
-  client: OpencodeClient
+  account: ResolvedQQBotAccount
   directory: string
   sessionsPath: string
-  state: PluginState
-  defaultAgent: string
-  maxChunkSize: number
+  client: any
+  defaultAgent?: string
+  maxChunkSize?: number
   onStatus: {
     message(msg: string): void
     connected(): void
@@ -64,4 +109,16 @@ export interface GatewayOptions {
     error(msg: string): void
     log?(level: "info" | "warning" | "error", msg: string): void
   }
+  onMessage?(msg: QQBotMessage, type: "c2c" | "group" | "channel"): void
+}
+
+export interface MessageContext {
+  id: string
+  type: "C2C" | "GROUP" | "CHANNEL"
+  content: string
+  senderId: string
+  timestamp: number
+  groupId?: string
+  channelId?: string
+  attachments?: Array<{ content_type: string; url: string; filename?: string }>
 }

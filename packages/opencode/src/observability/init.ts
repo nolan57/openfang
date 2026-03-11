@@ -1,21 +1,21 @@
 import { NodeSDK } from "@opentelemetry/sdk-node"
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node"
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http"
-import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base"
+import { BatchSpanProcessor, ParentBasedSampler, TraceIdRatioBased, AlwaysOnSampler, AlwaysOffSampler } from "@opentelemetry/sdk-trace-base"
 import { HttpInstrumentation } from "@opentelemetry/instrumentation-http"
 import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express"
-import { NodeRuntimeInstrumentation } from "@opentelemetry/instrumentation-node-runtime"
+import { RuntimeNodeInstrumentation } from "@opentelemetry/instrumentation-runtime-node"
 import { BunyanInstrumentation } from "@opentelemetry/instrumentation-bunyan"
 import {
   CompositePropagator,
   W3CTraceContextPropagator,
   W3CBaggagePropagator,
-} from "@opentelemetry/context-propagation"
+} from "@opentelemetry/core"
 import { trace, context, Span, SpanStatusCode, diag, DiagLogLevel, propagation } from "@opentelemetry/api"
 import { Resource } from "@opentelemetry/resources"
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from "@opentelemetry/semantic-conventions"
 import * as os from "os"
-import { Log } from "../util/log"
+import { Log } from "../util/log.js"
 
 const log = Log.create({ service: "observability" })
 
@@ -59,7 +59,16 @@ class ObservabilitySDK {
       return
     }
 
-    diag.setLogger(new DiagLogLevel())
+    // Configure diagnostic logging only if debug is needed
+    if (process.env.OTEL_DEBUG === "true") {
+      diag.setLogger({
+        verbose: (message: string) => log.debug(message),
+        debug: (message: string) => log.debug(message),
+        info: (message: string) => log.info(message),
+        warn: (message: string) => log.warn(message),
+        error: (message: string) => log.error(message),
+      }, DiagLogLevel.DEBUG)
+    }
 
     const exporter = new OTLPTraceExporter({
       url: this.config.exporterEndpoint,
@@ -76,7 +85,7 @@ class ObservabilitySDK {
     })
 
     const instrumentations = [
-      new NodeRuntimeInstrumentation(),
+      new RuntimeNodeInstrumentation(),
       new HttpInstrumentation(),
       new ExpressInstrumentation(),
       new BunyanInstrumentation(),
@@ -120,9 +129,6 @@ class ObservabilitySDK {
   }
 
   private createSampler() {
-    const { ParentBasedSampler, TraceIdRatioBased, AlwaysOnSampler, AlwaysOffSampler } =
-      require("@opentelemetry/sdk-trace-base")
-
     if (this.config.environment === "development") {
       return new AlwaysOnSampler()
     }
@@ -240,11 +246,11 @@ export const traceUtils = {
   },
 
   setBaggage(key: string, value: string): void {
-    const { Baggage } = require("@opentelemetry/api")
-    const baggage = Baggage.builder().setEntry(key, value).build()
+    const currentBaggage = propagation.getBaggage(context.active()) || propagation.createBaggage()
+    const newBaggage = currentBaggage.setEntry(key, { value })
     const propagator = new CompositePropagator([new W3CTraceContextPropagator(), new W3CBaggagePropagator()])
     propagation.setGlobalPropagator(propagator)
-    context.with(propagation.setBaggage(context.active(), baggage), () => {})
+    context.with(propagation.setBaggage(context.active(), newBaggage), () => {})
   },
 
   getBaggage(key: string): string | undefined {

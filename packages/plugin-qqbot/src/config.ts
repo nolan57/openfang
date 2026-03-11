@@ -1,5 +1,55 @@
 import type { PluginInput } from "@opencode-ai/plugin"
-import type { QQBotPluginConfig } from "./types.js"
+import type { QQBotPluginConfig, ResolvedQQBotAccount, QQBotAccountConfig } from "./types.js"
+
+const DEFAULT_ACCOUNT_ID = "default"
+
+export function resolveQQBotAccount(config: QQBotPluginConfig, _accountId?: string | null): ResolvedQQBotAccount {
+  const resolvedAccountId = DEFAULT_ACCOUNT_ID
+
+  let appId = config.appId
+  let clientSecret = config.clientSecret
+  let secretSource: "config" | "file" | "env" | "none" = "none"
+
+  if (clientSecret) {
+    secretSource = "config"
+  } else if (Bun.env.QQBOT_CLIENT_SECRET) {
+    clientSecret = Bun.env.QQBOT_CLIENT_SECRET
+    secretSource = "env"
+  }
+
+  if (!appId && Bun.env.QQBOT_APP_ID) {
+    appId = Bun.env.QQBOT_APP_ID
+  }
+
+  const accountConfig: QQBotAccountConfig = {
+    enabled: config.enabled,
+    dmPolicy: config.dmPolicy as QQBotAccountConfig["dmPolicy"],
+    allowFrom: config.allowFrom ? config.allowFrom.split(",") : undefined,
+    imageServerBaseUrl: config.imageServerBaseUrl,
+    markdownSupport: config.markdownSupport,
+    sandbox: config.sandbox,
+  }
+
+  return {
+    accountId: resolvedAccountId,
+    name: "default",
+    enabled: config.enabled,
+    appId: appId?.trim() ?? "",
+    clientSecret: clientSecret ?? "",
+    secretSource,
+    imageServerBaseUrl: config.imageServerBaseUrl,
+    markdownSupport: config.markdownSupport,
+    config: accountConfig,
+  }
+}
+
+export function listQQBotAccountIds(_config: QQBotPluginConfig): string[] {
+  return [DEFAULT_ACCOUNT_ID]
+}
+
+export function resolveDefaultQQBotAccountId(_config: QQBotPluginConfig): string {
+  return DEFAULT_ACCOUNT_ID
+}
 
 export interface ConfigValidationResult {
   valid: boolean

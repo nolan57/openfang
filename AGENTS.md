@@ -1,7 +1,7 @@
 - To regenerate the JavaScript SDK, run `./packages/sdk/js/script/build.ts`.
 - ALWAYS USE PARALLEL TOOLS WHEN APPLICABLE.
-- The default branch in this repo is `dev`.
-- Local `main` ref may not exist; use `dev` or `origin/dev` for diffs.
+- The default branch in this repo is `v2`.
+- Local `main` ref may not exist; use `v2` or `opencodeclaw/v2` for diffs.
 - Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
 - NEVER commit changes unless the user explicitly asks you to. It is VERY IMPORTANT to only commit when explicitly asked.
 - When making significant code changes, run typecheck and tests before considering the task complete.
@@ -42,6 +42,7 @@ src/
 ├── acp/           # Agent Client Protocol (IDE integration)
 ├── agent/         # Agent logic and orchestration
 ├── auth/          # Authentication system
+├── bun/           # Bun-specific utilities and registry
 ├── bus/           # Event bus for inter-component communication
 ├── cli/           # Command-line interface
 ├── collab/        # Collaboration system (multi-agent coordination)
@@ -61,9 +62,10 @@ src/
 ├── learning/      # Learning system (knowledge graph, memory, self-evolution)
 ├── lsp/           # Language Server Protocol integration
 ├── mcp/           # Model Context Protocol (OAuth support)
-├── memory/        # Memory system (session, evolution, project)
+├── memory/        # Memory system (session, evolution, project, code-analyzer)
 ├── middleware/    # Middleware layer
 ├── novel/         # Novel writing self-evolution
+├── observability/ # OpenTelemetry observability (X-Ray Mode)
 ├── patch/         # Patching utilities
 ├── permission/    # Permission system
 ├── plugin/        # Plugin system
@@ -160,6 +162,9 @@ bun run shell-prod                    # SST shell on production
 bun run update-models                 # Update models
 bun run promote-models-to-dev         # Promote models to dev
 bun run promote-models-to-prod        # Promote models to production
+bun run update-black                  # Update black list
+bun run promote-black-to-dev          # Promote black list to dev
+bun run promote-black-to-prod         # Promote black list to production
 ```
 
 ### Development
@@ -383,7 +388,8 @@ Core workflow:
 - **Evolution**: Self-evolution system with knowledge graph and hierarchical memory. See `src/learning/` and `src/evolution/`.
 - **ACP**: Agent Client Protocol support for IDE integration. See `src/acp/`.
 - **Collab**: Multi-agent collaboration system. See `src/collab/`.
-- **Memory**: Three-level memory system (session, evolution, project). See `src/memory/`.
+- **Memory**: Three-level memory system (session, evolution, project) with code analysis. See `src/memory/`.
+- **Observability**: OpenTelemetry-based X-Ray Mode for tracing and debugging. See `src/observability/`.
 
 ### packages/app
 
@@ -393,6 +399,13 @@ Core workflow:
   - Backend (from `packages/opencode`): `bun run --conditions=browser ./src/index.ts serve --port 4096`
   - App (from `packages/app`): `bun dev -- --port 4444`
   - Open `http://localhost:4444` to verify UI changes (it targets the backend at `http://localhost:4096`).
+
+### packages/ui
+
+- Shared UI component library built with SolidJS and Kobalte.
+- CSS-first styling with CSS custom properties for theming.
+- Includes `TraceVisualizer` component for observability traces.
+- See `packages/ui/AGENTS.md` for detailed component architecture.
 
 ## Integrations
 
@@ -494,6 +507,7 @@ Memory supports:
 - Tag-based categorization
 - Metadata attachment
 - Similarity scoring
+- Code entity extraction via `CodeAnalyzer` (AST-based analysis for .ts/.tsx/.js/.jsx files)
 
 ## Collaboration System
 
@@ -502,6 +516,32 @@ Multi-agent collaboration system (`src/collab/`):
 - **Registry**: Agent registration and discovery
 - **Events**: Inter-agent event bus
 - **Schema**: Collaboration data models
+
+## Observability System (X-Ray Mode)
+
+OpenTelemetry-based observability for tracing and debugging (`src/observability/`):
+
+### Components
+
+- **init.ts**: Core initialization and configuration
+- **spans.ts**: Span definitions for various operations
+- **instrumented-critic.ts**: Instrumented critic evaluations
+- **instrumented-self-refactor.ts**: Instrumented self-refactoring
+- **instrumented-skill-sandbox.ts**: Instrumented skill sandbox execution
+- **instrumented-hierarchical-memory.ts**: Instrumented memory operations
+- **scheduler-context-fix.ts**: Context propagation for scheduled tasks
+
+### Deployment
+
+Observability stack in `deploy/observability/`:
+- `docker-compose.yml`: OTel Collector, Prometheus, Grafana, Jaeger
+- `otel-collector-config.yaml`: OTel Collector configuration
+- `prometheus.yml`: Prometheus scrape config
+- `grafana-provisioning/`: Grafana dashboards and datasources
+
+### UI Components
+
+- `TraceVisualizer` in `packages/ui/src/components/observability/` for visualizing traces
 
 ## Database Migrations
 

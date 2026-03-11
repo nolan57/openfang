@@ -1,10 +1,10 @@
 import { Span, SpanStatusCode, trace, context } from "@opentelemetry/api"
-import { Log } from "../../util/log"
+import { Log } from "../util/log"
 import {
   memorySpans,
   spanUtils,
-} from "../spans"
-import { VectorStore } from "../../learning/vector-store"
+} from "./spans"
+import { VectorStore } from "../learning/vector-store"
 
 const log = Log.create({ service: "hierarchical-memory.instrumented" })
 

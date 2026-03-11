@@ -75,8 +75,8 @@ sequenceDiagram
     participant UI as X-Ray UI
 
     App->>OTel: 1. Create Span
-    OTel: 2. Add Attributes
-    OTel: 3. Add Events
+    OTel->>OTel: 2. Add Attributes
+    OTel->>OTel: 3. Add Events
     OTel->>OTel: 4. Batch Buffering
     
     OTel->>Coll: 5. Export (OTLP)
@@ -173,9 +173,12 @@ initObservability({
    ```
 
 2. **Filter Traces**
-   - In the search bar, enter: `agent.evolution.refactor`
-   - Or filter by service: `opencode-agent`
+   - Select **Service** dropdown: `opencode-agent`
+   - Select **Operation** dropdown: `agent.evolution.refactor`
+   - Or leave Operation as "all" to see all operations
    - Look for traces with status `error` (red)
+   
+   **Note**: Do NOT type span names directly into the browser URL. Jaeger's `/api/traces/{id}` endpoint requires a hexadecimal trace ID, not a span name. Use the UI dropdowns instead.
 
 3. **Click Error Node**
    - Find the red span `agent.evolution.refactor`
@@ -200,7 +203,8 @@ initObservability({
 **Steps**:
 
 1. **Filter by Memory Operation**
-   - Search: `agent.memory.operation`
+   - In Jaeger UI, select Service: `opencode-agent`
+   - Select Operation: `agent.memory.operation`
 
 2. **Find the Relevant Trace**
    - Look for `SEARCH` operation type
@@ -226,7 +230,8 @@ initObservability({
 **Steps**:
 
 1. **Find the Evaluation**
-   - Filter: `agent.critic.evaluate`
+   - In Jaeger UI, select Service: `opencode-agent`
+   - Select Operation: `agent.critic.evaluate`
 
 2. **View Decision**
    - Attribute: `decision.outcome` = FAIL/MODIFY
@@ -282,7 +287,8 @@ initObservability({
 **Steps**:
 
 1. **Find Critic Span**
-   - Filter: `agent.critic.evaluate`
+   - In Jaeger UI, select Service: `opencode-agent`
+   - Select Operation: `agent.critic.evaluate`
 
 2. **View LLM Metrics**
    - Attribute: `llm.provider` (e.g., "openai")
@@ -313,8 +319,8 @@ initObservability({
    - Note the memory ID
 
 2. **Query in Jaeger**
-   - Search: `memory.source_span_id=*`
-   - Or filter: `memory.retrieved_source_span_ids` contains the memory ID
+   - In Jaeger UI Tags search field: `memory.source_span_id=*`
+   - Or filter by tag: `memory.retrieved_source_span_ids` contains the memory ID
 
 3. **View Lineage Attributes**
    - Attribute: `memory.source_span_id` = "abc123..."
@@ -335,7 +341,8 @@ initObservability({
 **Steps**:
 
 1. **Find Background Task**
-   - In Jaeger, search: `scheduler.` or `background.task=true`
+   - In Jaeger UI Tags search field: `background.task=true`
+   - Or search by Operation starting with: `scheduler.`
 
 2. **Check Parent Link**
    - Attribute: `background.parent_trace_id`
@@ -477,8 +484,8 @@ searchResult.results.forEach(r => {
 ```
 
 **Query in Jaeger:**
-1. Search: `memory.source_span_id=*`
-2. Filter by `memory.retrieved_source_span_ids` contains value
+1. In Jaeger UI Tags search field: `memory.source_span_id=*`
+2. Filter by tag `memory.retrieved_source_span_ids` contains value
 3. Trace back to Critic decision that created the memory
 
 ---

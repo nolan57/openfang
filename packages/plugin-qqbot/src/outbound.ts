@@ -1,4 +1,4 @@
-import type { QQBotPluginConfig } from "./types.js"
+import type { ResolvedQQBotAccount } from "./types.js"
 import {
   sendC2CMessage,
   sendGroupMessage,
@@ -29,7 +29,7 @@ function cleanupReplyTimestamps(): void {
 setInterval(cleanupReplyTimestamps, REPLY_CLEANUP_INTERVAL_MS)
 
 export async function sendText(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   recipient: string,
   content: string,
   msgId?: string,
@@ -89,12 +89,12 @@ export async function sendText(
       try {
         if (item.type === "text") {
           if (isGroup) {
-            await sendGroupMessage(config, targetId, item.content, msgId)
+            await sendGroupMessage(account, targetId, item.content, msgId)
           } else {
-            await sendC2CMessage(config, targetId, item.content, msgId)
+            await sendC2CMessage(account, targetId, item.content, msgId)
           }
         } else if (item.type === "image") {
-          await processImageForQQ(config, item.content, isGroup, targetId, msgId)
+          await processImageForQQ(account, item.content, isGroup, targetId, msgId)
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err)
@@ -105,9 +105,9 @@ export async function sendText(
     try {
       if (recipient.startsWith("group_")) {
         const groupId = recipient.replace("group_", "")
-        await sendGroupMessage(config, groupId, content, msgId)
+        await sendGroupMessage(account, groupId, content, msgId)
       } else {
-        await sendC2CMessage(config, recipient, content, msgId)
+        await sendC2CMessage(account, recipient, content, msgId)
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
@@ -117,7 +117,7 @@ export async function sendText(
 }
 
 async function processImageForQQ(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   imagePath: string,
   isGroup: boolean,
   targetId: string,
@@ -155,20 +155,20 @@ async function processImageForQQ(
     let fileInfo: string
     if (isHttpUrl) {
       const uploadResult = isGroup
-        ? await uploadGroupMedia(config, targetId, MediaFileType.IMAGE, imageUrl)
-        : await uploadC2CMedia(config, targetId, MediaFileType.IMAGE, imageUrl)
+        ? await uploadGroupMedia(account, targetId, MediaFileType.IMAGE, imageUrl)
+        : await uploadC2CMedia(account, targetId, MediaFileType.IMAGE, imageUrl)
       fileInfo = uploadResult.file_info
     } else {
       const uploadResult = isGroup
-        ? await uploadGroupMedia(config, targetId, MediaFileType.IMAGE, undefined, imageUrl)
-        : await uploadC2CMedia(config, targetId, MediaFileType.IMAGE, undefined, imageUrl)
+        ? await uploadGroupMedia(account, targetId, MediaFileType.IMAGE, undefined, imageUrl)
+        : await uploadC2CMedia(account, targetId, MediaFileType.IMAGE, undefined, imageUrl)
       fileInfo = uploadResult.file_info
     }
 
     if (isGroup) {
-      await sendGroupMediaMessage(config, targetId, fileInfo, msgId)
+      await sendGroupMediaMessage(account, targetId, fileInfo, msgId)
     } else {
-      await sendC2CMediaMessage(config, targetId, fileInfo, msgId)
+      await sendC2CMediaMessage(account, targetId, fileInfo, msgId)
     }
 
     return imageUrl

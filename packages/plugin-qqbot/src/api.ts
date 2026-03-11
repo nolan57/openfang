@@ -1,47 +1,42 @@
-import type { QQBotPluginConfig } from "./types.js"
-
-let accessToken: string | null = null
-let tokenExpiresAt: number = 0
-let lastConfigAppId: string | null = null
+import type { QQBotPluginConfig, ResolvedQQBotAccount } from "./types.js"
 
 const API_BASE_SANDBOX = "https://sandbox.api.sgroup.qq.com"
 const API_BASE = "https://api.sgroup.qq.com"
 const TOKEN_URL = "https://bots.qq.com/app/getAppAccessToken"
 
-function getApiBase(config: QQBotPluginConfig): string {
-  return config.sandbox ? API_BASE_SANDBOX : API_BASE
+const tokenCacheMap = new Map<string, { token: string; expiresAt: number; appId: string }>()
+const tokenFetchPromises = new Map<string, Promise<string>>()
+
+function getApiBase(account: ResolvedQQBotAccount): string {
+  return account.config.sandbox ? API_BASE_SANDBOX : API_BASE
 }
 
-function isTokenValid(config: QQBotPluginConfig): boolean {
-  return accessToken !== null && tokenExpiresAt > Date.now() && lastConfigAppId === config.appId
-}
+export async function getAccessToken(account: ResolvedQQBotAccount): Promise<string> {
+  const normalizedAppId = account.appId.trim()
+  const cachedToken = tokenCacheMap.get(normalizedAppId)
 
-let tokenFetchPromise: Promise<string> | null = null
-
-const msgSeqTracker = new Map<string, number>()
-const seqBaseTime = Math.floor(Date.now() / 1000) % 100000000
-
-function getNextMsgSeq(msgId: string): number {
-  const current = msgSeqTracker.get(msgId) ?? 0
-  const next = current + 1
-  msgSeqTracker.set(msgId, next)
-
-  if (msgSeqTracker.size > 1000) {
-    const keys = Array.from(msgSeqTracker.keys())
-    for (let i = 0; i < 800; i++) {
-      msgSeqTracker.delete(keys[i])
-    }
+  if (cachedToken && Date.now() < cachedToken.expiresAt - 5 * 60 * 1000) {
+    return cachedToken.token
   }
 
-  return seqBaseTime + next
+  let fetchPromise = tokenFetchPromises.get(normalizedAppId)
+  if (fetchPromise) {
+    return fetchPromise
+  }
+
+  fetchPromise = (async () => {
+    try {
+      return await doFetchToken(normalizedAppId, account.clientSecret)
+    } finally {
+      tokenFetchPromises.delete(normalizedAppId)
+    }
+  })()
+
+  tokenFetchPromises.set(normalizedAppId, fetchPromise)
+  return fetchPromise
 }
 
-export interface MessageResponse {
-  id: string
-  timestamp: number | string
-}
-
-async function doFetchToken(config: QQBotPluginConfig): Promise<string> {
+async function doFetchToken(appId: string, clientSecret: string): Promise<string> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 10000)
 
@@ -49,13 +44,8 @@ async function doFetchToken(config: QQBotPluginConfig): Promise<string> {
   try {
     response = await fetch(TOKEN_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        appId: config.appId,
-        clientSecret: config.clientSecret,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ appId, clientSecret }),
       signal: controller.signal,
     })
   } catch (err) {
@@ -74,40 +64,44 @@ async function doFetchToken(config: QQBotPluginConfig): Promise<string> {
   }
 
   const data = await response.json()
-  accessToken = data.access_token
-  tokenExpiresAt = Date.now() + (data.expires_in - 60) * 1000
-  lastConfigAppId = config.appId
+  const expiresAt = Date.now() + (data.expires_in - 60) * 1000
 
-  return accessToken!
+  tokenCacheMap.set(appId, {
+    token: data.access_token,
+    expiresAt,
+    appId,
+  })
+
+  return data.access_token
 }
 
-export async function getAccessToken(config: QQBotPluginConfig): Promise<string> {
-  if (isTokenValid(config)) {
-    return accessToken!
+export function clearTokenCache(appId?: string): void {
+  if (appId) {
+    tokenCacheMap.delete(appId.trim())
+  } else {
+    tokenCacheMap.clear()
   }
-
-  if (tokenFetchPromise) {
-    return tokenFetchPromise
-  }
-
-  tokenFetchPromise = (async () => {
-    try {
-      return await doFetchToken(config)
-    } finally {
-      tokenFetchPromise = null
-    }
-  })()
-
-  return tokenFetchPromise
 }
 
-export async function getGatewayUrl(config: QQBotPluginConfig): Promise<string> {
-  const token = await getAccessToken(config)
-  const apiBase = getApiBase(config)
+const msgSeqTracker = new Map<string, number>()
+const seqBaseTime = Math.floor(Date.now() / 1000) % 100000000
+
+function getNextMsgSeq(_msgId: string): number {
+  const timePart = Date.now() % 100000000
+  const random = Math.floor(Math.random() * 65536)
+  return (timePart ^ random) % 65536
+}
+
+export interface MessageResponse {
+  id: string
+  timestamp: number | string
+}
+
+export async function getGatewayUrl(account: ResolvedQQBotAccount): Promise<string> {
+  const token = await getAccessToken(account)
+  const apiBase = getApiBase(account)
   const response = await fetch(`${apiBase}/gateway/bot`, {
-    headers: {
-      Authorization: `QQBot ${token}`,
-    },
+    headers: { Authorization: `QQBot ${token}` },
   })
 
   if (!response.ok) {
@@ -119,14 +113,14 @@ export async function getGatewayUrl(config: QQBotPluginConfig): Promise<string> 
 }
 
 export async function sendC2CMessage(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   userId: string,
   content: string,
   msgId?: string,
 ): Promise<MessageResponse> {
-  const token = await getAccessToken(config)
+  const token = await getAccessToken(account)
   const msgSeq = msgId ? getNextMsgSeq(msgId) : 1
-  const apiBase = getApiBase(config)
+  const apiBase = getApiBase(account)
 
   const response = await fetch(`${apiBase}/v2/users/${userId}/messages`, {
     method: "POST",
@@ -134,11 +128,7 @@ export async function sendC2CMessage(
       Authorization: `QQBot ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      content,
-      msg_id: msgId,
-      msg_seq: msgSeq,
-    }),
+    body: JSON.stringify({ content, msg_id: msgId, msg_seq: msgSeq }),
   })
 
   if (!response.ok) {
@@ -150,14 +140,14 @@ export async function sendC2CMessage(
 }
 
 export async function sendGroupMessage(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   groupId: string,
   content: string,
   msgId?: string,
 ): Promise<MessageResponse> {
-  const token = await getAccessToken(config)
+  const token = await getAccessToken(account)
   const msgSeq = msgId ? getNextMsgSeq(msgId) : 1
-  const apiBase = getApiBase(config)
+  const apiBase = getApiBase(account)
 
   const response = await fetch(`${apiBase}/groups/${groupId}/messages`, {
     method: "POST",
@@ -165,11 +155,7 @@ export async function sendGroupMessage(
       Authorization: `QQBot ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      content,
-      msg_id: msgId,
-      msg_seq: msgSeq,
-    }),
+    body: JSON.stringify({ content, msg_id: msgId, msg_seq: msgSeq }),
   })
 
   if (!response.ok) {
@@ -181,14 +167,14 @@ export async function sendGroupMessage(
 }
 
 export async function sendChannelMessage(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   channelId: string,
   content: string,
   msgId?: string,
 ): Promise<MessageResponse> {
-  const token = await getAccessToken(config)
+  const token = await getAccessToken(account)
   const msgSeq = msgId ? getNextMsgSeq(msgId) : 1
-  const apiBase = getApiBase(config)
+  const apiBase = getApiBase(account)
 
   const response = await fetch(`${apiBase}/channels/${channelId}/messages`, {
     method: "POST",
@@ -196,11 +182,7 @@ export async function sendChannelMessage(
       Authorization: `QQBot ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      content,
-      msg_id: msgId,
-      msg_seq: msgSeq,
-    }),
+    body: JSON.stringify({ content, msg_id: msgId, msg_seq: msgSeq }),
   })
 
   if (!response.ok) {
@@ -226,34 +208,27 @@ export interface UploadMediaResponse {
 }
 
 export async function uploadC2CMedia(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   openid: string,
   fileType: MediaFileType,
   url?: string,
   fileData?: string,
 ): Promise<UploadMediaResponse> {
-  const token = await getAccessToken(config)
+  const token = await getAccessToken(account)
 
   const body: Record<string, unknown> = {
     file_type: fileType,
     srv_send_msg: false,
   }
 
-  if (url) {
-    body.url = url
-  } else if (fileData) {
-    body.file_data = fileData
-  } else {
-    throw new Error("uploadC2CMedia: url or fileData is required")
-  }
+  if (url) body.url = url
+  else if (fileData) body.file_data = fileData
+  else throw new Error("uploadC2CMedia: url or fileData is required")
 
-  const apiBase = getApiBase(config)
+  const apiBase = getApiBase(account)
   const response = await fetch(`${apiBase}/v2/users/${openid}/files`, {
     method: "POST",
-    headers: {
-      Authorization: `QQBot ${token}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `QQBot ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   })
 
@@ -266,34 +241,27 @@ export async function uploadC2CMedia(
 }
 
 export async function uploadGroupMedia(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   groupOpenid: string,
   fileType: MediaFileType,
   url?: string,
   fileData?: string,
 ): Promise<UploadMediaResponse> {
-  const token = await getAccessToken(config)
+  const token = await getAccessToken(account)
 
   const body: Record<string, unknown> = {
     file_type: fileType,
     srv_send_msg: false,
   }
 
-  if (url) {
-    body.url = url
-  } else if (fileData) {
-    body.file_data = fileData
-  } else {
-    throw new Error("uploadGroupMedia: url or fileData is required")
-  }
+  if (url) body.url = url
+  else if (fileData) body.file_data = fileData
+  else throw new Error("uploadGroupMedia: url or fileData is required")
 
-  const apiBase = getApiBase(config)
+  const apiBase = getApiBase(account)
   const response = await fetch(`${apiBase}/v2/groups/${groupOpenid}/files`, {
     method: "POST",
-    headers: {
-      Authorization: `QQBot ${token}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `QQBot ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   })
 
@@ -306,22 +274,19 @@ export async function uploadGroupMedia(
 }
 
 export async function sendC2CMediaMessage(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   openid: string,
   fileInfo: string,
   msgId?: string,
   content?: string,
 ): Promise<MessageResponse> {
-  const token = await getAccessToken(config)
+  const token = await getAccessToken(account)
   const msgSeq = msgId ? getNextMsgSeq(msgId) : 1
-  const apiBase = getApiBase(config)
+  const apiBase = getApiBase(account)
 
   const response = await fetch(`${apiBase}/v2/users/${openid}/messages`, {
     method: "POST",
-    headers: {
-      Authorization: `QQBot ${token}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `QQBot ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       msg_type: 7,
       media: { file_info: fileInfo },
@@ -340,22 +305,19 @@ export async function sendC2CMediaMessage(
 }
 
 export async function sendGroupMediaMessage(
-  config: QQBotPluginConfig,
+  account: ResolvedQQBotAccount,
   groupOpenid: string,
   fileInfo: string,
   msgId?: string,
   content?: string,
 ): Promise<MessageResponse> {
-  const token = await getAccessToken(config)
+  const token = await getAccessToken(account)
   const msgSeq = msgId ? getNextMsgSeq(msgId) : 1
-  const apiBase = getApiBase(config)
+  const apiBase = getApiBase(account)
 
   const response = await fetch(`${apiBase}/v2/groups/${groupOpenid}/messages`, {
     method: "POST",
-    headers: {
-      Authorization: `QQBot ${token}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `QQBot ${token}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       msg_type: 7,
       media: { file_info: fileInfo },
