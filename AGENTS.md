@@ -35,6 +35,58 @@ packages/
 └── web/           # Astro docs site
 ```
 
+### packages/opencode Source Structure
+
+```
+src/
+├── acp/           # Agent Client Protocol (IDE integration)
+├── agent/         # Agent logic and orchestration
+├── auth/          # Authentication system
+├── bus/           # Event bus for inter-component communication
+├── cli/           # Command-line interface
+├── collab/        # Collaboration system (multi-agent coordination)
+├── command/       # Command execution
+├── config/        # Configuration management
+├── context/       # Context management
+├── control/       # Flow control
+├── env/           # Environment utilities
+├── evolution/     # Self-evolution system (prompts, skills, memories)
+├── file/          # File operations
+├── flag/          # Feature flags
+├── format/        # Formatting utilities
+├── global/        # Global state
+├── id/            # ID generation
+├── ide/           # IDE integration
+├── installation/  # Installation management
+├── learning/      # Learning system (knowledge graph, memory, self-evolution)
+├── lsp/           # Language Server Protocol integration
+├── mcp/           # Model Context Protocol (OAuth support)
+├── memory/        # Memory system (session, evolution, project)
+├── middleware/    # Middleware layer
+├── novel/         # Novel writing self-evolution
+├── patch/         # Patching utilities
+├── permission/    # Permission system
+├── plugin/        # Plugin system
+├── project/       # Project management
+├── prompts/       # Prompt templates
+├── provider/      # AI provider integrations
+├── pty/           # Pseudo-terminal
+├── question/      # Question handling
+├── scheduler/     # Task scheduling
+├── server/        # Server implementation
+├── session/       # Session management
+├── share/         # Session sharing
+├── shell/         # Shell integration
+├── skill/         # Skill system
+├── snapshot/      # Snapshot management
+├── storage/       # Storage layer (SQLite, JSON migration)
+├── tool/          # Tool implementations
+├── types/         # Type definitions
+├── util/          # Utilities
+├── worktree/      # Git worktree management
+└── zeroclaw/      # ZeroClaw integration
+```
+
 ## Commands
 
 ### Running Tests
@@ -62,6 +114,7 @@ bun test:unit:watch         # Watch mode
 bun test:e2e                # E2E tests
 bun test:e2e:local          # Local E2E
 bun test:e2e:ui             # E2E with UI
+bun test:e2e:report         # Show E2E report
 ```
 
 ### Type Checking
@@ -104,6 +157,9 @@ bun run db-dev                        # Drizzle kit on dev stage
 bun run db-prod                       # Drizzle kit on production stage
 bun run shell-dev                     # SST shell on dev
 bun run shell-prod                    # SST shell on production
+bun run update-models                 # Update models
+bun run promote-models-to-dev         # Promote models to dev
+bun run promote-models-to-prod        # Promote models to production
 ```
 
 ### Development
@@ -139,6 +195,19 @@ opencode mcp logout [name]        # Remove OAuth credentials
 opencode mcp debug <name>         # Debug OAuth connection for MCP server
 ```
 
+### Memory Commands
+
+```bash
+opencode memory add <content>              # Add a memory
+opencode memory add <content> --type <type>  # Add memory with type (session|evolution|project)
+opencode memory search <query>             # Search memories
+opencode memory search <query> --type <type>  # Search specific memory type
+opencode memory list                       # List all memories
+opencode memory list --type <type>         # List memories by type
+opencode memory show <id>                  # Show memory details
+opencode memory delete <id>                # Delete a memory
+```
+
 ### Evolution Commands
 
 ```bash
@@ -156,6 +225,52 @@ opencode evolve stats             # Show code statistics
 opencode evolve summaries build   # Build module summaries
 opencode evolve summaries search <query>  # Search module summaries
 opencode evolve overview          # Generate project overview
+opencode evolve --mode spec --spec-file <path>  # Implement from spec file
+opencode evolve --mode execute    # Execute all pending evolution tasks
+```
+
+### Novel Commands
+
+```bash
+opencode novel start [--prompt <file>] [--loops <n>]  # Start creative session
+opencode novel continue                               # Continue from last state
+opencode novel inject --file <path>                   # Inject content
+opencode novel export --output <path>                 # Export novel
+opencode novel status                                 # Show novel state
+opencode novel evolve                                 # Evolve novel patterns
+```
+
+### Session Commands
+
+```bash
+opencode session list             # List sessions
+opencode session show <id>        # Show session details
+opencode session delete <id>      # Delete a session
+```
+
+### Export/Import Commands
+
+```bash
+opencode export [options]         # Export data
+opencode import [options]         # Import data
+```
+
+### Other Commands
+
+```bash
+opencode run                      # Run the main agent
+opencode generate                 # Generate code
+opencode auth                     # Authentication commands
+opencode agent                    # Agent management
+opencode upgrade                  # Upgrade OpenCode
+opencode uninstall                # Uninstall OpenCode
+opencode serve                    # Start server
+opencode web                      # Web interface
+opencode models                   # Model management
+opencode stats                    # Statistics
+opencode github                   # GitHub integration
+opencode pr                       # Pull request operations
+opencode db                       # Database operations
 ```
 
 ### ACP (Agent Client Protocol)
@@ -174,7 +289,7 @@ opencode acp --cwd <dir>          # Start ACP server with custom working directo
 - Avoid using the `any` type
 - Prefer single word variable names where possible
 - Use Bun APIs when possible, like `Bun.file()`
-- Rely on type inference when possible; avoid explicit type annotations or interfaces unless necessary for exports or clarity
+- Rely on type inference as much as possible; avoid explicit type annotations or interfaces unless necessary for exports or clarity
 - Prefer functional array methods (flatMap, filter, map) over for loops; use type guards on filter to maintain type inference downstream
 
 ### Naming
@@ -267,6 +382,8 @@ Core workflow:
 - **MCP**: Full MCP (Model Context Protocol) integration with OAuth support. See `src/mcp/` for implementation.
 - **Evolution**: Self-evolution system with knowledge graph and hierarchical memory. See `src/learning/` and `src/evolution/`.
 - **ACP**: Agent Client Protocol support for IDE integration. See `src/acp/`.
+- **Collab**: Multi-agent collaboration system. See `src/collab/`.
+- **Memory**: Three-level memory system (session, evolution, project). See `src/memory/`.
 
 ### packages/app
 
@@ -326,6 +443,10 @@ QQ Bot plugin for controlling OpenCode via QQ messages.
 
 Astro-based documentation site. Run with `bun run dev` from the package directory.
 
+### Zed Extension (packages/extensions/zed)
+
+IDE extension for Zed editor. Contains extension configuration and icons.
+
 ## Workspace Dependencies
 
 This project uses Bun workspaces with a catalog for shared dependency versions. Key catalogs are defined in the root `package.json` under `workspaces.catalog`.
@@ -344,10 +465,11 @@ Use `catalog:` to reference catalog versions in package dependencies:
 ## Evolution System
 
 The evolution system enables self-improvement through:
-- **Knowledge Graph**: Stores learned concepts and relationships
-- **Hierarchical Memory**: Multi-level memory with module summaries
-- **Safety**: Cooldown periods and human review requirements
+- **Knowledge Graph**: Stores learned concepts and relationships (`src/learning/knowledge-graph.ts`)
+- **Hierarchical Memory**: Multi-level memory with module summaries (`src/learning/hierarchical-memory.ts`)
+- **Safety**: Cooldown periods and human review requirements (`src/learning/safety.ts`)
 - **Skills**: Dynamically loaded capabilities that can be proposed and approved
+- **Vector Store**: Semantic search and similarity (`src/learning/vector-store.ts`)
 
 Configuration in `opencode.json`:
 ```json
@@ -359,3 +481,37 @@ Configuration in `opencode.json`:
   }
 }
 ```
+
+## Memory System
+
+Three-level memory architecture:
+- **Session Memory**: Temporary memories tied to a specific session
+- **Evolution Memory**: Long-term memories from self-evolution processes
+- **Project Memory**: Project-specific knowledge and patterns
+
+Memory supports:
+- Vector-based semantic search
+- Tag-based categorization
+- Metadata attachment
+- Similarity scoring
+
+## Collaboration System
+
+Multi-agent collaboration system (`src/collab/`):
+- **Coordinator**: Orchestrates multi-agent workflows
+- **Registry**: Agent registration and discovery
+- **Events**: Inter-agent event bus
+- **Schema**: Collaboration data models
+
+## Database Migrations
+
+Migrations are stored in `packages/opencode/migration/` with per-folder layout:
+- `20260127222353_familiar_lady_ursula/`
+- `20260211171708_add_project_commands/`
+- `20260213144116_wakeful_the_professor/`
+- `20260304111115_learning_safety/`
+- `20260304224737_vector_memory/`
+- `20260308061812_knowledge_graph/`
+- `20260310000000_collab_system/`
+
+Each migration folder contains `migration.sql` and `snapshot.json`.

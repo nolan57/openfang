@@ -27,7 +27,7 @@ export const knowledge_edges = sqliteTable("knowledge_edge", {
   time_created: integer().notNull(),
 })
 
-export type NodeType = "file" | "skill" | "memory" | "constraint" | "agenda"
+export type NodeType = "file" | "skill" | "memory" | "constraint" | "agenda" | "code_entity"
 export type RelationType =
   | "depends_on"
   | "related_to"
@@ -36,6 +36,8 @@ export type RelationType =
   | "implements"
   | "may_affect"
   | "supersedes"
+  | "imports"
+  | "calls"
 
 export interface KnowledgeNode {
   id: string

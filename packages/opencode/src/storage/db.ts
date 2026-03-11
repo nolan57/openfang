@@ -15,6 +15,154 @@ import * as schema from "./schema"
 
 declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number }[] | undefined
 
+// ============================================================================
+// Vector Dimension Guard
+// ============================================================================
+
+/**
+ * Default embedding dimension
+ * Can be overridden via EMBEDDING_DIM environment variable
+ */
+const DEFAULT_EMBEDDING_DIM = 384
+
+/**
+ * Get configured embedding dimension from environment or default
+ */
+export function getConfiguredEmbeddingDim(): number {
+  const envDim = process.env.EMBEDDING_DIM
+  if (envDim) {
+    const dim = parseInt(envDim, 10)
+    if (isNaN(dim) || dim <= 0) {
+      log.warn("invalid EMBEDDING_DIM environment variable, using default", {
+        value: envDim,
+        default: DEFAULT_EMBEDDING_DIM,
+      })
+      return DEFAULT_EMBEDDING_DIM
+    }
+    return dim
+  }
+  return DEFAULT_EMBEDDING_DIM
+}
+
+/**
+ * Error thrown when vector dimension mismatch is detected
+ */
+export const VectorDimensionMismatchError = NamedError.create(
+  "VectorDimensionMismatchError",
+  z.object({
+    storedDimension: z.number(),
+    configuredDimension: z.number(),
+    hint: z.string(),
+  }),
+)
+
+/**
+ * System metadata table name for storing embedding dimension
+ */
+const SYSTEM_METADATA_TABLE = "system_metadata"
+const EMBEDDING_DIM_KEY = "embedding_dimension"
+
+/**
+ * Ensure system_metadata table exists
+ */
+function ensureSystemMetadataTable(sqlite: BunDatabase): void {
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS ${SYSTEM_METADATA_TABLE} (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      value_type TEXT NOT NULL DEFAULT 'string',
+      description TEXT,
+      time_created INTEGER NOT NULL,
+      time_updated INTEGER NOT NULL
+    )
+  `)
+}
+
+/**
+ * Get stored embedding dimension from database
+ * Returns undefined if not stored yet
+ */
+function getStoredEmbeddingDim(sqlite: BunDatabase): number | undefined {
+  try {
+    const result = sqlite
+      .query<{ value: string }, [string]>(
+        `SELECT value FROM ${SYSTEM_METADATA_TABLE} WHERE key = ?`,
+      )
+      .get(EMBEDDING_DIM_KEY)
+    if (result?.value) {
+      return parseInt(result.value, 10)
+    }
+    return undefined
+  } catch {
+    // Table might not exist yet
+    return undefined
+  }
+}
+
+/**
+ * Store embedding dimension in database
+ */
+function storeEmbeddingDim(sqlite: BunDatabase, dim: number): void {
+  const now = Date.now()
+  ensureSystemMetadataTable(sqlite)
+  sqlite.exec(
+    `INSERT INTO ${SYSTEM_METADATA_TABLE} (key, value, value_type, description, time_created, time_updated)
+     VALUES (?, ?, 'number', 'Configured embedding vector dimension', ?, ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, time_updated = excluded.time_updated`,
+    [EMBEDDING_DIM_KEY, dim.toString(), now, now],
+  )
+}
+
+/**
+ * Validate and initialize vector dimensions
+ * This should be called during database initialization
+ * 
+ * @throws VectorDimensionMismatchError if dimensions don't match
+ */
+function validateVectorDimensions(sqlite: BunDatabase, logger: typeof log): number {
+  const configuredDim = getConfiguredEmbeddingDim()
+  const storedDim = getStoredEmbeddingDim(sqlite)
+
+  logger.debug("vector_dimension_check", {
+    configured: configuredDim,
+    stored: storedDim,
+  })
+
+  // If no dimension stored yet, this is a fresh database
+  if (storedDim === undefined) {
+    logger.info("initializing_vector_dimension", { dimension: configuredDim })
+    storeEmbeddingDim(sqlite, configuredDim)
+    return configuredDim
+  }
+
+  // If dimensions match, we're good
+  if (storedDim === configuredDim) {
+    logger.debug("vector_dimension_verified", { dimension: configuredDim })
+    return configuredDim
+  }
+
+  // Dimensions don't match - this is a critical error
+  logger.error("vector_dimension_mismatch", {
+    stored: storedDim,
+    configured: configuredDim,
+  })
+
+  throw new VectorDimensionMismatchError({
+    storedDimension: storedDim,
+    configuredDimension: configuredDim,
+    hint: `Embedding model changed. You must either:
+1. Set EMBEDDING_DIM=${storedDim} to use the existing vectors, or
+2. Clear the vector_memory table and rebuild with the new dimension:
+   DELETE FROM vector_memory;
+   DELETE FROM vec_vector_memory;
+   UPDATE system_metadata SET value = '${configuredDim}' WHERE key = 'embedding_dimension';
+   
+After changing dimension, restart the application.`,
+  })
+}
+
+export { validateVectorDimensions, storeEmbeddingDim, getStoredEmbeddingDim, ensureSystemMetadataTable }
+
 // ====== Database Backup & Recovery Logic ======
 const DB_PATH = path.join(Global.Path.data, "opencode.db")
 const BACKUP_DIR = path.join(Global.Path.data, "backups")
@@ -140,6 +288,163 @@ export const NotFoundError = NamedError.create(
 
 const log = Log.create({ service: "db" })
 
+// ============================================================================
+// SQLite-Vec Extension Loading
+// ============================================================================
+
+/**
+ * Result of sqlite-vec extension loading attempt
+ */
+interface VecLoadResult {
+  loaded: boolean
+  reason?: string
+  path?: string
+}
+
+/**
+ * Platform-specific configuration for sqlite-vec extension
+ */
+interface VecPlatformConfig {
+  fileName: string
+  packageName: string
+  supported: boolean
+}
+
+/**
+ * Get platform-specific configuration for sqlite-vec
+ * @returns Platform configuration object
+ */
+function getVecPlatformConfig(): VecPlatformConfig {
+  const platform = process.platform
+  const arch = process.arch
+
+  // Platform file name mapping
+  const platformMap: Record<string, { fileName: string; packageName: string }> = {
+    darwin: { fileName: "vec0.dylib", packageName: "darwin" },
+    linux: { fileName: "vec0.so", packageName: "linux" },
+    win32: { fileName: "vec0.dll", packageName: "windows" },
+  }
+
+  const config = platformMap[platform]
+  if (!config) {
+    return {
+      fileName: "",
+      packageName: "",
+      supported: false,
+    }
+  }
+
+  return {
+    fileName: config.fileName,
+    packageName: `${config.packageName}${arch === "arm64" ? "-arm64" : "-x64"}`,
+    supported: true,
+  }
+}
+
+/**
+ * Attempt to load sqlite-vec extension with comprehensive error handling
+ * @param sqlite - The SQLite database instance
+ * @param logger - Logger instance for diagnostics
+ * @returns Result indicating success or failure with reason
+ */
+function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoadResult {
+  const platform = process.platform
+  const arch = process.arch
+
+  // Check if running in Bun environment
+  if (typeof Bun === "undefined") {
+    return {
+      loaded: false,
+      reason: "sqlite-vec requires Bun runtime. Node.js is not supported.",
+    }
+  }
+
+  // Get platform configuration
+  const config = getVecPlatformConfig()
+  if (!config.supported) {
+    return {
+      loaded: false,
+      reason: `Unsupported platform: ${platform} (${arch}). Supported: darwin (x64/arm64), linux (x64/arm64), win32 (x64/arm64)`,
+    }
+  }
+
+  // Construct possible extension paths
+  const projectRoot = path.resolve(import.meta.dirname, "../../../..")
+  const platformPkg = `sqlite-vec-${config.packageName}`
+
+  const possiblePaths = [
+    // Bun's hoisted node_modules with version pinning
+    path.join(
+      projectRoot,
+      "node_modules/.bun",
+      `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
+      config.fileName,
+    ),
+    // Standard npm/yarn node_modules
+    path.join(projectRoot, "node_modules", platformPkg, config.fileName),
+    // Workspace package node_modules
+    path.join(projectRoot, "packages/opencode/node_modules", platformPkg, config.fileName),
+    // Alternative bun install location
+    path.join(projectRoot, "node_modules/.bun", "install/global", platformPkg, config.fileName),
+  ]
+
+  logger.debug("sqlite-vec loading attempt", {
+    platform,
+    arch,
+    platformPkg,
+    fileName: config.fileName,
+    pathsToCheck: possiblePaths.length,
+  })
+
+  // Try each path
+  const attemptedPaths: string[] = []
+  const errors: string[] = []
+
+  for (const vecPath of possiblePaths) {
+    if (!existsSync(vecPath)) {
+      continue
+    }
+
+    attemptedPaths.push(vecPath)
+    logger.debug("sqlite-vec found at path", { path: vecPath })
+
+    try {
+      sqlite.loadExtension(vecPath)
+
+      // Verify extension is functional
+      try {
+        const versionResult = sqlite.query("SELECT vec0_version()").get() as { "vec0_version()": string } | undefined
+        logger.info("sqlite-vec loaded successfully", {
+          path: vecPath,
+          version: versionResult?.["vec0_version()"] ?? "unknown",
+        })
+        return { loaded: true, path: vecPath }
+      } catch (verifyError) {
+        // Extension loaded but vec0_version not available (older versions)
+        logger.info("sqlite-vec loaded (version query unavailable)", { path: vecPath })
+        return { loaded: true, path: vecPath }
+      }
+    } catch (loadError) {
+      const errorMsg = loadError instanceof Error ? loadError.message : String(loadError)
+      errors.push(`${vecPath}: ${errorMsg}`)
+      logger.warn("sqlite-vec load failed for path", { path: vecPath, error: errorMsg })
+    }
+  }
+
+  // All paths failed
+  if (attemptedPaths.length === 0) {
+    return {
+      loaded: false,
+      reason: `sqlite-vec binary not found. Searched paths: ${possiblePaths.join("; ")}. Install with: bun add sqlite-vec-${config.packageName}`,
+    }
+  }
+
+  return {
+    loaded: false,
+    reason: `sqlite-vec found at ${attemptedPaths.length} location(s) but failed to load: ${errors.join("; ")}. Check file permissions and architecture compatibility.`,
+  }
+}
+
 export namespace Database {
   export const Path = path.join(Global.Path.data, "opencode.db")
   type Schema = typeof schema
@@ -203,76 +508,13 @@ export namespace Database {
 
     // Load sqlite-vec extension for vector search
     // Use Bun's native loadExtension API with the binary file path
-    try {
-      const platform = process.platform
-      const arch = process.arch
-      let vecFileName: string
-      let platformName: string
-
-      if (platform === "darwin") {
-        vecFileName = "vec0.dylib"
-        platformName = "darwin"
-      } else if (platform === "linux") {
-        vecFileName = "vec0.so"
-        platformName = "linux"
-      } else if (platform === "win32") {
-        vecFileName = "vec0.dll"
-        platformName = "windows"
-      } else {
-        throw new Error(`Unsupported platform: ${platform}`)
-      }
-
-      const archSuffix = arch === "arm64" ? "-arm64" : "-x64"
-      const platformPkg = `sqlite-vec-${platformName}${archSuffix}`
-
-      // Go up 4 levels from packages/opencode/src/storage/db.ts to project root
-      const projectRoot = path.resolve(import.meta.dirname, "../../../..")
-
-      log.debug("sqlite-vec loading", { platform, arch, platformName, platformPkg, projectRoot })
-
-      const possiblePaths = [
-        path.join(
-          projectRoot,
-          "node_modules/.bun",
-          `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
-          vecFileName,
-        ),
-        path.join(projectRoot, "node_modules", platformPkg, vecFileName),
-        path.join(projectRoot, "packages/opencode/node_modules", platformPkg, vecFileName),
-      ]
-
-      log.debug("sqlite-vec checking paths", { possiblePaths })
-
-      let loaded = false
-      for (const vecPath of possiblePaths) {
-        if (existsSync(vecPath)) {
-          log.info("loading sqlite-vec from", { vecPath })
-          try {
-            sqlite.loadExtension(vecPath)
-            // Verify the extension is loaded by testing vec0 (some versions don't have vec0_version)
-            try {
-              sqlite.exec("SELECT vec0_version()")
-              log.info("sqlite-vec loaded successfully", { vecPath })
-            } catch {
-              // Extension loaded but vec0_version doesn't exist - that's ok
-              log.info("sqlite-vec loaded (vec0_version not available)", { vecPath })
-            }
-            loaded = true
-            break
-          } catch (loadError) {
-            log.error("failed to load sqlite-vec extension", {
-              vecPath,
-              error: loadError instanceof Error ? loadError.message : String(loadError),
-            })
-          }
-        }
-      }
-
-      if (!loaded) {
-        log.warn("sqlite-vec binary not found or failed to load", { platform, arch, possiblePaths })
-      }
-    } catch (error) {
-      log.error("failed to load sqlite-vec extension", { error: error instanceof Error ? error.message : String(error) })
+    const vecLoadResult = loadSqliteVecExtension(sqlite, log)
+    if (!vecLoadResult.loaded) {
+      log.warn("sqlite-vec extension not available - vector search will use text-based fallback", {
+        reason: vecLoadResult.reason,
+        platform: process.platform,
+        arch: process.arch,
+      })
     }
 
     const db = drizzle({ client: sqlite, schema })
@@ -288,6 +530,22 @@ export namespace Database {
         mode: typeof OPENCODE_MIGRATIONS !== "undefined" ? "bundled" : "dev",
       })
       migrate(db, entries)
+    }
+
+    // Validate vector dimensions
+    // This must happen after migrations but before any vector operations
+    try {
+      const embeddingDim = validateVectorDimensions(sqlite, log)
+      log.info("vector_dimension_validated", { dimension: embeddingDim })
+    } catch (error) {
+      if (error instanceof VectorDimensionMismatchError) {
+        // Re-throw with full context - this is a critical error
+        throw error
+      }
+      // Log other errors but don't fail - vector operations may still work
+      log.warn("vector_dimension_validation_failed", {
+        error: error instanceof Error ? error.message : String(error),
+      })
     }
 
     return db

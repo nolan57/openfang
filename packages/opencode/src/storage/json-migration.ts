@@ -13,21 +13,123 @@ import { Glob } from "../util/glob"
 export namespace JsonMigration {
   const log = Log.create({ service: "json-migration" })
 
+  /** Migration version - increment when migration logic changes significantly */
+  const MIGRATION_VERSION = 1
+
+  /** State table name for tracking migration progress */
+  const STATE_TABLE = "json_migration_state"
+
   export type Progress = {
     current: number
     total: number
     label: string
   }
 
-  type Options = {
-    progress?: (event: Progress) => void
+  /** Migration statistics returned after completion */
+  export type MigrationStats = {
+    projects: number
+    sessions: number
+    messages: number
+    parts: number
+    todos: number
+    permissions: number
+    shares: number
+    errors: string[]
+    skipped: {
+      projects: number
+      sessions: number
+      messages: number
+      parts: number
+    }
+    duration: number
   }
 
-  export async function run(sqlite: Database, options?: Options) {
+  type Options = {
+    progress?: (event: Progress) => void
+    /** Force re-migration even if already completed */
+    force?: boolean
+  }
+
+  /**
+   * Check if migration has already been completed
+   * @param sqlite - SQLite database instance
+   * @returns true if migration was already completed
+   */
+  function isMigrationCompleted(sqlite: Database): boolean {
+    try {
+      const result = sqlite
+        .query(`SELECT completed FROM ${STATE_TABLE} WHERE version = ? LIMIT 1`)
+        .get(MIGRATION_VERSION) as { completed: number } | undefined
+      return result?.completed === 1
+    } catch {
+      // State table doesn't exist yet
+      return false
+    }
+  }
+
+  /**
+   * Mark migration as completed in the state table
+   * @param sqlite - SQLite database instance
+   */
+  function markMigrationCompleted(sqlite: Database): void {
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS ${STATE_TABLE} (
+        version INTEGER PRIMARY KEY,
+        completed INTEGER NOT NULL DEFAULT 0,
+        migrated_at INTEGER NOT NULL
+      )
+    `)
+    sqlite.exec(
+      `INSERT OR REPLACE INTO ${STATE_TABLE} (version, completed, migrated_at) VALUES (?, 1, ?)`,
+      [MIGRATION_VERSION, Date.now()],
+    )
+  }
+
+  /**
+   * Get set of existing IDs from a table for skip-during-migration
+   * @param sqlite - SQLite database instance
+   * @param table - Table name to check
+   * @param column - ID column name
+   * @returns Set of existing IDs
+   */
+  function getExistingIds(sqlite: Database, table: string, column: string): Set<string> {
+    try {
+      const rows = sqlite.query(`SELECT ${column} FROM ${table}`).all() as Array<{ [key: string]: string }>
+      return new Set(rows.map((r) => r[column]))
+    } catch {
+      return new Set()
+    }
+  }
+
+  /**
+   * Run the JSON to SQLite migration with resumable support
+   * @param sqlite - SQLite database instance
+   * @param options - Migration options including progress callback and force flag
+   * @returns Migration statistics
+   */
+  export async function run(sqlite: Database, options?: Options): Promise<MigrationStats> {
     const storageDir = path.join(Global.Path.data, "storage")
 
+    // Check if migration has already been completed
+    if (!options?.force && isMigrationCompleted(sqlite)) {
+      log.info("migration already completed, skipping. Use force: true to re-migrate.")
+      return {
+        projects: 0,
+        sessions: 0,
+        messages: 0,
+        parts: 0,
+        todos: 0,
+        permissions: 0,
+        shares: 0,
+        errors: [],
+        skipped: { projects: 0, sessions: 0, messages: 0, parts: 0 },
+        duration: 0,
+      }
+    }
+
     if (!existsSync(storageDir)) {
-      log.info("storage directory does not exist, skipping migration")
+      log.info("storage directory does not exist, marking migration as complete")
+      markMigrationCompleted(sqlite)
       return {
         projects: 0,
         sessions: 0,
@@ -37,10 +139,12 @@ export namespace JsonMigration {
         permissions: 0,
         shares: 0,
         errors: [] as string[],
+        skipped: { projects: 0, sessions: 0, messages: 0, parts: 0 },
+        duration: 0,
       }
     }
 
-    log.info("starting json to sqlite migration", { storageDir })
+    log.info("starting json to sqlite migration", { storageDir, version: MIGRATION_VERSION })
     const start = performance.now()
 
     const db = drizzle({ client: sqlite })
@@ -50,7 +154,22 @@ export namespace JsonMigration {
     sqlite.exec("PRAGMA synchronous = OFF")
     sqlite.exec("PRAGMA cache_size = 10000")
     sqlite.exec("PRAGMA temp_store = MEMORY")
-    const stats = {
+
+    // Load existing IDs for skip-during-migration (resumable support)
+    log.info("loading existing record IDs for resumable migration...")
+    const existingProjectIds = getExistingIds(sqlite, "project", "id")
+    const existingSessionIds = getExistingIds(sqlite, "session", "id")
+    const existingMessageIds = getExistingIds(sqlite, "message", "id")
+    const existingPartIds = getExistingIds(sqlite, "part", "id")
+
+    log.info("existing records loaded", {
+      projects: existingProjectIds.size,
+      sessions: existingSessionIds.size,
+      messages: existingMessageIds.size,
+      parts: existingPartIds.size,
+    })
+
+    const stats: MigrationStats = {
       projects: 0,
       sessions: 0,
       messages: 0,
@@ -58,7 +177,14 @@ export namespace JsonMigration {
       todos: 0,
       permissions: 0,
       shares: 0,
-      errors: [] as string[],
+      errors: [],
+      skipped: {
+        projects: 0,
+        sessions: 0,
+        messages: 0,
+        parts: 0,
+      },
+      duration: 0,
     }
     const orphans = {
       sessions: 0,
@@ -75,11 +201,11 @@ export namespace JsonMigration {
       return Glob.scan(pattern, { cwd: storageDir, absolute: true })
     }
 
-    async function read(files: string[], start: number, end: number) {
-      const count = end - start
+    async function read(files: string[], startIdx: number, end: number) {
+      const count = end - startIdx
       const tasks = new Array(count)
       for (let i = 0; i < count; i++) {
-        tasks[i] = Filesystem.readJson(files[start + i])
+        tasks[i] = Filesystem.readJson(files[startIdx + i])
       }
       const results = await Promise.allSettled(tasks)
       const items = new Array(count)
@@ -89,15 +215,15 @@ export namespace JsonMigration {
           items[i] = result.value
           continue
         }
-        errs.push(`failed to read ${files[start + i]}: ${result.reason}`)
+        errs.push(`failed to read ${files[startIdx + i]}: ${result.reason}`)
       }
       return items
     }
 
-    function insert(values: any[], table: any, label: string) {
+    function insert(values: unknown[], table: unknown, label: string): number {
       if (values.length === 0) return 0
       try {
-        db.insert(table).values(values).onConflictDoNothing().run()
+        ;(db.insert as (table: unknown) => { values: (v: unknown[]) => { onConflictDoNothing: () => { run: () => void } }})(table).values(values).onConflictDoNothing().run()
         return values.length
       } catch (e) {
         errs.push(`failed to migrate ${label} batch: ${e}`)
@@ -150,8 +276,8 @@ export namespace JsonMigration {
 
     // Migrate projects first (no FK deps)
     // Derive all IDs from file paths, not JSON content
-    const projectIds = new Set<string>()
-    const projectValues = [] as any[]
+    const projectIds = new Set<string>(existingProjectIds)
+    const projectValues: unknown[] = []
     for (let i = 0; i < projectFiles.length; i += batchSize) {
       const end = Math.min(i + batchSize, projectFiles.length)
       const batch = await read(projectFiles, i, end)
@@ -160,6 +286,13 @@ export namespace JsonMigration {
         const data = batch[j]
         if (!data) continue
         const id = path.basename(projectFiles[i + j], ".json")
+        
+        // Skip if already exists (resumable migration)
+        if (existingProjectIds.has(id)) {
+          stats.skipped.projects++
+          continue
+        }
+        
         projectIds.add(id)
         projectValues.push({
           id,
@@ -184,8 +317,8 @@ export namespace JsonMigration {
     // Derive all IDs from directory/file paths, not JSON content, since earlier
     // migrations may have moved sessions to new directories without updating the JSON
     const sessionProjects = sessionFiles.map((file) => path.basename(path.dirname(file)))
-    const sessionIds = new Set<string>()
-    const sessionValues = [] as any[]
+    const sessionIds = new Set<string>(existingSessionIds)
+    const sessionValues: unknown[] = []
     for (let i = 0; i < sessionFiles.length; i += batchSize) {
       const end = Math.min(i + batchSize, sessionFiles.length)
       const batch = await read(sessionFiles, i, end)
@@ -194,6 +327,13 @@ export namespace JsonMigration {
         const data = batch[j]
         if (!data) continue
         const id = path.basename(sessionFiles[i + j], ".json")
+        
+        // Skip if already exists (resumable migration)
+        if (existingSessionIds.has(id)) {
+          stats.skipped.sessions++
+          continue
+        }
+        
         const projectID = sessionProjects[i + j]
         if (!projectIds.has(projectID)) {
           orphans.sessions++
@@ -230,8 +370,8 @@ export namespace JsonMigration {
     }
 
     // Migrate messages using pre-scanned file map
-    const allMessageFiles = [] as string[]
-    const allMessageSessions = [] as string[]
+    const allMessageFiles: string[] = []
+    const allMessageSessions: string[] = []
     const messageSessions = new Map<string, string>()
     for (const file of messageFiles) {
       const sessionID = path.basename(path.dirname(file))
@@ -243,27 +383,32 @@ export namespace JsonMigration {
     for (let i = 0; i < allMessageFiles.length; i += batchSize) {
       const end = Math.min(i + batchSize, allMessageFiles.length)
       const batch = await read(allMessageFiles, i, end)
-      const values = new Array(batch.length)
-      let count = 0
+      const values: unknown[] = []
       for (let j = 0; j < batch.length; j++) {
         const data = batch[j]
         if (!data) continue
         const file = allMessageFiles[i + j]
         const id = path.basename(file, ".json")
+        
+        // Skip if already exists (resumable migration)
+        if (existingMessageIds.has(id)) {
+          stats.skipped.messages++
+          continue
+        }
+        
         const sessionID = allMessageSessions[i + j]
         messageSessions.set(id, sessionID)
-        const rest = data
+        const rest = { ...data }
         delete rest.id
         delete rest.sessionID
-        values[count++] = {
+        values.push({
           id,
           session_id: sessionID,
           time_created: data.time?.created ?? now,
           time_updated: data.time?.updated ?? now,
           data: rest,
-        }
+        })
       }
-      values.length = count
       stats.messages += insert(values, MessageTable, "message")
       step("messages", end - i)
     }
@@ -273,13 +418,19 @@ export namespace JsonMigration {
     for (let i = 0; i < partFiles.length; i += batchSize) {
       const end = Math.min(i + batchSize, partFiles.length)
       const batch = await read(partFiles, i, end)
-      const values = new Array(batch.length)
-      let count = 0
+      const values: unknown[] = []
       for (let j = 0; j < batch.length; j++) {
         const data = batch[j]
         if (!data) continue
         const file = partFiles[i + j]
         const id = path.basename(file, ".json")
+        
+        // Skip if already exists (resumable migration)
+        if (existingPartIds.has(id)) {
+          stats.skipped.parts++
+          continue
+        }
+        
         const messageID = path.basename(path.dirname(file))
         const sessionID = messageSessions.get(messageID)
         if (!sessionID) {
@@ -287,20 +438,19 @@ export namespace JsonMigration {
           continue
         }
         if (!sessionIds.has(sessionID)) continue
-        const rest = data
+        const rest = { ...data }
         delete rest.id
         delete rest.messageID
         delete rest.sessionID
-        values[count++] = {
+        values.push({
           id,
           message_id: messageID,
           session_id: sessionID,
           time_created: data.time?.created ?? now,
           time_updated: data.time?.updated ?? now,
           data: rest,
-        }
+        })
       }
-      values.length = count
       stats.parts += insert(values, PartTable, "part")
       step("parts", end - i)
     }
@@ -311,7 +461,7 @@ export namespace JsonMigration {
     for (let i = 0; i < todoFiles.length; i += batchSize) {
       const end = Math.min(i + batchSize, todoFiles.length)
       const batch = await read(todoFiles, i, end)
-      const values = [] as any[]
+      const values: unknown[] = []
       for (let j = 0; j < batch.length; j++) {
         const data = batch[j]
         if (!data) continue
@@ -348,7 +498,7 @@ export namespace JsonMigration {
 
     // Migrate permissions
     const permProjects = permFiles.map((file) => path.basename(file, ".json"))
-    const permValues = [] as any[]
+    const permValues: unknown[] = []
     for (let i = 0; i < permFiles.length; i += batchSize) {
       const end = Math.min(i + batchSize, permFiles.length)
       const batch = await read(permFiles, i, end)
@@ -373,7 +523,7 @@ export namespace JsonMigration {
 
     // Migrate session shares
     const shareSessions = shareFiles.map((file) => path.basename(file, ".json"))
-    const shareValues = [] as any[]
+    const shareValues: unknown[] = []
     for (let i = 0; i < shareFiles.length; i += batchSize) {
       const end = Math.min(i + batchSize, shareFiles.length)
       const batch = await read(shareFiles, i, end)
@@ -400,6 +550,9 @@ export namespace JsonMigration {
       log.warn("skipped orphaned session shares", { count: orphans.shares })
     }
 
+    // Mark migration as completed
+    markMigrationCompleted(sqlite)
+
     sqlite.exec("COMMIT")
 
     log.info("json migration complete", {
@@ -410,6 +563,7 @@ export namespace JsonMigration {
       todos: stats.todos,
       permissions: stats.permissions,
       shares: stats.shares,
+      skipped: stats.skipped,
       errorCount: stats.errors.length,
       duration: Math.round(performance.now() - start),
     })

@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Service Refactor Report - Complete Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #7c3aed;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --llm-color: #dc2626;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 30px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.2);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section h2 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            margin: 25px 0 15px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .card.success {
+            border-left-color: var(--success-color);
+        }
+
+        .card.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .card.danger {
+            border-left-color: var(--danger-color);
+        }
+
+        .card.llm {
+            border-left-color: var(--llm-color);
+            background: #fef2f2;
+        }
+
+        .card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .badge.new {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.modified {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge.breaking {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge.llm {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        code {
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: "Fira Code", monospace;
+            font-size: 0.9em;
+            color: #7c3aed;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .diagram-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .toc {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .toc h3 {
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toc a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-card .label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .changelog-entry {
+            border-left: 3px solid var(--secondary-color);
+            padding-left: 20px;
+            margin: 25px 0;
+        }
+
+        .changelog-entry h4 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .file-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .file-list li {
+            padding: 12px 15px;
+            background: #f8fafc;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .file-list .file-path {
+            font-family: monospace;
+            color: var(--primary-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .llm-legend {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            background: #fef2f2;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .llm-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .llm-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--llm-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Memory Service Refactor Report</h1>
+            <p>Complete system architecture, data flow analysis, and all improvement rounds changelog</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">Version: 1.2.10 | Date: 2026-03-11</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#overview">1. System Overview</a></li>
+                <li><a href="#architecture">2. Architecture Design</a></li>
+                <li><a href="#dataflow">3. Data Flow Diagrams</a></li>
+                <li><a href="#llm-calls">4. LLM Call Points</a></li>
+                <li><a href="#round1">5. Round 1 Improvements (Changelog #1)</a></li>
+                <li><a href="#round2">6. Round 2 Improvements (Changelog #2)</a></li>
+                <li><a href="#round3">7. Round 3 Improvements (Changelog #3)</a></li>
+                <li><a href="#files">8. Files Change Summary</a></li>
+                <li><a href="#summary">9. Summary</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview Section -->
+        <section id="overview" class="section">
+            <h2>1. System Overview</h2>
+            <p>The Memory Service system consists of three core packages, providing a three-layer memory architecture for flexible long-term and short-term memory management.</p>
+            
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="number">3</div>
+                    <div class="label">Memory Layers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">10+</div>
+                    <div class="label">Database Tables</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">30+</div>
+                    <div class="label">Learning Modules</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">8</div>
+                    <div class="label">LLM Call Points</div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h4>Session Memory</h4>
+                    <p>Session-level temporary memory with TTL expiration, SQLite persistence, multi-keyword search, and vector semantic retrieval.</p>
+                </div>
+                <div class="card">
+                    <h4>Evolution Memory</h4>
+                    <p>Long-term memory from self-evolution process, using vector embeddings for semantic search and similarity matching.</p>
+                </div>
+                <div class="card">
+                    <h4>Project Memory</h4>
+                    <p>Project-level knowledge and patterns, using knowledge graph for entity relationships and AST for code entity parsing.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section id="architecture" class="section">
+            <h2>2. Architecture Design</h2>
+            
+            <h3>2.1 Overall Architecture</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+graph TB
+    subgraph "User Layer"
+        A[User Request]
+    end
+
+    subgraph "Memory Service"
+        B[MemoryService]
+        C[SessionMemoryService]
+        D[EvolutionMemoryService]
+        E[ProjectMemoryService]
+    end
+
+    subgraph "Storage Layer"
+        F[Database]
+        G[SQLite + Drizzle]
+        H[sqlite-vec]
+    end
+
+    subgraph "Learning System"
+        I[Collector]
+        J[Analyzer]
+        K[KnowledgeGraph]
+        L[VectorStore]
+        M[HierarchicalMemory]
+    end
+
+    A --> B
+    B --> C
+    B --> D
+    B --> E
+    C --> F
+    D --> F
+    E --> F
+    F --> G
+    F --> H
+    I --> J
+    J --> K
+    J --> L
+    K --> L
+                </div>
+            </div>
+
+            <h3>2.2 Core Components</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>File Location</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MemoryService</td>
+                        <td><code>memory/service.ts</code></td>
+                        <td>Unified entry, routing</td>
+                    </tr>
+                    <tr>
+                        <td>SessionMemoryService</td>
+                        <td><code>memory/service.ts</code></td>
+                        <td>Session memory persistence & search</td>
+                    </tr>
+                    <tr>
+                        <td>ProjectMemoryService</td>
+                        <td><code>memory/service.ts</code></td>
+                        <td>Project code indexing & retrieval</td>
+                    </tr>
+                    <tr>
+                        <td>CodeAnalyzer</td>
+                        <td><code>memory/code-analyzer.ts</code></td>
+                        <td>AST code entity parsing</td>
+                    </tr>
+                    <tr>
+                        <td>KnowledgeGraph</td>
+                        <td><code>learning/knowledge-graph.ts</code></td>
+                        <td>Knowledge node & relation management</td>
+                    </tr>
+                    <tr>
+                        <td>VectorStore</td>
+                        <td><code>learning/vector-store.ts</code></td>
+                        <td>Vector embedding storage & retrieval</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Data Flow Section -->
+        <section id="dataflow" class="section">
+            <h2>3. Data Flow Diagrams</h2>
+            
+            <h3>3.1 Add Memory Flow</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant M as MemoryService
+    participant S as SessionMemoryService
+    participant V as VectorStore
+    participant D as Database
+    participant LLM as LLM API
+
+    U->>M: addMemory({type, content, metadata})
+    M->>S: addMessage(sessionId, message)
+    S->>D: insert(session_message)
+    S->>V: generateEmbedding(content)
+    V->>V: simpleEmbedding() → 384-dim vector
+    V->>D: insert(vector_memory)
+                    </div>
+            </div>
+
+            <h3>3.2 Project Indexing Flow</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart LR
+    A[Files] --> B[KnowledgeGraph]
+    A --> C[VectorStore]
+    A --> D[CodeAnalyzer]
+    D --> E{AST Parsing}
+    E -->|class| F[Class Entity]
+    E -->|function| G[Function Entity]
+    E -->|interface| H[Interface Entity]
+    E -->|import| I[Import Relation]
+    E -->|call| J[Call Relation]
+    F --> K[project_memory table]
+    G --> K
+    H --> K
+    I --> L[project_memory_relation]
+    J --> L
+                </div>
+            </div>
+
+            <h3>3.3 Evolution System Flow</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TB
+    A[runLearning] --> B[Collector.collect]
+    B --> C[Analyzer.analyze]
+    C --> D[KnowledgeStore.saveKnowledge]
+    D --> E[NoteGenerator.generate]
+    E --> F[Installer.install]
+    F --> G[CodeSuggester.generateSuggestions]
+    G --> H[Archive.createSnapshot]
+    
+    I[EvolutionTrigger.checkAndTrigger] --> J{Circuit Breaker}
+    J -->|open| K[Block Evolution]
+    J -->|closed| L{Cooldown Check}
+    L -->|cooling| M[Wait]
+    L -->|pass| N[Detect Code Changes]
+    N --> O[Create DeploymentTask]
+    O --> P[EvolutionExecutor.executeTask]
+    
+    Q[NegativeMemory] -.-> B
+    Q -.-> F
+    R[ConsistencyChecker] -.-> I
+                </div>
+            </div>
+        </section>
+
+        <!-- LLM Calls Section -->
+        <section id="llm-calls" class="section">
+            <h2>4. LLM Call Points</h2>
+            
+            <div class="llm-legend">
+                <div class="llm-legend-item">
+                    <div class="llm-dot"></div>
+                    <span>LLM Processing Node</span>
+                </div>
+                <div style="color: var(--text-secondary);">
+                    Nodes marked in red call the LLM for cognitive processing
+                </div>
+            </div>
+
+            <h3>4.1 Complete Data Flow with LLM Call Points</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+flowchart TB
+    subgraph "User Request"
+        UR[User Input]
+    end
+
+    subgraph "Session Processing"
+        SP[SessionPrompt]
+    end
+
+    subgraph "LLM Calls"
+        LLM1["🔥 extractMemoriesWithLLM()"]
+        LLM2["🔥 DynamicQueryGenerator"]
+        LLM3["🔥 HierarchicalMemory"]
+        LLM4["🔥 Skill Generation"]
+        LLM5["🔥 Code Critic"]
+        LLM6["🔥 Consistency Checker"]
+        LLM7["🔥 Prompt Reflection"]
+        LLM8["🔥 Command Suggestions"]
+    end
+
+    subgraph "Storage"
+        DB[(SQLite)]
+        VS[VectorStore]
+    end
+
+    subgraph "Knowledge"
+        KG[KnowledgeGraph]
+        HM[HierarchicalMemory]
+    end
+
+    UR --> SP
+    SP --> LLM1
+    LLM1 -->|Extract memories| KG
+    LLM1 -->|Store embedding| VS
+    VS --> DB
+    
+    KG --> HM
+    HM --> LLM3
+    LLM3 --> KG
+    
+    KG --> LLM6
+    LLM6 -->|Conflict detection| KG
+    
+    subgraph "Evolution"
+        EV[runSessionEvolution]
+        SK[Skill Generation]
+    end
+    
+    SP --> EV
+    EV --> LLM4
+    LLM4 --> SK
+    SK --> KG
+    
+    KG --> LLM2
+    LLM2 --> LLM5
+    LLM5 --> KG
+    
+    KG --> LLM7
+    LLM7 --> LLM8
+    LLM8 --> KG
+                </div>
+            </div>
+
+            <h3>4.2 Session End Memory Extraction</h3>
+            <div class="diagram-container">
+                <div class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant SP as SessionPrompt
+    participant LLM as LLM API
+    participant KG as KnowledgeGraph
+    participant VS as VectorStore
+
+    U->>SP: Session ends
+    SP->>LLM: extractMemoriesWithLLM(task, toolCalls, outcome)
+    Note over LLM: Extract 0-3 key learnings from task
+    LLM-->>SP: [{key, value}, ...]
+    SP->>KG: saveMemory(key, value, context)
+    SP->>VS: embedAndStore(node_id, entity_title)
+    VS->>KG: Store vector for semantic search
+                </div>
+            </div>
+
+            <h3>4.3 LLM Call Points Summary</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Location</th>
+                        <th>File</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><code>extractMemoriesWithLLM()</code></td>
+                        <td><code>session/prompt.ts</code></td>
+                        <td>Extract learning memories from session tasks</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><code>generateQueriesWithLLM()</code></td>
+                        <td><code>learning/dynamic-query-generator.ts</code></td>
+                        <td>Generate semantic query vectors for memory retrieval</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><code>generateModuleSummary()</code></td>
+                        <td><code>learning/hierarchical-memory.ts</code></td>
+                        <td>Generate natural language summaries for code modules</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><code>skill generation</code></td>
+                        <td><code>evolution/skill.ts</code></td>
+                        <td>Generate reusable skills from code analysis</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td><code>code review</code></td>
+                        <td><code>learning/critic.ts</code></td>
+                        <td>Evaluate code quality and generate improvements</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td><code>conflict detection</code></td>
+                        <td><code>learning/consistency-checker.ts</code></td>
+                        <td>Detect conflicts in knowledge graph</td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td><code>prompt reflection</code></td>
+                        <td><code>evolution/prompt.ts</code></td>
+                        <td>Reflect and optimize system prompts</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td><code>command suggestions</code></td>
+                        <td><code>learning/command.ts</code></td>
+                        <td>Generate executable command suggestions</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="grid">
+                <div class="card llm">
+                    <h4>Key Finding</h4>
+                    <p>LLM is primarily used for <strong>cognitive tasks</strong> (extraction, generation, evaluation, detection), while <strong>vector embedding storage</strong> uses simple bag-of-words model (simpleEmbedding, 384-dim).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Round 1 -->
+        <section id="round1" class="section">
+            <h2>5. Round 1 Improvements (Changelog #1)</h2>
+            <p><strong>Date:</strong> 2026-03-11 | <strong>Version:</strong> 1.2.10</p>
+            
+            <h3>Key Improvements</h3>
+            <div class="grid">
+                <div class="card success">
+                    <h4>SQLite Persistence</h4>
+                    <p>Changed session memory from in-memory Map to SQLite persistence, supporting data survival after application restart.</p>
+                </div>
+                <div class="card success">
+                    <h4>Search Enhancement</h4>
+                    <p>Added multi-keyword matching, TF-IDF scoring, and vector semantic search integration.</p>
+                </div>
+                <div class="card success">
+                    <h4>Error Handling Enhancement</h4>
+                    <p>Added custom error types: MissingParameterError, UnsupportedMemoryTypeError, etc.</p>
+                </div>
+            </div>
+
+            <h3>New Files</h3>
+            <ul class="file-list">
+                <li>
+                    <span class="file-path">packages/opencode/src/memory/session_memory.sql.ts</span>
+                    <span class="badge new">NEW</span>
+                </li>
+            </ul>
+
+            <h3>Modified Files</h3>
+            <ul class="file-list">
+                <li>
+                    <span class="file-path">packages/opencode/src/memory/service.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/memory/index.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/storage/schema.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                </li>
+            </ul>
+
+            <h3>Database Table Changes</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Table Name</th>
+                        <th>Columns</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>session_memory</td>
+                        <td>id, agent_ids, created_at, expires_at</td>
+                        <td>Session container with TTL</td>
+                    </tr>
+                    <tr>
+                        <td>session_message</td>
+                        <td>id, session_id, role, content, agent_id, timestamp</td>
+                        <td>Session messages</td>
+                    </tr>
+                    <tr>
+                        <td>project_memory</td>
+                        <td>id, entity_type, entity_id, title, content, file_path</td>
+                        <td>Project entities</td>
+                    </tr>
+                    <tr>
+                        <td>project_memory_relation</td>
+                        <td>id, source_id, target_id, relation_type, weight</td>
+                        <td>Entity relationships</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Round 2 -->
+        <section id="round2" class="section">
+            <h2>6. Round 2 Improvements (Changelog #2)</h2>
+            <p><strong>Date:</strong> 2026-03-11 | <strong>Version:</strong> 1.2.10</p>
+            
+            <h3>Key Improvements</h3>
+            <div class="grid">
+                <div class="card success">
+                    <h4>sqlite-vec Loading Robustness</h4>
+                    <p>Cross-platform extension loading, multiple fallback paths, detailed error reporting.</p>
+                </div>
+                <div class="card success">
+                    <h4>Resumable Database Migration</h4>
+                    <p>State tracking, existing ID queries, skip duplicate records.</p>
+                </div>
+                <div class="card success">
+                    <h4>Type Safety Improvements</h4>
+                    <p>Eliminated any types, using unknown[] instead.</p>
+                </div>
+            </div>
+
+            <h3>Modified Files</h3>
+            <ul class="file-list">
+                <li>
+                    <span class="file-path">packages/opencode/src/storage/db.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Added VecLoadResult interface, getVecPlatformConfig(), loadSqliteVecExtension()</p>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/storage/json-migration.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Added migration state tracking, existing ID queries, skip logic</p>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/memory/service.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Fixed type assertions</p>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Round 3 -->
+        <section id="round3" class="section">
+            <h2>7. Round 3 Improvements (Changelog #3)</h2>
+            <p><strong>Date:</strong> 2026-03-11 | <strong>Version:</strong> 1.2.10</p>
+            
+            <h3>Key Improvements</h3>
+            <div class="grid">
+                <div class="card success">
+                    <h4>AST Code Analysis</h4>
+                    <p>Using @babel/parser instead of regex parsing, accurately extracting classes, functions, interfaces, etc.</p>
+                </div>
+                <div class="card success">
+                    <h4>Non-blocking Migration</h4>
+                    <p>Background async migration with checkpoint recovery, does not block service startup.</p>
+                </div>
+                <div class="card success">
+                    <h4>Vector Dimension Guard</h4>
+                    <p>Dynamic validation of embedding dimensions, clear error messages, configurable EMBEDDING_DIM.</p>
+                </div>
+            </div>
+
+            <h3>New Files</h3>
+            <ul class="file-list">
+                <li>
+                    <span class="file-path">packages/opencode/src/memory/code-analyzer.ts</span>
+                    <span class="badge new">NEW</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Complete AST code analysis system, supports .ts/.tsx/.js/.jsx parsing</p>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/storage/migration-worker.ts</span>
+                    <span class="badge new">NEW</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Non-blocking background migration system with checkpoint recovery</p>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/storage/system-metadata.sql.ts</span>
+                    <span class="badge new">NEW</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">System metadata table for storing vector dimension config</p>
+                </li>
+            </ul>
+
+            <h3>Modified Files</h3>
+            <ul class="file-list">
+                <li>
+                    <span class="file-path">packages/opencode/src/storage/db.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Added vector dimension validation functions, VectorDimensionMismatchError</p>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/storage/schema.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Exported system_metadata table</p>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/memory/service.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Integrated CodeAnalyzer for AST parsing</p>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/src/learning/knowledge-graph.ts</span>
+                    <span class="badge modified">MODIFIED</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Extended NodeType and RelationType</p>
+                </li>
+                <li>
+                    <span class="file-path">packages/opencode/package.json</span>
+                    <span class="badge modified">MODIFIED</span>
+                    <p style="margin-top: 5px; color: var(--text-secondary);">Added @babel/parser dependency</p>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Files Summary -->
+        <section id="files" class="section">
+            <h2>8. Files Change Summary</h2>
+            
+            <h3>8.1 All Modified/New Files</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Path</th>
+                        <th>Status</th>
+                        <th>Main Changes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>memory/session_memory.sql.ts</code></td>
+                        <td><span class="badge new">NEW</span></td>
+                        <td>SQLite table definitions: session_memory, session_message, project_memory, project_memory_relation</td>
+                    </tr>
+                    <tr>
+                        <td><code>memory/code-analyzer.ts</code></td>
+                        <td><span class="badge new">NEW</span></td>
+                        <td>AST code entity extraction with Babel parser</td>
+                    </tr>
+                    <tr>
+                        <td><code>storage/migration-worker.ts</code></td>
+                        <td><span class="badge new">NEW</span></td>
+                        <td>Non-blocking migration system with checkpoint recovery</td>
+                    </tr>
+                    <tr>
+                        <td><code>storage/system-metadata.sql.ts</code></td>
+                        <td><span class="badge new">NEW</span></td>
+                        <td>System metadata table</td>
+                    </tr>
+                    <tr>
+                        <td><code>memory/service.ts</code></td>
+                        <td><span class="badge modified">MODIFIED</span></td>
+                        <td>Three-layer memory architecture, SQLite persistence, AST integration</td>
+                    </tr>
+                    <tr>
+                        <td><code>memory/index.ts</code></td>
+                        <td><span class="badge modified">MODIFIED</span></td>
+                        <td>Type and error exports</td>
+                    </tr>
+                    <tr>
+                        <td><code>storage/db.ts</code></td>
+                        <td><span class="badge modified">MODIFIED</span></td>
+                        <td>sqlite-vec loading, vector dimension validation</td>
+                    </tr>
+                    <tr>
+                        <td><code>storage/json-migration.ts</code></td>
+                        <td><span class="badge modified">MODIFIED</span></td>
+                        <td>Resumable migration, type safety</td>
+                    </tr>
+                    <tr>
+                        <td><code>storage/schema.ts</code></td>
+                        <td><span class="badge modified">MODIFIED</span></td>
+                        <td>Export new tables</td>
+                    </tr>
+                    <tr>
+                        <td><code>learning/knowledge-graph.ts</code></td>
+                        <td><span class="badge modified">MODIFIED</span></td>
+                        <td>Extended node and relation types</td>
+                    </tr>
+                    <tr>
+                        <td><code>package.json</code></td>
+                        <td><span class="badge modified">MODIFIED</span></td>
+                        <td>Added @babel/parser dependency</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>8.2 Dependency Changes</h3>
+            <pre><code>// packages/opencode/package.json new dependency
+{
+  "dependencies": {
+    "@babel/parser": "^7.28.4"
+  }
+}</code></pre>
+
+            <h3>8.3 Environment Variables</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>EMBEDDING_DIM</code></td>
+                        <td>384</td>
+                        <td>Vector embedding dimension, must match embedding model</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Summary -->
+        <section id="summary" class="section">
+            <h2>9. Summary</h2>
+            
+            <div class="grid">
+                <div class="card">
+                    <h4>Round 1</h4>
+                    <p>Implemented basic SQLite persistence, search enhancement, error handling enhancement.</p>
+                </div>
+                <div class="card">
+                    <h4>Round 2</h4>
+                    <p>Improved cross-platform compatibility, migration resumability, code type safety.</p>
+                </div>
+                <div class="card">
+                    <h4>Round 3</h4>
+                    <p>Introduced AST code analysis, non-blocking migration, vector dimension guard.</p>
+                </div>
+            </div>
+
+            <h3>Key Improvement Metrics</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Improvement</th>
+                        <th>Before</th>
+                        <th>After</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Code Parsing</td>
+                        <td>Regex</td>
+                        <td>AST (@babel/parser)</td>
+                    </tr>
+                    <tr>
+                        <td>Migration</td>
+                        <td>Blocking sync</td>
+                        <td>Background async + checkpoint</td>
+                    </tr>
+                    <tr>
+                        <td>Vector Dimension</td>
+                        <td>Hardcoded 384</td>
+                        <td>Configurable + validation</td>
+                    </tr>
+                    <tr>
+                        <td>Error Handling</td>
+                        <td>Implicit empty return</td>
+                        <td>Explicit NamedError</td>
+                    </tr>
+                    <tr>
+                        <td>Session Persistence</td>
+                        <td>In-memory Map</td>
+                        <td>SQLite persistence</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="changelog-entry">
+                <h4>Breaking Changes</h4>
+                <ul>
+                    <li>SessionMemoryService constructor no longer accepts in-memory Map</li>
+                    <li>Missing parameters now throw errors (instead of silently returning empty)</li>
+                    <li>Unknown memory types throw errors</li>
+                    <li>Session memory now requires metadata.sessionId</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Memory Service Refactor Report | Generated: 2026-03-11</p>
+        <p>Complete changelog from three improvement rounds</p>
+    </footer>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+    </script>
+</body>
+</html>
