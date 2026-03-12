@@ -118,6 +118,16 @@ export function loadConfig(input: PluginInput): QQBotPluginConfig {
     maxReconnectAttempts: parseInt(Bun.env.QQBOT_MAX_RECONNECT_ATTEMPTS || "10", 10),
     maxChunkSize: parseInt(Bun.env.QQBOT_MAX_CHUNK_SIZE || "1500", 10),
     sandbox: Bun.env.QQBOT_SANDBOX === "true",
+    // Voice features
+    enableVoice: Bun.env.QQBOT_ENABLE_VOICE === "true",
+    ttsVoice: Bun.env.QQBOT_TTS_VOICE || "zh-CN-XiaoxiaoNeural",
+    enableStt: Bun.env.QQBOT_ENABLE_STT !== "false",
+    // Video features
+    enableVideo: Bun.env.QQBOT_ENABLE_VIDEO === "true",
+    // File features
+    enableFile: Bun.env.QQBOT_ENABLE_FILE === "true",
+    // Typing indicator
+    enableTyping: Bun.env.QQBOT_ENABLE_TYPING === "true",
   }
 
   const validation = validateConfig(config)

@@ -334,3 +334,103 @@ export async function sendGroupMediaMessage(
 
   return response.json()
 }
+
+export async function sendTypingIndicator(
+  account: ResolvedQQBotAccount,
+  channelId: string,
+  type: "C2C" | "GROUP" | "CHANNEL",
+): Promise<void> {
+  const token = await getAccessToken(account)
+  const apiBase = getApiBase(account)
+
+  let url: string
+  if (type === "C2C") {
+    url = `${apiBase}/v2/users/${channelId}/typing`
+  } else if (type === "GROUP") {
+    url = `${apiBase}/v2/groups/${channelId}/typing`
+  } else {
+    url = `${apiBase}/channels/${channelId}/typing`
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `QQBot ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action: 0 }),
+    })
+
+    if (!response.ok) {
+      console.error(`[qqbot] Failed to send typing indicator: ${response.status}`)
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`[qqbot] Error sending typing indicator: ${message}`)
+  }
+}
+
+export async function uploadChannelMedia(
+  account: ResolvedQQBotAccount,
+  channelId: string,
+  fileType: MediaFileType,
+  url?: string,
+  fileData?: string,
+): Promise<UploadMediaResponse> {
+  const token = await getAccessToken(account)
+
+  const body: Record<string, unknown> = {
+    file_type: fileType,
+    srv_send_msg: false,
+  }
+
+  if (url) body.url = url
+  else if (fileData) body.file_data = fileData
+  else throw new Error("uploadChannelMedia: url or fileData is required")
+
+  const apiBase = getApiBase(account)
+  const response = await fetch(`${apiBase}/channels/${channelId}/files`, {
+    method: "POST",
+    headers: { Authorization: `QQBot ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to upload channel media: ${response.status} - ${error}`)
+  }
+
+  return response.json()
+}
+
+export async function sendChannelMediaMessage(
+  account: ResolvedQQBotAccount,
+  channelId: string,
+  fileInfo: string,
+  msgId?: string,
+  content?: string,
+): Promise<MessageResponse> {
+  const token = await getAccessToken(account)
+  const msgSeq = msgId ? getNextMsgSeq(msgId) : 1
+  const apiBase = getApiBase(account)
+
+  const response = await fetch(`${apiBase}/channels/${channelId}/messages`, {
+    method: "POST",
+    headers: { Authorization: `QQBot ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      msg_type: 7,
+      media: { file_info: fileInfo },
+      msg_seq: msgSeq,
+      ...(msgId ? { msg_id: msgId } : {}),
+      ...(content ? { content } : {}),
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to send channel media message: ${response.status} - ${error}`)
+  }
+
+  return response.json()
+}

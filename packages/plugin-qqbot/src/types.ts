@@ -16,6 +16,16 @@ export interface QQBotPluginConfig {
   maxReconnectAttempts: number
   maxChunkSize: number
   sandbox: boolean
+  // Voice features
+  enableVoice: boolean
+  ttsVoice: string
+  enableStt: boolean
+  // Video features
+  enableVideo: boolean
+  // File features
+  enableFile: boolean
+  // Typing indicator
+  enableTyping: boolean
 }
 
 export interface QQBotAccountConfig {
@@ -30,6 +40,12 @@ export interface QQBotAccountConfig {
   imageServerBaseUrl?: string
   markdownSupport?: boolean
   sandbox?: boolean
+  enableVoice?: boolean
+  ttsVoice?: string
+  enableStt?: boolean
+  enableVideo?: boolean
+  enableFile?: boolean
+  enableTyping?: boolean
 }
 
 export interface ResolvedQQBotAccount {
@@ -74,6 +90,7 @@ export interface MessageAttachment {
   url: string
   voice_wav_url?: string
   asr_refer_text?: string
+  voice_duration?: number
 }
 
 export interface WSPayload {

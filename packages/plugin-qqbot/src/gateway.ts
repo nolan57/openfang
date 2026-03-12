@@ -1,5 +1,10 @@
 import type { ResolvedQQBotAccount, GatewayOptions, SessionInfo, MessageContext } from "./types.js"
-import { getAccessToken, getGatewayUrl, sendC2CMessage, sendGroupMessage, sendChannelMessage } from "./api.js"
+import { getAccessToken, getGatewayUrl, sendC2CMessage, sendGroupMessage, sendChannelMessage, sendTypingIndicator } from "./api.js"
+import { sendTyping } from "./outbound.js"
+import { spawn } from "child_process"
+import fs from "fs/promises"
+import path from "path"
+import os from "os"
 
 declare const WebSocket: any
 
@@ -7,6 +12,20 @@ const MESSAGE_REPLY_LIMIT = 4
 const MESSAGE_REPLY_TTL = 60 * 60 * 1000
 const INTENT_QUEUE_MAX_SIZE = 1000
 const CONNECTION_TIMEOUT_MS = 30000
+
+const TEMP_DIR = path.join(os.tmpdir(), "qqbot-voice")
+
+async function ensureTempDir(): Promise<void> {
+  await fs.mkdir(TEMP_DIR, { recursive: true })
+}
+
+async function cleanupTempFile(filePath: string): Promise<void> {
+  try {
+    await fs.unlink(filePath)
+  } catch (err) {
+    console.error(`[qqbot] Failed to cleanup temp file ${filePath}: ${err}`)
+  }
+}
 
 interface MessageReplyRecord {
   count: number
@@ -386,7 +405,7 @@ export class QQBotGateway {
     author: { id: string }
     content: string
     id: string
-    attachments?: Array<{ content_type: string; url: string; filename?: string }>
+    attachments?: Array<{ content_type: string; url: string; filename?: string; voice_duration?: number }>
   }): Promise<void> {
     const senderId = data.author.id
     const content = this.stripQQPrefix(data.content.trim())
@@ -399,6 +418,8 @@ export class QQBotGateway {
       this.onStatus.message("User not allowed, ignoring")
       return
     }
+
+    await sendTyping(this.account, `c2c:${senderId}`)
 
     await this.processMessage({
       id: msgId,
@@ -415,7 +436,7 @@ export class QQBotGateway {
     content: string
     group_id: string
     id: string
-    attachments?: Array<{ content_type: string; url: string; filename?: string }>
+    attachments?: Array<{ content_type: string; url: string; filename?: string; voice_duration?: number }>
   }): Promise<void> {
     const senderId = data.author.id
     const content = this.stripQQPrefix(data.content.trim().replace(/<@!\d+>\s*/, ""))
@@ -429,6 +450,8 @@ export class QQBotGateway {
       this.onStatus.message("Group not allowed, ignoring")
       return
     }
+
+    await sendTyping(this.account, `group:${groupId}`)
 
     await this.processMessage({
       id: msgId,
@@ -446,7 +469,7 @@ export class QQBotGateway {
     content: string
     channel_id: string
     id: string
-    attachments?: Array<{ content_type: string; url: string; filename?: string }>
+    attachments?: Array<{ content_type: string; url: string; filename?: string; voice_duration?: number }>
   }): Promise<void> {
     const senderId = data.author.id
     const content = this.stripQQPrefix(data.content.trim().replace(/<@!\d+>\s*/, ""))
@@ -455,6 +478,8 @@ export class QQBotGateway {
     const attachments = data.attachments
 
     this.onStatus.message(`Channel msg from ${senderId.slice(0, 8)}...`)
+
+    await sendTyping(this.account, `channel:${channelId}`)
 
     await this.processMessage({
       id: msgId,
@@ -585,6 +610,29 @@ export class QQBotGateway {
               mime: att.content_type,
               filename,
             })
+          }
+        } else if (att.content_type?.startsWith("audio/") || att.content_type === "voice") {
+          if (!this.account.config.enableStt) {
+            this.log("info", "STT disabled, ignoring voice attachment")
+            continue
+          }
+          const filename = att.filename || `voice_${Date.now()}.silk`
+          const localPath = await this.downloadAttachment(att.url, filename)
+          if (localPath) {
+            const wavPath = await decodeSilkToWav(localPath)
+            if (wavPath) {
+              parts.push({
+                type: "file",
+                url: `file://${wavPath}`,
+                mime: "audio/wav",
+                filename: filename.replace(".silk", ".wav"),
+              })
+            } else {
+              parts.push({
+                type: "text",
+                text: "[Received voice message but unable to transcribe]",
+              })
+            }
           }
         }
       }
@@ -773,4 +821,55 @@ export class QQBotGateway {
       this.ws = null
     }
   }
+}
+
+async function decodeSilkToWav(silkPath: string): Promise<string | null> {
+  try {
+    await ensureTempDir()
+
+    const silkWasm = await import("silk-wasm")
+    const decodeSilk = silkWasm.decode || silkWasm.default?.decode
+
+    const silkBuffer = await fs.readFile(silkPath)
+    const decodeResult = await decodeSilk(silkBuffer, 24000)
+    
+    const pcmBuffer: Uint8Array = (decodeResult as any).pcm || (decodeResult as any).data || decodeResult as any
+
+    const wavHeader = createWavHeader(pcmBuffer.length, 24000, 16, 1)
+    const wavBuffer = Buffer.concat([wavHeader, pcmBuffer])
+
+    const wavFilename = path.basename(silkPath, ".silk") + ".wav"
+    const wavPath = path.join(TEMP_DIR, wavFilename)
+
+    await fs.writeFile(wavPath, wavBuffer)
+    await cleanupTempFile(silkPath)
+
+    return wavPath
+  } catch (err) {
+    console.error(`[qqbot] Failed to decode SILK voice: ${err}`)
+    await cleanupTempFile(silkPath).catch(() => {})
+    return null
+  }
+}
+
+function createWavHeader(dataLength: number, sampleRate: number, bitsPerSample: number, channels: number): Buffer {
+  const header = Buffer.alloc(44)
+  const byteRate = (sampleRate * channels * bitsPerSample) / 8
+  const blockAlign = (channels * bitsPerSample) / 8
+
+  header.write("RIFF", 0)
+  header.writeUInt32LE(36 + dataLength, 4)
+  header.write("WAVE", 8)
+  header.write("fmt ", 12)
+  header.writeUInt32LE(16, 16)
+  header.writeUInt16LE(1, 20)
+  header.writeUInt16LE(channels, 22)
+  header.writeUInt32LE(sampleRate, 24)
+  header.writeUInt32LE(byteRate, 28)
+  header.writeUInt16LE(blockAlign, 32)
+  header.writeUInt16LE(bitsPerSample, 34)
+  header.write("data", 36)
+  header.writeUInt32LE(dataLength, 40)
+
+  return header
 }
