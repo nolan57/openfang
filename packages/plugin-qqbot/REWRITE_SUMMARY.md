@@ -299,15 +299,105 @@ Status: {
 3. **Message Queue**: Consider adding message queuing for reliability
 4. **Testing**: Add unit tests for API, config, and gateway modules
 
+## Streaming Output Support (March 12, 2026)
+
+### Problem
+The plugin had streaming infrastructure but was not truly streaming - it accumulated the full response and only sent it at the end.
+
+### Solution
+Implemented true streaming output that sends chunks incrementally as they arrive from the AI.
+
+### Changes Made
+
+1. **Types Update (`types.ts`)**: Added streaming config to `QQBotAccountConfig`:
+   ```typescript
+   export interface QQBotAccountConfig {
+     // ... existing fields
+     // Streaming config
+     responseMode?: "blocking" | "streaming"
+     streamingDelayMs?: number
+     streamingMinChunk?: number
+   }
+   ```
+
+2. **Config Update (`config.ts`)**: Updated `resolveQQBotAccount()` to pass streaming config:
+   ```typescript
+   const accountConfig: QQBotAccountConfig = {
+     // ... existing fields
+     // Streaming config
+     responseMode: config.responseMode,
+     streamingDelayMs: config.streamingDelayMs,
+     streamingMinChunk: config.streamingMinChunk,
+   }
+   ```
+
+3. **Gateway Update (`gateway.ts`)**: Modified `doProcessMessage()` to stream incrementally:
+   - Accumulates chunks in a buffer
+   - Sends when time threshold reached (`streamingDelayMs`, default 300ms)
+   - Or sends when size threshold reached (`streamingMinChunk`, default 200 chars)
+   - Sends remaining content when stream completes
+   - Supports both "streaming" and "blocking" modes
+
+### Configuration
+
+Environment variables for streaming:
+```bash
+QQBOT_RESPONSE_MODE=streaming         # "streaming" or "blocking"
+QQBOT_STREAMING_DELAY_MS=300          # Send chunk every 300ms
+QQBOT_STREAMING_MIN_CHUNK=200         # Or when 200 chars accumulated
+```
+
+### Streaming Behavior
+
+- **Time-based**: Sends buffered content every `streamingDelayMs` milliseconds
+- **Size-based**: Sends buffered content when buffer reaches `streamingMinChunk` characters
+- **Fallback**: Any remaining content is sent when the stream ends
+- **Abort support**: Users can send `#abort` to stop streaming mid-response
+
+## Cross-Platform TTS Support (March 12, 2026)
+
+### Problem
+The `runEdgeTts` function used `cmd.exe` which only works on Windows, breaking deployment on Linux/macOS servers.
+
+### Solution
+Modified `runEdgeTts` in `outbound.ts` to detect the platform and use appropriate execution method:
+
+```typescript
+// Cross-platform: use platform-specific shell or direct execution
+const isWindows = process.platform === "win32"
+const proc = isWindows
+  ? spawn("cmd.exe", ["/c", "edge-tts", ...args], {
+      stdio: ["ignore", "pipe", "pipe"],
+      shell: false,
+    })
+  : spawn("edge-tts", args, {
+      stdio: ["ignore", "pipe", "pipe"],
+      shell: false,
+    })
+```
+
+### Platform Behavior
+
+| Platform | Execution Method |
+|----------|------------------|
+| Windows | `cmd.exe /c edge-tts ...` |
+| Linux/macOS | Direct `edge-tts` execution |
+
+### Requirements
+
+- **edge-tts** Python package must be installed on the target system
+- **Python** must be in PATH for edge-tts to work
+
 ## Files Modified
 
-- `packages/plugin-qqbot/src/types.ts` - Added new interfaces
+- `packages/plugin-qqbot/src/types.ts` - Added new interfaces, streaming config fields
 - `packages/plugin-qqbot/src/api.ts` - Rewrote with Map-based token caching
-- `packages/plugin-qqbot/src/config.ts` - Added `resolveQQBotAccount` function
-- `packages/plugin-qqbot/src/gateway.ts` - Updated to use account-based approach
-- `packages/plugin-qqbot/src/outbound.ts` - Updated function signatures
+- `packages/plugin-qqbot/src/config.ts` - Added `resolveQQBotAccount` function, streaming config support
+- `packages/plugin-qqbot/src/gateway.ts` - Updated to use account-based approach, streaming output support
+- `packages/plugin-qqbot/src/outbound.ts` - Updated function signatures, cross-platform edge-tts support
 - `packages/plugin-qqbot/src/index.ts` - Updated gateway instantiation
 
 ## Date
 
 Created: March 11, 2026
+Updated: March 12, 2026 (Streaming output support, Cross-platform TTS)

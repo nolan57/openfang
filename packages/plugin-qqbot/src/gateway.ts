@@ -642,6 +642,15 @@ export class QQBotGateway {
 
     try {
       let fullResponse = ""
+      let buffer = ""
+      let lastSendTime = 0
+      // Get streaming config with defaults
+      const responseMode = this.account.config.responseMode || "streaming"
+      const streamingDelayMs = this.account.config.streamingDelayMs || 300
+      const streamingMinChunk = this.account.config.streamingMinChunk || 200
+
+      // Use streaming mode if configured
+      const useStreaming = responseMode === "streaming"
 
       for await (const chunk of (this.client as any).promptStream({
         sessionID: currentSessionId,
@@ -654,9 +663,49 @@ export class QQBotGateway {
 
         if (chunk.type === "chunk" && chunk.content) {
           fullResponse += chunk.content
+          buffer += chunk.content
+
+          if (useStreaming) {
+            const now = Date.now()
+            const timeSinceLastSend = now - lastSendTime
+            const shouldSendByTime = timeSinceLastSend >= streamingDelayMs
+            const shouldSendBySize = buffer.length >= streamingMinChunk
+
+            if (shouldSendByTime || shouldSendBySize) {
+              let textToSend = buffer.trim()
+              if (textToSend) {
+                // Clean up markdown code blocks for display
+                textToSend = textToSend
+                  .replace(/^```json\s*/, "")
+                  .replace(/\s*```$/, "")
+                  .trim()
+                
+                // Try to extract description from JSON if present
+                try {
+                  const json = JSON.parse(textToSend)
+                  if (json && json.description) {
+                    textToSend = json.description
+                  }
+                } catch {
+                  // Not valid JSON, try regex extraction
+                  const descMatch = textToSend.match(/"description"\s*:\s*"([^"]+)"/)
+                  if (descMatch) {
+                    textToSend = descMatch[1]
+                  }
+                }
+
+                if (textToSend) {
+                  await this.sendReply(ctx, textToSend)
+                  buffer = ""
+                  lastSendTime = now
+                }
+              }
+            }
+          }
         } else if (chunk.type === "done") {
-          let text = fullResponse.trim()
-          if (text) {
+          // Send any remaining buffered content
+          if (buffer.trim()) {
+            let text = buffer.trim()
             text = text
               .replace(/^```json\s*/, "")
               .replace(/\s*```$/, "")

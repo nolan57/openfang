@@ -46,6 +46,10 @@ export interface QQBotAccountConfig {
   enableVideo?: boolean
   enableFile?: boolean
   enableTyping?: boolean
+  // Streaming config
+  responseMode?: "blocking" | "streaming"
+  streamingDelayMs?: number
+  streamingMinChunk?: number
 }
 
 export interface ResolvedQQBotAccount {

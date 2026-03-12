@@ -28,6 +28,10 @@ export function resolveQQBotAccount(config: QQBotPluginConfig, _accountId?: stri
     imageServerBaseUrl: config.imageServerBaseUrl,
     markdownSupport: config.markdownSupport,
     sandbox: config.sandbox,
+    // Streaming config
+    responseMode: config.responseMode,
+    streamingDelayMs: config.streamingDelayMs,
+    streamingMinChunk: config.streamingMinChunk,
   }
 
   return {

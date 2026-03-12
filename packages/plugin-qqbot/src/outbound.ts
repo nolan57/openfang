@@ -344,12 +344,23 @@ async function processVoiceForQQ(
 async function runEdgeTts(text: string, outputPath: string, voice: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const escapedText = text.replace(/"/g, '\\"').replace(/\n/g, " ")
-    const cmd = `edge-tts --text "${escapedText}" --write-media "${outputPath}" --voice "${voice}"`
+    const args = [
+      "--text", escapedText,
+      "--write-media", outputPath,
+      "--voice", voice,
+    ]
 
-    const proc = spawn("cmd.exe", ["/c", cmd], {
-      stdio: ["ignore", "pipe", "pipe"],
-      shell: false,
-    })
+    // Cross-platform: use platform-specific shell or direct execution
+    const isWindows = process.platform === "win32"
+    const proc = isWindows
+      ? spawn("cmd.exe", ["/c", "edge-tts", ...args], {
+          stdio: ["ignore", "pipe", "pipe"],
+          shell: false,
+        })
+      : spawn("edge-tts", args, {
+          stdio: ["ignore", "pipe", "pipe"],
+          shell: false,
+        })
 
     let stderr = ""
     proc.stderr.on("data", (data) => {
