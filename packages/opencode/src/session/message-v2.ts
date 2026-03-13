@@ -4,7 +4,6 @@ import { NamedError } from "@opencode-ai/util/error"
 import { APICallError, convertToModelMessages, LoadAPIKeyError, type ModelMessage, type UIMessage } from "ai"
 import { Identifier } from "../id/id"
 import { LSP } from "../lsp"
-import { Snapshot } from "@/snapshot"
 import { fn } from "@/util/fn"
 import { Database, eq, desc, inArray } from "@/storage/db"
 import { MessageTable, PartTable } from "./session.sql"
@@ -15,6 +14,16 @@ import { ProviderError } from "@/provider/error"
 import { iife } from "@/util/iife"
 import { type SystemError } from "bun"
 import type { Provider } from "@/provider/provider"
+
+// Local FileDiff schema to avoid circular dependency with @/snapshot
+const FileDiff = z.object({
+  file: z.string(),
+  before: z.string(),
+  after: z.string(),
+  additions: z.number(),
+  deletions: z.number(),
+  status: z.enum(["added", "deleted", "modified"]).optional(),
+})
 
 export namespace MessageV2 {
   export const OutputLengthError = NamedError.create("MessageOutputLengthError", z.object({}))
@@ -352,7 +361,7 @@ export namespace MessageV2 {
       .object({
         title: z.string().optional(),
         body: z.string().optional(),
-        diffs: Snapshot.FileDiff.array(),
+        diffs: FileDiff.array(),
       })
       .optional(),
     agent: z.string(),

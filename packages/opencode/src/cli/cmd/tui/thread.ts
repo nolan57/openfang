@@ -12,6 +12,7 @@ import { Filesystem } from "@/util/filesystem"
 import type { Event } from "@opencode-ai/sdk/v2"
 import type { EventSource } from "./context/sdk"
 import { win32DisableProcessedInput, win32InstallCtrlCGuard } from "./win32"
+import { checkAndStartMcpCron } from "@/util/mcp-cron"
 
 declare global {
   const OPENCODE_WORKER_PATH: string
@@ -78,6 +79,11 @@ export const TuiThreadCommand = cmd({
       .option("agent", {
         type: "string",
         describe: "agent to use",
+      })
+      .option("no-server", {
+        type: "boolean",
+        describe: "disable HTTP server (mcp-cron will use fallback process execution)",
+        default: false,
       }),
   handler: async (args) => {
     // Keep ENABLE_PROCESSED_INPUT cleared even if other code flips it.
@@ -138,27 +144,49 @@ export const TuiThreadCommand = cmd({
 
       // Check if server should be started (port or hostname explicitly set in CLI or config)
       const networkOpts = await resolveNetworkOptions(args)
-      const shouldStartServer =
-        process.argv.includes("--port") ||
-        process.argv.includes("--hostname") ||
-        process.argv.includes("--mdns") ||
-        networkOpts.mdns ||
-        networkOpts.port !== 0 ||
-        networkOpts.hostname !== "127.0.0.1"
+      
+      // Always start server by default for mcp-cron integration
+      // Unless explicitly disabled with --no-server or --port=0
+      const shouldStartServer = !args.noServer && networkOpts.port !== 0
 
       let url: string
       let customFetch: typeof fetch | undefined
       let events: EventSource | undefined
 
       if (shouldStartServer) {
-        // Start HTTP server for external access
+        // Start HTTP server for external access (default behavior)
         const server = await client.call("server", networkOpts)
         url = server.url
+
+        // Start mcp-cron with server URL for in-process execution
+        // This is non-blocking - mcp-cron failure should not prevent app startup
+        checkAndStartMcpCron(url).then((result) => {
+          if (result.started) {
+            Log.Default.info("mcp-cron started", { pid: result.pid })
+          } else if (result.error) {
+            Log.Default.warn("mcp-cron not started", { error: result.error })
+          } else if (result.skipped) {
+            Log.Default.debug("mcp-cron skipped", { reason: "already running or not configured" })
+          }
+        }).catch((err) => {
+          Log.Default.warn("mcp-cron startup failed", { error: err.message })
+        })
       } else {
-        // Use direct RPC communication (no HTTP)
+        // Use direct RPC communication (no HTTP) - only when explicitly requested
         url = "http://opencode.internal"
         customFetch = createWorkerFetch(client)
         events = createEventSource(client)
+
+        // Try to start mcp-cron without server URL (will use fallback process execution)
+        checkAndStartMcpCron().then((result) => {
+          if (result.started) {
+            Log.Default.info("mcp-cron started (fallback mode)", { pid: result.pid })
+          } else if (result.error) {
+            Log.Default.warn("mcp-cron not started", { error: result.error })
+          }
+        }).catch((err) => {
+          Log.Default.warn("mcp-cron startup failed", { error: err.message })
+        })
       }
 
       const tuiPromise = tui({

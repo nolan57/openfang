@@ -34,7 +34,6 @@ import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
 import { Database, createBackup, startPeriodicBackup } from "./storage/db"
-import { checkAndStartMcpCron } from "./util/mcp-cron"
 import { initObservability } from "./observability"
 import { Instance } from "./project/instance"
 
@@ -141,10 +140,8 @@ const cli = yargs(hideBin(process.argv))
       process.stderr.write("Database migration complete." + EOL)
     }
 
-    const mcpCronResult = await checkAndStartMcpCron()
-    if (mcpCronResult.started) {
-      Log.Default.info("mcp-cron started", { pid: mcpCronResult.pid })
-    }
+    // Note: mcp-cron is now started in serve command or TUI when server is available
+    // This ensures mcp-cron has the correct server URL for in-process execution
 
     // Start periodic database backup (every 30 minutes by default)
     startPeriodicBackup()

@@ -326,6 +326,160 @@ export async function cancelExecution(executionId: string, reason?: string): Pro
 }
 
 /**
+ * Execute a task directly without creating a job record
+ * Used by external schedulers like mcp-cron
+ */
+export async function executeDirect(
+  payload: CronPayload,
+  options?: JobOptions
+): Promise<{
+  status: "success" | "failed"
+  output?: string
+  error?: string
+  durationMs: number
+}> {
+  const startTime = Date.now()
+  const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS
+
+  // Create abort controller
+  const abortController = new AbortController()
+  const executionId = `direct_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`
+
+  activeExecutions.set(executionId, {
+    heartbeatTimer: null,
+    timeoutTimer: null,
+    abortController,
+  })
+
+  // Set timeout
+  const timeoutTimer = setTimeout(() => {
+    log.warn("direct execution timeout", { executionId, timeoutMs })
+    abortController.abort(`Timeout after ${timeoutMs}ms`)
+  }, timeoutMs)
+
+  log.info("starting direct execution", { executionId, kind: payload.kind })
+
+  try {
+    let result: { status: "success" | "failed"; output?: string; error?: string }
+
+    if (payload.kind === "agentTurn") {
+      result = await executeAgentTurnDirect(payload, abortController.signal)
+    } else if (payload.kind === "systemEvent") {
+      result = await executeSystemEventDirect(payload, abortController.signal)
+    } else {
+      result = {
+        status: "failed",
+        error: `Unknown payload kind: ${(payload as any).kind}`,
+      }
+    }
+
+    const durationMs = Date.now() - startTime
+
+    log.info("direct execution completed", { executionId, status: result.status, durationMs })
+
+    return {
+      status: result.status,
+      output: result.output,
+      error: result.error,
+      durationMs,
+    }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    const durationMs = Date.now() - startTime
+
+    log.error("direct execution failed", { executionId, error: errorMsg })
+
+    return {
+      status: "failed",
+      error: errorMsg,
+      durationMs,
+    }
+  } finally {
+    clearTimeout(timeoutTimer)
+    activeExecutions.delete(executionId)
+  }
+}
+
+/**
+ * Execute an agent turn directly (no job record)
+ */
+async function executeAgentTurnDirect(
+  payload: CronPayload,
+  signal: AbortSignal
+): Promise<{ status: "success" | "failed"; output?: string; error?: string }> {
+  log.info("executing agent turn", { message: payload.message.substring(0, 100) })
+
+  try {
+    // Create session with deny permissions for interactive prompts
+    const rules: PermissionNext.Ruleset = [
+      { permission: "question", action: "deny", pattern: "*" },
+      { permission: "plan_enter", action: "deny", pattern: "*" },
+      { permission: "plan_exit", action: "deny", pattern: "*" },
+    ]
+
+    const session = await Session.create({
+      title: `Cron: ${payload.message.substring(0, 50)}`,
+      permission: rules,
+    })
+
+    // Execute prompt
+    const result = await SessionPrompt.prompt({
+      sessionID: session.id,
+      parts: [{ type: "text", text: payload.message }],
+    })
+
+    // Get the response text
+    const textParts = result.parts.filter((p) => p.type === "text")
+    const output = textParts.map((p) => (p as any).text || "").join("\n")
+
+    if (signal.aborted) {
+      return { status: "failed", error: "Aborted" }
+    }
+
+    return { status: "success", output }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    return { status: "failed", error: errorMsg }
+  }
+}
+
+/**
+ * Execute a system event directly (no job record)
+ */
+async function executeSystemEventDirect(
+  payload: CronPayload,
+  signal: AbortSignal
+): Promise<{ status: "success" | "failed"; output?: string; error?: string }> {
+  const command = payload.message
+
+  log.info("executing system event", { command })
+
+  try {
+    // Use Bun's shell
+    const result = await Bun.$`${{ raw: command }}`.quiet()
+
+    const output = result.stdout.toString() + result.stderr.toString()
+
+    if (signal.aborted) {
+      return { status: "failed", error: "Aborted" }
+    }
+
+    if (result.exitCode !== 0) {
+      return {
+        status: "failed",
+        output,
+        error: `Command exited with code ${result.exitCode}`,
+      }
+    }
+
+    return { status: "success", output: output || "Command executed successfully" }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    return { status: "failed", error: errorMsg }
+  }
+}
+
+/**
  * Get active execution count
  */
 export function getActiveExecutionCount(): number {

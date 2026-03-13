@@ -1,7 +1,7 @@
 import { Hono } from "hono"
 import { describeRoute, validator, resolver } from "hono-openapi"
 import z from "zod"
-import { Job, executeJob, getNextRunTime, validateCronExpression, describeSchedule } from "@/scheduler"
+import { Job, executeJob, executeDirect, getNextRunTime, validateCronExpression, describeSchedule } from "@/scheduler"
 import type { CronSchedule, CronPayload, JobOptions } from "@/scheduler/types"
 import { lazy } from "@/util/lazy"
 import { Log } from "@/util/log"
@@ -476,6 +476,55 @@ export const SchedulerRoutes = lazy(() =>
         }
 
         return c.json({ description, nextRuns })
+      },
+    )
+
+    // Direct execute endpoint for external schedulers (e.g., mcp-cron)
+    // This allows executing tasks without pre-creating a job
+    .post(
+      "/execute",
+      describeRoute({
+        summary: "Execute task directly",
+        description: "Execute a task directly without creating a job. Used by external schedulers like mcp-cron.",
+        operationId: "scheduler.executeDirect",
+        responses: {
+          200: {
+            description: "Execution result",
+            content: {
+              "application/json": {
+                schema: resolver(z.object({
+                  status: z.enum(["success", "failed"]),
+                  output: z.string().optional(),
+                  error: z.string().optional(),
+                  durationMs: z.number(),
+                })),
+              },
+            },
+          },
+        },
+      }),
+      validator(
+        "json",
+        z.object({
+          payload: CronPayloadSchema,
+          options: JobOptionsSchema.optional(),
+        }),
+      ),
+      async (c) => {
+        const body = c.req.valid("json")
+
+        const result = await executeDirect(
+          body.payload as CronPayload,
+          body.options as JobOptions | undefined
+        )
+
+        log.info("direct execution completed", {
+          kind: body.payload.kind,
+          status: result.status,
+          durationMs: result.durationMs
+        })
+
+        return c.json(result)
       },
     ),
 )
