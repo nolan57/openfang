@@ -1,7 +1,7 @@
 import { Provider } from "../provider/provider"
 import { generateText } from "ai"
 import { KnowledgeGraph } from "./knowledge-graph"
-import { VectorStore } from "./vector-store"
+import { getSharedVectorStore, type IVectorStore } from "./vector-store"
 import { Log } from "../util/log"
 
 const log = Log.create({ service: "dynamic-query-generator" })
@@ -35,16 +35,15 @@ Output format: ["query1", "query2", "query3"]`
  */
 export class DynamicQueryGenerator {
   private knowledgeGraph: KnowledgeGraph
-  private vectorStore: VectorStore | null = null
+  private vectorStore: IVectorStore | null = null
 
   constructor() {
     this.knowledgeGraph = new KnowledgeGraph()
   }
 
-  private async getVectorStore(): Promise<VectorStore> {
+  private async getVectorStore(): Promise<IVectorStore> {
     if (!this.vectorStore) {
-      this.vectorStore = new VectorStore()
-      await this.vectorStore.init()
+      this.vectorStore = await getSharedVectorStore()
     }
     return this.vectorStore
   }

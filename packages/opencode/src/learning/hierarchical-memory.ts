@@ -1,7 +1,7 @@
 import { glob } from "glob"
 import { readFile, writeFile, mkdir, access } from "fs/promises"
 import { resolve, relative, dirname } from "path"
-import { VectorStore } from "./vector-store"
+import { getSharedVectorStore, type IVectorStore } from "./vector-store"
 import { Provider } from "../provider/provider"
 import { generateText } from "ai"
 import { Log } from "../util/log"
@@ -63,17 +63,16 @@ Root package.json:
 export class HierarchicalMemory {
   private projectDir: string
   private summariesDir: string
-  private vectorStore: VectorStore | null = null
+  private vectorStore: IVectorStore | null = null
 
   constructor(projectDir: string) {
     this.projectDir = projectDir
     this.summariesDir = resolve(projectDir, SUMMARIES_DIR)
   }
 
-  private async getVectorStore(): Promise<VectorStore> {
+  private async getVectorStore(): Promise<IVectorStore> {
     if (!this.vectorStore) {
-      this.vectorStore = new VectorStore()
-      await this.vectorStore.init()
+      this.vectorStore = await getSharedVectorStore()
     }
     return this.vectorStore
   }
@@ -128,7 +127,7 @@ export class HierarchicalMemory {
 
       // Store embedding
       const vs = await this.getVectorStore()
-      const embeddingId = await vs.embedAndStore({
+      const embeddingId = await vs.store({
         node_type: "module_summary",
         node_id: summary.file,
         entity_title: `${summary.module}: ${summary.purpose}`,
@@ -278,9 +277,9 @@ ${content.slice(0, 8000)}`
       // Update embedding
       const vs = await this.getVectorStore()
       if (oldSummary?.embeddingId) {
-        await vs.deleteByNodeId(oldSummary.embeddingId)
+        await vs.deleteById(oldSummary.embeddingId)
       }
-      const embeddingId = await vs.embedAndStore({
+      const embeddingId = await vs.store({
         node_type: "module_summary",
         node_id: summary.file,
         entity_title: `${summary.module}: ${summary.purpose}`,

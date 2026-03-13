@@ -4,7 +4,7 @@ import {
   memorySpans,
   spanUtils,
 } from "./spans"
-import { VectorStore } from "../learning/vector-store"
+import { getSharedVectorStore, type IVectorStore } from "../learning/vector-store"
 
 const log = Log.create({ service: "hierarchical-memory.instrumented" })
 
@@ -71,16 +71,15 @@ export interface HierarchicalMemoryOutput {
 
 export class InstrumentedHierarchicalMemory {
   private tracer: ReturnType<typeof trace.getTracer>
-  private vectorStore: VectorStore | null = null
+  private vectorStore: IVectorStore | null = null
 
   constructor() {
     this.tracer = trace.getTracer("agent.memory.operation")
   }
 
-  private async getVectorStore(): Promise<VectorStore> {
+  private async getVectorStore(): Promise<IVectorStore> {
     if (!this.vectorStore) {
-      this.vectorStore = new VectorStore()
-      await this.vectorStore.init()
+      this.vectorStore = await getSharedVectorStore()
     }
     return this.vectorStore
   }
@@ -112,11 +111,11 @@ export class InstrumentedHierarchicalMemory {
       const contentHash = this.simpleHash(`${input.key}:${input.value}`)
       memorySpans.addWrittenContent(span, contentHash)
 
-      await vs.embedAndStore({
+      await vs.store({
         node_type: input.memoryType,
         node_id: `memory_${Date.now()}`,
         entity_title: `${input.key}: ${input.value}`,
-        vector_type: input.vectorSpace as import("../learning/vector-store").VectorType,
+        vector_type: input.vectorSpace as import("../learning/vector-store-interface").VectorType,
         metadata: {
           key: input.key,
           value: input.value,

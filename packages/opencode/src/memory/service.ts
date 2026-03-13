@@ -1,5 +1,5 @@
 import type { MemoryType, AddMemoryParams, SearchParams, MemoryRef } from "../collab/types"
-import { VectorStore } from "../learning/vector-store"
+import { getSharedVectorStore, type IVectorStore } from "../learning/vector-store"
 import { KnowledgeGraph } from "../learning/knowledge-graph"
 import { Database } from "../storage/db"
 import { session_memory, session_message, project_memory, project_memory_relation } from "./session_memory.sql"
@@ -165,7 +165,7 @@ export interface IndexProjectOptions {
  */
 class SessionMemoryService {
   private initialized = false
-  private vectorStore: VectorStore | null = null
+  private vectorStore: IVectorStore | null = null
 
   /** Default TTL for sessions in milliseconds (60 minutes) */
   private readonly DEFAULT_TTL_MS = 60 * 60 * 1000
@@ -182,10 +182,9 @@ class SessionMemoryService {
   /**
    * Get or initialize the vector store for semantic search
    */
-  private async getVectorStore(): Promise<VectorStore> {
+  private async getVectorStore(): Promise<IVectorStore> {
     if (!this.vectorStore) {
-      this.vectorStore = new VectorStore()
-      await this.vectorStore.init()
+      this.vectorStore = await getSharedVectorStore()
     }
     return this.vectorStore
   }
@@ -312,7 +311,7 @@ class SessionMemoryService {
     // Store embedding for semantic search
     try {
       const vs = await this.getVectorStore()
-      await vs.embedAndStore({
+      await vs.store({
         node_type: "session_message",
         node_id: id,
         entity_title: `${message.role}: ${message.content.slice(0, 100)}`,
@@ -545,7 +544,7 @@ class SessionMemoryService {
  * Uses vector embeddings for semantic search and similarity matching.
  */
 class EvolutionMemoryService {
-  private vectorStore: VectorStore | null = null
+  private vectorStore: IVectorStore | null = null
   private initialized = false
 
   /**
@@ -553,22 +552,18 @@ class EvolutionMemoryService {
    */
   async init(): Promise<void> {
     if (this.initialized) return
-
-    this.vectorStore = new VectorStore()
-    await this.vectorStore.init()
     this.initialized = true
-
     log.info("evolution_memory_service_initialized")
   }
 
   /**
-   * Get the vector store, initializing if necessary
+   * Get the shared vector store instance
    */
-  private async getVectorStore(): Promise<VectorStore> {
+  private async getVectorStore(): Promise<IVectorStore> {
     if (!this.vectorStore) {
-      await this.init()
+      this.vectorStore = await getSharedVectorStore()
     }
-    return this.vectorStore!
+    return this.vectorStore
   }
 
   /**
@@ -584,7 +579,7 @@ class EvolutionMemoryService {
     const id = crypto.randomUUID()
     const vs = await this.getVectorStore()
 
-    await vs.embedAndStore({
+    await vs.store({
       node_type: "skill",
       node_id: id,
       entity_title: params.content.slice(0, 100),
@@ -642,7 +637,7 @@ class EvolutionMemoryService {
  */
 class ProjectMemoryService {
   private knowledgeGraph: KnowledgeGraph | null = null
-  private vectorStore: VectorStore | null = null
+  private vectorStore: IVectorStore | null = null
   private initialized = false
 
   /**
@@ -650,12 +645,7 @@ class ProjectMemoryService {
    */
   async init(): Promise<void> {
     if (this.initialized) return
-
-    this.knowledgeGraph = new KnowledgeGraph()
-    this.vectorStore = new VectorStore()
-    await this.vectorStore.init()
     this.initialized = true
-
     log.info("project_memory_service_initialized")
   }
 
@@ -664,19 +654,19 @@ class ProjectMemoryService {
    */
   private async getKnowledgeGraph(): Promise<KnowledgeGraph> {
     if (!this.knowledgeGraph) {
-      await this.init()
+      this.knowledgeGraph = new KnowledgeGraph()
     }
     return this.knowledgeGraph!
   }
 
   /**
-   * Get the vector store, initializing if necessary
+   * Get the shared vector store instance
    */
-  private async getVectorStore(): Promise<VectorStore> {
+  private async getVectorStore(): Promise<IVectorStore> {
     if (!this.vectorStore) {
-      await this.init()
+      this.vectorStore = await getSharedVectorStore()
     }
-    return this.vectorStore!
+    return this.vectorStore
   }
 
   /**
@@ -723,7 +713,7 @@ class ProjectMemoryService {
 
       // Store embedding for semantic search
       try {
-        await vs.embedAndStore({
+        await vs.store({
           node_type: "project_file",
           node_id: fileId,
           entity_title: file.path,

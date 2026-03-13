@@ -2,7 +2,7 @@ import { Database } from "../storage/db"
 import { character_consistency, scene_graph } from "./learning.sql"
 import { eq, desc } from "drizzle-orm"
 import { Log } from "../util/log"
-import { VectorStore } from "./vector-store"
+import { getSharedVectorStore, type IVectorStore } from "./vector-store"
 
 const log = Log.create({ service: "media-store" })
 
@@ -33,10 +33,13 @@ export interface Scene {
 }
 
 export class MediaStore {
-  private vectorStore: VectorStore
+  private vectorStore: IVectorStore | null = null
 
-  constructor() {
-    this.vectorStore = new VectorStore()
+  private async getVectorStore(): Promise<IVectorStore> {
+    if (!this.vectorStore) {
+      this.vectorStore = await getSharedVectorStore()
+    }
+    return this.vectorStore
   }
 
   async registerCharacter(character: Omit<Character, "id" | "version" | "sceneCount">): Promise<string> {
@@ -57,7 +60,8 @@ export class MediaStore {
       }),
     )
 
-    await this.vectorStore.embedAndStore({
+    const vs = await this.getVectorStore()
+    await vs.store({
       node_type: "character",
       node_id: id,
       entity_title: character.name,
@@ -89,7 +93,8 @@ export class MediaStore {
   }
 
   async findSimilarCharacters(name: string, limit = 5): Promise<Character[]> {
-    const results = await this.vectorStore.search(name, {
+    const vs = await this.getVectorStore()
+    const results = await vs.search(name, {
       limit,
       vector_type: "character",
       node_type: "character",
@@ -129,8 +134,9 @@ export class MediaStore {
         .where(eq(character_consistency.id, id)),
     )
 
-    await this.vectorStore.deleteByNodeId(id)
-    await this.vectorStore.embedAndStore({
+    const vs = await this.getVectorStore()
+    await vs.deleteById(id)
+    await vs.store({
       node_type: "character",
       node_id: id,
       entity_title: updates.name ?? existing.name,
@@ -179,7 +185,8 @@ export class MediaStore {
       await this.incrementSceneCount(charId)
     }
 
-    await this.vectorStore.embedAndStore({
+    const vs = await this.getVectorStore()
+    await vs.store({
       node_type: "scene",
       node_id: id,
       entity_title: `${scene.episode}-${scene.scene}: ${scene.title}`,
@@ -213,7 +220,8 @@ export class MediaStore {
   }
 
   async findSimilarScenes(query: string, limit = 5): Promise<Scene[]> {
-    const results = await this.vectorStore.search(query, {
+    const vs = await this.getVectorStore()
+    const results = await vs.search(query, {
       limit,
       vector_type: "scene",
       node_type: "scene",

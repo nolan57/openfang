@@ -6,17 +6,16 @@ import { Bus } from "../bus"
 import { TuiEvent } from "../cli/cmd/tui/event"
 import { readFile } from "fs/promises"
 import { resolve } from "path"
-import { VectorStore } from "../learning/vector-store"
+import { getSharedVectorStore, type IVectorStore } from "../learning/vector-store"
 
 const log = Log.create({ service: "evolution.memory" })
 
-// Singleton VectorStore instance for memory embeddings
-let vectorStore: VectorStore | null = null
+// Shared VectorStore instance for memory embeddings
+let vectorStore: IVectorStore | null = null
 
-async function getVectorStore(): Promise<VectorStore> {
+async function getVectorStore(): Promise<IVectorStore> {
   if (!vectorStore) {
-    vectorStore = new VectorStore()
-    await vectorStore.init()
+    vectorStore = await getSharedVectorStore()
   }
   return vectorStore
 }
@@ -27,7 +26,7 @@ async function getVectorStore(): Promise<VectorStore> {
 async function storeMemoryEmbedding(memoryId: string, key: string, value: string): Promise<void> {
   try {
     const vs = await getVectorStore()
-    await vs.embedAndStore({
+    await vs.store({
       node_type: "memory",
       node_id: memoryId,
       entity_title: `${key}: ${value}`,
@@ -158,7 +157,14 @@ export async function extractMemoriesWithLLM(
               sessionIDs: [sessionID],
             })
             // Store embedding for semantic search
-            await storeMemoryEmbedding(newMemory.id, item.key, item.value)
+            const vs = await getVectorStore()
+            await vs.store({
+              node_type: "memory",
+              node_id: newMemory.id,
+              entity_title: `${item.key}: ${item.value}`,
+              vector_type: "content",
+              metadata: { key: item.key, value: item.value },
+            })
 
             memories.push({
               key: item.key,
