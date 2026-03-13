@@ -1,7 +1,5 @@
 import { Tool } from "../tool/tool"
-import { Instance } from "../project/instance"
-import { getRelevantMemories } from "../evolution/memory"
-import { getMemories, incrementMemoryUsage } from "../evolution/store"
+import { Memory } from "../memory/service"
 import z from "zod"
 
 export const MemorySearchTool: Tool.Info<typeof params> = {
@@ -10,17 +8,8 @@ export const MemorySearchTool: Tool.Info<typeof params> = {
     description: "Search permanent memories from past sessions for relevant learnings and patterns",
     parameters: params,
     async execute(args, ctx) {
-      const memories = await getRelevantMemories(Instance.directory, args.query)
       const limit = args.maxResults ?? 5
-      const results = memories.slice(0, limit)
-
-      if (results.length > 0) {
-        const allMemories = await getMemories(Instance.directory)
-        for (const m of results) {
-          const entry = allMemories.find((e) => e.key === m.key)
-          if (entry) await incrementMemoryUsage(Instance.directory, entry.id)
-        }
-      }
+      const results = await Memory.getRelevantMemories(args.query, { limit })
 
       const output =
         results.length > 0

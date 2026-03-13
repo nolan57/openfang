@@ -8,6 +8,19 @@ import { eq, and, sql, or, like, inArray, isNotNull, lt } from "drizzle-orm"
 import { Log } from "../util/log"
 import z from "zod"
 import { CodeAnalyzer, type CodeEntity, type ImportInfo } from "./code-analyzer"
+import { Provider } from "../provider/provider"
+import { generateText } from "ai"
+import { Bus } from "../bus"
+import { TuiEvent } from "../cli/cmd/tui/event"
+import { readFile } from "fs/promises"
+import { resolve } from "path"
+import { Instance } from "../project/instance"
+import {
+  saveMemory,
+  getMemories,
+  incrementMemoryUsage,
+} from "../evolution/store"
+import type { MemoryEntry } from "../evolution/types"
 
 const log = Log.create({ service: "memory" })
 
@@ -154,6 +167,51 @@ export interface IndexProjectOptions {
   }>
   clearExisting?: boolean
 }
+
+/**
+ * Memory suggestion with relevance score
+ */
+export interface MemorySuggestion {
+  key: string
+  value: string
+  relevance: number
+}
+
+/**
+ * Extracted memory from task
+ */
+export interface ExtractedMemory {
+  key: string
+  value: string
+}
+
+/**
+ * Memory pattern configuration
+ */
+interface MemoryPatternConfig {
+  keywords: string[]
+  key: string
+  value: string
+}
+
+/**
+ * Memory patterns file structure
+ */
+interface MemoryPatternsFile {
+  patterns: MemoryPatternConfig[]
+}
+
+/** Memory extraction prompt template */
+const MEMORY_EXTRACTION_PROMPT = `Extract 0-3 key learnings from this task that would help with future similar tasks.
+Return a JSON array with objects containing:
+- key: short descriptive key in kebab-case (e.g., "typescript-tips")
+- value: actionable advice in 1-2 sentences
+
+Respond ONLY with valid JSON array, no other text.
+
+Task: {task}
+Tool calls: {toolCalls}
+Outcome: {outcome}`
 
 // ============================================================================
 // SessionMemoryService - SQLite-backed session memory
@@ -1412,6 +1470,302 @@ export class MemoryService {
    */
   getProjectService(): ProjectMemoryService {
     return this.project
+  }
+
+  // ========================================================================
+  // Unified Memory Methods (from evolution/memory.ts)
+  // ========================================================================
+
+  /**
+   * Get relevant memories using hybrid search (vector + keyword + temporal decay + MMR)
+   * This is the primary method for retrieving contextual memories.
+   * @param query - The search query
+   * @param options - Search options
+   * @returns Array of memory suggestions sorted by relevance
+   */
+  async getRelevantMemories(
+    query: string,
+    options: {
+      projectDir?: string
+      limit?: number
+      types?: Array<"session" | "evolution" | "project">
+    } = {},
+  ): Promise<MemorySuggestion[]> {
+    const projectDir = options.projectDir ?? Instance.directory
+    const limit = options.limit ?? 5
+    const allMemories = await getMemories(projectDir)
+
+    if (allMemories.length === 0) return []
+
+    const taskWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 2)
+
+    // Vector search
+    let vectorResults: Array<{ key: string; value: string; score: number }> = []
+    try {
+      const vs = await getSharedVectorStore()
+      const vecSearchResults = await vs.search(query, { limit: 20, min_similarity: 0.1 })
+
+      for (const r of vecSearchResults) {
+        const memory = allMemories.find((m) => m.id === r.id || m.key === r.entity_title)
+        if (memory) {
+          vectorResults.push({ key: memory.key, value: memory.value, score: r.similarity })
+        }
+      }
+    } catch (error) {
+      log.warn("vector_search_failed", { error: String(error) })
+    }
+
+    // Keyword matching with temporal decay
+    const keywordResults = allMemories
+      .map((memory) => {
+        const keywordMatches = taskWords.filter(
+          (word) => memory.key.toLowerCase().includes(word) || memory.value.toLowerCase().includes(word),
+        ).length
+
+        const temporalScore = MemoryService.calculateTemporalDecay(memory.lastUsedAt)
+        const usageBoost = Math.log10(memory.usageCount + 1) * 0.1
+
+        return { key: memory.key, value: memory.value, score: keywordMatches * temporalScore + usageBoost }
+      })
+      .filter((m) => m.score > 0)
+
+    // Merge results
+    const mergedMap = new Map<string, { key: string; value: string; score: number }>()
+    for (const r of vectorResults) {
+      mergedMap.set(r.key, { ...r, score: r.score * 1.5 })
+    }
+    for (const r of keywordResults) {
+      const existing = mergedMap.get(r.key)
+      if (!existing || r.score > existing.score) {
+        mergedMap.set(r.key, r)
+      }
+    }
+
+    const mergedResults = Array.from(mergedMap.values()).sort((a, b) => b.score - a.score)
+    const diverseResults = MemoryService.mmrReRank(mergedResults)
+
+    // Update usage stats
+    for (const result of diverseResults.slice(0, limit)) {
+      const memory = allMemories.find((m) => m.key === result.key)
+      if (memory) {
+        incrementMemoryUsage(projectDir, memory.id).catch((e) =>
+          log.warn("failed_to_increment_usage", { error: String(e) }),
+        )
+      }
+    }
+
+    return diverseResults.slice(0, limit)
+  }
+
+  /**
+   * Extract memories from a task using LLM
+   * @param params - Extraction parameters
+   * @returns Array of extracted memories
+   */
+  async extractMemoriesWithLLM(params: {
+    projectDir?: string
+    sessionID: string
+    task: string
+    toolCalls: string[]
+    outcome: string
+    modelProviderID: string
+    modelID: string
+  }): Promise<ExtractedMemory[]> {
+    const projectDir = params.projectDir ?? Instance.directory
+    const memories: ExtractedMemory[] = []
+
+    try {
+      const model = await Provider.getModel(params.modelProviderID, params.modelID)
+      const languageModel = await Provider.getLanguage(model)
+
+      const prompt = MEMORY_EXTRACTION_PROMPT.replace("{task}", params.task.slice(0, 500))
+        .replace("{toolCalls}", params.toolCalls.slice(0, 20).join(", "))
+        .replace("{outcome}", params.outcome)
+
+      const result = await generateText({
+        model: languageModel,
+        system: "You are a helpful assistant that extracts key learnings from development tasks.",
+        prompt,
+      })
+
+      const text = result.text.trim()
+      const jsonMatch = text.match(/\[[\s\S]*\]/)
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0])
+        if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            if (item.key && item.value) {
+              const newMemory = await saveMemory(projectDir, {
+                key: item.key,
+                value: item.value,
+                context: params.task,
+                sessionIDs: [params.sessionID],
+              })
+
+              const vs = await getSharedVectorStore()
+              await vs.store({
+                node_type: "memory",
+                node_id: newMemory.id,
+                entity_title: `${item.key}: ${item.value}`,
+                vector_type: "content",
+                metadata: { key: item.key, value: item.value },
+              })
+
+              memories.push({ key: item.key, value: item.value })
+            }
+          }
+        }
+      }
+    } catch (error) {
+      log.error("Failed to extract memories with LLM", { error: String(error) })
+    }
+
+    if (memories.length > 0) {
+      log.info("Extracted memories", { count: memories.length, keys: memories.map((m) => m.key) })
+      try {
+        Bus.publish(TuiEvent.MemoryConfirm, { sessionID: params.sessionID, memories })
+      } catch (e) {
+        log.warn("Failed to publish memory confirm event", { error: String(e) })
+      }
+    }
+
+    return memories
+  }
+
+  /**
+   * Extract memories using pattern matching
+   * @param params - Extraction parameters
+   */
+  async extractMemories(params: {
+    projectDir?: string
+    sessionID: string
+    task: string
+    toolCalls: string[]
+  }): Promise<void> {
+    const projectDir = params.projectDir ?? Instance.directory
+    const patterns = await MemoryService.loadMemoryPatterns()
+    const existingMemories = await getMemories(projectDir)
+
+    const combinedText = `${params.task} ${params.toolCalls.join(" ")}`.toLowerCase()
+
+    for (const pattern of patterns) {
+      const keywordRegex = new RegExp(pattern.keywords.join("|"), "i")
+      if (keywordRegex.test(combinedText)) {
+        const existing = existingMemories.find((m) => m.key === pattern.key)
+
+        if (existing) {
+          if (!existing.sessionIDs.includes(params.sessionID)) {
+            existing.sessionIDs.push(params.sessionID)
+            log.info("Memory already exists, updated sessionIDs", { key: pattern.key, sessionID: params.sessionID })
+          }
+        } else {
+          const newMemory = await saveMemory(projectDir, {
+            key: pattern.key,
+            value: pattern.value,
+            context: params.task,
+            sessionIDs: [params.sessionID],
+          })
+
+          const vs = await getSharedVectorStore()
+          await vs.store({
+            node_type: "memory",
+            node_id: newMemory.id,
+            entity_title: `${pattern.key}: ${pattern.value}`,
+            vector_type: "content",
+            metadata: { key: pattern.key, value: pattern.value },
+          })
+
+          log.info("Saved new memory from pattern", { key: pattern.key })
+        }
+      }
+    }
+  }
+
+  // ========================================================================
+  // Static Helper Methods
+  // ========================================================================
+
+  /** Temporal decay lambda (~1% per day) */
+  private static readonly TEMPORAL_DECAY_LAMBDA = 0.00001
+
+  /** MMR lambda for re-ranking */
+  private static readonly MMR_LAMBDA = 0.5
+
+  /** Calculate temporal decay score */
+  private static calculateTemporalDecay(lastUsedAt: number): number {
+    const age = Date.now() - lastUsedAt
+    return Math.exp(-MemoryService.TEMPORAL_DECAY_LAMBDA * age)
+  }
+
+  /** MMR re-ranking for diversity */
+  private static mmrReRank(
+    items: Array<{ key: string; value: string; score: number }>,
+  ): Array<{ key: string; value: string; relevance: number }> {
+    if (items.length <= 1) {
+      return items.map((i) => ({ key: i.key, value: i.value, relevance: i.score }))
+    }
+
+    const selected: Array<{ key: string; value: string; relevance: number }> = []
+    const remaining = [...items]
+
+    remaining.sort((a, b) => b.score - a.score)
+    const first = remaining.shift()!
+    selected.push({ key: first.key, value: first.value, relevance: first.score })
+
+    while (remaining.length > 0) {
+      let bestIdx = -1
+      let bestMmr = -Infinity
+
+      for (let i = 0; i < remaining.length; i++) {
+        const item = remaining[i]
+        let maxSimilarity = 0
+
+        for (const sel of selected) {
+          const selWords = new Set(sel.key.toLowerCase().split(/\W+/))
+          const itemWords = new Set(item.key.toLowerCase().split(/\W+/))
+          const intersection = [...selWords].filter((w) => itemWords.has(w) && w.length > 2).length
+          const union = selWords.size + itemWords.size - intersection
+          const similarity = union > 0 ? intersection / union : 0
+          maxSimilarity = Math.max(maxSimilarity, similarity)
+        }
+
+        const mmr = MemoryService.MMR_LAMBDA * item.score - (1 - MemoryService.MMR_LAMBDA) * maxSimilarity
+        if (mmr > bestMmr) {
+          bestMmr = mmr
+          bestIdx = i
+        }
+      }
+
+      if (bestIdx >= 0) {
+        const selectedItem = remaining.splice(bestIdx, 1)[0]
+        selected.push({ key: selectedItem.key, value: selectedItem.value, relevance: selectedItem.score })
+      }
+    }
+
+    return selected
+  }
+
+  /** Memory patterns cache */
+  private static memoryPatterns: MemoryPatternConfig[] = []
+
+  /** Load memory patterns from config or use defaults */
+  private static async loadMemoryPatterns(): Promise<MemoryPatternConfig[]> {
+    if (MemoryService.memoryPatterns.length > 0) return MemoryService.memoryPatterns
+
+    try {
+      const configPath = resolve(__dirname, "../evolution/memory-patterns.json")
+      const content = await readFile(configPath, "utf-8")
+      const config: MemoryPatternsFile = JSON.parse(content)
+      MemoryService.memoryPatterns = config.patterns
+    } catch {
+      MemoryService.memoryPatterns = [
+        { keywords: ["typescript", "tsconfig", "type annotation"], key: "typescript-tips", value: "Use explicit type annotations" },
+        { keywords: ["test", "testing", "jest", "vitest"], key: "testing-approach", value: "Write tests first (TDD)" },
+        { keywords: ["refactor", "clean", "improve"], key: "refactoring-guidance", value: "Make small, incremental changes" },
+        { keywords: ["error", "bug", "fix", "issue"], key: "debugging-tips", value: "Start with minimal reproduction case" },
+      ]
+    }
+    return MemoryService.memoryPatterns
   }
 }
 

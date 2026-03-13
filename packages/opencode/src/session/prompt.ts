@@ -46,8 +46,8 @@ import { LLM } from "./llm"
 import { iife } from "@/util/iife"
 import { Shell } from "@/shell/shell"
 import { Truncate } from "@/tool/truncation"
-import { getRelevantMemories, extractMemoriesWithLLM } from "../evolution/memory"
-import { getMemories, saveMemory, incrementMemoryUsage } from "../evolution/store"
+import { Memory } from "../memory/service"
+import { getMemories, incrementMemoryUsage } from "../evolution/store"
 import { runSessionEvolution } from "../evolution/integration"
 
 // @ts-ignore
@@ -346,28 +346,16 @@ export namespace SessionPrompt {
         })
 
         // Try to extract additional memories with LLM (fire and forget)
-        extractMemoriesWithLLM(
-          Instance.directory,
+        Memory.extractMemoriesWithLLM({
+          projectDir: Instance.directory,
           sessionID,
-          taskText,
-          toolCallTexts,
+          task: taskText,
+          toolCalls: toolCallTexts,
           outcome,
-          lastUser.model.providerID,
-          lastUser.model.modelID,
-        )
+          modelProviderID: lastUser.model.providerID,
+          modelID: lastUser.model.modelID,
+        })
           .then(async (llmMemories) => {
-            const existing = await getMemories(Instance.directory)
-            for (const m of llmMemories) {
-              const existingMatch = existing.find((e) => e.key === m.key)
-              if (!existingMatch) {
-                await saveMemory(Instance.directory, {
-                  key: m.key,
-                  value: m.value,
-                  context: taskText,
-                  sessionIDs: [sessionID],
-                })
-              }
-            }
             if (llmMemories.length > 0) {
               log.info("Saved LLM-extracted memories", {
                 count: llmMemories.length,
@@ -721,13 +709,8 @@ export namespace SessionPrompt {
           .map((p) => ("text" in p ? p.text : ""))
           .join(" ")
         if (taskText) {
-          const memories = await getRelevantMemories(Instance.directory, taskText)
+          const memories = await Memory.getRelevantMemories(taskText)
           if (memories.length > 0) {
-            const allMemories = await getMemories(Instance.directory)
-            for (const m of memories) {
-              const entry = allMemories.find((e) => e.key === m.key)
-              if (entry) await incrementMemoryUsage(Instance.directory, entry.id)
-            }
             const memoryContext = memories.map((m) => `• ${m.key}: ${m.value}`).join("\n")
             system.push(
               `\n<system-reminder>\nPast session learnings relevant to this task:\n${memoryContext}\n</system-reminder>`,
