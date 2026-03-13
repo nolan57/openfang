@@ -8,10 +8,10 @@ This report summarizes all commits made on March 13, 2026.
 
 | Metric | Count |
 |--------|-------|
-| Total Commits | 14 |
-| Files Modified | 19 |
-| Files Created | 10 |
-| Lines Added | ~6,765 |
+| Total Commits | 15 |
+| Files Modified | 21 |
+| Files Created | 17 |
+| Lines Added | ~7,500 |
 | Lines Removed | ~951 |
 
 ---
@@ -500,6 +500,95 @@ This report summarizes all commits made on March 13, 2026.
 
 ---
 
+### 15. feat(scheduler): implement in-process job scheduling with cron support
+
+**Commit:** `pending`
+
+**Reason:** Implemented a comprehensive in-process job scheduling system to replace the external mcp-cron approach, which spawned new processes for each task execution.
+
+**Changes:**
+
+| Status | File Path |
+|--------|-----------|
+| Created | `packages/opencode/src/scheduler/types.ts` |
+| Created | `packages/opencode/src/scheduler/job.sql.ts` |
+| Created | `packages/opencode/src/scheduler/job.ts` |
+| Created | `packages/opencode/src/scheduler/cron.ts` |
+| Created | `packages/opencode/src/scheduler/executor.ts` |
+| Modified | `packages/opencode/src/scheduler/index.ts` |
+| Created | `packages/opencode/src/server/routes/scheduler.ts` |
+| Modified | `packages/opencode/src/server/server.ts` |
+| Created | `packages/opencode/migration/20260313000000_scheduler_system/migration.sql` |
+
+**Details:**
+
+**Architecture:**
+```
+Previous (mcp-cron):
+  opencode → mcp-cron (node) → spawn opencode run (new process per task)
+
+New (in-process):
+  opencode → internal Scheduler (in-process task execution)
+          → HTTP API for job management
+```
+
+**Components:**
+
+1. **Type System (`types.ts`):**
+   - `CronSchedule`: cron expression, interval, or one-time execution
+   - `CronPayload`: agentTurn (AI tasks) or systemEvent (shell commands)
+   - `JobOptions`: timeout, retry, deleteAfterRun settings
+   - `ExecutionStatus`: pending, running, success, failed, cancelled
+
+2. **Database Schema (`job.sql.ts`):**
+   - `scheduler_job`: job definitions with schedule, payload, options
+   - `scheduler_execution`: execution history with status tracking
+   - `scheduler_log`: execution logs for debugging
+
+3. **Job Management (`job.ts`):**
+   - CRUD operations for jobs
+   - Execution record management
+   - Log appending and retrieval
+   - State updates after execution
+
+4. **Cron Parser (`cron.ts`):**
+   - Uses `cron-parser` library for cron expression parsing
+   - `getNextRunTime()`: calculates next execution time
+   - `validateCronExpression()`: validates cron syntax
+   - `describeSchedule()`: human-readable schedule description
+
+5. **Executor (`executor.ts`):**
+   - `executeJob()`: main execution entry point
+   - `executeAgentTurn()`: in-process AI task execution via Session API
+   - `executeSystemEvent()`: shell command execution via Bun.$
+   - Timeout and heartbeat management
+   - AbortController for cancellation support
+
+6. **HTTP API (`routes/scheduler.ts`):**
+   - `GET /scheduler`: list all jobs
+   - `POST /scheduler`: create job
+   - `GET /scheduler/:id`: get job details
+   - `PATCH /scheduler/:id`: update job
+   - `DELETE /scheduler/:id`: delete job
+   - `POST /scheduler/:id/enable`: enable job
+   - `POST /scheduler/:id/disable`: disable job
+   - `POST /scheduler/:id/execute`: manual trigger
+   - `GET /scheduler/:id/executions`: execution history
+   - `GET /scheduler/execution/:id/logs`: execution logs
+   - `POST /scheduler/describe`: describe schedule with next run times
+
+**Benefits:**
+- No process spawning overhead
+- Shared memory and caching
+- Faster task execution
+- Simpler deployment (no external mcp-cron service)
+- Direct access to Session API for agent tasks
+- Consistent with OpenCode's internal architecture
+
+**Impact:** 9 files changed, ~800 insertions(+)
+
+---
+
 ## Files Summary
 
 ### New Files Created
@@ -511,8 +600,15 @@ This report summarizes all commits made on March 13, 2026.
 | `packages/opencode/src/learning/embedding-service.ts` | Unified embedding service with auto-detection |
 | `packages/opencode/src/session/handlers.ts` | Modular handlers for session main loop |
 | `packages/opencode/src/util/encryption.ts` | Web Crypto API encryption utilities |
+| `packages/opencode/src/scheduler/types.ts` | Scheduler type definitions |
+| `packages/opencode/src/scheduler/job.sql.ts` | Scheduler database schema |
+| `packages/opencode/src/scheduler/job.ts` | Job management operations |
+| `packages/opencode/src/scheduler/cron.ts` | Cron expression parsing |
+| `packages/opencode/src/scheduler/executor.ts` | In-process task execution |
+| `packages/opencode/src/server/routes/scheduler.ts` | Scheduler HTTP API routes |
 | `packages/opencode/migration/20260313194937_knowledge_graph_indexes/migration.sql` | Database migration for KG indexes |
 | `packages/opencode/migration/20260313_memory_type_field/migration.sql` | Database migration for memory_type field |
+| `packages/opencode/migration/20260313000000_scheduler_system/migration.sql` | Database migration for scheduler tables |
 | `docs/daily-commit-report-2026-03-13.md` | Daily commit report summarizing all work |
 | `docs/llm-session-processing-analysis.md` | LLM session processing analysis |
 | `docs/prompt-files-analysis.md` | Prompt files analysis |
@@ -552,9 +648,10 @@ This report summarizes all commits made on March 13, 2026.
 - Unified MemoryService as single entry point for memory operations
 - Improved db.ts robustness: WAL checkpoint backup, dynamic version scanning, transaction context safety
 
-### Features (2 commits)
+### Features (3 commits)
 - Added periodic database backup with configurable interval
 - Enhanced memory system with unified embedding, encryption, global cognitive graph, query loop, and compression
+- Implemented in-process job scheduling with cron support, HTTP API, and database persistence
 
 ### Documentation (2 commits)
 - Added daily commit report and session/prompt analysis documents
@@ -573,6 +670,7 @@ This report summarizes all commits made on March 13, 2026.
 10. **Memory Compression**: LLM-based summarization of similar memories with archival support
 11. **Auto Dimension Detection**: Vector dimension automatically uses stored database value, eliminating manual configuration for existing deployments
 12. **MCP Process Cleanup**: Proper shutdown of MCP server processes via `Instance.disposeAll()` ensures no orphaned subprocesses or containers after exit
+13. **In-Process Job Scheduling**: Complete scheduler system with cron support, HTTP API, and database persistence replaces external mcp-cron approach that spawned new processes
 
 ---
 
