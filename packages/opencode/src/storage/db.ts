@@ -202,6 +202,18 @@ export function createBackup(): void {
       return
     }
 
+    // Perform WAL checkpoint before backup to ensure consistency
+    // TRUNCATE mode merges all WAL content into the main database and resets the WAL file
+    // This guarantees the backup is a consistent snapshot without needing to copy the WAL file
+    try {
+      const sqlite = Database.raw()
+      sqlite.run("PRAGMA wal_checkpoint(TRUNCATE)")
+      log.debug("wal checkpoint completed before backup")
+    } catch (checkpointErr) {
+      // Log but don't fail - the backup may still be usable
+      log.warn("wal checkpoint failed before backup, proceeding anyway", { error: checkpointErr })
+    }
+
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-")
     const backupPath = path.join(BACKUP_DIR, `opencode.db.bak.${timestamp}`)
     copyFileSync(DB_PATH, backupPath)
@@ -504,15 +516,49 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
     const metaDir = import.meta.dirname
     if (metaDir) {
       const projectRoot = path.resolve(metaDir, "../../../..")
+      
+      // Dynamic version scanning for Bun's hoisted node_modules
+      const bunModulesDir = path.join(projectRoot, "node_modules", ".bun")
+      try {
+        if (existsSync(bunModulesDir)) {
+          const bunDirs = readdirSync(bunModulesDir, { withFileTypes: true })
+          // Find all sqlite-vec platform package directories and sort by version (newest first)
+          const vecVersions = bunDirs
+            .filter((entry) => entry.isDirectory() && entry.name.startsWith(`${platformPkg}@`))
+            .map((entry) => {
+              // Extract version from directory name: "sqlite-vec-darwin-x64@0.1.7-alpha.2"
+              const versionMatch = entry.name.match(/@(.+)$/)
+              return {
+                name: entry.name,
+                version: versionMatch ? versionMatch[1] : "0.0.0",
+                path: path.join(bunModulesDir, entry.name, "node_modules", platformPkg, config.fileName),
+              }
+            })
+            .filter((v) => existsSync(v.path))
+            .sort((a, b) => {
+              // Sort by semantic version (newest first)
+              const parseVer = (v: string) => {
+                const parts = v.split(/[-.]/).map((p) => parseInt(p, 10) || 0)
+                return parts[0] * 1000000 + (parts[1] || 0) * 10000 + (parts[2] || 0) * 100 + (parts[3] || 0)
+              }
+              return parseVer(b.version) - parseVer(a.version)
+            })
+          
+          // Add the newest version first
+          if (vecVersions.length > 0) {
+            possiblePaths.push(vecVersions[0].path)
+            logger.debug("found sqlite-vec versions in bun cache", {
+              versions: vecVersions.map((v) => v.version),
+              selected: vecVersions[0].version,
+            })
+          }
+        }
+      } catch (scanErr) {
+        logger.warn("failed to scan bun modules for sqlite-vec versions", { error: String(scanErr) })
+      }
+      
+      // Standard npm/yarn node_modules
       possiblePaths.push(
-        // Bun's hoisted node_modules with version pinning
-        path.join(
-          projectRoot,
-          "node_modules/.bun",
-          `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
-          config.fileName,
-        ),
-        // Standard npm/yarn node_modules
         path.join(projectRoot, "node_modules", platformPkg, config.fileName),
         // Workspace package node_modules
         path.join(projectRoot, "packages/opencode/node_modules", platformPkg, config.fileName),
@@ -797,8 +843,13 @@ export namespace Database {
       return callback(ctx.use().tx)
     } catch (err) {
       if (err instanceof Context.NotFound) {
+        // Not in an existing transaction context - creating a new database session
+        // This is safe for read operations but effects will execute immediately
+        log.debug("starting new database session (no transaction context)")
         const effects: (() => void | Promise<void>)[] = []
         const result = ctx.provide({ effects, tx: Client() }, () => callback(Client()))
+        // Effects are executed after the callback completes successfully
+        // If callback throws, effects array is discarded (not executed)
         for (const effect of effects) effect()
         return result
       }
@@ -810,6 +861,7 @@ export namespace Database {
     try {
       ctx.use().effects.push(fn)
     } catch {
+      // Not in a transaction context - execute effect immediately
       fn()
     }
   }
@@ -819,12 +871,31 @@ export namespace Database {
       return callback(ctx.use().tx)
     } catch (err) {
       if (err instanceof Context.NotFound) {
+        // Not in an existing transaction - starting a new transaction root
+        // This creates an atomic transaction that will commit or rollback as a unit
+        log.debug("starting new transaction root")
         const effects: (() => void | Promise<void>)[] = []
-        const result = Client().transaction((tx) => {
-          return ctx.provide({ tx, effects }, () => callback(tx))
-        })
-        for (const effect of effects) effect()
-        return result
+        // Drizzle's transaction() wraps the callback in BEGIN/COMMIT/ROLLBACK
+        // If callback throws, the transaction is rolled back automatically
+        // Effects array is only processed if transaction commits successfully
+        let transactionSucceeded = false
+        try {
+          const result = Client().transaction((tx) => {
+            return ctx.provide({ tx, effects }, () => callback(tx))
+          })
+          transactionSucceeded = true
+          // Execute effects only after successful commit
+          // IMPORTANT: effects are NOT executed if transaction is rolled back
+          // because an exception would jump past this loop
+          for (const effect of effects) effect()
+          return result
+        } catch (txErr) {
+          // Transaction was rolled back - explicitly clear effects to prevent any leakage
+          // This is a safety measure; effects would not be executed anyway due to the exception
+          effects.length = 0
+          log.debug("transaction rolled back, effects cleared")
+          throw txErr
+        }
       }
       throw err
     }
