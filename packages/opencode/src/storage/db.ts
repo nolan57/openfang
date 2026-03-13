@@ -10,7 +10,7 @@ import { Log } from "../util/log"
 import { NamedError } from "@opencode-ai/util/error"
 import z from "zod"
 import path from "path"
-import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync, statSync, unlinkSync } from "fs"
+import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync, statSync, unlinkSync, realpathSync } from "fs"
 import * as schema from "./schema"
 
 declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number }[] | undefined
@@ -343,6 +343,7 @@ function getVecPlatformConfig(): VecPlatformConfig {
 
 /**
  * Attempt to load sqlite-vec extension with comprehensive error handling
+ * Supports multiple path resolution strategies for dev, compiled binary, and symlink scenarios.
  * @param sqlite - The SQLite database instance
  * @param logger - Logger instance for diagnostics
  * @returns Result indicating success or failure with reason
@@ -368,66 +369,181 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
     }
   }
 
-  // Construct possible extension paths
-  const projectRoot = path.resolve(import.meta.dirname, "../../../..")
   const platformPkg = `sqlite-vec-${config.packageName}`
 
-  const possiblePaths = [
-    // Bun's hoisted node_modules with version pinning
-    path.join(
-      projectRoot,
-      "node_modules/.bun",
-      `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
-      config.fileName,
-    ),
-    // Standard npm/yarn node_modules
-    path.join(projectRoot, "node_modules", platformPkg, config.fileName),
-    // Workspace package node_modules
-    path.join(projectRoot, "packages/opencode/node_modules", platformPkg, config.fileName),
-    // Alternative bun install location
-    path.join(projectRoot, "node_modules/.bun", "install/global", platformPkg, config.fileName),
-  ]
+  // 1. Check for explicit environment variable (highest priority)
+  const envVecPath = process.env.SQLITE_VEC_PATH
+  if (envVecPath) {
+    logger.debug("sqlite-vec using SQLITE_VEC_PATH", { path: envVecPath })
+    if (existsSync(envVecPath)) {
+      try {
+        sqlite.loadExtension(envVecPath)
+        logger.info("sqlite-vec loaded from SQLITE_VEC_PATH", { path: envVecPath })
+        return { loaded: true, path: envVecPath }
+      } catch (loadError) {
+        const errorMsg = loadError instanceof Error ? loadError.message : String(loadError)
+        return {
+          loaded: false,
+          reason: `Failed to load sqlite-vec from SQLITE_VEC_PATH: ${errorMsg}`,
+        }
+      }
+    } else {
+      return {
+        loaded: false,
+        reason: `SQLITE_VEC_PATH specified but file not found: ${envVecPath}`,
+      }
+    }
+  }
+
+  // 2. Build list of possible search paths with multiple strategies
+  const possiblePaths: string[] = []
+
+  // Helper to safely get real path (resolves symlinks)
+  const getRealPath = (p: string): string | null => {
+    try {
+      return realpathSync(p)
+    } catch {
+      return null
+    }
+  }
+
+  // Strategy 1: Relative to executable (for compiled binaries and symlinks)
+  // process.execPath is the actual binary or interpreter running this code
+  const execDir = path.dirname(process.execPath)
+  possiblePaths.push(
+    path.join(execDir, "node_modules", platformPkg, config.fileName),
+    path.join(execDir, "..", "node_modules", platformPkg, config.fileName),
+    // For symlinked binaries, check sibling directories
+    path.join(execDir, "lib", "node_modules", platformPkg, config.fileName),
+  )
+
+  // Strategy 2: Resolve symlink and check relative to resolved location
+  const realExecPath = getRealPath(process.execPath)
+  if (realExecPath && realExecPath !== process.execPath) {
+    const realExecDir = path.dirname(realExecPath)
+    possiblePaths.push(
+      path.join(realExecDir, "node_modules", platformPkg, config.fileName),
+      path.join(realExecDir, "..", "node_modules", platformPkg, config.fileName),
+    )
+  }
+
+  // Strategy 3: Current working directory
+  const cwd = process.cwd()
+  possiblePaths.push(
+    path.join(cwd, "node_modules", platformPkg, config.fileName),
+    path.join(cwd, "..", "node_modules", platformPkg, config.fileName),
+  )
+
+  // Strategy 4: User's home directory and common install locations
+  const homeDir = process.env.HOME || process.env.USERPROFILE
+  if (homeDir) {
+    possiblePaths.push(
+      path.join(homeDir, ".local", "share", "opencode", "node_modules", platformPkg, config.fileName),
+      path.join(homeDir, ".opencode", "node_modules", platformPkg, config.fileName),
+    )
+  }
+
+  // Strategy 5: Global bun install location
+  const bunInstallDir = process.env.BUN_INSTALL || path.join(homeDir || "", ".bun")
+  possiblePaths.push(
+    path.join(bunInstallDir, "install/global", platformPkg, config.fileName),
+    path.join(bunInstallDir, "node_modules", platformPkg, config.fileName),
+  )
+
+  // Strategy 6: Platform-specific global locations
+  if (platform === "win32") {
+    const programFiles = process.env.ProgramFiles || "C:\\Program Files"
+    const appData = process.env.APPDATA || path.join(homeDir || "", "AppData", "Roaming")
+    possiblePaths.push(
+      path.join(programFiles, "opencode", "node_modules", platformPkg, config.fileName),
+      path.join(appData, "opencode", "node_modules", platformPkg, config.fileName),
+    )
+  } else if (platform === "linux") {
+    possiblePaths.push(
+      path.join("/usr", "local", "lib", "opencode", "node_modules", platformPkg, config.fileName),
+      path.join("/usr", "lib", "opencode", "node_modules", platformPkg, config.fileName),
+      path.join("/opt", "opencode", "node_modules", platformPkg, config.fileName),
+    )
+  } else if (platform === "darwin") {
+    possiblePaths.push(
+      path.join("/usr", "local", "lib", "opencode", "node_modules", platformPkg, config.fileName),
+      path.join("/opt", "homebrew", "lib", "opencode", "node_modules", platformPkg, config.fileName),
+      path.join("/Applications", "opencode.app", "Contents", "Resources", "node_modules", platformPkg, config.fileName),
+    )
+  }
+
+  // Strategy 7: import.meta.dirname (development mode) - last resort
+  // This may not work correctly in compiled binaries
+  try {
+    const metaDir = import.meta.dirname
+    if (metaDir) {
+      const projectRoot = path.resolve(metaDir, "../../../..")
+      possiblePaths.push(
+        // Bun's hoisted node_modules with version pinning
+        path.join(
+          projectRoot,
+          "node_modules/.bun",
+          `${platformPkg}@0.1.7-alpha.2/node_modules/${platformPkg}`,
+          config.fileName,
+        ),
+        // Standard npm/yarn node_modules
+        path.join(projectRoot, "node_modules", platformPkg, config.fileName),
+        // Workspace package node_modules
+        path.join(projectRoot, "packages/opencode/node_modules", platformPkg, config.fileName),
+        // Alternative bun install location
+        path.join(projectRoot, "node_modules/.bun", "install/global", platformPkg, config.fileName),
+      )
+    }
+  } catch {
+    // import.meta.dirname may not be available in some environments
+  }
+
+  // Deduplicate paths while preserving order
+  const uniquePaths = [...new Set(possiblePaths)]
 
   logger.debug("sqlite-vec loading attempt", {
     platform,
     arch,
     platformPkg,
     fileName: config.fileName,
-    pathsToCheck: possiblePaths.length,
+    pathsToCheck: uniquePaths.length,
   })
 
   // Try each path
   const attemptedPaths: string[] = []
   const errors: string[] = []
 
-  for (const vecPath of possiblePaths) {
-    if (!existsSync(vecPath)) {
+  for (const vecPath of uniquePaths) {
+    // Resolve symlink if applicable
+    const realPath = getRealPath(vecPath) || vecPath
+    
+    if (!existsSync(realPath)) {
       continue
     }
 
-    attemptedPaths.push(vecPath)
-    logger.debug("sqlite-vec found at path", { path: vecPath })
+    attemptedPaths.push(realPath)
+    logger.debug("sqlite-vec found at path", { path: realPath, originalPath: vecPath })
 
     try {
-      sqlite.loadExtension(vecPath)
+      sqlite.loadExtension(realPath)
 
       // Verify extension is functional
       try {
         const versionResult = sqlite.query("SELECT vec0_version()").get() as { "vec0_version()": string } | undefined
         logger.info("sqlite-vec loaded successfully", {
-          path: vecPath,
+          path: realPath,
           version: versionResult?.["vec0_version()"] ?? "unknown",
         })
-        return { loaded: true, path: vecPath }
+        return { loaded: true, path: realPath }
       } catch (verifyError) {
         // Extension loaded but vec0_version not available (older versions)
-        logger.info("sqlite-vec loaded (version query unavailable)", { path: vecPath })
-        return { loaded: true, path: vecPath }
+        logger.info("sqlite-vec loaded (version query unavailable)", { path: realPath })
+        return { loaded: true, path: realPath }
       }
     } catch (loadError) {
       const errorMsg = loadError instanceof Error ? loadError.message : String(loadError)
-      errors.push(`${vecPath}: ${errorMsg}`)
-      logger.warn("sqlite-vec load failed for path", { path: vecPath, error: errorMsg })
+      errors.push(`${realPath}: ${errorMsg}`)
+      logger.warn("sqlite-vec load failed for path", { path: realPath, error: errorMsg })
     }
   }
 
@@ -435,7 +551,7 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
   if (attemptedPaths.length === 0) {
     return {
       loaded: false,
-      reason: `sqlite-vec binary not found. Searched paths: ${possiblePaths.join("; ")}. Install with: bun add sqlite-vec-${config.packageName}`,
+      reason: `sqlite-vec binary not found. Searched ${uniquePaths.length} locations. Install with: bun add sqlite-vec-${config.packageName} or set SQLITE_VEC_PATH environment variable.`,
     }
   }
 
