@@ -561,6 +561,86 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
   }
 }
 
+// ============================================================================
+// macOS Custom SQLite Detection
+// ============================================================================
+
+/**
+ * Find Homebrew SQLite dylib path on macOS
+ * Apple's system SQLite doesn't support dynamic extensions,
+ * so we need to use Homebrew's vanilla SQLite.
+ * 
+ * Strategy:
+ * 1. Check SQLITE_CUSTOM_PATH environment variable
+ * 2. Auto-detect from Homebrew Cellar (Intel and Apple Silicon paths)
+ * 3. Try common version paths
+ */
+function findMacOSSQLitePath(): string | null {
+  // 1. Check environment variable first
+  const envPath = process.env.SQLITE_CUSTOM_PATH
+  if (envPath && existsSync(envPath)) {
+    log.info("using SQLITE_CUSTOM_PATH", { path: envPath })
+    return envPath
+  }
+
+  // 2. Possible Homebrew installation directories
+  const homebrewBaseDirs = [
+    "/opt/homebrew/Cellar/sqlite", // Apple Silicon (M1/M2/M3)
+    "/usr/local/Cellar/sqlite", // Intel Mac
+  ]
+
+  for (const baseDir of homebrewBaseDirs) {
+    if (!existsSync(baseDir)) continue
+
+    try {
+      // Get all version directories and sort by version (descending)
+      const versions = readdirSync(baseDir)
+        .filter((name) => {
+          const fullPath = path.join(baseDir, name, "lib", "libsqlite3.dylib")
+          return existsSync(fullPath)
+        })
+        .sort((a, b) => {
+          // Sort by semantic version (newest first)
+          const parseVer = (v: string) => {
+            const parts = v.split(/[._]/).map((p) => parseInt(p, 10) || 0)
+            return parts[0] * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0)
+          }
+          return parseVer(b) - parseVer(a)
+        })
+
+      if (versions.length > 0) {
+        const selectedPath = path.join(baseDir, versions[0], "lib", "libsqlite3.dylib")
+        log.info("found homebrew sqlite", { 
+          path: selectedPath, 
+          version: versions[0],
+          searched: baseDir 
+        })
+        return selectedPath
+      }
+    } catch (e) {
+      log.warn("failed to search homebrew sqlite", { dir: baseDir, error: String(e) })
+    }
+  }
+
+  // 3. Try known common paths as fallback
+  const fallbackPaths = [
+    "/opt/homebrew/opt/sqlite/lib/libsqlite3.dylib", // Apple Silicon symlink
+    "/usr/local/opt/sqlite/lib/libsqlite3.dylib", // Intel Mac symlink
+  ]
+
+  for (const fallbackPath of fallbackPaths) {
+    if (existsSync(fallbackPath)) {
+      log.info("using fallback sqlite path", { path: fallbackPath })
+      return fallbackPath
+    }
+  }
+
+  log.warn("no suitable sqlite found for extension support", {
+    hint: "Install sqlite via homebrew: brew install sqlite, or set SQLITE_CUSTOM_PATH environment variable",
+  })
+  return null
+}
+
 export namespace Database {
   export const Path = path.join(Global.Path.data, "opencode.db")
   type Schema = typeof schema
@@ -607,7 +687,15 @@ export namespace Database {
     // Use Homebrew's vanilla SQLite which supports extensions
     // Must be called before any SQLite operations
     if (process.platform === "darwin") {
-      BunDatabase.setCustomSQLite("/opt/homebrew/Cellar/sqlite/3.51.2_1/lib/libsqlite3.dylib")
+      const sqlitePath = findMacOSSQLitePath()
+      if (sqlitePath) {
+        try {
+          BunDatabase.setCustomSQLite(sqlitePath)
+          log.info("custom sqlite set successfully", { path: sqlitePath })
+        } catch (e) {
+          log.error("failed to set custom sqlite", { path: sqlitePath, error: String(e) })
+        }
+      }
     }
 
     // Ensure database integrity before first use
