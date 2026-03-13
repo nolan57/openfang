@@ -223,60 +223,86 @@ export function createBackup(): void {
           }
         })
     }
-  } catch (err) {
-    log.error("failed to create database backup", { error: err })
-  }
-}
-
-function ensureDatabaseIntegrity(): void {
-  // If database doesn't exist, let Drizzle create it later
-  if (!existsSync(DB_PATH)) {
-    log.info("database does not exist, will be created on first use")
-    return
-  }
-
-  if (isDatabaseHealthy(DB_PATH)) {
-    log.info("database is healthy")
-    return
-  }
-
-  log.warn("database is corrupted or unreadable, attempting recovery...")
-
-  // First, backup the corrupted database for debugging
-  const corruptedPath = path.join(BACKUP_DIR, `opencode.db.corrupted.${Date.now()}`)
-  try {
-    if (!existsSync(BACKUP_DIR)) mkdirSync(BACKUP_DIR, { recursive: true })
-    copyFileSync(DB_PATH, corruptedPath)
-    log.info("corrupted database saved for inspection", { path: corruptedPath })
-  } catch (e) {
-    log.error("failed to save corrupted database", { error: e })
-  }
-
-  // Try to restore from latest backup
-  const latestBackup = getLatestBackup()
-  if (latestBackup) {
-    log.info("restoring database from backup", { backup: latestBackup })
-    try {
-      copyFileSync(latestBackup, DB_PATH)
-      if (isDatabaseHealthy(DB_PATH)) {
-        log.info("database recovery successful!")
-        return
-      } else {
-        log.error("backup is also corrupted, will try other options")
-      }
-    } catch (e) {
-      log.error("failed to restore from backup", { error: e })
+      } catch (err) {
+      log.error("failed to create database backup", { error: err })
     }
   }
-
-  // All backups failed, delete corrupted database and let Drizzle recreate it
-  try {
-    unlinkSync(DB_PATH)
-    log.info("deleted corrupted database, will recreate on next use")
-  } catch (e) {
-    log.error("failed to delete corrupted database", { error: e })
+  
+  /**
+   * Default backup interval in milliseconds (30 minutes)
+   */
+  const DEFAULT_BACKUP_INTERVAL = 30 * 60 * 1000
+  
+  /**
+   * Start periodic database backup using the scheduler
+   * @param intervalMs - Backup interval in milliseconds (default: 30 minutes)
+   */
+  export function startPeriodicBackup(intervalMs: number = DEFAULT_BACKUP_INTERVAL): void {
+    // Import Scheduler lazily to avoid circular dependencies
+    import("../scheduler").then(({ Scheduler }) => {
+      Scheduler.register({
+        id: "database-backup",
+        interval: intervalMs,
+        scope: "global",
+        run: async () => {
+          createBackup()
+        },
+      })
+      log.info("periodic database backup started", { intervalMs })
+    }).catch((err) => {
+      log.error("failed to start periodic backup", { error: err })
+    })
   }
-}
+  
+  function ensureDatabaseIntegrity(): void {
+    // If database doesn't exist, let Drizzle create it later
+    if (!existsSync(DB_PATH)) {
+      log.info("database does not exist, will be created on first use")
+      return
+    }
+
+    if (isDatabaseHealthy(DB_PATH)) {
+      log.info("database is healthy")
+      return
+    }
+
+    log.warn("database is corrupted or unreadable, attempting recovery...")
+
+    // First, backup the corrupted database for debugging
+    const corruptedPath = path.join(BACKUP_DIR, `opencode.db.corrupted.${Date.now()}`)
+    try {
+      if (!existsSync(BACKUP_DIR)) mkdirSync(BACKUP_DIR, { recursive: true })
+      copyFileSync(DB_PATH, corruptedPath)
+      log.info("corrupted database saved for inspection", { path: corruptedPath })
+    } catch (e) {
+      log.error("failed to save corrupted database", { error: e })
+    }
+
+    // Try to restore from latest backup
+    const latestBackup = getLatestBackup()
+    if (latestBackup) {
+      log.info("restoring database from backup", { backup: latestBackup })
+      try {
+        copyFileSync(latestBackup, DB_PATH)
+        if (isDatabaseHealthy(DB_PATH)) {
+          log.info("database recovery successful!")
+          return
+        } else {
+          log.error("backup is also corrupted, will try other options")
+        }
+      } catch (e) {
+        log.error("failed to restore from backup", { error: e })
+      }
+    }
+
+    // All backups failed, delete corrupted database and let Drizzle recreate it
+    try {
+      unlinkSync(DB_PATH)
+      log.info("deleted corrupted database, will recreate on next use")
+    } catch (e) {
+      log.error("failed to delete corrupted database", { error: e })
+    }
+  }
 // ====== End of Backup & Recovery Logic ======
 
 export const NotFoundError = NamedError.create(

@@ -33,7 +33,7 @@ import { NovelCommand } from "./cli/cmd/novel"
 import path from "path"
 import { Global } from "./global"
 import { JsonMigration } from "./storage/json-migration"
-import { Database, createBackup } from "./storage/db"
+import { Database, createBackup, startPeriodicBackup } from "./storage/db"
 import { checkAndStartMcpCron } from "./util/mcp-cron"
 import { initObservability } from "./observability"
 
@@ -139,6 +139,9 @@ const cli = yargs(hideBin(process.argv))
     if (mcpCronResult.started) {
       Log.Default.info("mcp-cron started", { pid: mcpCronResult.pid })
     }
+
+    // Start periodic database backup (every 30 minutes by default)
+    startPeriodicBackup()
   })
   .usage("\n" + UI.logo())
   .completion("completion", "generate shell completion script")
