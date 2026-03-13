@@ -92,7 +92,8 @@ export const scene_graph = sqliteTable("scene_graph", {
   ...Timestamps,
 })
 
-export const knowledge_node = sqliteTable("knowledge_node", {
+// Renamed to plural form for consistency with usage across the codebase
+export const knowledge_nodes = sqliteTable("knowledge_node", {
   id: text().primaryKey(),
   type: text().notNull(), // "file" | "skill" | "memory" | "constraint" | "agenda"
   entity_type: text().notNull(),
@@ -104,7 +105,7 @@ export const knowledge_node = sqliteTable("knowledge_node", {
   ...Timestamps,
 })
 
-export const knowledge_edge = sqliteTable("knowledge_edge", {
+export const knowledge_edges = sqliteTable("knowledge_edge", {
   id: text().primaryKey(),
   source_id: text().notNull(),
   target_id: text().notNull(),
@@ -112,6 +113,12 @@ export const knowledge_edge = sqliteTable("knowledge_edge", {
   weight: integer().default(1),
   ...Timestamps,
 })
+
+// Backward compatibility aliases (deprecated, use plural forms)
+/** @deprecated Use `knowledge_nodes` instead */
+export const knowledge_node = knowledge_nodes
+/** @deprecated Use `knowledge_edges` instead */
+export const knowledge_edge = knowledge_edges
 
 export const vector_sync_meta = sqliteTable("vector_sync_meta", {
   id: text().primaryKey(), // always "sync_state"

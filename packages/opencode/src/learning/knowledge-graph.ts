@@ -1,31 +1,10 @@
 import { Database } from "../storage/db"
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core"
 import { eq, and, sql } from "drizzle-orm"
 import { Log } from "../util/log"
+// Re-export table definitions from learning.sql.ts for backward compatibility
+export { knowledge_nodes, knowledge_edges } from "./learning.sql"
 
 const log = Log.create({ service: "knowledge-graph" })
-
-export const knowledge_nodes = sqliteTable("knowledge_node", {
-  id: text().primaryKey(),
-  type: text().notNull(), // "file" | "skill" | "memory" | "constraint" | "agenda"
-  entity_type: text().notNull(), // 具体实体类型
-  entity_id: text().notNull(),
-  title: text().notNull(),
-  content: text(),
-  embedding: text(), // JSON vector for semantic search
-  metadata: text(), // JSON additional data
-  time_created: integer().notNull(),
-  time_updated: integer().notNull(),
-})
-
-export const knowledge_edges = sqliteTable("knowledge_edge", {
-  id: text().primaryKey(),
-  source_id: text().notNull(),
-  target_id: text().notNull(),
-  relation: text().notNull(), // "depends_on" | "related_to" | "conflicts_with" | "derives_from"
-  weight: integer().default(1),
-  time_created: integer().notNull(),
-})
 
 export type NodeType = "file" | "skill" | "memory" | "constraint" | "agenda" | "code_entity"
 export type RelationType =
