@@ -118,40 +118,59 @@ function storeEmbeddingDim(sqlite: BunDatabase, dim: number): void {
  * Validate and initialize vector dimensions
  * This should be called during database initialization
  * 
- * @throws VectorDimensionMismatchError if dimensions don't match
+ * Logic:
+ * 1. If EMBEDDING_DIM env is set, use it (user explicit config)
+ * 2. If database has stored dimension, use it (preserve existing vectors)
+ * 3. Otherwise use default (fresh database)
+ * 
+ * Only throws error when user explicitly sets EMBEDDING_DIM that conflicts
+ * with the stored dimension in database.
+ * 
+ * @throws VectorDimensionMismatchError if user explicitly sets EMBEDDING_DIM that conflicts with stored dimension
  */
 function validateVectorDimensions(sqlite: BunDatabase, logger: typeof log): number {
-  const configuredDim = getConfiguredEmbeddingDim()
+  const envDim = process.env.EMBEDDING_DIM
   const storedDim = getStoredEmbeddingDim(sqlite)
+  
+  // Parse environment variable if set
+  const configuredDim = envDim ? parseInt(envDim, 10) : undefined
+  const hasExplicitConfig = envDim !== undefined && !isNaN(configuredDim!) && configuredDim! > 0
 
   logger.debug("vector_dimension_check", {
+    envDim,
     configured: configuredDim,
     stored: storedDim,
+    hasExplicitConfig,
   })
 
   // If no dimension stored yet, this is a fresh database
   if (storedDim === undefined) {
-    logger.info("initializing_vector_dimension", { dimension: configuredDim })
-    storeEmbeddingDim(sqlite, configuredDim)
-    return configuredDim
+    const dimToUse = configuredDim ?? DEFAULT_EMBEDDING_DIM
+    logger.info("initializing_vector_dimension", { 
+      dimension: dimToUse,
+      source: hasExplicitConfig ? "env" : "default"
+    })
+    storeEmbeddingDim(sqlite, dimToUse)
+    return dimToUse
   }
 
-  // If dimensions match, we're good
-  if (storedDim === configuredDim) {
-    logger.debug("vector_dimension_verified", { dimension: configuredDim })
-    return configuredDim
-  }
+  // If user explicitly set EMBEDDING_DIM, check if it matches stored
+  if (hasExplicitConfig) {
+    if (storedDim === configuredDim) {
+      logger.debug("vector_dimension_verified", { dimension: configuredDim, source: "env" })
+      return configuredDim!
+    }
+    
+    // User explicitly set a conflicting dimension - this is an error
+    logger.error("vector_dimension_mismatch", {
+      stored: storedDim,
+      configured: configuredDim,
+    })
 
-  // Dimensions don't match - this is a critical error
-  logger.error("vector_dimension_mismatch", {
-    stored: storedDim,
-    configured: configuredDim,
-  })
-
-  throw new VectorDimensionMismatchError({
-    storedDimension: storedDim,
-    configuredDimension: configuredDim,
-    hint: `Embedding model changed. You must either:
+    throw new VectorDimensionMismatchError({
+      storedDimension: storedDim,
+      configuredDimension: configuredDim!,
+      hint: `Embedding model changed. You must either:
 1. Set EMBEDDING_DIM=${storedDim} to use the existing vectors, or
 2. Clear the vector_memory table and rebuild with the new dimension:
    DELETE FROM vector_memory;
@@ -159,7 +178,20 @@ function validateVectorDimensions(sqlite: BunDatabase, logger: typeof log): numb
    UPDATE system_metadata SET value = '${configuredDim}' WHERE key = 'embedding_dimension';
    
 After changing dimension, restart the application.`,
+    })
+  }
+
+  // No explicit config - use stored dimension to preserve existing vectors
+  logger.info("vector_dimension_using_stored", { 
+    dimension: storedDim, 
+    source: "database",
+    hint: "Set EMBEDDING_DIM env to override"
   })
+  
+  // Update env var so EmbeddingService picks up the correct dimension
+  process.env.EMBEDDING_DIM = String(storedDim)
+  
+  return storedDim
 }
 
 export { validateVectorDimensions, storeEmbeddingDim, getStoredEmbeddingDim, ensureSystemMetadataTable }
