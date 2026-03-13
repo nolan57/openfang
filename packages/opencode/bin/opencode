@@ -5,7 +5,28 @@ const fs = require("fs")
 const path = require("path")
 const os = require("os")
 
+// Get the real path of this script to prevent self-referential loops
+const scriptPath = fs.realpathSync(__filename)
+const scriptDir = path.dirname(scriptPath)
+
+function isSelfReference(target) {
+  try {
+    const realTarget = fs.realpathSync(target)
+    return realTarget === scriptPath
+  } catch {
+    return false
+  }
+}
+
 function run(target) {
+  // Prevent infinite loop: check if target is this script itself
+  if (isSelfReference(target)) {
+    console.error("Error: Binary path resolves to the launcher script itself, which would cause an infinite loop.")
+    console.error("This usually means the platform-specific binary is not installed.")
+    console.error("Please run 'bun install' or check your installation.")
+    process.exit(1)
+  }
+
   const result = childProcess.spawnSync(target, process.argv.slice(2), {
     stdio: "inherit",
   })
@@ -19,16 +40,30 @@ function run(target) {
 
 const envPath = process.env.OPENCODE_BIN_PATH
 if (envPath) {
+  // Validate that OPENCODE_BIN_PATH is not this script
+  if (isSelfReference(envPath)) {
+    console.error("Error: OPENCODE_BIN_PATH environment variable points to the launcher script itself.")
+    console.error("Please set OPENCODE_BIN_PATH to the actual opencode binary, not this launcher script.")
+    process.exit(1)
+  }
   run(envPath)
 }
 
-const scriptPath = fs.realpathSync(__filename)
-const scriptDir = path.dirname(scriptPath)
-
-//
+// Check for cached binary path
 const cached = path.join(scriptDir, ".opencode")
 if (fs.existsSync(cached)) {
-  run(cached)
+  // Validate that cached path is not this script
+  if (isSelfReference(cached)) {
+    console.error("Warning: Cached binary path points to launcher script, ignoring cache.")
+    // Remove the bad cache file to prevent future issues
+    try {
+      fs.unlinkSync(cached)
+    } catch {
+      // Ignore errors
+    }
+  } else {
+    run(cached)
+  }
 }
 
 const platformMap = {
