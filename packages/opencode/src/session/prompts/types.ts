@@ -71,7 +71,7 @@ export type Example = z.infer<typeof ExampleSchema>
  */
 export const OutputFormatSchema = z.object({
   instruction: z.string().describe("Format requirements"),
-  schema: z.record(z.unknown()).optional().describe("JSON schema if applicable"),
+  schema: z.record(z.string(), z.unknown()).optional().describe("JSON schema if applicable"),
   examples: z.array(z.string()).optional(),
 })
 
@@ -97,7 +97,7 @@ export const PromptTemplateSchema = z.object({
   output_format: OutputFormatSchema.optional(),
   
   // Extensions
-  extensions: z.record(z.unknown()).optional().describe("Model-specific extensions"),
+  extensions: z.record(z.string(), z.unknown()).optional().describe("Model-specific extensions"),
 })
 
 export type PromptTemplate = z.infer<typeof PromptTemplateSchema>

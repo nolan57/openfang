@@ -44,8 +44,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1773265885312,
-    "usageCount": 242
+    "lastUsedAt": 1773401172956,
+    "usageCount": 243
   },
   {
     "id": "2294419a-c504-4b71-bfdc-5c9eac6cfb66",
@@ -56,8 +56,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1773265290999,
-    "usageCount": 188
+    "lastUsedAt": 1773400547947,
+    "usageCount": 189
   },
   {
     "id": "5ad51b23-acfa-47fa-b354-065fe8180941",
@@ -176,8 +176,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1773265291019,
-    "usageCount": 161
+    "lastUsedAt": 1773406453041,
+    "usageCount": 163
   },
   {
     "id": "8c4fc0b0-20f3-48d9-9b1b-fafb4d466c12",
@@ -4342,5 +4342,29 @@
     "createdAt": 1773265849668,
     "lastUsedAt": 1773265885263,
     "usageCount": 1
+  },
+  {
+    "id": "56306966-dccf-41a2-8bc1-c815cabb81a0",
+    "key": "task-clarification",
+    "value": "When uncertain about next steps or requirements, ask for clarification rather than proceeding with assumptions.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.",
+    "sessionIDs": [
+      "ses_3191727a7ffeimjPrheInRNl6O"
+    ],
+    "createdAt": 1773401391671,
+    "lastUsedAt": 1773401391671,
+    "usageCount": 0
+  },
+  {
+    "key": "architecture-compatibility",
+    "value": "Verify scheduled tasks remain functional after architectural refactors like multi-agent migrations. Ensure agent communication paths are preserved during system changes.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent 恢复原设定的每天10点追踪A股的定时任务 修改A股定时任务，添加追踪特定的两个股票：002445和600764 立即执行所有定时任务 立即执行所有定时任务 查看执行日志 查看执行日志 还没看到定时任务返回结果，查看状态 还没看到定时任务返回结果，查看状态 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 请修复 清除多余opencode进程 检查定时任务状态 检查定时任务状态 检查定时任务状态 添加多一个定时任务，每天下午3点推荐优秀的skill，agent和mcp",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "id": "ab4b1662-d136-4ce5-8d68-3973729adcf6",
+    "createdAt": 1773406539179,
+    "lastUsedAt": 1773406539179,
+    "usageCount": 0
   }
 ]

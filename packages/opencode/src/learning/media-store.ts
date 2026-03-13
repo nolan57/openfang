@@ -3,6 +3,7 @@ import { character_consistency, scene_graph } from "./learning.sql"
 import { eq, desc } from "drizzle-orm"
 import { Log } from "../util/log"
 import { getSharedVectorStore, type IVectorStore } from "./vector-store"
+import { EmbeddingService } from "./embedding-service"
 
 const log = Log.create({ service: "media-store" })
 
@@ -61,15 +62,21 @@ export class MediaStore {
     )
 
     const vs = await this.getVectorStore()
-    await vs.store({
-      node_type: "character",
-      node_id: id,
-      entity_title: character.name,
-      vector_type: "character",
-      metadata: { description: character.description },
-    })
+    // Only store in vector store if embedding was generated
+    if (embedding.length > 0) {
+      await vs.store({
+        node_type: "character",
+        node_id: id,
+        entity_title: character.name,
+        vector_type: "character",
+        metadata: {
+          description: character.description,
+          embeddingModel: "text-embedding-3-small", // [ENH] Track embedding model
+        },
+      })
+    }
 
-    log.info("character_registered", { id, name: character.name })
+    log.info("character_registered", { id, name: character.name, embeddingGenerated: embedding.length > 0 })
     return id
   }
 
@@ -136,15 +143,21 @@ export class MediaStore {
 
     const vs = await this.getVectorStore()
     await vs.deleteById(id)
-    await vs.store({
-      node_type: "character",
-      node_id: id,
-      entity_title: updates.name ?? existing.name,
-      vector_type: "character",
-      metadata: { description: updates.description ?? existing.description },
-    })
+    // Only store in vector store if embedding was generated
+    if (embedding.length > 0) {
+      await vs.store({
+        node_type: "character",
+        node_id: id,
+        entity_title: updates.name ?? existing.name,
+        vector_type: "character",
+        metadata: {
+          description: updates.description ?? existing.description,
+          embeddingModel: "text-embedding-3-small", // [ENH] Track embedding model
+        },
+      })
+    }
 
-    log.info("character_updated", { id, version: newVersion })
+    log.info("character_updated", { id, version: newVersion, embeddingGenerated: embedding.length > 0 })
   }
 
   async incrementSceneCount(characterId: string): Promise<void> {
@@ -186,15 +199,21 @@ export class MediaStore {
     }
 
     const vs = await this.getVectorStore()
-    await vs.store({
-      node_type: "scene",
-      node_id: id,
-      entity_title: `${scene.episode}-${scene.scene}: ${scene.title}`,
-      vector_type: "scene",
-      metadata: { description: scene.description },
-    })
+    // Only store in vector store if embedding was generated
+    if (embedding.length > 0) {
+      await vs.store({
+        node_type: "scene",
+        node_id: id,
+        entity_title: `${scene.episode}-${scene.scene}: ${scene.title}`,
+        vector_type: "scene",
+        metadata: {
+          description: scene.description,
+          embeddingModel: "text-embedding-3-small", // [ENH] Track embedding model
+        },
+      })
+    }
 
-    log.info("scene_created", { id, episode: scene.episode, scene: scene.scene })
+    log.info("scene_created", { id, episode: scene.episode, scene: scene.scene, embeddingGenerated: embedding.length > 0 })
     return id
   }
 
@@ -257,77 +276,58 @@ export class MediaStore {
     }))
   }
 
-  private async generateCharacterEmbedding(name: string, description: string): Promise<number[]> {
-    const text = `${name}. ${description}`
-    const words = text.toLowerCase().split(/\W+/)
-    const wordFreq: Record<string, number> = {}
+  private embeddingGenerator: Awaited<ReturnType<typeof EmbeddingService.createGenerator>> | null = null
 
-    for (const word of words) {
-      if (word.length > 2) {
-        wordFreq[word] = (wordFreq[word] || 0) + 1
+  private async getEmbeddingGenerator() {
+    if (!this.embeddingGenerator) {
+      try {
+        this.embeddingGenerator = await EmbeddingService.createGenerator({
+          modelId: "text-embedding-3-small", // Default to OpenAI small for media
+        })
+      } catch (error) {
+        log.warn("embedding_generator_unavailable", { error: String(error) })
+        return null
+      }
+    }
+    return this.embeddingGenerator
+  }
+
+  private async generateCharacterEmbedding(name: string, description: string): Promise<number[]> {
+    const generator = await this.getEmbeddingGenerator()
+    const text = `${name}. ${description}`
+
+    if (generator) {
+      try {
+        const embedding = await generator(text, "character")
+        log.debug("character_embedding_generated", { name, model: "text-embedding-3-small" })
+        return Array.from(embedding)
+      } catch (error) {
+        log.warn("character_embedding_failed", { name, error: String(error) })
       }
     }
 
-    const embedding: number[] = []
-    for (let i = 0; i < 384; i++) {
-      const hash1 = this.hashString(name + i)
-      const hash2 = this.hashString(description + i)
-
-      const value =
-        Math.sin(hash1 * 0.01) * 0.4 +
-        Math.cos(hash2 * 0.01) * 0.3 +
-        (Object.values(wordFreq).reduce((sum, f) => sum + f, 0) > 0
-          ? (Object.entries(wordFreq).reduce(
-              (sum, [w, f]) => sum + Math.sin(this.hashString(w) * (i + 1) * 0.01) * f,
-              0,
-            ) /
-              Object.values(wordFreq).reduce((sum, f) => sum + f, 0)) *
-            0.3
-          : 0)
-
-      embedding.push(Math.tanh(value))
-    }
-
-    return this.normalize(embedding)
+    // Fallback: skip vector storage but return empty array
+    log.warn("character_embedding_skipped", { name, reason: "embedding_service_unavailable" })
+    return []
   }
 
   private async generateSceneEmbedding(title: string, description: string): Promise<number[]> {
+    const generator = await this.getEmbeddingGenerator()
     const text = `${title}. ${description}`
-    const words = text.toLowerCase().split(/\W+/)
-    const wordFreq: Record<string, number> = {}
 
-    for (const word of words) {
-      if (word.length > 2) {
-        wordFreq[word] = (wordFreq[word] || 0) + 1
+    if (generator) {
+      try {
+        const embedding = await generator(text, "scene")
+        log.debug("scene_embedding_generated", { title, model: "text-embedding-3-small" })
+        return Array.from(embedding)
+      } catch (error) {
+        log.warn("scene_embedding_failed", { title, error: String(error) })
       }
     }
 
-    const embedding: number[] = []
-    for (let i = 0; i < 384; i++) {
-      const hash1 = this.hashString(title + i)
-      const hash2 = this.hashString(description + i)
-
-      const value = Math.sin(hash1 * 0.01) * 0.5 + Math.cos(hash2 * 0.01) * 0.5
-
-      embedding.push(Math.tanh(value))
-    }
-
-    return this.normalize(embedding)
-  }
-
-  private hashString(str: string): number {
-    let hash = 0
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i)
-      hash = hash & hash
-    }
-    return Math.abs(hash)
-  }
-
-  private normalize(vec: number[]): number[] {
-    const magnitude = Math.sqrt(vec.reduce((sum, v) => sum + v * v, 0))
-    if (magnitude === 0) return vec
-    return vec.map((v) => v / magnitude)
+    // Fallback: skip vector storage but return empty array
+    log.warn("scene_embedding_skipped", { title, reason: "embedding_service_unavailable" })
+    return []
   }
 
   async getStats(): Promise<{

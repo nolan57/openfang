@@ -3,6 +3,8 @@ import { generateText } from "ai"
 import { KnowledgeGraph } from "./knowledge-graph"
 import { getSharedVectorStore, type IVectorStore } from "./vector-store"
 import { Log } from "../util/log"
+import { saveMemory } from "../evolution/store"
+import { Instance } from "../project/instance"
 
 const log = Log.create({ service: "dynamic-query-generator" })
 
@@ -220,6 +222,208 @@ export class DynamicQueryGenerator {
       "autonomous agent architecture patterns",
       "LLM agent self-improvement techniques",
     ]
+  }
+
+  // [ENH] Target 3: Execute queries and create feedback loop
+  /**
+   * Result of a single query execution
+   */
+  async executeQuery(query: string): Promise<QueryExecutionResult> {
+    const vs = await this.getVectorStore()
+    const startTime = Date.now()
+
+    try {
+      // Search internal knowledge base
+      const searchResults = await vs.search(query, {
+        limit: 5,
+        min_similarity: 0.2,
+      })
+
+      const duration = Date.now() - startTime
+      const isEmpty = searchResults.length === 0
+
+      log.info("query_executed", {
+        query,
+        resultCount: searchResults.length,
+        duration,
+        isEmpty,
+      })
+
+      return {
+        query,
+        results: searchResults.map((r) => ({
+          id: r.id,
+          title: r.entity_title,
+          similarity: r.similarity,
+          preview: r.metadata?.contentPreview as string | undefined,
+        })),
+        isEmpty,
+        duration,
+      }
+    } catch (error) {
+      log.error("query_execution_failed", { query, error: String(error) })
+      return {
+        query,
+        results: [],
+        isEmpty: true,
+        duration: Date.now() - startTime,
+        error: String(error),
+      }
+    }
+  }
+
+  /**
+   * Execute all generated queries and create feedback loop
+   * This implements the closed-loop learning cycle:
+   * 1. Generate queries based on project gaps
+   * 2. Execute searches against internal knowledge
+   * 3. Store results as evolution memories
+   * 4. Record knowledge gaps for future exploration
+   */
+  async executeGeneratedQueries(
+    projectOverview: string,
+    options?: {
+      maxQueries?: number
+      storeResults?: boolean
+      onProgress?: (result: QueryExecutionResult) => void
+    },
+  ): Promise<QueryLoopResult> {
+    const maxQueries = options?.maxQueries ?? 5
+    const storeResults = options?.storeResults ?? true
+    const projectDir = Instance.directory
+
+    const loopStartTime = Date.now()
+
+    log.info("query_loop_started", { maxQueries, storeResults })
+
+    // Step 1: Generate queries
+    const generationResult = await this.generateQueries(projectOverview, maxQueries)
+
+    // Step 2: Execute each query
+    const executionResults: QueryExecutionResult[] = []
+    const knowledgeGaps: string[] = []
+
+    for (const query of generationResult.queries) {
+      const result = await this.executeQuery(query)
+      executionResults.push(result)
+
+      // Report progress
+      options?.onProgress?.(result)
+
+      // Track knowledge gaps
+      if (result.isEmpty) {
+        knowledgeGaps.push(query)
+      }
+    }
+
+    // Step 3: Store results as evolution memories
+    if (storeResults) {
+      for (const result of executionResults) {
+        if (!result.isEmpty) {
+          try {
+            await saveMemory(projectDir, {
+              key: `query_feedback:${result.query.slice(0, 50)}`,
+              value: JSON.stringify({
+                query: result.query,
+                resultCount: result.results.length,
+                topResults: result.results.slice(0, 3),
+                timestamp: Date.now(),
+              }),
+              context: "dynamic_query_feedback",
+              sessionIDs: [],
+            })
+          } catch (error) {
+            log.warn("failed_to_store_query_result", {
+              query: result.query,
+              error: String(error),
+            })
+          }
+        }
+      }
+
+      // Step 4: Record unresolved knowledge gaps
+      if (knowledgeGaps.length > 0) {
+        try {
+          await saveMemory(projectDir, {
+            key: "knowledge_gaps:unresolved",
+            value: JSON.stringify({
+              gaps: knowledgeGaps,
+              generatedAt: Date.now(),
+              priority: "high",
+            }),
+            context: "knowledge_gap_tracking",
+            sessionIDs: [],
+          })
+
+          log.info("knowledge_gaps_recorded", { count: knowledgeGaps.length })
+        } catch (error) {
+          log.warn("failed_to_record_gaps", { error: String(error) })
+        }
+      }
+    }
+
+    const totalDuration = Date.now() - loopStartTime
+
+    log.info("query_loop_completed", {
+      queriesExecuted: executionResults.length,
+      knowledgeGapsFound: knowledgeGaps.length,
+      totalDuration,
+    })
+
+    return {
+      generationResult,
+      executionResults,
+      knowledgeGaps,
+      totalDuration,
+      summary: {
+        totalQueries: executionResults.length,
+        successfulQueries: executionResults.filter((r) => !r.isEmpty).length,
+        gapsIdentified: knowledgeGaps.length,
+      },
+    }
+  }
+
+  /**
+   * Get statistics about recent query executions
+   */
+  async getExecutionStats(): Promise<{
+    totalQueries: number
+    avgResultsPerQuery: number
+    gapRate: number
+  }> {
+    // This would normally query stored results
+    // For now, return placeholder stats
+    return {
+      totalQueries: 0,
+      avgResultsPerQuery: 0,
+      gapRate: 0,
+    }
+  }
+}
+
+// [ENH] Target 3: Types for query execution
+export interface QueryExecutionResult {
+  query: string
+  results: Array<{
+    id: string
+    title: string
+    similarity: number
+    preview?: string
+  }>
+  isEmpty: boolean
+  duration: number
+  error?: string
+}
+
+export interface QueryLoopResult {
+  generationResult: QueryGenerationResult
+  executionResults: QueryExecutionResult[]
+  knowledgeGaps: string[]
+  totalDuration: number
+  summary: {
+    totalQueries: number
+    successfulQueries: number
+    gapsIdentified: number
   }
 }
 

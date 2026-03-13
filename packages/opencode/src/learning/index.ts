@@ -93,4 +93,6 @@ export {
   type VerificationResult,
   createRollbackManager,
 } from "./rollback-manager"
+export { EmbeddingService } from "./embedding-service"
+export type { EmbeddingModelConfig, EmbeddingModelInfo } from "./embedding-service"
 export * from "./learning.sql"

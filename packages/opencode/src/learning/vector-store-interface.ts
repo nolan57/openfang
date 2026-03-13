@@ -12,6 +12,12 @@ export type VectorType = "content" | "code" | "constraint" | "character" | "scen
 export type EmbeddingModel = "simple" | "openai" | "local"
 
 /**
+ * External embedding generator function type
+ * Used to inject project's default embedding model
+ */
+export type EmbeddingGenerator = (text: string, vectorType: VectorType) => Promise<Float32Array>
+
+/**
  * A vector entry to be stored
  */
 export interface VectorEntry {
@@ -20,10 +26,13 @@ export interface VectorEntry {
   node_id: string
   entity_title: string
   vector_type: VectorType
-  embedding: Float32Array
+  /** Optional - auto-generated if not provided */
+  embedding?: Float32Array
   model?: EmbeddingModel
   dimensions?: number
   metadata?: Record<string, unknown>
+  /** [ENH] TTL: Optional expiration time for automatic cleanup */
+  expires_at?: Date
 }
 
 /**
@@ -56,6 +65,8 @@ export interface VectorStats {
   total_vectors: number
   by_type: Record<string, number>
   by_model?: Record<string, number>
+  /** [ENH] TTL: Number of expired vectors */
+  expired_vectors?: number
 }
 
 /**
@@ -68,6 +79,8 @@ export interface VectorStoreConfig {
   defaultDimensions?: number
   /** Whether to initialize vec table on startup */
   initializeVecTable?: boolean
+  /** [ENH] External embedding generator - uses project's default model when provided */
+  embeddingGenerator?: EmbeddingGenerator
 }
 
 /**
@@ -169,6 +182,13 @@ export interface IVectorStore {
    * @returns Number of removed vectors
    */
   cleanupOrphanedVectors?(): Promise<{ removed: number }>
+
+  /**
+   * [ENH] TTL: Clean up expired vectors
+   * Remove vectors that have passed their expiration time
+   * @returns Number of removed vectors
+   */
+  cleanupExpiredVectors?(): Promise<{ removed: number }>
 
   /**
    * Generate an embedding for text

@@ -5,6 +5,7 @@
  * - Shared singleton instance for memory efficiency
  * - Backward compatibility with existing code
  * - Dependency injection support for new code
+ * - [ENH] Unified embedding strategy via EmbeddingService
  * 
  * New code should use:
  *   - `getSharedVectorStore()` for shared instance
@@ -22,14 +23,19 @@ export type {
   VectorStoreConfig,
   VectorType,
   EmbeddingModel,
+  EmbeddingGenerator,
 } from "./vector-store-interface"
 
 // Re-export implementation
-export { SqliteVecStore, createSqliteVecStore } from "./sqlite-vec-store"
+export { SqliteVecStore, createSqliteVecStore, VectorDimensionMismatchError } from "./sqlite-vec-store"
 
 // Import for backward compatibility class
 import { SqliteVecStore } from "./sqlite-vec-store"
 import type { IVectorStore, VectorEntry, VectorStoreConfig, VectorType, EmbeddingModel } from "./vector-store-interface"
+import { EmbeddingService } from "./embedding-service"
+import { Log } from "../util/log"
+
+const log = Log.create({ service: "vector-store" })
 
 // ============================================================================
 // Shared Instance Management
@@ -42,13 +48,17 @@ let sharedInstance: IVectorStore | null = null
 let initPromise: Promise<void> | null = null
 
 /**
- * Get the shared VectorStore instance
+ * Get the shared VectorStore instance with unified embedding strategy
+ * 
+ * [ENH] Target 1: Automatically uses EmbeddingService for embedding generation.
+ * Falls back to simple embedding if the embedding service is unavailable.
  * 
  * This is the recommended way to obtain a VectorStore instance.
  * It ensures all modules share the same instance for:
  * - Memory efficiency (single connection pool)
  * - Consistent configuration
  * - Shared vec0 virtual table
+ * - [ENH] Unified embedding model across all modules
  * 
  * @param config - Optional configuration (only applied on first call)
  * @returns Initialized shared VectorStore instance
@@ -70,7 +80,33 @@ export async function getSharedVectorStore(config?: VectorStoreConfig): Promise<
     return sharedInstance!
   }
 
-  sharedInstance = new SqliteVecStore(config)
+  // [ENH] Target 1: Try to use EmbeddingService for unified embedding
+  let effectiveConfig = config
+  if (!config?.embeddingGenerator) {
+    try {
+      const service = await EmbeddingService.createService({
+        modelId: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
+      })
+      effectiveConfig = {
+        ...config,
+        embeddingGenerator: service.generator,
+        defaultDimensions: service.dimensions,
+        defaultModel: service.modelInfo.fullModelId as EmbeddingModel,
+      }
+      log.info("shared_vector_store_using_embedding_service", {
+        model: service.modelInfo.fullModelId,
+        dimensions: service.dimensions,
+      })
+    } catch (error) {
+      log.warn("embedding_service_unavailable_using_fallback", {
+        error: error instanceof Error ? error.message : String(error),
+        note: "VectorStore will use simple embedding fallback",
+      })
+      // Continue with default config (simple embedding fallback)
+    }
+  }
+
+  sharedInstance = new SqliteVecStore(effectiveConfig)
   initPromise = sharedInstance.init()
   
   try {

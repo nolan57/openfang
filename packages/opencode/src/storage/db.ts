@@ -10,7 +10,8 @@ import { Log } from "../util/log"
 import { NamedError } from "@opencode-ai/util/error"
 import z from "zod"
 import path from "path"
-import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync, statSync, unlinkSync, realpathSync } from "fs"
+import os from "os"
+import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync, statSync, unlinkSync, realpathSync, writeFileSync } from "fs"
 import * as schema from "./schema"
 
 declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number }[] | undefined
@@ -339,6 +340,86 @@ interface VecLoadResult {
   path?: string
 }
 
+// ============================================================================
+// SQLite-Vec Extension Path Cache
+// ============================================================================
+
+/**
+ * Cache file path for storing successfully loaded sqlite-vec extension path
+ * Uses user's home directory for cross-platform compatibility
+ */
+const VEC_CACHE_FILE = path.join(os.homedir(), ".opencode", "db-config.json")
+
+/**
+ * Structure of the sqlite-vec extension cache
+ */
+interface VecCacheData {
+  vecExtensionPath: string
+  mtimeMs?: number
+  cachedAt: number
+}
+
+/**
+ * Read cached sqlite-vec extension path
+ * Returns null if cache doesn't exist, is invalid, or read fails
+ */
+function readVecCache(logger: typeof log): VecCacheData | null {
+  try {
+    if (!existsSync(VEC_CACHE_FILE)) {
+      return null
+    }
+
+    const content = readFileSync(VEC_CACHE_FILE, "utf-8")
+    const data = JSON.parse(content) as VecCacheData
+
+    // Validate cached path is absolute
+    if (!data.vecExtensionPath || !path.isAbsolute(data.vecExtensionPath)) {
+      logger.debug("vec cache contains invalid path, ignoring", { path: data.vecExtensionPath })
+      return null
+    }
+
+    return data
+  } catch (err) {
+    logger.debug("failed to read vec cache, will proceed with scan", { error: String(err) })
+    return null
+  }
+}
+
+/**
+ * Write sqlite-vec extension path to cache
+ * Silently logs warnings on failure, never throws
+ */
+function writeVecCache(vecPath: string, logger: typeof log): void {
+  try {
+    const cacheDir = path.dirname(VEC_CACHE_FILE)
+
+    // Ensure cache directory exists
+    if (!existsSync(cacheDir)) {
+      mkdirSync(cacheDir, { recursive: true })
+    }
+
+    // Get file modification time for version change detection
+    let mtimeMs: number | undefined
+    try {
+      mtimeMs = statSync(vecPath).mtimeMs
+    } catch {
+      // mtime is optional, continue without it
+    }
+
+    const cacheData: VecCacheData = {
+      vecExtensionPath: vecPath,
+      mtimeMs,
+      cachedAt: Date.now(),
+    }
+
+    writeFileSync(VEC_CACHE_FILE, JSON.stringify(cacheData, null, 2), "utf-8")
+    logger.debug("vec extension path cached", { path: vecPath, cacheFile: VEC_CACHE_FILE })
+  } catch (err) {
+    // Log warning but don't interrupt startup
+    logger.warn("failed to cache vec extension path", { error: String(err) })
+  }
+}
+
 /**
  * Platform-specific configuration for sqlite-vec extension
  */
@@ -417,6 +498,8 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
       try {
         sqlite.loadExtension(envVecPath)
         logger.info("sqlite-vec loaded from SQLITE_VEC_PATH", { path: envVecPath })
+        // Cache the successful path for future startups
+        writeVecCache(envVecPath, logger)
         return { loaded: true, path: envVecPath }
       } catch (loadError) {
         const errorMsg = loadError instanceof Error ? loadError.message : String(loadError)
@@ -430,6 +513,35 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
         loaded: false,
         reason: `SQLITE_VEC_PATH specified but file not found: ${envVecPath}`,
       }
+    }
+  }
+
+  // 2. Check cached path (second priority - avoid full scan if cached path is valid)
+  const cached = readVecCache(logger)
+  if (cached?.vecExtensionPath && existsSync(cached.vecExtensionPath)) {
+    logger.debug("sqlite-vec trying cached path", { path: cached.vecExtensionPath })
+    try {
+      sqlite.loadExtension(cached.vecExtensionPath)
+
+      // Verify extension is functional
+      try {
+        const versionResult = sqlite.query("SELECT vec0_version()").get() as { "vec0_version()": string } | undefined
+        logger.info("sqlite-vec loaded from cache", {
+          path: cached.vecExtensionPath,
+          version: versionResult?.["vec0_version()"] ?? "unknown",
+        })
+        return { loaded: true, path: cached.vecExtensionPath }
+      } catch {
+        // Extension loaded but version check failed - still valid
+        logger.info("sqlite-vec loaded from cache (version query unavailable)", { path: cached.vecExtensionPath })
+        return { loaded: true, path: cached.vecExtensionPath }
+      }
+    } catch (loadError) {
+      // Cached path failed, continue with full scan
+      logger.debug("cached vec path failed to load, proceeding with scan", {
+        path: cached.vecExtensionPath,
+        error: loadError instanceof Error ? loadError.message : String(loadError),
+      })
     }
   }
 
@@ -606,10 +718,14 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
           path: realPath,
           version: versionResult?.["vec0_version()"] ?? "unknown",
         })
+        // Cache the successful path for future startups
+        writeVecCache(realPath, logger)
         return { loaded: true, path: realPath }
       } catch (verifyError) {
         // Extension loaded but vec0_version not available (older versions)
         logger.info("sqlite-vec loaded (version query unavailable)", { path: realPath })
+        // Cache the successful path for future startups
+        writeVecCache(realPath, logger)
         return { loaded: true, path: realPath }
       }
     } catch (loadError) {

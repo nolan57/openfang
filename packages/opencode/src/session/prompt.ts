@@ -709,7 +709,11 @@ export namespace SessionPrompt {
           .map((p) => ("text" in p ? p.text : ""))
           .join(" ")
         if (taskText) {
-          const memories = await Memory.getRelevantMemories(taskText)
+          // [ENH] Target 1: Context-aware filtering with project directory
+          const memories = await Memory.getRelevantMemories(taskText, {
+            projectDir: Instance.directory,
+            limit: 5,
+          })
           if (memories.length > 0) {
             const memoryContext = memories.map((m) => `• ${m.key}: ${m.value}`).join("\n")
             system.push(

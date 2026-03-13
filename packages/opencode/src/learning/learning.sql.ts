@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core"
+import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core"
 import { Timestamps } from "@/storage/schema.sql"
 
 export const learning_runs = sqliteTable("learning_run", {
@@ -11,21 +11,30 @@ export const learning_runs = sqliteTable("learning_run", {
   ...Timestamps,
 })
 
-export const knowledge = sqliteTable("knowledge", {
-  id: text().primaryKey(),
-  run_id: text()
-    .notNull()
-    .references(() => learning_runs.id),
-  source: text().notNull(), // "search" | "arxiv" | "github" | "blog"
-  url: text().notNull(),
-  title: text().notNull(),
-  summary: text().notNull(),
-  tags: text().notNull(), // JSON array
-  value_score: integer().notNull().default(0), // 0-100
-  action: text().notNull(), // "note_only" | "install_skill" | "code_suggestion"
-  processed: integer().notNull().default(0), // boolean
-  ...Timestamps,
-})
+export const knowledge = sqliteTable(
+  "knowledge",
+  {
+    id: text().primaryKey(),
+    run_id: text()
+      .notNull()
+      .references(() => learning_runs.id),
+    source: text().notNull(), // "search" | "arxiv" | "github" | "blog"
+    url: text().notNull(),
+    title: text().notNull(),
+    summary: text().notNull(),
+    tags: text().notNull(), // JSON array
+    value_score: integer().notNull().default(0), // 0-100
+    action: text().notNull(), // "note_only" | "install_skill" | "code_suggestion"
+    processed: integer().notNull().default(0), // boolean
+    ...Timestamps,
+  },
+  (table) => ({
+    // 索引：按来源过滤知识条目
+    source_idx: index("knowledge_source_idx").on(table.source),
+    // 索引：查找未处理的知识条目
+    processed_idx: index("knowledge_processed_idx").on(table.processed),
+  }),
+)
 
 export const negative_memory = sqliteTable("negative_memory", {
   id: text().primaryKey(),
@@ -59,6 +68,8 @@ export const vector_memory = sqliteTable("vector_memory", {
   model: text().notNull().default("simple"), // "simple" | "openai" | "local"
   dimensions: integer().notNull().default(384),
   metadata: text(), // JSON - additional data
+  // [ENH] TTL: Optional expiration timestamp (Unix milliseconds)
+  expires_at: integer(), // null means no expiration
   ...Timestamps,
 })
 
@@ -93,26 +104,50 @@ export const scene_graph = sqliteTable("scene_graph", {
 })
 
 // Renamed to plural form for consistency with usage across the codebase
-export const knowledge_nodes = sqliteTable("knowledge_node", {
-  id: text().primaryKey(),
-  type: text().notNull(), // "file" | "skill" | "memory" | "constraint" | "agenda"
-  entity_type: text().notNull(),
-  entity_id: text().notNull(),
-  title: text().notNull(),
-  content: text(),
-  embedding: text(), // JSON vector for semantic search
-  metadata: text(), // JSON additional data
-  ...Timestamps,
-})
+export const knowledge_nodes = sqliteTable(
+  "knowledge_node",
+  {
+    id: text().primaryKey(),
+    type: text().notNull(), // "file" | "skill" | "memory" | "constraint" | "agenda"
+    entity_type: text().notNull(),
+    entity_id: text().notNull(),
+    title: text().notNull(),
+    content: text(),
+    embedding: text(), // JSON vector for semantic search
+    metadata: text(), // JSON additional data
+    // [ENH] Target 2: Memory type for cross-type linking
+    memory_type: text(), // "session" | "evolution" | "project" | "media" | null
+    ...Timestamps,
+  },
+  (table) => ({
+    // 索引：按类型查找节点（findNodesByType 使用）
+    type_idx: index("knowledge_node_type_idx").on(table.type),
+    // 索引：按实体查找（去重检查）
+    entity_idx: index("knowledge_node_entity_idx").on(table.entity_type, table.entity_id),
+    // [ENH] 索引：按记忆类型查找（跨类型关联使用）
+    memory_type_idx: index("knowledge_node_memory_type_idx").on(table.memory_type),
+  }),
+)
 
-export const knowledge_edges = sqliteTable("knowledge_edge", {
-  id: text().primaryKey(),
-  source_id: text().notNull(),
-  target_id: text().notNull(),
-  relation: text().notNull(), // "depends_on" | "related_to" | "conflicts_with" | "derives_from"
-  weight: integer().default(1),
-  ...Timestamps,
-})
+export const knowledge_edges = sqliteTable(
+  "knowledge_edge",
+  {
+    id: text().primaryKey(),
+    source_id: text().notNull(),
+    target_id: text().notNull(),
+    relation: text().notNull(), // "depends_on" | "related_to" | "conflicts_with" | "derives_from"
+    weight: integer().default(1),
+    ...Timestamps,
+  },
+  (table) => ({
+    // 索引：查找节点的出边（getRelatedNodes 使用）
+    source_idx: index("knowledge_edge_source_idx").on(table.source_id),
+    // 索引：查找节点的入边（依赖检查、deleteNode 使用）
+    target_idx: index("knowledge_edge_target_idx").on(table.target_id),
+    // 索引：按关系类型过滤（getRelatedNodes 过滤使用）
+    relation_idx: index("knowledge_edge_relation_idx").on(table.relation),
+  }),
+)
 
 // Backward compatibility aliases (deprecated, use plural forms)
 /** @deprecated Use `knowledge_nodes` instead */

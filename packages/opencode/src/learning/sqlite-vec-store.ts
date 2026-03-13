@@ -5,11 +5,13 @@
  * Falls back to text-based search when the extension is not available.
  */
 
-import { Database } from "../storage/db"
+import { Database, getConfiguredEmbeddingDim } from "../storage/db"
 import { vector_memory, vector_sync_meta } from "./learning.sql"
 import { knowledge_nodes } from "./knowledge-graph"
-import { eq, sql } from "drizzle-orm"
+import { eq, sql, and } from "drizzle-orm"
 import { Log } from "../util/log"
+import { NamedError } from "@opencode-ai/util/error"
+import z from "zod"
 import type {
   IVectorStore,
   VectorEntry,
@@ -19,9 +21,20 @@ import type {
   VectorStoreConfig,
   VectorType,
   EmbeddingModel,
+  EmbeddingGenerator,
 } from "./vector-store-interface"
+import { EmbeddingService } from "./embedding-service"
 
 const log = Log.create({ service: "sqlite-vec-store" })
+
+// [ENH] Dimension mismatch error
+export const VectorDimensionMismatchError = NamedError.create(
+  "VectorDimensionMismatchError",
+  z.object({
+    provided: z.number(),
+    expected: z.number(),
+  }),
+)
 
 /**
  * SQLite-vec implementation of IVectorStore
@@ -29,15 +42,57 @@ const log = Log.create({ service: "sqlite-vec-store" })
 export class SqliteVecStore implements IVectorStore {
   private config: VectorStoreConfig
   private vecTableInitialized: boolean = false
+  private ftsTableInitialized: boolean = false
   private initialized: boolean = false
   private readonly SYNC_VERSION = 1
+  // [ENH] Cache for configured embedding dimension
+  private configuredDim: number
 
   constructor(config: VectorStoreConfig = {}) {
     this.config = {
       defaultModel: config.defaultModel ?? "simple",
       defaultDimensions: config.defaultDimensions ?? 384,
       initializeVecTable: config.initializeVecTable ?? true,
+      embeddingGenerator: config.embeddingGenerator,
     }
+    // [ENH] Get configured dimension from db.ts (respects EMBEDDING_DIM env var)
+    this.configuredDim = getConfiguredEmbeddingDim()
+  }
+
+  /**
+   * Create a VectorStore with automatic embedding model configuration
+   * 
+   * @param modelConfig - Embedding model configuration (model ID or full config)
+   * @param storeConfig - Additional VectorStore configuration
+   * @returns SqliteVecStore instance with configured embedding generator
+   * 
+   * @example
+   * // Using OpenAI text-embedding-3-small
+   * const store = await SqliteVecStore.withEmbeddingModel("openai/text-embedding-3-small")
+   * 
+   * // Using custom configuration
+   * const store = await SqliteVecStore.withEmbeddingModel({
+   *   modelId: "openai/text-embedding-3-small",
+   *   apiKey: process.env.OPENAI_API_KEY,
+   * })
+   */
+  static async withEmbeddingModel(
+    modelConfig: string | EmbeddingService.EmbeddingModelConfig,
+    storeConfig: Omit<VectorStoreConfig, "embeddingGenerator" | "defaultDimensions"> = {},
+  ): Promise<SqliteVecStore> {
+    // Normalize config
+    const config: EmbeddingService.EmbeddingModelConfig = typeof modelConfig === "string"
+      ? { modelId: modelConfig }
+      : modelConfig
+    
+    // Create service with auto-configuration
+    const { generator, dimensions } = await EmbeddingService.createService(config)
+    
+    return new SqliteVecStore({
+      ...storeConfig,
+      embeddingGenerator: generator,
+      defaultDimensions: dimensions,
+    })
   }
 
   async init(): Promise<void> {
@@ -47,6 +102,8 @@ export class SqliteVecStore implements IVectorStore {
       if (this.config.initializeVecTable) {
         await this.ensureVecTable()
       }
+      // [ENH] Initialize FTS5 table for fallback search acceleration
+      await this.ensureFtsTable()
     } catch (error) {
       log.warn("vec_table_init_failed", { error: String(error) })
     }
@@ -78,6 +135,53 @@ export class SqliteVecStore implements IVectorStore {
       log.warn("vec_table_not_available", {
         error: error instanceof Error ? error.message : String(error),
         note: "Vector search will use text-based fallback",
+      })
+    }
+  }
+
+  // [ENH] FTS5 table for fallback search acceleration
+  private async ensureFtsTable(): Promise<void> {
+    if (this.ftsTableInitialized) return
+
+    const sqlite = Database.raw()
+    try {
+      // Create FTS5 virtual table for full-text search on entity_title
+      sqlite.exec(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS vector_memory_fts USING fts5(
+          entity_title,
+          content='vector_memory',
+          content_rowid='rowid'
+        )
+      `)
+      
+      // Create triggers to keep FTS index in sync
+      sqlite.exec(`
+        CREATE TRIGGER IF NOT EXISTS vector_memory_fts_insert AFTER INSERT ON vector_memory BEGIN
+          INSERT INTO vector_memory_fts(rowid, entity_title) VALUES (new.rowid, new.entity_title);
+        END
+      `)
+      
+      sqlite.exec(`
+        CREATE TRIGGER IF NOT EXISTS vector_memory_fts_delete AFTER DELETE ON vector_memory BEGIN
+          INSERT INTO vector_memory_fts(vector_memory_fts, rowid, entity_title) 
+          VALUES('delete', old.rowid, old.entity_title);
+        END
+      `)
+      
+      sqlite.exec(`
+        CREATE TRIGGER IF NOT EXISTS vector_memory_fts_update AFTER UPDATE ON vector_memory BEGIN
+          INSERT INTO vector_memory_fts(vector_memory_fts, rowid, entity_title) 
+          VALUES('delete', old.rowid, old.entity_title);
+          INSERT INTO vector_memory_fts(rowid, entity_title) VALUES (new.rowid, new.entity_title);
+        END
+      `)
+      
+      this.ftsTableInitialized = true
+      log.info("fts_table_created")
+    } catch (error) {
+      log.warn("fts_table_not_available", {
+        error: error instanceof Error ? error.message : String(error),
+        note: "Fallback search will use full table scan",
       })
     }
   }
@@ -142,9 +246,20 @@ export class SqliteVecStore implements IVectorStore {
   async store(entry: Omit<VectorEntry, "id">): Promise<string> {
     if (!this.initialized) await this.init()
 
-    const id = crypto.randomUUID()
+    // [ENH] Dimension validation - use configured dimension from db.ts
     const embedding = entry.embedding ?? await this.generateEmbedding(entry.entity_title, entry.vector_type)
+    const expectedDim = this.configuredDim
+    
+    if (embedding.length !== expectedDim) {
+      throw new VectorDimensionMismatchError({
+        provided: embedding.length,
+        expected: expectedDim,
+      })
+    }
+
+    const id = crypto.randomUUID()
     const embeddingJson = JSON.stringify(Array.from(embedding))
+    const now = Date.now()
 
     Database.use((db) => {
       db.insert(vector_memory).values({
@@ -157,6 +272,10 @@ export class SqliteVecStore implements IVectorStore {
         model: entry.model ?? this.config.defaultModel!,
         dimensions: embedding.length,
         metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
+        // [ENH] TTL: Store expiration timestamp if provided
+        expires_at: entry.expires_at ? entry.expires_at.getTime() : null,
+        time_created: now,
+        time_updated: now,
       })
     })
 
@@ -165,7 +284,7 @@ export class SqliteVecStore implements IVectorStore {
       sqlite.prepare("INSERT INTO vec_vector_memory(rowid, embedding) VALUES (?, vec_f32(?))").run(id, embeddingJson)
     }
 
-    log.info("vector_stored", { id, node_type: entry.node_type, vector_type: entry.vector_type })
+    log.info("vector_stored", { id, node_type: entry.node_type, vector_type: entry.vector_type, dimensions: embedding.length })
     return id
   }
 
@@ -213,6 +332,7 @@ export class SqliteVecStore implements IVectorStore {
   private async searchVec(query: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     const limit = options.limit ?? 10
     const minSimilarity = options.min_similarity ?? 0.3
+    const now = Date.now()
 
     const queryEmbedding = await this.generateEmbedding(query, "content")
     const embeddingJson = JSON.stringify(Array.from(queryEmbedding))
@@ -241,22 +361,28 @@ export class SqliteVecStore implements IVectorStore {
           node_id: vector_memory.node_id,
           entity_title: vector_memory.entity_title,
           metadata: vector_memory.metadata,
+          expires_at: vector_memory.expires_at,
         })
           .from(vector_memory)
-          .where(eq(vector_memory.id, vec.rowid))
+          .where(and(
+            eq(vector_memory.id, vec.rowid),
+            // [ENH] TTL: Exclude expired entries
+            sql`(${vector_memory.expires_at} IS NULL OR ${vector_memory.expires_at} > ${now})`
+          ))
           .get()
       ) as any
 
-      if (row) {
-        results.push({
-          id: row.id,
-          node_type: row.node_type,
-          node_id: row.node_id,
-          entity_title: row.entity_title,
-          similarity,
-          metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
-        })
-      }
+      // Skip if not found or expired
+      if (!row) continue
+
+      results.push({
+        id: row.id,
+        node_type: row.node_type,
+        node_id: row.node_id,
+        entity_title: row.entity_title,
+        similarity,
+        metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+      })
 
       if (results.length >= limit) break
     }
@@ -267,7 +393,22 @@ export class SqliteVecStore implements IVectorStore {
   private async searchFallback(query: string, options: SearchOptions = {}): Promise<SearchResult[]> {
     const limit = options.limit ?? 10
     const minSimilarity = options.min_similarity ?? 0.3
+    const now = Date.now()
 
+    // [ENH] Try FTS5 search first for better performance
+    if (this.ftsTableInitialized) {
+      try {
+        const ftsResults = await this.searchFts(query, options)
+        if (ftsResults.length > 0) {
+          return ftsResults
+        }
+        // FTS returned no results, fall through to full scan
+      } catch (error) {
+        log.debug("fts_search_failed_falling_back", { error: String(error) })
+      }
+    }
+
+    // Full table scan fallback (original behavior)
     let queryBuilder = Database.use((db) =>
       db.select({
         id: knowledge_nodes.id,
@@ -318,6 +459,83 @@ export class SqliteVecStore implements IVectorStore {
     return scored
   }
 
+  // [ENH] FTS5-based search for better fallback performance
+  private async searchFts(query: string, options: SearchOptions = {}): Promise<SearchResult[]> {
+    const limit = options.limit ?? 10
+    const minSimilarity = options.min_similarity ?? 0.3
+    const now = Date.now()
+
+    const sqlite = Database.raw()
+    
+    // Escape special FTS5 characters and build search query
+    const searchTerms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1).join(" OR ")
+    if (!searchTerms) return []
+
+    // Query FTS table for matching titles
+    const ftsMatches = sqlite.prepare(`
+      SELECT rowid, entity_title
+      FROM vector_memory_fts
+      WHERE vector_memory_fts MATCH ?
+      ORDER BY rank
+      LIMIT ?
+    `).all(searchTerms, limit * 2) as { rowid: number; entity_title: string }[]
+
+    if (ftsMatches.length === 0) return []
+
+    // Get full records from vector_memory, filtering expired entries
+    const results: SearchResult[] = []
+    for (const match of ftsMatches) {
+      const row = Database.use((db) =>
+        db.select({
+          id: vector_memory.id,
+          node_type: vector_memory.node_type,
+          node_id: vector_memory.node_id,
+          entity_title: vector_memory.entity_title,
+          embedding: vector_memory.embedding,
+          metadata: vector_memory.metadata,
+          expires_at: vector_memory.expires_at,
+        })
+          .from(vector_memory)
+          .where(and(
+            eq(vector_memory.id, match.rowid.toString()),
+            // [ENH] TTL: Exclude expired entries
+            sql`(${vector_memory.expires_at} IS NULL OR ${vector_memory.expires_at} > ${now})`
+          ))
+          .get()
+      ) as any
+
+      if (row) {
+        // Calculate similarity for ranking
+        let similarity = minSimilarity
+        if (row.embedding) {
+          try {
+            const storedEmbedding = new Float32Array(JSON.parse(row.embedding))
+            const queryEmbedding = await this.generateEmbedding(query, "content")
+            similarity = this.cosineSimilarity(queryEmbedding, storedEmbedding)
+          } catch {
+            // Use text similarity as fallback
+            similarity = this.textSimilarity(query.toLowerCase(), row.entity_title.toLowerCase())
+          }
+        }
+
+        if (similarity >= minSimilarity) {
+          results.push({
+            id: row.id,
+            node_type: row.node_type,
+            node_id: row.node_id,
+            entity_title: row.entity_title,
+            similarity,
+            metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+          })
+        }
+      }
+
+      if (results.length >= limit) break
+    }
+
+    return results.sort((a, b) => b.similarity - a.similarity)
+  }
+
   async getById(id: string): Promise<VectorEntry | null> {
     const row = Database.use((db) =>
       db.select().from(vector_memory).where(eq(vector_memory.id, id)).get()
@@ -354,17 +572,39 @@ export class SqliteVecStore implements IVectorStore {
   }
 
   async getStats(): Promise<VectorStats> {
-    const all = Database.use((db) => db.select().from(vector_memory).all())
+    const now = Date.now()
+    
+    // [ENH] TTL: Count all vectors and expired vectors
+    const all = Database.use((db) => 
+      db.select({
+        vector_type: vector_memory.vector_type,
+        model: vector_memory.model,
+        expires_at: vector_memory.expires_at,
+      })
+        .from(vector_memory)
+        .all()
+    )
 
     const by_type: Record<string, number> = {}
     const by_model: Record<string, number> = {}
+    let expired_count = 0
 
     for (const v of all) {
-      by_type[v.vector_type] = (by_type[v.vector_type] || 0) + 1
-      by_model[v.model] = (by_model[v.model] || 0) + 1
+      // [ENH] TTL: Count expired vectors
+      if (v.expires_at && v.expires_at < now) {
+        expired_count++
+      } else {
+        by_type[v.vector_type] = (by_type[v.vector_type] || 0) + 1
+        by_model[v.model] = (by_model[v.model] || 0) + 1
+      }
     }
 
-    return { total_vectors: all.length, by_type, by_model }
+    return { 
+      total_vectors: all.length - expired_count, 
+      by_type, 
+      by_model,
+      expired_vectors: expired_count,
+    }
   }
 
   async clear(): Promise<void> {
@@ -510,10 +750,60 @@ export class SqliteVecStore implements IVectorStore {
     return { removed: orphanedIds.length }
   }
 
+  // [ENH] TTL: Clean up expired vectors
+  async cleanupExpiredVectors(): Promise<{ removed: number }> {
+    const now = Date.now()
+
+    // Find expired vector IDs
+    const expiredIds = Database.use((db) =>
+      db.select({ id: vector_memory.id })
+        .from(vector_memory)
+        .where(sql`${vector_memory.expires_at} IS NOT NULL AND ${vector_memory.expires_at} < ${now}`)
+        .all()
+    ).map(r => r.id)
+
+    if (expiredIds.length === 0) return { removed: 0 }
+
+    const sqlite = Database.raw()
+
+    // Remove from vec table
+    if (this.vecTableInitialized) {
+      const deleteStmt = sqlite.prepare("DELETE FROM vec_vector_memory WHERE rowid = ?")
+      for (const id of expiredIds) {
+        deleteStmt.run(id)
+      }
+    }
+
+    // Remove from vector_memory table
+    Database.use((db) => {
+      db.delete(vector_memory).where(sql`${vector_memory.id} IN (${expiredIds.map((id) => sql`${id}`)})`)
+    })
+
+    log.info("expired_vectors_cleaned", { removed: expiredIds.length })
+    return { removed: expiredIds.length }
+  }
+
+  // [ENH] Use external embedding generator if provided, otherwise fallback to simple embedding
   async generateEmbedding(text: string, _vectorType: VectorType): Promise<Float32Array> {
+    // [ENH] Use project's default embedding model if configured
+    if (this.config.embeddingGenerator) {
+      try {
+        return await this.config.embeddingGenerator(text, _vectorType)
+      } catch (error) {
+        log.warn("external_embedding_failed_using_fallback", { 
+          error: error instanceof Error ? error.message : String(error),
+          note: "Consider checking embedding service availability"
+        })
+        // Fall back to simple embedding - do not throw, let the system continue
+      }
+    }
     return this.simpleEmbedding(text)
   }
 
+  /**
+   * Simple embedding for fallback/development
+   * @deprecated Use external embedding generator for production
+   */
   private simpleEmbedding(text: string): Float32Array {
     const words = text.toLowerCase().split(/\W+/)
     const wordFreq: Record<string, number> = {}
