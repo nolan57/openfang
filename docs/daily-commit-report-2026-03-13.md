@@ -8,11 +8,11 @@ This report summarizes all commits made on March 13, 2026.
 
 | Metric | Count |
 |--------|-------|
-| Total Commits | 13 |
-| Files Modified | 18 |
+| Total Commits | 14 |
+| Files Modified | 19 |
 | Files Created | 10 |
-| Lines Added | ~6,752 |
-| Lines Removed | ~950 |
+| Lines Added | ~6,765 |
+| Lines Removed | ~951 |
 
 ---
 
@@ -460,6 +460,46 @@ This report summarizes all commits made on March 13, 2026.
 
 ---
 
+### 14. fix: properly close MCP servers on exit
+
+**Commit:** `fdfad021a`
+
+**Reason:** Fixed a critical bug where MCP server processes were left running after the main application exited.
+
+**Changes:**
+
+| Status | File Path |
+|--------|-----------|
+| Modified | `packages/opencode/src/index.ts` |
+
+**Details:**
+
+**Previous Behavior:**
+- `index.ts` finally block called `process.exit()` directly
+- MCP clients were created via `Instance.state()` with dispose functions
+- Dispose functions were never called on exit
+- MCP server processes (subprocesses, Docker containers) remained running
+
+**New Behavior:**
+- Added `Instance.disposeAll()` call in finally block before `process.exit()`
+- Updated SIGINT/SIGTERM handlers to also trigger `Instance.disposeAll()`
+- MCP clients are now properly closed via their registered dispose hooks
+
+**How It Works:**
+1. `Instance.disposeAll()` iterates all state instances
+2. MCP module's dispose function closes all MCP client connections
+3. MCP client `close()` method terminates server processes
+4. Then `process.exit()` is called
+
+**Benefits:**
+- No orphaned MCP server processes after exit
+- Clean shutdown of Docker-based MCP servers
+- Proper resource cleanup on SIGINT/SIGTERM
+
+**Impact:** 1 file changed, 13 insertions(+), 1 deletion(-)
+
+---
+
 ## Files Summary
 
 ### New Files Created
@@ -482,6 +522,7 @@ This report summarizes all commits made on March 13, 2026.
 | File Path | Commits |
 |-----------|---------|
 | `packages/opencode/src/storage/db.ts` | 6 |
+| `packages/opencode/src/index.ts` | 2 |
 | `packages/opencode/src/evolution/store.ts` | 2 |
 | `packages/opencode/src/evolution/memory.ts` | 2 |
 | `packages/opencode/src/learning/vector-store.ts` | 2 |
@@ -497,12 +538,13 @@ This report summarizes all commits made on March 13, 2026.
 
 ## Thematic Summary
 
-### Bug Fixes (5 commits)
+### Bug Fixes (6 commits)
 - Fixed infinite process spawning in CLI launcher
 - Improved sqlite-vec extension loading reliability
 - Fixed duplicate table definitions in learning module
 - Improved macOS SQLite path detection for Homebrew
 - Fixed embedding dimension auto-detection to use stored dimension when env not set
+- Fixed MCP server processes not closing on application exit
 
 ### Refactoring (4 commits)
 - Abstracted vector store with IVectorStore interface
@@ -530,6 +572,7 @@ This report summarizes all commits made on March 13, 2026.
 9. **Query Closed Loop**: Automatic query execution → result storage → gap recording cycle
 10. **Memory Compression**: LLM-based summarization of similar memories with archival support
 11. **Auto Dimension Detection**: Vector dimension automatically uses stored database value, eliminating manual configuration for existing deployments
+12. **MCP Process Cleanup**: Proper shutdown of MCP server processes via `Instance.disposeAll()` ensures no orphaned subprocesses or containers after exit
 
 ---
 
