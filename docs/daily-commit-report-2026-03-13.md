@@ -8,11 +8,11 @@ This report summarizes all commits made on March 13, 2026.
 
 | Metric | Count |
 |--------|-------|
-| Total Commits | 11 |
-| Files Modified | 16 |
-| Files Created | 7 |
-| Lines Added | ~3,721 |
-| Lines Removed | ~768 |
+| Total Commits | 12 |
+| Files Modified | 18 |
+| Files Created | 10 |
+| Lines Added | ~6,700 |
+| Lines Removed | ~930 |
 
 ---
 
@@ -332,6 +332,99 @@ This report summarizes all commits made on March 13, 2026.
 
 ---
 
+### 12. feat(learning): enhance memory system with unified embedding, encryption, and compression
+
+**Commit:** `939ebe989`
+
+**Reason:** Comprehensive enhancement of the memory system implementing unified embedding strategy, sensitive content encryption, global cognitive graph, dynamic query loop, and memory compression.
+
+**Changes:**
+
+| Status | File Path |
+|--------|-----------|
+| Created | `packages/opencode/src/learning/embedding-service.ts` |
+| Created | `packages/opencode/src/session/handlers.ts` |
+| Created | `packages/opencode/src/util/encryption.ts` |
+| Created | `packages/opencode/migration/20260313194937_knowledge_graph_indexes/migration.sql` |
+| Created | `packages/opencode/migration/20260313_memory_type_field/migration.sql` |
+| Modified | `packages/opencode/src/evolution/store.ts` |
+| Modified | `packages/opencode/src/evolution/types.ts` |
+| Modified | `packages/opencode/src/learning/dynamic-query-generator.ts` |
+| Modified | `packages/opencode/src/learning/index.ts` |
+| Modified | `packages/opencode/src/learning/knowledge-graph.ts` |
+| Modified | `packages/opencode/src/learning/learning.sql.ts` |
+| Modified | `packages/opencode/src/learning/media-store.ts` |
+| Modified | `packages/opencode/src/learning/sqlite-vec-store.ts` |
+| Modified | `packages/opencode/src/learning/vector-store-interface.ts` |
+| Modified | `packages/opencode/src/learning/vector-store.ts` |
+| Modified | `packages/opencode/src/session/prompt.ts` |
+| Modified | `packages/opencode/src/session/prompts/types.ts` |
+| Modified | `packages/opencode/src/storage/db.ts` |
+| Modified | `packages/opencode/src/tool/memory.ts` |
+
+**Details:**
+
+**1. Unified Embedding Strategy (Target 1):**
+- Created `EmbeddingService` for auto-detecting embedding model dimensions
+- Supports 40+ known embedding models (OpenAI, Cohere, Google, Mistral, etc.)
+- Three-level detection: config > known models > API probe > default
+- Auto-configures `EMBEDDING_DIM` environment variable
+- Updated `media-store.ts` and `vector-store.ts` to use unified service
+- Records `embeddingModel` in VectorEntry metadata for debugging
+
+**2. Sensitive Content Encryption (Target 4a):**
+- Created `util/encryption.ts` using Web Crypto API (no external dependencies)
+- AES-GCM encryption with 256-bit keys
+- Requires `MEMORY_ENCRYPTION_KEY` environment variable (explicit configuration to prevent data loss)
+- `saveMemory()` accepts `options.sensitive` parameter
+- Automatic decryption on `getMemories()` with error handling
+- Key generation command: `openssl rand -base64 32`
+
+**3. Global Cognitive Graph (Target 2):**
+- Added `memory_type` field to `knowledge_nodes` table (`session` | `evolution` | `project` | `media`)
+- Added new relation types: `evolves_to`, `references`, `contains`
+- Implemented `linkMemories()` for cross-type linking
+- Implemented `getLinkedMemories()` with direction and type filtering
+- Database migration for new field and index
+
+**4. Dynamic Query Closed Loop (Target 3):**
+- Implemented `executeGeneratedQueries()` for complete feedback loop
+- Flow: Generate queries → Execute searches → Store results → Record gaps
+- New types: `QueryExecutionResult`, `QueryLoopResult`
+- Stores successful results as `query_feedback` memories
+- Records unresolved knowledge gaps with high priority
+
+**5. Memory Compression (Target 4b):**
+- Implemented `getMemoryStats()` for storage analysis
+- Implemented `archiveMemory()` for soft-delete (marks as archived, not deleted)
+- Implemented `summarizeSimilarMemories()` using LLM to consolidate related memories
+- Implemented `runMemoryCompression()` for batch processing
+- New fields: `archived`, `archivedAt`, `archivedReason`, `summaryFor`
+- Compression threshold configurable (default: 3 similar memories)
+
+**6. Session Handlers (Target 4 - from earlier session):**
+- Created modular handlers for decoupled main loop
+- `handleSubtask()`, `handleCompaction()`, `handleContextOverflow()`
+- `handleMemoryInjection()` with context-aware filtering
+- `handleDynamicMemoryRefresh()` for topic drift detection
+- `handleMemoryUsageFeedback()` for usage tracking
+
+**7. Database Migrations:**
+- `20260313194937_knowledge_graph_indexes`: Indexes for knowledge graph queries
+- `20260313_memory_type_field`: memory_type column and index
+
+**Benefits:**
+- Consistent vector space across all embedding operations
+- Secure storage for sensitive memories with explicit key management
+- Cross-type memory relationships enable unified cognitive graph
+- Closed-loop learning with automatic gap detection
+- Automatic memory consolidation reduces storage bloat
+- Modular architecture improves code maintainability
+
+**Impact:** 23 files changed, 2979 insertions(+), 162 deletions(-)
+
+---
+
 ## Files Summary
 
 ### New Files Created
@@ -340,31 +433,30 @@ This report summarizes all commits made on March 13, 2026.
 |-----------|---------|
 | `packages/opencode/src/learning/sqlite-vec-store.ts` | SqliteVecStore implementation using sqlite-vec extension |
 | `packages/opencode/src/learning/vector-store-interface.ts` | IVectorStore interface for vector backend abstraction |
+| `packages/opencode/src/learning/embedding-service.ts` | Unified embedding service with auto-detection |
+| `packages/opencode/src/session/handlers.ts` | Modular handlers for session main loop |
+| `packages/opencode/src/util/encryption.ts` | Web Crypto API encryption utilities |
+| `packages/opencode/migration/20260313194937_knowledge_graph_indexes/migration.sql` | Database migration for KG indexes |
+| `packages/opencode/migration/20260313_memory_type_field/migration.sql` | Database migration for memory_type field |
 | `docs/daily-commit-report-2026-03-13.md` | Daily commit report summarizing all work |
 | `docs/llm-session-processing-analysis.md` | LLM session processing analysis |
-| `docs/plans/perfect-prompt.md` | Prompt improvement planning |
-| `docs/plans/prompt-evo.md` | Prompt evolution planning |
 | `docs/prompt-files-analysis.md` | Prompt files analysis |
 
 ### Modified Files
 
 | File Path | Commits |
 |-----------|---------|
-| `packages/opencode/src/storage/db.ts` | 4 |
+| `packages/opencode/src/storage/db.ts` | 5 |
+| `packages/opencode/src/evolution/store.ts` | 2 |
 | `packages/opencode/src/evolution/memory.ts` | 2 |
 | `packages/opencode/src/learning/vector-store.ts` | 2 |
+| `packages/opencode/src/learning/dynamic-query-generator.ts` | 2 |
 | `packages/opencode/src/memory/service.ts` | 2 |
-| `packages/opencode/src/index.ts` | 1 |
-| `packages/opencode/bin/opencode` | 1 |
-| `packages/opencode/src/cli/cmd/pr.ts` | 1 |
-| `packages/opencode/src/learning/knowledge-graph.ts` | 1 |
-| `packages/opencode/src/learning/learning.sql.ts` | 1 |
-| `packages/opencode/src/learning/dynamic-query-generator.ts` | 1 |
-| `packages/opencode/src/learning/hierarchical-memory.ts` | 1 |
-| `packages/opencode/src/learning/media-store.ts` | 1 |
-| `packages/opencode/src/observability/instrumented-hierarchical-memory.ts` | 1 |
-| `packages/opencode/src/session/prompt.ts` | 1 |
-| `packages/opencode/src/tool/memory.ts` | 1 |
+| `packages/opencode/src/learning/knowledge-graph.ts` | 2 |
+| `packages/opencode/src/learning/learning.sql.ts` | 2 |
+| `packages/opencode/src/learning/media-store.ts` | 2 |
+| `packages/opencode/src/session/prompt.ts` | 2 |
+| `packages/opencode/src/tool/memory.ts` | 2 |
 
 ---
 
@@ -382,8 +474,9 @@ This report summarizes all commits made on March 13, 2026.
 - Unified MemoryService as single entry point for memory operations
 - Improved db.ts robustness: WAL checkpoint backup, dynamic version scanning, transaction context safety
 
-### Features (1 commit)
+### Features (2 commits)
 - Added periodic database backup with configurable interval
+- Enhanced memory system with unified embedding, encryption, global cognitive graph, query loop, and compression
 
 ### Documentation (2 commits)
 - Added daily commit report and session/prompt analysis documents
@@ -395,6 +488,11 @@ This report summarizes all commits made on March 13, 2026.
 3. **Unified Memory API**: MemoryService now serves as the single entry point for all memory operations with hybrid search capabilities
 4. **Periodic Backup**: Automatic database backups every 30 minutes for data protection
 5. **Atomic Backup**: WAL checkpoint before backup ensures consistent snapshots without race conditions
+6. **Unified Embedding**: `EmbeddingService` auto-detects dimensions and configures system for consistent vector space
+7. **Memory Encryption**: Web Crypto API encryption for sensitive memories with explicit key management
+8. **Global Cognitive Graph**: Cross-type memory linking with `memory_type` field and `linkMemories()` API
+9. **Query Closed Loop**: Automatic query execution → result storage → gap recording cycle
+10. **Memory Compression**: LLM-based summarization of similar memories with archival support
 
 ---
 
