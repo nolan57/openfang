@@ -8,11 +8,11 @@ This report summarizes all commits made on March 13, 2026.
 
 | Metric | Count |
 |--------|-------|
-| Total Commits | 12 |
+| Total Commits | 13 |
 | Files Modified | 18 |
 | Files Created | 10 |
-| Lines Added | ~6,700 |
-| Lines Removed | ~930 |
+| Lines Added | ~6,752 |
+| Lines Removed | ~950 |
 
 ---
 
@@ -425,6 +425,41 @@ This report summarizes all commits made on March 13, 2026.
 
 ---
 
+### 13. fix(storage): auto-use stored embedding dimension when EMBEDDING_DIM not set
+
+**Commit:** `60f382c1d`
+
+**Reason:** Fixed a critical bug where the application would fail to start when `EMBEDDING_DIM` environment variable was not set but the database had stored dimension from previous sessions (e.g., 1536 from `text-embedding-3-small`).
+
+**Changes:**
+
+| Status | File Path |
+|--------|-----------|
+| Modified | `packages/opencode/src/storage/db.ts` |
+
+**Details:**
+
+**Previous Behavior:**
+- `validateVectorDimensions()` used hardcoded `DEFAULT_EMBEDDING_DIM = 384`
+- If database had stored dimension (e.g., 1536) but no `EMBEDDING_DIM` env was set
+- Would throw `VectorDimensionMismatchError` and block startup
+
+**New Logic:**
+1. If `EMBEDDING_DIM` env is explicitly set → validate against stored dimension, error if mismatch
+2. If no env set and database has stored dimension → use stored dimension (preserve existing vectors)
+3. If fresh database (no stored dimension) → use `DEFAULT_EMBEDDING_DIM = 384`
+4. Auto-updates `process.env.EMBEDDING_DIM` so `EmbeddingService` picks up correct dimension
+
+**Benefits:**
+- No manual `EMBEDDING_DIM` configuration required for existing databases
+- Automatic preservation of existing vector data
+- Clear error message only when user explicitly sets conflicting dimension
+- Seamless migration between different embedding models
+
+**Impact:** 1 file changed, 52 insertions(+), 20 deletions(-)
+
+---
+
 ## Files Summary
 
 ### New Files Created
@@ -446,7 +481,7 @@ This report summarizes all commits made on March 13, 2026.
 
 | File Path | Commits |
 |-----------|---------|
-| `packages/opencode/src/storage/db.ts` | 5 |
+| `packages/opencode/src/storage/db.ts` | 6 |
 | `packages/opencode/src/evolution/store.ts` | 2 |
 | `packages/opencode/src/evolution/memory.ts` | 2 |
 | `packages/opencode/src/learning/vector-store.ts` | 2 |
@@ -462,11 +497,12 @@ This report summarizes all commits made on March 13, 2026.
 
 ## Thematic Summary
 
-### Bug Fixes (4 commits)
+### Bug Fixes (5 commits)
 - Fixed infinite process spawning in CLI launcher
 - Improved sqlite-vec extension loading reliability
 - Fixed duplicate table definitions in learning module
 - Improved macOS SQLite path detection for Homebrew
+- Fixed embedding dimension auto-detection to use stored dimension when env not set
 
 ### Refactoring (4 commits)
 - Abstracted vector store with IVectorStore interface
@@ -493,6 +529,7 @@ This report summarizes all commits made on March 13, 2026.
 8. **Global Cognitive Graph**: Cross-type memory linking with `memory_type` field and `linkMemories()` API
 9. **Query Closed Loop**: Automatic query execution → result storage → gap recording cycle
 10. **Memory Compression**: LLM-based summarization of similar memories with archival support
+11. **Auto Dimension Detection**: Vector dimension automatically uses stored database value, eliminating manual configuration for existing deployments
 
 ---
 
