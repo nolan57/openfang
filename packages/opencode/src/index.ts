@@ -36,10 +36,16 @@ import { JsonMigration } from "./storage/json-migration"
 import { Database, createBackup, startPeriodicBackup } from "./storage/db"
 import { checkAndStartMcpCron } from "./util/mcp-cron"
 import { initObservability } from "./observability"
+import { Instance } from "./project/instance"
 
-// Backup database on graceful exit
+// Backup database and cleanup resources on graceful exit
 const cleanup = () => {
   createBackup()
+  // Dispose all instances including MCP clients
+  // Note: This is fire-and-forget since signal handlers should be synchronous
+  Instance.disposeAll().catch((error) => {
+    Log.Default.error("Failed to dispose instances during cleanup", { error })
+  })
 }
 process.on("SIGINT", cleanup)
 process.on("SIGTERM", cleanup)
@@ -222,6 +228,12 @@ try {
   }
   process.exitCode = 1
 } finally {
+  // Clean up all instances including MCP clients before exit
+  // This ensures MCP servers are properly closed
+  await Instance.disposeAll().catch((error) => {
+    Log.Default.error("Failed to dispose instances", { error })
+  })
+  
   // Some subprocesses don't react properly to SIGTERM and similar signals.
   // Most notably, some docker-container-based MCP servers don't handle such signals unless
   // run using `docker run --init`.
