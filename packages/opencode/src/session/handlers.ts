@@ -1,9 +1,9 @@
 /**
  * Loop Handlers - Modular processors for session main loop
- * 
+ *
  * This module extracts complex logic from prompt.ts loop() into
  * independent, testable handlers following the Strategy pattern.
- * 
+ *
  * [ENH] Target 4: Decouple main loop for maintainability
  */
 
@@ -65,16 +65,11 @@ export interface HandlerResult {
  * [ENH] Handle pending subtask execution
  * Extracts subtask processing logic from main loop
  */
-export async function handleSubtask(
-  ctx: LoopContext,
-  task: MessageV2.SubtaskPart,
-): Promise<HandlerResult> {
+export async function handleSubtask(ctx: LoopContext, task: MessageV2.SubtaskPart): Promise<HandlerResult> {
   log.info("handle_subtask", { agent: task.agent, description: task.description })
-  
+
   const taskTool = await TaskTool.init()
-  const taskModel = task.model 
-    ? await Provider.getModel(task.model.providerID, task.model.modelID) 
-    : ctx.model
+  const taskModel = task.model ? await Provider.getModel(task.model.providerID, task.model.modelID) : ctx.model
 
   // Create assistant message for subtask
   const assistantMessage = (await Session.updateMessage({
@@ -167,10 +162,10 @@ export async function handleSubtask(
   let executionError: Error | undefined
   const result = await taskTool.execute(taskArgs, taskCtx).catch((error) => {
     executionError = error
-    log.error("subtask_execution_failed", { 
-      error, 
-      agent: task.agent, 
-      description: task.description 
+    log.error("subtask_execution_failed", {
+      error,
+      agent: task.agent,
+      description: task.description,
     })
     return undefined
   })
@@ -216,9 +211,7 @@ export async function handleSubtask(
       ...part,
       state: {
         status: "error",
-        error: executionError 
-          ? `Tool execution failed: ${executionError.message}` 
-          : "Tool execution failed",
+        error: executionError ? `Tool execution failed: ${executionError.message}` : "Tool execution failed",
         time: {
           start: part.state.status === "running" ? part.state.time.start : Date.now(),
           end: Date.now(),
@@ -260,12 +253,9 @@ export async function handleSubtask(
 /**
  * [ENH] Handle pending compaction processing
  */
-export async function handleCompaction(
-  ctx: LoopContext,
-  task: MessageV2.CompactionPart,
-): Promise<HandlerResult> {
+export async function handleCompaction(ctx: LoopContext, task: MessageV2.CompactionPart): Promise<HandlerResult> {
   log.info("handle_compaction", { auto: task.auto })
-  
+
   const result = await SessionCompaction.process({
     messages: ctx.messages,
     parentID: ctx.lastUser.id,
@@ -287,9 +277,7 @@ export async function handleCompaction(
 /**
  * [ENH] Check for context overflow and trigger compaction if needed
  */
-export async function handleContextOverflow(
-  ctx: LoopContext,
-): Promise<HandlerResult> {
+export async function handleContextOverflow(ctx: LoopContext): Promise<HandlerResult> {
   if (!ctx.lastFinished || ctx.lastFinished.summary === true) {
     return { shouldContinue: false, shouldBreak: false }
   }
@@ -361,9 +349,7 @@ export async function handleMemoryInjection(
     return systemPrompt
   }
 
-  const memoryContext = memories
-    .map((m) => `• ${m.key}: ${m.value}`)
-    .join("\n")
+  const memoryContext = memories.map((m) => `• ${m.key}: ${m.value}`).join("\n")
 
   log.info("memory_injected", { count: memories.length, step: ctx.step })
 
@@ -438,7 +424,8 @@ export async function handleDynamicMemoryRefresh(
   try {
     // Calculate similarity using EmbeddingService
     const currentEmbedding = await EmbeddingService.createGenerator({
-      modelId: "simple", // Use simple embedding for fast comparison
+      modelId: "dashscope/text-embedding-v4",
+      dimensions: 1536,
     }).then((gen) => gen(currentText, "content"))
 
     // Cosine similarity
@@ -448,7 +435,7 @@ export async function handleDynamicMemoryRefresh(
 
     if (similarity < config.threshold) {
       log.info("dynamic_memory_refresh_triggered", { similarity, step: ctx.step })
-      
+
       const refreshedMemories = await Memory.getRelevantMemories(currentText, {
         projectDir: Instance.directory,
         limit: 5,
@@ -557,8 +544,6 @@ export const defaultHandlers: LoopHandler[] = [
 /**
  * Create a handler registry for custom handler injection
  */
-export function createHandlerRegistry(
-  customHandlers: LoopHandler[] = [],
-): LoopHandler[] {
+export function createHandlerRegistry(customHandlers: LoopHandler[] = []): LoopHandler[] {
   return [...defaultHandlers, ...customHandlers]
 }
