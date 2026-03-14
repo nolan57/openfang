@@ -71,7 +71,7 @@ export class MediaStore {
         vector_type: "character",
         metadata: {
           description: character.description,
-          embeddingModel: "text-embedding-3-small", // [ENH] Track embedding model
+          embeddingModel: "dashscope/text-embedding-3-small", // [ENH] Track embedding model
         },
       })
     }
@@ -152,7 +152,7 @@ export class MediaStore {
         vector_type: "character",
         metadata: {
           description: updates.description ?? existing.description,
-          embeddingModel: "text-embedding-3-small", // [ENH] Track embedding model
+          embeddingModel: "dashscope/text-embedding-3-small", // [ENH] Track embedding model
         },
       })
     }
@@ -208,12 +208,17 @@ export class MediaStore {
         vector_type: "scene",
         metadata: {
           description: scene.description,
-          embeddingModel: "text-embedding-3-small", // [ENH] Track embedding model
+          embeddingModel: "dashscope/text-embedding-3-small", // [ENH] Track embedding model
         },
       })
     }
 
-    log.info("scene_created", { id, episode: scene.episode, scene: scene.scene, embeddingGenerated: embedding.length > 0 })
+    log.info("scene_created", {
+      id,
+      episode: scene.episode,
+      scene: scene.scene,
+      embeddingGenerated: embedding.length > 0,
+    })
     return id
   }
 
@@ -282,7 +287,7 @@ export class MediaStore {
     if (!this.embeddingGenerator) {
       try {
         this.embeddingGenerator = await EmbeddingService.createGenerator({
-          modelId: "text-embedding-3-small", // Default to OpenAI small for media
+          modelId: "dashscope/text-embedding-3-small", // Default to OpenAI small for media
         })
       } catch (error) {
         log.warn("embedding_generator_unavailable", { error: String(error) })
@@ -299,7 +304,7 @@ export class MediaStore {
     if (generator) {
       try {
         const embedding = await generator(text, "character")
-        log.debug("character_embedding_generated", { name, model: "text-embedding-3-small" })
+        log.debug("character_embedding_generated", { name, model: "dashscope/text-embedding-3-small" })
         return Array.from(embedding)
       } catch (error) {
         log.warn("character_embedding_failed", { name, error: String(error) })
@@ -318,7 +323,7 @@ export class MediaStore {
     if (generator) {
       try {
         const embedding = await generator(text, "scene")
-        log.debug("scene_embedding_generated", { title, model: "text-embedding-3-small" })
+        log.debug("scene_embedding_generated", { title, model: "dashscope/text-embedding-3-small" })
         return Array.from(embedding)
       } catch (error) {
         log.warn("scene_embedding_failed", { title, error: String(error) })

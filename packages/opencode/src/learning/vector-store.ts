@@ -1,12 +1,12 @@
 /**
  * VectorStore - Backward compatible facade with shared instance management
- * 
+ *
  * This module provides:
  * - Shared singleton instance for memory efficiency
  * - Backward compatibility with existing code
  * - Dependency injection support for new code
  * - [ENH] Unified embedding strategy via EmbeddingService
- * 
+ *
  * New code should use:
  *   - `getSharedVectorStore()` for shared instance
  *   - `IVectorStore` interface for type hints
@@ -49,20 +49,20 @@ let initPromise: Promise<void> | null = null
 
 /**
  * Get the shared VectorStore instance with unified embedding strategy
- * 
+ *
  * [ENH] Target 1: Automatically uses EmbeddingService for embedding generation.
  * Falls back to simple embedding if the embedding service is unavailable.
- * 
+ *
  * This is the recommended way to obtain a VectorStore instance.
  * It ensures all modules share the same instance for:
  * - Memory efficiency (single connection pool)
  * - Consistent configuration
  * - Shared vec0 virtual table
  * - [ENH] Unified embedding model across all modules
- * 
+ *
  * @param config - Optional configuration (only applied on first call)
  * @returns Initialized shared VectorStore instance
- * 
+ *
  * @example
  * ```typescript
  * const vs = await getSharedVectorStore()
@@ -85,7 +85,7 @@ export async function getSharedVectorStore(config?: VectorStoreConfig): Promise<
   if (!config?.embeddingGenerator) {
     try {
       const service = await EmbeddingService.createService({
-        modelId: process.env.EMBEDDING_MODEL || "text-embedding-3-small",
+        modelId: process.env.EMBEDDING_MODEL || "dashscope/text-embedding-v4",
       })
       effectiveConfig = {
         ...config,
@@ -108,7 +108,7 @@ export async function getSharedVectorStore(config?: VectorStoreConfig): Promise<
 
   sharedInstance = new SqliteVecStore(effectiveConfig)
   initPromise = sharedInstance.init()
-  
+
   try {
     await initPromise
   } finally {
@@ -120,7 +120,7 @@ export async function getSharedVectorStore(config?: VectorStoreConfig): Promise<
 
 /**
  * Reset the shared instance (mainly for testing)
- * 
+ *
  * @internal
  */
 export function resetSharedVectorStore(): void {
@@ -137,12 +137,12 @@ export function isSharedVectorStoreInitialized(): boolean {
 
 /**
  * VectorStore class - Backward compatible wrapper around SqliteVecStore
- * 
+ *
  * @deprecated Use `SqliteVecStore` or `IVectorStore` interface instead
  */
 export class VectorStore extends SqliteVecStore {
   // Additional backward compatibility methods
-  
+
   /**
    * Embed and store a vector entry
    * @deprecated Use `store()` directly instead
@@ -172,6 +172,9 @@ export class VectorStore extends SqliteVecStore {
  * Create a VectorStore instance (backward compatible)
  * @deprecated Use `createSqliteVecStore()` instead
  */
-export function createVectorStore(config?: { defaultModel?: EmbeddingModel; defaultDimensions?: number }): IVectorStore {
+export function createVectorStore(config?: {
+  defaultModel?: EmbeddingModel
+  defaultDimensions?: number
+}): IVectorStore {
   return new SqliteVecStore(config)
 }

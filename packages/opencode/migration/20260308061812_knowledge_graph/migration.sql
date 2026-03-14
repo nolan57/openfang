@@ -17,9 +17,14 @@ CREATE TABLE `knowledge_node` (
 	`content` text,
 	`embedding` text,
 	`metadata` text,
+	`memory_type` text,
 	`time_created` integer NOT NULL,
 	`time_updated` integer NOT NULL
 );
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `knowledge_node_type_idx` ON `knowledge_node` (`type`);
+CREATE INDEX IF NOT EXISTS `knowledge_node_entity_idx` ON `knowledge_node` (`entity_type`, `entity_id`);
+CREATE INDEX IF NOT EXISTS `knowledge_node_memory_type_idx` ON `knowledge_node` (`memory_type`);
 --> statement-breakpoint
 CREATE TABLE `vector_sync_meta` (
 	`id` text PRIMARY KEY,

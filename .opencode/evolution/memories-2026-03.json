@@ -9,7 +9,10 @@
     ],
     "createdAt": 1772333978078,
     "lastUsedAt": 1772503616786,
-    "usageCount": 22
+    "usageCount": 22,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "66b8177d-b770-4446-b907-af16feb8c010",
@@ -21,7 +24,10 @@
     ],
     "createdAt": 1772333978079,
     "lastUsedAt": 1772503616787,
-    "usageCount": 37
+    "usageCount": 37,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1f2fbcbe-87d2-4cfa-9017-f7bd85bb3810",
@@ -33,7 +39,10 @@
     ],
     "createdAt": 1772333978080,
     "lastUsedAt": 1772662180637,
-    "usageCount": 31
+    "usageCount": 31,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cd45713d-9638-46bc-8588-df51076d1814",
@@ -44,8 +53,11 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1773401172956,
-    "usageCount": 243
+    "lastUsedAt": 1773463492921,
+    "usageCount": 259,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "2294419a-c504-4b71-bfdc-5c9eac6cfb66",
@@ -56,8 +68,11 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1773400547947,
-    "usageCount": 189
+    "lastUsedAt": 1773459674985,
+    "usageCount": 201,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5ad51b23-acfa-47fa-b354-065fe8180941",
@@ -69,7 +84,10 @@
     ],
     "createdAt": 1772338789311,
     "lastUsedAt": 1772356031928,
-    "usageCount": 8
+    "usageCount": 8,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "599ad66f-eec2-4977-859b-8e1fea8a1112",
@@ -81,7 +99,10 @@
     ],
     "createdAt": 1772338789314,
     "lastUsedAt": 1772338789314,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "79c07f81-b97d-4f3a-9592-6781ca7a08d0",
@@ -93,7 +114,10 @@
     ],
     "createdAt": 1772338789316,
     "lastUsedAt": 1772338789316,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "999f4a4b-b8ef-40a1-abcf-5822dffcff35",
@@ -105,7 +129,10 @@
     ],
     "createdAt": 1772352330532,
     "lastUsedAt": 1772352330532,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "fcb0828f-687f-4431-b943-f90a10993c24",
@@ -116,8 +143,11 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1773265290987,
-    "usageCount": 220
+    "lastUsedAt": 1773459554976,
+    "usageCount": 235,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "eda4fb93-b8db-423c-9c4d-00686903150c",
@@ -129,7 +159,10 @@
     ],
     "createdAt": 1772356236446,
     "lastUsedAt": 1772663740923,
-    "usageCount": 44
+    "usageCount": 44,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "82f48df9-992a-4570-b46b-66675a8ce0d2",
@@ -141,7 +174,10 @@
     ],
     "createdAt": 1772356236446,
     "lastUsedAt": 1772632194239,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cb113eed-7d50-45da-804c-786b1555abaf",
@@ -152,8 +188,11 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1773265885299,
-    "usageCount": 260
+    "lastUsedAt": 1773463010318,
+    "usageCount": 273,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "150ff0cd-9bd4-45c9-9a74-5a708e471e05",
@@ -165,7 +204,10 @@
     ],
     "createdAt": 1772356381758,
     "lastUsedAt": 1772662180650,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "95b52b56-1b29-4c89-a59e-4986f726f1af",
@@ -176,8 +218,11 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1773406453041,
-    "usageCount": 163
+    "lastUsedAt": 1773456894382,
+    "usageCount": 175,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8c4fc0b0-20f3-48d9-9b1b-fafb4d466c12",
@@ -189,7 +234,10 @@
     ],
     "createdAt": 1772356531857,
     "lastUsedAt": 1772662180653,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6dd5dad9-4c2c-458d-aba7-411562201bfc",
@@ -201,7 +249,10 @@
     ],
     "createdAt": 1772356531858,
     "lastUsedAt": 1772356531858,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1a6534fd-088f-4d93-999a-feea62c6db67",
@@ -213,7 +264,10 @@
     ],
     "createdAt": 1772358860306,
     "lastUsedAt": 1772632873964,
-    "usageCount": 7
+    "usageCount": 7,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "32d8e019-c0c7-491a-a4d7-ef6a65b260a7",
@@ -225,7 +279,10 @@
     ],
     "createdAt": 1772358860308,
     "lastUsedAt": 1772632693148,
-    "usageCount": 7
+    "usageCount": 7,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "817c0499-8bfa-48ac-b24a-34bef42607c6",
@@ -237,7 +294,10 @@
     ],
     "createdAt": 1772358860308,
     "lastUsedAt": 1772633922240,
-    "usageCount": 14
+    "usageCount": 14,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1ce67ecd-5e95-4210-9d4f-76a56f42d74d",
@@ -249,7 +309,10 @@
     ],
     "createdAt": 1772621641481,
     "lastUsedAt": 1772621641481,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "9b9a2d07-7a55-43b8-805b-470d022930f7",
@@ -261,7 +324,10 @@
     ],
     "createdAt": 1772621641482,
     "lastUsedAt": 1772621641482,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ba07a916-e834-442f-99c0-6b4bddba6d73",
@@ -273,7 +339,10 @@
     ],
     "createdAt": 1772621641483,
     "lastUsedAt": 1772621641483,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a49c766d-fbf0-4c4b-8561-ba4ef586a0a6",
@@ -285,7 +354,10 @@
     ],
     "createdAt": 1772621641484,
     "lastUsedAt": 1772621641484,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "11b93f22-4225-48e0-b4f1-23eb248a87f6",
@@ -297,7 +369,10 @@
     ],
     "createdAt": 1772621641485,
     "lastUsedAt": 1772621641485,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a592c9e5-7fbb-457f-aa19-c82935604a66",
@@ -309,7 +384,10 @@
     ],
     "createdAt": 1772621641486,
     "lastUsedAt": 1772621641486,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ce41b3c9-4e0d-4028-8767-1933524472ba",
@@ -321,7 +399,10 @@
     ],
     "createdAt": 1772625963213,
     "lastUsedAt": 1772625963213,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "87bb221f-837a-4a09-860c-3206a71b831b",
@@ -333,7 +414,10 @@
     ],
     "createdAt": 1772625963218,
     "lastUsedAt": 1772625963218,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7c8c9a69-0fdb-4d91-8361-eec526dbbf64",
@@ -345,7 +429,10 @@
     ],
     "createdAt": 1772625963222,
     "lastUsedAt": 1772625963222,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "bb5122e5-e3be-4d92-887e-ca7acb542c42",
@@ -357,7 +444,10 @@
     ],
     "createdAt": 1772626034961,
     "lastUsedAt": 1772626034961,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "02c79066-2542-4481-ac59-085d1a27f5e6",
@@ -369,7 +459,10 @@
     ],
     "createdAt": 1772626034967,
     "lastUsedAt": 1772662965406,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "109ff161-3f7b-4c04-8cfa-d2c51b3cf365",
@@ -381,7 +474,10 @@
     ],
     "createdAt": 1772626034971,
     "lastUsedAt": 1772626034971,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "75a6d2e4-ed90-4e27-9b74-b795594d26b1",
@@ -393,7 +489,10 @@
     ],
     "createdAt": 1772626514217,
     "lastUsedAt": 1772632182717,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ec16890c-58d8-425c-993c-c95ad5ea78bd",
@@ -405,7 +504,10 @@
     ],
     "createdAt": 1772626514223,
     "lastUsedAt": 1772626514223,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "eda508bf-5cd2-4802-af57-563ab9a9ccef",
@@ -417,7 +519,10 @@
     ],
     "createdAt": 1772626622586,
     "lastUsedAt": 1772626622586,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8bb46c67-916c-430c-b70a-02693cd7c33e",
@@ -429,7 +534,10 @@
     ],
     "createdAt": 1772626622592,
     "lastUsedAt": 1772626622592,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cfbdbc46-0bf0-48fe-8dbf-e7467dc35112",
@@ -441,7 +549,10 @@
     ],
     "createdAt": 1772626805159,
     "lastUsedAt": 1772626805159,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7441aaef-0006-4a0c-b6da-b6fc3d0f1950",
@@ -453,7 +564,10 @@
     ],
     "createdAt": 1772627679332,
     "lastUsedAt": 1772632182726,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "da4aed54-c692-4a0b-a257-aa63c46910fb",
@@ -465,7 +579,10 @@
     ],
     "createdAt": 1772627679338,
     "lastUsedAt": 1772627679338,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "76839ba4-0e19-4ba3-aabe-a23e38ed7c65",
@@ -477,7 +594,10 @@
     ],
     "createdAt": 1772627679342,
     "lastUsedAt": 1772663740948,
-    "usageCount": 7
+    "usageCount": 7,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e03ca85a-392b-4a87-85ed-d59ebe12ded9",
@@ -489,7 +609,10 @@
     ],
     "createdAt": 1772628067284,
     "lastUsedAt": 1772628067284,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5ee1e0bd-c020-42a3-966f-40318333d6e7",
@@ -501,7 +624,10 @@
     ],
     "createdAt": 1772628067290,
     "lastUsedAt": 1772628067290,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cc2b0299-864f-429b-b453-acbe7b17bdaa",
@@ -513,7 +639,10 @@
     ],
     "createdAt": 1772628067298,
     "lastUsedAt": 1772628067298,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ea304c60-46e8-4523-86ad-58c631fc3242",
@@ -525,7 +654,10 @@
     ],
     "createdAt": 1772628915766,
     "lastUsedAt": 1772628915766,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7a2bb6e2-5084-406e-86b7-57ace6271386",
@@ -537,7 +669,10 @@
     ],
     "createdAt": 1772628915772,
     "lastUsedAt": 1772628915772,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "23a37af4-eba9-4ae4-8b6d-cc2ceea93820",
@@ -549,7 +684,10 @@
     ],
     "createdAt": 1772628915777,
     "lastUsedAt": 1772628915777,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "31c60cc7-7e10-48ea-abd8-c6547f221fce",
@@ -561,7 +699,10 @@
     ],
     "createdAt": 1772629230434,
     "lastUsedAt": 1772629230434,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5ce77e89-69a8-4602-88a6-2917e5a172ae",
@@ -573,7 +714,10 @@
     ],
     "createdAt": 1772629230440,
     "lastUsedAt": 1772629230440,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "2772638b-0a5d-416e-bf4b-0e59f04bd720",
@@ -585,7 +729,10 @@
     ],
     "createdAt": 1772629969667,
     "lastUsedAt": 1772629969667,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7db95476-a229-4101-ab31-540a4c879247",
@@ -597,7 +744,10 @@
     ],
     "createdAt": 1772629969673,
     "lastUsedAt": 1772629969673,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "50423d70-eb3c-418e-9c76-0b9f3cc5da61",
@@ -609,7 +759,10 @@
     ],
     "createdAt": 1772629969681,
     "lastUsedAt": 1772629969681,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b0058915-3f04-41b6-a8cb-a45c977beeea",
@@ -621,7 +774,10 @@
     ],
     "createdAt": 1772630329368,
     "lastUsedAt": 1772630329368,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d37bb228-f622-43f8-841f-50b66e375fa4",
@@ -633,7 +789,10 @@
     ],
     "createdAt": 1772630329379,
     "lastUsedAt": 1772630329379,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "aa31d584-9fab-449b-b9f1-c1f2632d585c",
@@ -645,7 +804,10 @@
     ],
     "createdAt": 1772631138868,
     "lastUsedAt": 1772631138868,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "60f56fe8-0d43-431d-be8b-61dc7a8b712f",
@@ -657,7 +819,10 @@
     ],
     "createdAt": 1772631138873,
     "lastUsedAt": 1772631138873,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "08cd11d6-81d8-45fc-9eaf-c50fbfc42b29",
@@ -669,7 +834,10 @@
     ],
     "createdAt": 1772631138883,
     "lastUsedAt": 1772631138883,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7c7e7243-cd1b-45a3-a040-2ff685cee3af",
@@ -681,7 +849,10 @@
     ],
     "createdAt": 1772632455518,
     "lastUsedAt": 1772632455518,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "4711a264-a128-4518-bb59-5f90ad54f1e0",
@@ -693,7 +864,10 @@
     ],
     "createdAt": 1772632455524,
     "lastUsedAt": 1772633803744,
-    "usageCount": 7
+    "usageCount": 7,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e0974abc-09a7-4dda-8243-5765810711e7",
@@ -705,7 +879,10 @@
     ],
     "createdAt": 1772632455529,
     "lastUsedAt": 1772633922231,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "fcca0e76-43fc-44b4-b941-6469385fec6a",
@@ -717,7 +894,10 @@
     ],
     "createdAt": 1772632467103,
     "lastUsedAt": 1772665790370,
-    "usageCount": 11
+    "usageCount": 11,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "89cbf237-72d5-4fa0-b87c-833db1608350",
@@ -729,7 +909,10 @@
     ],
     "createdAt": 1772632467109,
     "lastUsedAt": 1772633922227,
-    "usageCount": 8
+    "usageCount": 8,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a236f020-5ec9-4220-9d0c-51c186861af8",
@@ -741,7 +924,10 @@
     ],
     "createdAt": 1772632467113,
     "lastUsedAt": 1772633922236,
-    "usageCount": 8
+    "usageCount": 8,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "359fe048-565f-4197-bd78-057c847d6161",
@@ -753,7 +939,10 @@
     ],
     "createdAt": 1772632761558,
     "lastUsedAt": 1772632761558,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b662f9b3-2168-4cd4-83ec-8100eea914a5",
@@ -765,7 +954,10 @@
     ],
     "createdAt": 1772632761563,
     "lastUsedAt": 1772632761563,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "615d5ee0-6b73-45ea-b896-9d15d84435ca",
@@ -777,7 +969,10 @@
     ],
     "createdAt": 1772633212620,
     "lastUsedAt": 1772633212620,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "2912eb5b-67df-4be6-9c50-036be945f643",
@@ -789,7 +984,10 @@
     ],
     "createdAt": 1772633212626,
     "lastUsedAt": 1772633212626,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "62201421-68ed-498c-964c-5acc9d376c2a",
@@ -801,7 +999,10 @@
     ],
     "createdAt": 1772633333237,
     "lastUsedAt": 1772633580387,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3ecffbad-7e6d-4b77-9469-1b99cbecf937",
@@ -813,7 +1014,10 @@
     ],
     "createdAt": 1772633333244,
     "lastUsedAt": 1772633333244,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ee76e5a1-6a66-437e-ba77-d22a61d477fd",
@@ -825,7 +1029,10 @@
     ],
     "createdAt": 1772633333251,
     "lastUsedAt": 1772633333251,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6e9f4b41-2d64-4f83-af80-6eab9d8040bf",
@@ -837,7 +1044,10 @@
     ],
     "createdAt": 1772633635093,
     "lastUsedAt": 1772633635093,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e1041e74-ee5f-4a2b-993f-76d9e096aca8",
@@ -849,7 +1059,10 @@
     ],
     "createdAt": 1772633635099,
     "lastUsedAt": 1772633635099,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d9b501c3-d831-43b2-831a-472825230bff",
@@ -861,7 +1074,10 @@
     ],
     "createdAt": 1772633635106,
     "lastUsedAt": 1772633635106,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "48968244-890e-4d9f-9803-ceeb9b7ecee0",
@@ -873,7 +1089,10 @@
     ],
     "createdAt": 1772633706359,
     "lastUsedAt": 1772633706359,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a768691d-a2ed-4116-bec2-a6c19864b6e4",
@@ -885,7 +1104,10 @@
     ],
     "createdAt": 1772633706366,
     "lastUsedAt": 1772633706366,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d3065808-3a40-49cd-8286-1320e645a247",
@@ -897,7 +1119,10 @@
     ],
     "createdAt": 1772633706373,
     "lastUsedAt": 1772633706373,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f81359cf-a819-4178-a8cc-d96c8cd25a5d",
@@ -909,7 +1134,10 @@
     ],
     "createdAt": 1772633824318,
     "lastUsedAt": 1772665790373,
-    "usageCount": 12
+    "usageCount": 12,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "52af568b-1144-4433-a816-289bae3302e0",
@@ -921,7 +1149,10 @@
     ],
     "createdAt": 1772633824323,
     "lastUsedAt": 1772633824323,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "65aa0ae8-4aab-49ef-a9e6-294288953291",
@@ -933,7 +1164,10 @@
     ],
     "createdAt": 1772633824331,
     "lastUsedAt": 1772633824331,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1791085f-668d-4110-baa5-76ec007e8c51",
@@ -945,7 +1179,10 @@
     ],
     "createdAt": 1772633944110,
     "lastUsedAt": 1772633944110,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "60144e22-0e8d-46dc-9b14-af0d8867e913",
@@ -957,7 +1194,10 @@
     ],
     "createdAt": 1772633944117,
     "lastUsedAt": 1772633944117,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "af7c0927-f4a6-4f54-af7e-228d42b91c86",
@@ -969,7 +1209,10 @@
     ],
     "createdAt": 1772633944122,
     "lastUsedAt": 1772633944122,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "150c13cb-4029-423b-980b-2ad202959aed",
@@ -981,7 +1224,10 @@
     ],
     "createdAt": 1772662456545,
     "lastUsedAt": 1772662456545,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "06ab286b-0439-44e4-af40-b3b87663d013",
@@ -993,7 +1239,10 @@
     ],
     "createdAt": 1772662456551,
     "lastUsedAt": 1772662456551,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "14258c0a-3c9c-4d2d-961c-380ee3884377",
@@ -1005,7 +1254,10 @@
     ],
     "createdAt": 1772662456557,
     "lastUsedAt": 1772662456557,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a9f7d5c9-0466-4f95-bfa0-f0effb19544a",
@@ -1017,7 +1269,10 @@
     ],
     "createdAt": 1772662740694,
     "lastUsedAt": 1772662740694,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "175ad1f0-b729-423b-84ac-04c286136fae",
@@ -1029,7 +1284,10 @@
     ],
     "createdAt": 1772662740702,
     "lastUsedAt": 1772662740702,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1bccac58-a66a-4f9e-af9a-906233704b98",
@@ -1041,7 +1299,10 @@
     ],
     "createdAt": 1772662939640,
     "lastUsedAt": 1772662939640,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "089ce15e-4efe-4576-89e3-d630cb719932",
@@ -1053,7 +1314,10 @@
     ],
     "createdAt": 1772662939645,
     "lastUsedAt": 1772662939645,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "54fea414-1f78-4ed5-a8d5-4755df0474d9",
@@ -1065,7 +1329,10 @@
     ],
     "createdAt": 1772662939650,
     "lastUsedAt": 1772662939650,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "71edd2f4-4bff-40d5-944d-722e1a27499a",
@@ -1077,7 +1344,10 @@
     ],
     "createdAt": 1772663452568,
     "lastUsedAt": 1772663452568,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8e77f180-7801-4829-9a70-8875011b744f",
@@ -1089,7 +1359,10 @@
     ],
     "createdAt": 1772663452577,
     "lastUsedAt": 1772663452577,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8bbf7da0-1b25-49bb-b90e-0787af24c9f6",
@@ -1101,7 +1374,10 @@
     ],
     "createdAt": 1772663452588,
     "lastUsedAt": 1772663740934,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d4828ee1-0cb2-44ea-a2f9-7785197f8d16",
@@ -1113,7 +1389,10 @@
     ],
     "createdAt": 1772811347574,
     "lastUsedAt": 1772812529118,
-    "usageCount": 10
+    "usageCount": 10,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "92234a94-6169-432c-97e8-06c1fa7b847b",
@@ -1125,7 +1404,10 @@
     ],
     "createdAt": 1772811347580,
     "lastUsedAt": 1772811352164,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "13cecdcc-5620-4886-9d39-24d70175b640",
@@ -1137,7 +1419,10 @@
     ],
     "createdAt": 1772811580534,
     "lastUsedAt": 1772812478278,
-    "usageCount": 8
+    "usageCount": 8,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b9472537-16e4-4752-8186-ab26a9d6b692",
@@ -1149,7 +1434,10 @@
     ],
     "createdAt": 1772811580541,
     "lastUsedAt": 1772812432973,
-    "usageCount": 6
+    "usageCount": 6,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3b135360-c7b5-40c7-9190-a63e50d715a1",
@@ -1161,7 +1449,10 @@
     ],
     "createdAt": 1772811580546,
     "lastUsedAt": 1772811622715,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6de8de2f-cc45-4458-b8f0-99a5b7058d7d",
@@ -1173,7 +1464,10 @@
     ],
     "createdAt": 1772811686520,
     "lastUsedAt": 1772811686520,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d9505314-7de0-495f-b4eb-e4a24818b736",
@@ -1185,7 +1479,10 @@
     ],
     "createdAt": 1772811686526,
     "lastUsedAt": 1772812887359,
-    "usageCount": 11
+    "usageCount": 11,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "50a5530d-4e9d-48ae-92f2-3b91220eb600",
@@ -1197,7 +1494,10 @@
     ],
     "createdAt": 1772811686530,
     "lastUsedAt": 1772811686530,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ae41b84d-b556-486b-93a6-365003b03f8b",
@@ -1209,7 +1509,10 @@
     ],
     "createdAt": 1772812499246,
     "lastUsedAt": 1772812887354,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "4ae96ffb-7514-4e2b-a33c-9952ec8d5f5a",
@@ -1221,7 +1524,10 @@
     ],
     "createdAt": 1772812499252,
     "lastUsedAt": 1772812887348,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1fb6ab89-0b8b-468c-a168-16ef4cd8010a",
@@ -1233,7 +1539,10 @@
     ],
     "createdAt": 1772812499257,
     "lastUsedAt": 1772861071543,
-    "usageCount": 26
+    "usageCount": 26,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "bcb1a5ab-5625-4c78-9e4f-bcbed326decd",
@@ -1245,7 +1554,10 @@
     ],
     "createdAt": 1772812546316,
     "lastUsedAt": 1772812887340,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "06dde488-4b32-431c-b07a-3ac8b0162d7c",
@@ -1257,7 +1569,10 @@
     ],
     "createdAt": 1772812546322,
     "lastUsedAt": 1772854262018,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "96986223-eec1-4dd4-b620-6dbd3f6d26a1",
@@ -1269,7 +1584,10 @@
     ],
     "createdAt": 1772812546327,
     "lastUsedAt": 1772812546327,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b0281ecb-a178-41a1-a21d-81b1f2a66139",
@@ -1281,7 +1599,10 @@
     ],
     "createdAt": 1772835173292,
     "lastUsedAt": 1772862583984,
-    "usageCount": 28
+    "usageCount": 28,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5eb7e059-20d2-4799-a6d3-1baaa01f2b34",
@@ -1293,7 +1614,10 @@
     ],
     "createdAt": 1772835173299,
     "lastUsedAt": 1772841845002,
-    "usageCount": 7
+    "usageCount": 7,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "85b7f5e3-8f82-42da-9b71-104945ee66a5",
@@ -1305,7 +1629,10 @@
     ],
     "createdAt": 1772835173303,
     "lastUsedAt": 1772835173303,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f1907212-e3ed-44d0-8d3a-abffb7003a1e",
@@ -1317,7 +1644,10 @@
     ],
     "createdAt": 1772835378123,
     "lastUsedAt": 1772835378123,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "354e3a28-8de7-44d6-bb57-d19d59ab1dfa",
@@ -1329,7 +1659,10 @@
     ],
     "createdAt": 1772835378132,
     "lastUsedAt": 1772841844997,
-    "usageCount": 16
+    "usageCount": 16,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "50ab2552-c546-47f8-9042-4e8011191e12",
@@ -1341,7 +1674,10 @@
     ],
     "createdAt": 1772835378138,
     "lastUsedAt": 1772841301756,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "020c2161-c8bf-4b58-a35c-3375bf616865",
@@ -1353,7 +1689,10 @@
     ],
     "createdAt": 1772835788804,
     "lastUsedAt": 1772836331357,
-    "usageCount": 7
+    "usageCount": 7,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "fa5f38ef-f0a8-41b2-853d-5ea36d1ab6bd",
@@ -1365,7 +1704,10 @@
     ],
     "createdAt": 1772835788811,
     "lastUsedAt": 1772836331346,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "09ca315e-eef5-4024-9724-f430e25f0de6",
@@ -1377,7 +1719,10 @@
     ],
     "createdAt": 1772835788815,
     "lastUsedAt": 1772835788815,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8e667255-ea03-4d1c-9f1e-85281fd8beeb",
@@ -1389,7 +1734,10 @@
     ],
     "createdAt": 1772837504446,
     "lastUsedAt": 1772837504446,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "4951bfa4-3891-47c0-9d94-20d0e712ff62",
@@ -1401,7 +1749,10 @@
     ],
     "createdAt": 1772837504454,
     "lastUsedAt": 1772837504454,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "13617549-cf6d-4643-9c76-1afe0704b9df",
@@ -1413,7 +1764,10 @@
     ],
     "createdAt": 1772837504459,
     "lastUsedAt": 1772841845020,
-    "usageCount": 16
+    "usageCount": 16,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "65f7006d-d416-44a6-ae69-b1b0b084a804",
@@ -1425,7 +1779,10 @@
     ],
     "createdAt": 1772838103489,
     "lastUsedAt": 1772838103489,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "261c8669-3c06-4288-9626-f85a24ee609f",
@@ -1437,7 +1794,10 @@
     ],
     "createdAt": 1772838103498,
     "lastUsedAt": 1772838103702,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d3b9e157-b2f0-40c6-9c1a-801675469d1e",
@@ -1449,7 +1809,10 @@
     ],
     "createdAt": 1772838103507,
     "lastUsedAt": 1772838103507,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "10a281f2-4074-467a-b78d-296e765f0681",
@@ -1461,7 +1824,10 @@
     ],
     "createdAt": 1772838169983,
     "lastUsedAt": 1772838169983,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "054b0c41-56bf-46be-a536-b62a4bcaac0a",
@@ -1473,7 +1839,10 @@
     ],
     "createdAt": 1772838169991,
     "lastUsedAt": 1772838169991,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8cd10f3f-e1d1-467d-8834-dfcd40eef0dd",
@@ -1485,7 +1854,10 @@
     ],
     "createdAt": 1772838169996,
     "lastUsedAt": 1772838169996,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "caa40dbd-bf62-4a5f-98fb-28c68f112be0",
@@ -1497,7 +1869,10 @@
     ],
     "createdAt": 1772839024558,
     "lastUsedAt": 1772839024558,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3fe0bda8-8aca-4458-ad49-c899ff67cf08",
@@ -1509,7 +1884,10 @@
     ],
     "createdAt": 1772839024568,
     "lastUsedAt": 1772839024568,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6ac7f00e-2f5f-49fa-8dc0-d9bbc04fcc52",
@@ -1521,7 +1899,10 @@
     ],
     "createdAt": 1772839024575,
     "lastUsedAt": 1772839024575,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5ef8a6ba-88e3-48ca-9732-37564878bfd8",
@@ -1533,7 +1914,10 @@
     ],
     "createdAt": 1772840147947,
     "lastUsedAt": 1772841845032,
-    "usageCount": 11
+    "usageCount": 11,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d16deff7-e532-4f4c-910f-09680e0a95b8",
@@ -1545,7 +1929,10 @@
     ],
     "createdAt": 1772840147956,
     "lastUsedAt": 1772840147956,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6a7b9d00-42fc-4918-9a39-18c23fd78527",
@@ -1557,7 +1944,10 @@
     ],
     "createdAt": 1772840147964,
     "lastUsedAt": 1772840243895,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3c6b545f-9962-44fa-b4b8-a81f39fe9cc0",
@@ -1569,7 +1959,10 @@
     ],
     "createdAt": 1772840321027,
     "lastUsedAt": 1772840321027,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d7cfa672-128d-432e-adda-174501977c53",
@@ -1581,7 +1974,10 @@
     ],
     "createdAt": 1772840321036,
     "lastUsedAt": 1772840321036,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "32522375-b1d5-4ae4-8214-438cb7826ca2",
@@ -1593,7 +1989,10 @@
     ],
     "createdAt": 1772840321045,
     "lastUsedAt": 1772840321045,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "68f2ab15-a7b9-466d-af20-111fe17f607d",
@@ -1605,7 +2004,10 @@
     ],
     "createdAt": 1772840806316,
     "lastUsedAt": 1772840806316,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f777f308-679c-45e6-a48d-4652b413cd5b",
@@ -1617,7 +2019,10 @@
     ],
     "createdAt": 1772840806331,
     "lastUsedAt": 1772840806331,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "79107886-d51b-4d20-9ba9-0f0fab8bad71",
@@ -1629,7 +2034,10 @@
     ],
     "createdAt": 1772840806359,
     "lastUsedAt": 1772840806359,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "89ee3d66-0527-4a82-be9a-c5a1d6fab918",
@@ -1641,7 +2049,10 @@
     ],
     "createdAt": 1772841000055,
     "lastUsedAt": 1772841000055,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "772dac0b-f059-47cd-bc99-4d895559ec02",
@@ -1653,7 +2064,10 @@
     ],
     "createdAt": 1772841000064,
     "lastUsedAt": 1772841000064,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "fcc3441d-0792-4941-8421-ee02bc482bd2",
@@ -1665,7 +2079,10 @@
     ],
     "createdAt": 1772841000071,
     "lastUsedAt": 1772841000071,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "88359708-1054-4dbe-b46d-fdd17e7e4753",
@@ -1677,7 +2094,10 @@
     ],
     "createdAt": 1772841130831,
     "lastUsedAt": 1772841130831,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0736b04e-7187-4b09-b99e-c08a58d52eda",
@@ -1689,7 +2109,10 @@
     ],
     "createdAt": 1772841130840,
     "lastUsedAt": 1772841130840,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c789dcca-faa5-48fb-9a41-b45f85ca66dd",
@@ -1701,7 +2124,10 @@
     ],
     "createdAt": 1772841130846,
     "lastUsedAt": 1772841130846,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1d92ef58-b9da-4560-afd5-ff7af256c2a7",
@@ -1713,7 +2139,10 @@
     ],
     "createdAt": 1772841259655,
     "lastUsedAt": 1772841259655,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "18440b20-3034-419c-ba95-352c188dabdc",
@@ -1725,7 +2154,10 @@
     ],
     "createdAt": 1772841259664,
     "lastUsedAt": 1772841259664,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e6add227-cc18-41b1-b36a-318d3b960a13",
@@ -1737,7 +2169,10 @@
     ],
     "createdAt": 1772841259673,
     "lastUsedAt": 1772841259673,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "9db7b00c-f71b-4c68-84fd-912b71d5a2d0",
@@ -1749,7 +2184,10 @@
     ],
     "createdAt": 1772841339043,
     "lastUsedAt": 1772841339043,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6ee5132c-4750-40a4-b4cf-b978e61d4a26",
@@ -1761,7 +2199,10 @@
     ],
     "createdAt": 1772841339052,
     "lastUsedAt": 1772841339052,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6203ad43-d71a-4724-9c86-c463d6558694",
@@ -1773,7 +2214,10 @@
     ],
     "createdAt": 1772841339060,
     "lastUsedAt": 1772841486970,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "aa595ec1-931d-48c0-8b5c-a99936a3780d",
@@ -1785,7 +2229,10 @@
     ],
     "createdAt": 1772841439045,
     "lastUsedAt": 1772841439045,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0704430d-86d8-4ca0-ae75-4d83df5e5f74",
@@ -1797,7 +2244,10 @@
     ],
     "createdAt": 1772841439055,
     "lastUsedAt": 1772841439055,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "62411815-8fa0-43e8-9cac-2e9a6946d309",
@@ -1809,7 +2259,10 @@
     ],
     "createdAt": 1772841439062,
     "lastUsedAt": 1772841439062,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6926d51e-5a4e-4f68-89b7-575670f89140",
@@ -1821,7 +2274,10 @@
     ],
     "createdAt": 1772841822534,
     "lastUsedAt": 1772841822534,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "730c6770-7d48-4c19-b026-bc09a56938c7",
@@ -1833,7 +2289,10 @@
     ],
     "createdAt": 1772841822542,
     "lastUsedAt": 1772841822542,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f8f2ac6a-7636-4e18-b750-2bb5b66426ad",
@@ -1845,7 +2304,10 @@
     ],
     "createdAt": 1772841822550,
     "lastUsedAt": 1772841822550,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "81b87ab6-5076-4eab-ac93-b411a090c0e1",
@@ -1857,7 +2319,10 @@
     ],
     "createdAt": 1772849939963,
     "lastUsedAt": 1772850799297,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cd6ad5b8-7c32-49d8-ad03-a67a9d91ff88",
@@ -1869,7 +2334,10 @@
     ],
     "createdAt": 1772849939972,
     "lastUsedAt": 1772849939972,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "2852a788-fa50-4308-a79c-485af2e4b0b5",
@@ -1881,7 +2349,10 @@
     ],
     "createdAt": 1772849939980,
     "lastUsedAt": 1772849939980,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "4c7ea06e-34db-4e14-9c57-ab9c05dd9609",
@@ -1893,7 +2364,10 @@
     ],
     "createdAt": 1772850457634,
     "lastUsedAt": 1772850457634,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5c815f3a-ad65-4460-8287-e2f129df1bbf",
@@ -1905,7 +2379,10 @@
     ],
     "createdAt": 1772850457645,
     "lastUsedAt": 1772851333886,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c833a3bb-f929-42bc-9d1b-c84ae7e444dd",
@@ -1917,7 +2394,10 @@
     ],
     "createdAt": 1772850457653,
     "lastUsedAt": 1772851333878,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "2c212473-825f-4092-9215-7fbe02a0ea21",
@@ -1929,7 +2409,10 @@
     ],
     "createdAt": 1772850992148,
     "lastUsedAt": 1772851333862,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "107cc880-b205-445e-a5de-b6755bbeedc5",
@@ -1941,7 +2424,10 @@
     ],
     "createdAt": 1772850992160,
     "lastUsedAt": 1772851333868,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "2c1fac27-66cb-449f-94e7-65ffa7d5a41a",
@@ -1953,7 +2439,10 @@
     ],
     "createdAt": 1772850992167,
     "lastUsedAt": 1772857579828,
-    "usageCount": 8
+    "usageCount": 8,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a593fc32-b378-4915-8028-0b6c8fb86cdc",
@@ -1965,7 +2454,10 @@
     ],
     "createdAt": 1772851513437,
     "lastUsedAt": 1772859802987,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6345c8ac-da1d-42f7-9fc6-ac2824a17173",
@@ -1977,7 +2469,10 @@
     ],
     "createdAt": 1772851513446,
     "lastUsedAt": 1772852100572,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "98b19435-5350-42b6-94ca-8907cabc15fc",
@@ -1989,7 +2484,10 @@
     ],
     "createdAt": 1772852197417,
     "lastUsedAt": 1772852197417,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e0e876eb-8617-4d9c-bad7-bbdebbd46c6e",
@@ -2001,7 +2499,10 @@
     ],
     "createdAt": 1772852197424,
     "lastUsedAt": 1772856938137,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8a0a07c9-518b-482d-a7ef-0e1adf7958fe",
@@ -2013,7 +2514,10 @@
     ],
     "createdAt": 1772852197428,
     "lastUsedAt": 1772852197428,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "debbe31e-9167-4691-a2e0-0ead36a8a674",
@@ -2025,7 +2529,10 @@
     ],
     "createdAt": 1772853267654,
     "lastUsedAt": 1772853279351,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "05e56146-6827-4f14-8423-805eb8906191",
@@ -2037,7 +2544,10 @@
     ],
     "createdAt": 1772853267665,
     "lastUsedAt": 1772853279345,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3f17c175-a44e-4a49-854d-770ec630993c",
@@ -2049,7 +2559,10 @@
     ],
     "createdAt": 1772853267675,
     "lastUsedAt": 1772853279360,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f123e9c3-76b3-4e3f-a6d5-45db102a3a87",
@@ -2061,7 +2574,10 @@
     ],
     "createdAt": 1772854046168,
     "lastUsedAt": 1772854046168,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d8275f12-aace-435a-92e8-0554213aa351",
@@ -2073,7 +2589,10 @@
     ],
     "createdAt": 1772854046182,
     "lastUsedAt": 1772858181239,
-    "usageCount": 9
+    "usageCount": 9,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e493e2f6-9e92-4416-831a-9a4b37a8604d",
@@ -2085,7 +2604,10 @@
     ],
     "createdAt": 1772854046192,
     "lastUsedAt": 1772854046192,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0af94dde-21d4-4c74-a892-adcdf436e971",
@@ -2097,7 +2619,10 @@
     ],
     "createdAt": 1772854327195,
     "lastUsedAt": 1772854422378,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "85cdeab6-cff2-4b6d-91d4-441830330415",
@@ -2109,7 +2634,10 @@
     ],
     "createdAt": 1772854327205,
     "lastUsedAt": 1772854422372,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a17d352c-776f-449f-9195-2f53dccf31b8",
@@ -2121,7 +2649,10 @@
     ],
     "createdAt": 1772854327214,
     "lastUsedAt": 1772854422362,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8cf7af8e-e535-42bc-9a47-9691db8c403b",
@@ -2133,7 +2664,10 @@
     ],
     "createdAt": 1772854746798,
     "lastUsedAt": 1772856938168,
-    "usageCount": 12
+    "usageCount": 12,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "fee5b021-a135-49da-ac00-3fea20e43635",
@@ -2145,7 +2679,10 @@
     ],
     "createdAt": 1772854746809,
     "lastUsedAt": 1772856377104,
-    "usageCount": 7
+    "usageCount": 7,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cfc9ed32-fdb1-4b5b-b613-a001db98b80d",
@@ -2157,7 +2694,10 @@
     ],
     "createdAt": 1772856204507,
     "lastUsedAt": 1772856247113,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d1327bd9-74e9-41dd-947c-57f571ee29f6",
@@ -2169,7 +2709,10 @@
     ],
     "createdAt": 1772856204517,
     "lastUsedAt": 1772857579821,
-    "usageCount": 9
+    "usageCount": 9,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "afbd0b40-170d-41ec-9747-c1a705e1ee5d",
@@ -2181,7 +2724,10 @@
     ],
     "createdAt": 1772856338586,
     "lastUsedAt": 1772860264302,
-    "usageCount": 7
+    "usageCount": 7,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "60d44e71-ad09-4a3a-af25-eb2ccb8ac7d3",
@@ -2193,7 +2739,10 @@
     ],
     "createdAt": 1772856338599,
     "lastUsedAt": 1772856338599,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1c819977-b463-4a80-a662-453dba92f5f0",
@@ -2205,7 +2754,10 @@
     ],
     "createdAt": 1772856338610,
     "lastUsedAt": 1772856377073,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0b726880-c2a2-45bb-a536-68b064e54a3f",
@@ -2217,7 +2769,10 @@
     ],
     "createdAt": 1772856561721,
     "lastUsedAt": 1772856598717,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "be7fd3cc-755e-476e-abbb-816b1440678e",
@@ -2229,7 +2784,10 @@
     ],
     "createdAt": 1772856561730,
     "lastUsedAt": 1772856561730,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d656ab7e-c388-416e-b057-85d96da73fe2",
@@ -2241,7 +2799,10 @@
     ],
     "createdAt": 1772856561735,
     "lastUsedAt": 1772856598709,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "897faf0e-7552-4a04-8a25-d95427b83a9f",
@@ -2253,7 +2814,10 @@
     ],
     "createdAt": 1772856667934,
     "lastUsedAt": 1772860264311,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c94579b4-9960-4393-858e-e61058c9ea89",
@@ -2265,7 +2829,10 @@
     ],
     "createdAt": 1772856667947,
     "lastUsedAt": 1772856667947,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8c459e93-d503-4776-b029-155fe7671a0f",
@@ -2277,7 +2844,10 @@
     ],
     "createdAt": 1772856667957,
     "lastUsedAt": 1772856667957,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "010b5d1f-c032-4423-b294-36e606ccfdb8",
@@ -2289,7 +2859,10 @@
     ],
     "createdAt": 1772856848928,
     "lastUsedAt": 1772856848928,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "9431ac82-6330-42ae-bbc9-f3bd2fbc83a8",
@@ -2301,7 +2874,10 @@
     ],
     "createdAt": 1772856848940,
     "lastUsedAt": 1772856848940,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "57f49822-a516-4908-b8e0-3e4e3f2ba409",
@@ -2313,7 +2889,10 @@
     ],
     "createdAt": 1772856848949,
     "lastUsedAt": 1772856848949,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "935e80ff-ab14-4c1d-ba0d-26d403281c4b",
@@ -2325,7 +2904,10 @@
     ],
     "createdAt": 1772856996571,
     "lastUsedAt": 1772856996571,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "00c47158-bc49-4cae-b75a-07d2e38f31bb",
@@ -2337,7 +2919,10 @@
     ],
     "createdAt": 1772856996582,
     "lastUsedAt": 1772858116265,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "74271a7c-a488-4198-a614-45bfb9f4175b",
@@ -2349,7 +2934,10 @@
     ],
     "createdAt": 1772856996593,
     "lastUsedAt": 1772856996593,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5c8c5a46-fcd7-42d6-956c-5194bc2c6eca",
@@ -2361,7 +2949,10 @@
     ],
     "createdAt": 1772857986010,
     "lastUsedAt": 1772858181274,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e2d1c0e9-73b3-46bf-8d1a-2b25040ad2d6",
@@ -2373,7 +2964,10 @@
     ],
     "createdAt": 1772857986025,
     "lastUsedAt": 1772858116222,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "2f980ead-9ef9-4424-a758-f396e7b093cd",
@@ -2385,7 +2979,10 @@
     ],
     "createdAt": 1772857986036,
     "lastUsedAt": 1772858181255,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6bbda686-4699-47be-bce6-85f2358ef2d0",
@@ -2397,7 +2994,10 @@
     ],
     "createdAt": 1772858156342,
     "lastUsedAt": 1772858156342,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7dbcce23-ba90-4de3-924a-861dd33e5fe0",
@@ -2409,7 +3009,10 @@
     ],
     "createdAt": 1772858156368,
     "lastUsedAt": 1772858156368,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b3d4090e-3238-4505-b996-05cec6b73f5f",
@@ -2421,7 +3024,10 @@
     ],
     "createdAt": 1772858156377,
     "lastUsedAt": 1772858156377,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6813fce3-fae0-4f74-943d-5a70745b94b2",
@@ -2433,7 +3039,10 @@
     ],
     "createdAt": 1772858473048,
     "lastUsedAt": 1772858473048,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "9ef9e342-18ac-4cd0-897f-5a33ce9744d0",
@@ -2445,7 +3054,10 @@
     ],
     "createdAt": 1772858473058,
     "lastUsedAt": 1772858473058,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "bdc4bd24-2183-440b-be11-5d55bb485071",
@@ -2457,7 +3069,10 @@
     ],
     "createdAt": 1772858473067,
     "lastUsedAt": 1772858473067,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "524ab945-5ff5-4b0e-85df-bb0bb4a2ced3",
@@ -2469,7 +3084,10 @@
     ],
     "createdAt": 1772859389642,
     "lastUsedAt": 1772859389642,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "767f76ac-e1d9-481d-bad2-0d659f561c33",
@@ -2481,7 +3099,10 @@
     ],
     "createdAt": 1772859389659,
     "lastUsedAt": 1772859543135,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1658c342-6cfa-4fe9-bf4a-cb4d2b59c767",
@@ -2493,7 +3114,10 @@
     ],
     "createdAt": 1772859389667,
     "lastUsedAt": 1772859389667,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "48e463d5-d379-4233-9bd9-6ffe4e3fb24a",
@@ -2505,7 +3129,10 @@
     ],
     "createdAt": 1772859612097,
     "lastUsedAt": 1772859612097,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "492216cc-f6cb-4392-b4b9-66fb72b3c15d",
@@ -2517,7 +3144,10 @@
     ],
     "createdAt": 1772859612112,
     "lastUsedAt": 1772860264281,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "121f1edd-e7b6-4e8a-9a09-8c6dda56ab4e",
@@ -2529,7 +3159,10 @@
     ],
     "createdAt": 1772859612121,
     "lastUsedAt": 1772859729620,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a4f8d620-61c7-475e-a8c5-3d2fc4272135",
@@ -2541,7 +3174,10 @@
     ],
     "createdAt": 1772859755568,
     "lastUsedAt": 1772859755568,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "96b4723a-c083-450d-84b5-0ba139cb8cba",
@@ -2553,7 +3189,10 @@
     ],
     "createdAt": 1772859755590,
     "lastUsedAt": 1772860264293,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "09dbc229-86e0-41e1-a62e-864757380cef",
@@ -2565,7 +3204,10 @@
     ],
     "createdAt": 1772859891486,
     "lastUsedAt": 1772859891486,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1ee43997-7f7f-4297-a112-55e391d0588c",
@@ -2577,7 +3219,10 @@
     ],
     "createdAt": 1772859891506,
     "lastUsedAt": 1772860264319,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f63ec2b3-5ecb-4a96-88f1-17f8948e0275",
@@ -2589,7 +3234,10 @@
     ],
     "createdAt": 1772860707302,
     "lastUsedAt": 1772860707302,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0306530f-72f5-4851-92a3-d133493440c8",
@@ -2601,7 +3249,10 @@
     ],
     "createdAt": 1772860707315,
     "lastUsedAt": 1772860707315,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f6055000-7318-4f41-992e-0eef701d9985",
@@ -2613,7 +3264,10 @@
     ],
     "createdAt": 1772860707327,
     "lastUsedAt": 1772861071565,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "27440eca-0c7b-425e-b17e-2969eb7eb152",
@@ -2625,7 +3279,10 @@
     ],
     "createdAt": 1772861254093,
     "lastUsedAt": 1772861254093,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6d1d3082-ca9e-4651-ae90-ec4b6c526b94",
@@ -2637,7 +3294,10 @@
     ],
     "createdAt": 1772861254111,
     "lastUsedAt": 1772861254111,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d82a5104-d314-4a9f-a585-aef3c963f5d0",
@@ -2649,7 +3309,10 @@
     ],
     "createdAt": 1772861254120,
     "lastUsedAt": 1772861254120,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "454b959f-adb0-4176-a535-238e4ad5cfae",
@@ -2661,7 +3324,10 @@
     ],
     "createdAt": 1772861717769,
     "lastUsedAt": 1772861717769,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "74aa20ed-b59b-4616-b6d0-a16552bdd147",
@@ -2673,7 +3339,10 @@
     ],
     "createdAt": 1772861717785,
     "lastUsedAt": 1772862583942,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c00884b1-d360-44d5-a036-e5a0b40c243a",
@@ -2685,7 +3354,10 @@
     ],
     "createdAt": 1772861717794,
     "lastUsedAt": 1772862583952,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8aa4a2a2-de5e-44ac-bac6-6004bbb46ecb",
@@ -2697,7 +3369,10 @@
     ],
     "createdAt": 1772862702948,
     "lastUsedAt": 1772862702948,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "334ba4a4-f4e9-462f-99f6-f07dd3101d13",
@@ -2709,7 +3384,10 @@
     ],
     "createdAt": 1772862702963,
     "lastUsedAt": 1772862702963,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "74908ccd-a154-4ab7-aa0b-f63deceada6d",
@@ -2721,7 +3399,10 @@
     ],
     "createdAt": 1772863732725,
     "lastUsedAt": 1772863732725,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "65b3f878-1c0b-407b-a001-03a473f8a407",
@@ -2733,7 +3414,10 @@
     ],
     "createdAt": 1772863732736,
     "lastUsedAt": 1772863732736,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ab0265a9-95c7-4159-ad95-ae196cad108d",
@@ -2745,7 +3429,10 @@
     ],
     "createdAt": 1772863732744,
     "lastUsedAt": 1772863732744,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b9b6eb07-91d2-4eef-b51c-bd87307502e2",
@@ -2757,7 +3444,10 @@
     ],
     "createdAt": 1772864071768,
     "lastUsedAt": 1772864317863,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "bb653faf-1d6c-420a-a2b3-160879841f38",
@@ -2769,7 +3459,10 @@
     ],
     "createdAt": 1772864071789,
     "lastUsedAt": 1772864317878,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "67e9a73f-2dc6-4095-8779-3d20aef738d2",
@@ -2781,7 +3474,10 @@
     ],
     "createdAt": 1772864071799,
     "lastUsedAt": 1772864317852,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a4bac023-c2a9-4c96-9945-214247dc619e",
@@ -2793,7 +3489,10 @@
     ],
     "createdAt": 1772864543364,
     "lastUsedAt": 1772865077009,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "224a441c-9194-4e12-b5e8-567b0216ce00",
@@ -2805,7 +3504,10 @@
     ],
     "createdAt": 1772864543388,
     "lastUsedAt": 1772865076870,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "36f33be2-e73b-4e9e-8443-b8f3d3dc45be",
@@ -2817,7 +3519,10 @@
     ],
     "createdAt": 1772864543398,
     "lastUsedAt": 1772864543398,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "746e1582-47e2-4563-8f6a-6c5a87643a30",
@@ -2829,7 +3534,10 @@
     ],
     "createdAt": 1772865290813,
     "lastUsedAt": 1772865290813,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "afab6096-6fe9-49e2-ac7c-6971aa5e0c0a",
@@ -2841,7 +3549,10 @@
     ],
     "createdAt": 1772865290837,
     "lastUsedAt": 1772866540687,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a04f40f5-5bb7-446f-ac41-e967714d4caf",
@@ -2853,7 +3564,10 @@
     ],
     "createdAt": 1772865290873,
     "lastUsedAt": 1772866540675,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5abc7d4d-115f-4aec-b5fd-8bc50b07fe1b",
@@ -2865,7 +3579,10 @@
     ],
     "createdAt": 1772874825416,
     "lastUsedAt": 1772874825416,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "dc7fba91-d613-4997-9d4f-2cd2072fb011",
@@ -2877,7 +3594,10 @@
     ],
     "createdAt": 1772874825435,
     "lastUsedAt": 1772875297432,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d4c9ed61-e905-4f34-b373-9cc2b2d4fc49",
@@ -2889,7 +3609,10 @@
     ],
     "createdAt": 1772874825471,
     "lastUsedAt": 1772875297443,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d3e6c71a-9d80-48c1-a8cd-ea2e088a14b2",
@@ -2901,7 +3624,10 @@
     ],
     "createdAt": 1772875553920,
     "lastUsedAt": 1772875765871,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d604231c-09e8-4af3-99e3-7af00b67bd9c",
@@ -2913,7 +3639,10 @@
     ],
     "createdAt": 1772875553973,
     "lastUsedAt": 1772875765886,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8c508f55-8d62-4f40-bcfe-ec2fc4a12d66",
@@ -2925,7 +3654,10 @@
     ],
     "createdAt": 1772875553981,
     "lastUsedAt": 1772875765859,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "4f994485-acfc-4568-80cb-1f488940717f",
@@ -2937,7 +3669,10 @@
     ],
     "createdAt": 1772875974389,
     "lastUsedAt": 1772875974389,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b69a42d0-8f60-4869-b7a5-8f7eef60e9e0",
@@ -2949,7 +3684,10 @@
     ],
     "createdAt": 1772875974418,
     "lastUsedAt": 1772875974418,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a3f81c9f-e477-4391-b600-da7ae3e999f4",
@@ -2961,7 +3699,10 @@
     ],
     "createdAt": 1772875974441,
     "lastUsedAt": 1772875974441,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "dc3aaf4e-3473-4631-baf0-ec2643fbb576",
@@ -2973,7 +3714,10 @@
     ],
     "createdAt": 1772893436300,
     "lastUsedAt": 1772893436300,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "66c44a09-b70a-456b-9a4e-33b4fdb6e28d",
@@ -2985,7 +3729,10 @@
     ],
     "createdAt": 1772893436320,
     "lastUsedAt": 1772893436320,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cc886b0c-3aac-4148-acf6-dec9412cad9c",
@@ -2997,7 +3744,10 @@
     ],
     "createdAt": 1772893436333,
     "lastUsedAt": 1772893436333,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "10d24e0c-6aeb-43d0-8e49-7e9161d8a794",
@@ -3009,7 +3759,10 @@
     ],
     "createdAt": 1772894224499,
     "lastUsedAt": 1772894224499,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "570bdada-235c-4ea6-9195-26423182a431",
@@ -3021,7 +3774,10 @@
     ],
     "createdAt": 1772894224516,
     "lastUsedAt": 1772894224516,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "37f378e6-5ad6-4dbd-b5c7-3726960855a6",
@@ -3033,7 +3789,10 @@
     ],
     "createdAt": 1772894224527,
     "lastUsedAt": 1772894224527,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0b6ef60d-a07d-4dfd-a8d7-00a84fe8d025",
@@ -3045,7 +3804,10 @@
     ],
     "createdAt": 1772950298106,
     "lastUsedAt": 1772950660983,
-    "usageCount": 6
+    "usageCount": 6,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "54919839-5689-4a79-bc1d-b54675177b01",
@@ -3057,7 +3819,10 @@
     ],
     "createdAt": 1772950298116,
     "lastUsedAt": 1772950386610,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a59510ae-11a4-4c0f-b217-aa4819ea7062",
@@ -3069,7 +3834,10 @@
     ],
     "createdAt": 1772950298124,
     "lastUsedAt": 1772950386625,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "264ff5aa-acab-43c2-b8b4-b7937917441e",
@@ -3081,7 +3849,10 @@
     ],
     "createdAt": 1772950328386,
     "lastUsedAt": 1772950475390,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "30eb944e-b9e8-44ed-8400-24a3d13f7895",
@@ -3093,7 +3864,10 @@
     ],
     "createdAt": 1772950328401,
     "lastUsedAt": 1772950328401,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6f2a9d2e-f628-43b2-95ec-964837289d92",
@@ -3105,7 +3879,10 @@
     ],
     "createdAt": 1772950328412,
     "lastUsedAt": 1772950386594,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "fe6983ab-c190-4571-8466-84eb7edc9edc",
@@ -3117,7 +3894,10 @@
     ],
     "createdAt": 1772950430661,
     "lastUsedAt": 1772950475400,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f2d73d20-c0d7-46eb-9f72-673c8d0a8ef0",
@@ -3129,7 +3909,10 @@
     ],
     "createdAt": 1772950430680,
     "lastUsedAt": 1772950475411,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0b29baa0-6fa1-4700-84e2-3942571c09b1",
@@ -3141,7 +3924,10 @@
     ],
     "createdAt": 1772950430692,
     "lastUsedAt": 1772950475378,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "76451007-d9b9-4855-b14a-0e1183debcc2",
@@ -3153,7 +3939,10 @@
     ],
     "createdAt": 1772950505281,
     "lastUsedAt": 1772950661006,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "45072586-9059-4e81-be37-73974b3d185f",
@@ -3165,7 +3954,10 @@
     ],
     "createdAt": 1772950505297,
     "lastUsedAt": 1772950505297,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "28ecb820-9b11-4e7a-8244-677e463336e0",
@@ -3177,7 +3969,10 @@
     ],
     "createdAt": 1772950505307,
     "lastUsedAt": 1772950505307,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1d188da1-873a-40cb-ae21-b7c0dafc3142",
@@ -3189,7 +3984,10 @@
     ],
     "createdAt": 1772950557810,
     "lastUsedAt": 1773265568879,
-    "usageCount": 5
+    "usageCount": 5,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ae968c3b-4180-4dfa-8c0d-e9bf0294bdc6",
@@ -3201,7 +3999,10 @@
     ],
     "createdAt": 1772950557828,
     "lastUsedAt": 1772950661033,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "385f1e85-870c-4909-8560-79c4ace85ed2",
@@ -3213,7 +4014,10 @@
     ],
     "createdAt": 1772950557840,
     "lastUsedAt": 1772950661017,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ef43fa34-f858-4fe1-8606-f6ded4596d58",
@@ -3225,7 +4029,10 @@
     ],
     "createdAt": 1772950679685,
     "lastUsedAt": 1772950679685,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "237ef2ec-bbf8-4202-ab81-ed2bf0e39215",
@@ -3237,7 +4044,10 @@
     ],
     "createdAt": 1772950679709,
     "lastUsedAt": 1772950679709,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "9b836a10-1f0c-44fc-8fd9-1bdaf9b2f409",
@@ -3249,7 +4059,10 @@
     ],
     "createdAt": 1772950679721,
     "lastUsedAt": 1772950679721,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "12baf776-6148-4d30-a93f-ee5f2a8fd5eb",
@@ -3261,7 +4074,10 @@
     ],
     "createdAt": 1772963438399,
     "lastUsedAt": 1772963438399,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "49b8e4fc-86ac-42fb-b7c2-371940416b3c",
@@ -3273,7 +4089,10 @@
     ],
     "createdAt": 1772963438426,
     "lastUsedAt": 1772963438426,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "9fd13ec7-3f52-4ddf-9931-ee5323421ff7",
@@ -3285,7 +4104,10 @@
     ],
     "createdAt": 1772963438437,
     "lastUsedAt": 1772963438437,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3e49d0d2-d7b5-4dc0-a52e-1bd4328f03c5",
@@ -3297,7 +4119,10 @@
     ],
     "createdAt": 1772978451115,
     "lastUsedAt": 1772978570277,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "74aa1f57-e45b-4c30-8f50-2890b93ea5f4",
@@ -3309,7 +4134,10 @@
     ],
     "createdAt": 1772978451423,
     "lastUsedAt": 1772978451423,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "04c43a95-4069-450b-98ab-b6c7510ea86e",
@@ -3321,7 +4149,10 @@
     ],
     "createdAt": 1772978505981,
     "lastUsedAt": 1772978569906,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "dd5b09d1-2e89-4652-93a1-f834447e8df8",
@@ -3333,7 +4164,10 @@
     ],
     "createdAt": 1772978506158,
     "lastUsedAt": 1772978506158,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c0964761-eb25-4bc1-83bc-6d1cab9f61cf",
@@ -3345,7 +4179,10 @@
     ],
     "createdAt": 1772978506252,
     "lastUsedAt": 1772978569739,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ab98d94c-9df5-4044-b5c9-22861f139491",
@@ -3357,7 +4194,10 @@
     ],
     "createdAt": 1772979997552,
     "lastUsedAt": 1772979997552,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3f85690f-9072-49ef-85b5-480305eb35af",
@@ -3369,7 +4209,10 @@
     ],
     "createdAt": 1772979997575,
     "lastUsedAt": 1772979997575,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5bce1244-1aca-4691-95bc-f3cfe64b345f",
@@ -3381,7 +4224,10 @@
     ],
     "createdAt": 1773006051037,
     "lastUsedAt": 1773006051037,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "10e0269d-d73e-4b8c-8138-b0bae216ac57",
@@ -3393,7 +4239,10 @@
     ],
     "createdAt": 1773006051067,
     "lastUsedAt": 1773006214127,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7ecd13a9-bc26-46c9-87aa-adb0f0d7748f",
@@ -3405,7 +4254,10 @@
     ],
     "createdAt": 1773006051087,
     "lastUsedAt": 1773006051087,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f996e821-5df9-4cd7-a6bc-0bee594b98f7",
@@ -3417,7 +4269,10 @@
     ],
     "createdAt": 1773006987592,
     "lastUsedAt": 1773006987592,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "02e300fc-98b1-4a90-ad5a-a6b8756215e5",
@@ -3429,7 +4284,10 @@
     ],
     "createdAt": 1773006987653,
     "lastUsedAt": 1773006987653,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "dc0e5bea-9c1b-4afe-97c4-d1c4adc9c4ca",
@@ -3441,7 +4299,10 @@
     ],
     "createdAt": 1773009855242,
     "lastUsedAt": 1773009855242,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c456caeb-dcb6-4535-ab18-eccc72f8ad38",
@@ -3453,7 +4314,10 @@
     ],
     "createdAt": 1773009855355,
     "lastUsedAt": 1773009855355,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3a70b85d-e2ff-48e6-a317-3d13de5b7bb4",
@@ -3465,7 +4329,10 @@
     ],
     "createdAt": 1773009855425,
     "lastUsedAt": 1773009855425,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6ae66e90-c3f8-4887-bd83-8063499bb447",
@@ -3477,7 +4344,10 @@
     ],
     "createdAt": 1773059321331,
     "lastUsedAt": 1773059321331,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "51f24ad9-c0e8-4b85-b298-9d787dd51407",
@@ -3489,7 +4359,10 @@
     ],
     "createdAt": 1773059321422,
     "lastUsedAt": 1773059321422,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b9f6feb4-e220-469c-8787-1d019da5b157",
@@ -3501,7 +4374,10 @@
     ],
     "createdAt": 1773061973828,
     "lastUsedAt": 1773062028368,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "088ca0c0-b4cf-4362-9e22-5dd5e08db0c9",
@@ -3513,7 +4389,10 @@
     ],
     "createdAt": 1773061973847,
     "lastUsedAt": 1773062028346,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b3b92ed3-92a6-4816-8e88-43b40d020722",
@@ -3525,7 +4404,10 @@
     ],
     "createdAt": 1773061973859,
     "lastUsedAt": 1773062028378,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6056ff76-7540-43a0-9830-4e8903823a56",
@@ -3537,7 +4419,10 @@
     ],
     "createdAt": 1773065957609,
     "lastUsedAt": 1773066666850,
-    "usageCount": 6
+    "usageCount": 6,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "26fbdf60-cda8-4ed9-8451-49b6e49d5252",
@@ -3549,7 +4434,10 @@
     ],
     "createdAt": 1773065957628,
     "lastUsedAt": 1773065957628,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7d11bd81-06dc-48f6-a314-b00f75289854",
@@ -3561,7 +4449,10 @@
     ],
     "createdAt": 1773065957640,
     "lastUsedAt": 1773066666840,
-    "usageCount": 8
+    "usageCount": 8,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c60e114f-9352-4c9d-b128-9772c6717d14",
@@ -3573,7 +4464,10 @@
     ],
     "createdAt": 1773146748366,
     "lastUsedAt": 1773148584046,
-    "usageCount": 8
+    "usageCount": 8,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "019baaef-bea8-476a-9461-8dda49f6c22a",
@@ -3585,7 +4479,10 @@
     ],
     "createdAt": 1773146748388,
     "lastUsedAt": 1773147037049,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e5c1d9f5-49b4-4d2d-ac47-ad8a97edb3bd",
@@ -3597,7 +4494,10 @@
     ],
     "createdAt": 1773146748400,
     "lastUsedAt": 1773147753576,
-    "usageCount": 6
+    "usageCount": 6,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6799970a-36d3-4e6c-a2bb-d4b3877ce1b3",
@@ -3609,7 +4509,10 @@
     ],
     "createdAt": 1773147269217,
     "lastUsedAt": 1773147753618,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "e2de9cc7-3c0c-4bec-8526-36eafaf473b5",
@@ -3621,7 +4524,10 @@
     ],
     "createdAt": 1773147269249,
     "lastUsedAt": 1773147753640,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "05e168fc-ca22-4212-a9bf-d6a52a8fd5a7",
@@ -3633,7 +4539,10 @@
     ],
     "createdAt": 1773147269278,
     "lastUsedAt": 1773147753628,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "db8e5e06-8103-49fb-980f-415d569098fd",
@@ -3645,7 +4554,10 @@
     ],
     "createdAt": 1773148097554,
     "lastUsedAt": 1773148584097,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "bbe3267f-2fdb-4b86-9260-28b90e43b769",
@@ -3657,7 +4569,10 @@
     ],
     "createdAt": 1773148097587,
     "lastUsedAt": 1773148584072,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "8f2ed92e-0a13-4324-b593-80292d20d0d3",
@@ -3669,7 +4584,10 @@
     ],
     "createdAt": 1773148097603,
     "lastUsedAt": 1773148584087,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "90b81507-456b-4d1f-8d0e-4301e07aad91",
@@ -3681,7 +4599,10 @@
     ],
     "createdAt": 1773148629596,
     "lastUsedAt": 1773148629596,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3b48a75c-5265-4720-8bb0-2f465201c04a",
@@ -3693,7 +4614,10 @@
     ],
     "createdAt": 1773148629627,
     "lastUsedAt": 1773148629627,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6bd2b2ab-15a0-4ad8-8756-81bd741466bb",
@@ -3705,7 +4629,10 @@
     ],
     "createdAt": 1773148629648,
     "lastUsedAt": 1773148629648,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "7e801c67-9a15-4324-bd14-b11374623fc7",
@@ -3717,7 +4644,10 @@
     ],
     "createdAt": 1773148907774,
     "lastUsedAt": 1773148907774,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a78ca765-142f-4365-9c77-3efc7ff7e9ea",
@@ -3729,7 +4659,10 @@
     ],
     "createdAt": 1773148907800,
     "lastUsedAt": 1773148907800,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cf6a72b8-f73d-4101-a7df-8cf10316c263",
@@ -3741,7 +4674,10 @@
     ],
     "createdAt": 1773148907817,
     "lastUsedAt": 1773148907817,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "cb3b5b21-3621-43ca-baac-dc8a64a863f1",
@@ -3753,7 +4689,10 @@
     ],
     "createdAt": 1773178491664,
     "lastUsedAt": 1773178491664,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a34dba4e-116e-4e64-979e-88b4d9e4f318",
@@ -3765,7 +4704,10 @@
     ],
     "createdAt": 1773178491687,
     "lastUsedAt": 1773178491687,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0cf6ef8e-0535-4194-94df-1ca836a3f6f9",
@@ -3777,7 +4719,10 @@
     ],
     "createdAt": 1773178491701,
     "lastUsedAt": 1773178491701,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f0ce2eb5-5dcd-4569-95b7-2e47ce968325",
@@ -3789,7 +4734,10 @@
     ],
     "createdAt": 1773178678403,
     "lastUsedAt": 1773178678403,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d5e07198-f883-4cca-a05c-c8c48643fbe7",
@@ -3801,7 +4749,10 @@
     ],
     "createdAt": 1773178678412,
     "lastUsedAt": 1773178678412,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "2c737593-7062-44a9-a9b0-21be9f7fe462",
@@ -3813,7 +4764,10 @@
     ],
     "createdAt": 1773178678421,
     "lastUsedAt": 1773178678421,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d104ae84-35e5-4c25-b729-f40e90b03a16",
@@ -3825,7 +4779,10 @@
     ],
     "createdAt": 1773178755169,
     "lastUsedAt": 1773178755169,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1dc8906a-3657-41de-a036-e3718eb7007b",
@@ -3837,7 +4794,10 @@
     ],
     "createdAt": 1773178755190,
     "lastUsedAt": 1773178755190,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "950f13a1-9574-43cb-a358-c0083cb4f70f",
@@ -3849,7 +4809,10 @@
     ],
     "createdAt": 1773178875260,
     "lastUsedAt": 1773178875260,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "ad31da34-ba1b-4ab0-9f2b-00322e433204",
@@ -3861,7 +4824,10 @@
     ],
     "createdAt": 1773178875278,
     "lastUsedAt": 1773178875278,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "595f82e5-fc30-48f8-bf5c-839de67bc193",
@@ -3873,7 +4839,10 @@
     ],
     "createdAt": 1773179104591,
     "lastUsedAt": 1773179104591,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "0dc92ae5-36c9-4b63-b59e-a6126e87cbd7",
@@ -3885,7 +4854,10 @@
     ],
     "createdAt": 1773179104612,
     "lastUsedAt": 1773179104612,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "1937648d-2264-43b9-86bc-b428c3179e8e",
@@ -3897,7 +4869,10 @@
     ],
     "createdAt": 1773179104625,
     "lastUsedAt": 1773179104625,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "62876d5b-bb25-4c49-8ccb-2ef99d199141",
@@ -3909,7 +4884,10 @@
     ],
     "createdAt": 1773179330135,
     "lastUsedAt": 1773179384521,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "97320633-53bd-4d94-8796-e2daed6e5861",
@@ -3921,7 +4899,10 @@
     ],
     "createdAt": 1773179330157,
     "lastUsedAt": 1773179330157,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "25073c6d-648b-49ac-9d23-818a00f9c4b2",
@@ -3933,7 +4914,10 @@
     ],
     "createdAt": 1773179330170,
     "lastUsedAt": 1773179330170,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "808e4780-ce27-4648-b4eb-77c4c7ce32c0",
@@ -3945,7 +4929,10 @@
     ],
     "createdAt": 1773179558068,
     "lastUsedAt": 1773179680550,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6ee7e100-1cbf-488f-9d32-2013b85ca946",
@@ -3957,7 +4944,10 @@
     ],
     "createdAt": 1773179558090,
     "lastUsedAt": 1773179680538,
-    "usageCount": 3
+    "usageCount": 3,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "10435610-1293-4e19-80da-8fb76606f671",
@@ -3969,7 +4959,10 @@
     ],
     "createdAt": 1773179558110,
     "lastUsedAt": 1773179558110,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "383bf9c4-b28d-4c79-adaa-09a78afce4e9",
@@ -3981,7 +4974,10 @@
     ],
     "createdAt": 1773179789142,
     "lastUsedAt": 1773179789142,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "570750b1-e572-4a14-b4ca-8605dcfda380",
@@ -3993,7 +4989,10 @@
     ],
     "createdAt": 1773179789173,
     "lastUsedAt": 1773179789173,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "150c8731-99bc-49c7-b638-d45e5e90c73d",
@@ -4005,7 +5004,10 @@
     ],
     "createdAt": 1773179789194,
     "lastUsedAt": 1773179789194,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5726e1c0-8b8b-43b5-a5c0-0f62df676da6",
@@ -4017,7 +5019,10 @@
     ],
     "createdAt": 1773180482855,
     "lastUsedAt": 1773180482855,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6da6a9be-6db7-439f-aac1-5b9cc39176d9",
@@ -4029,7 +5034,10 @@
     ],
     "createdAt": 1773180482889,
     "lastUsedAt": 1773180482889,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c593eda0-b687-4248-9d63-65efd49a43a2",
@@ -4041,7 +5049,10 @@
     ],
     "createdAt": 1773184034240,
     "lastUsedAt": 1773184034240,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "91da2c71-9629-43c7-b400-99451de22d12",
@@ -4053,7 +5064,10 @@
     ],
     "createdAt": 1773184034281,
     "lastUsedAt": 1773184034281,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "42087a48-dadb-4d28-b28b-46691804c647",
@@ -4065,7 +5079,10 @@
     ],
     "createdAt": 1773184119986,
     "lastUsedAt": 1773184119986,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "bcee418b-d2c2-42cf-83d0-c5b610039b48",
@@ -4077,7 +5094,10 @@
     ],
     "createdAt": 1773234614826,
     "lastUsedAt": 1773234706896,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "f6445925-662f-4545-b32d-738d2d5b2b96",
@@ -4089,7 +5109,10 @@
     ],
     "createdAt": 1773234614850,
     "lastUsedAt": 1773234614850,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "5b08fbe2-b9d3-4869-8f55-0fc67f6fde8d",
@@ -4101,7 +5124,10 @@
     ],
     "createdAt": 1773234614862,
     "lastUsedAt": 1773234706862,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "907a5cd6-f0bd-4c83-b95f-dc4a3b96ebd8",
@@ -4113,7 +5139,10 @@
     ],
     "createdAt": 1773239919517,
     "lastUsedAt": 1773239944171,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "c8522358-29b7-4c06-88d1-e36f926c5655",
@@ -4125,7 +5154,10 @@
     ],
     "createdAt": 1773239919547,
     "lastUsedAt": 1773239944145,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "50065fd6-0ee3-4f93-b916-e507f4b29291",
@@ -4137,7 +5169,10 @@
     ],
     "createdAt": 1773239919616,
     "lastUsedAt": 1773239919616,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "4c5c6645-bc90-4139-b58e-c8bf2704b91e",
@@ -4149,7 +5184,10 @@
     ],
     "createdAt": 1773240012987,
     "lastUsedAt": 1773240012987,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "6db4f33b-aa7a-4c2e-993e-725a70ea1b1f",
@@ -4161,7 +5199,10 @@
     ],
     "createdAt": 1773240013012,
     "lastUsedAt": 1773240013012,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "a857fbc3-8c1e-41f0-86aa-c2b9db98053e",
@@ -4173,7 +5214,10 @@
     ],
     "createdAt": 1773240013030,
     "lastUsedAt": 1773240013030,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "bf456d0d-ec61-4b34-b37a-b38d78ab9c9d",
@@ -4185,7 +5229,10 @@
     ],
     "createdAt": 1773264055488,
     "lastUsedAt": 1773265885275,
-    "usageCount": 4
+    "usageCount": 4,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "de9a2345-ed63-4f2d-9523-269bae19e251",
@@ -4197,7 +5244,10 @@
     ],
     "createdAt": 1773264055510,
     "lastUsedAt": 1773264144502,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "12c99f6d-3b61-4080-9a35-0d491f57d58e",
@@ -4209,7 +5259,10 @@
     ],
     "createdAt": 1773264055524,
     "lastUsedAt": 1773264063297,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "02ef67fa-5aeb-476f-b527-b66668956975",
@@ -4221,7 +5274,10 @@
     ],
     "createdAt": 1773264108451,
     "lastUsedAt": 1773264108451,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "91b6a486-3814-450f-8fa1-f31fa7dd1441",
@@ -4233,7 +5289,10 @@
     ],
     "createdAt": 1773264108472,
     "lastUsedAt": 1773264144483,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "91b705d5-1b95-4f4f-96f9-5eb9791d3477",
@@ -4245,7 +5304,10 @@
     ],
     "createdAt": 1773264203443,
     "lastUsedAt": 1773264203443,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "d335f12f-c9f8-4759-9a7d-afbf8bc0dcc5",
@@ -4257,7 +5319,10 @@
     ],
     "createdAt": 1773264203469,
     "lastUsedAt": 1773264203469,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "32dc236f-0357-447e-ba0a-2200a83c3e06",
@@ -4269,7 +5334,10 @@
     ],
     "createdAt": 1773264203481,
     "lastUsedAt": 1773264203481,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b1ce8170-793c-44fb-a0f2-a478adc12760",
@@ -4281,7 +5349,10 @@
     ],
     "createdAt": 1773265536752,
     "lastUsedAt": 1773265536752,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "97a3f131-e67a-447e-bca3-376b8fd059be",
@@ -4293,7 +5364,10 @@
     ],
     "createdAt": 1773265536789,
     "lastUsedAt": 1773265568865,
-    "usageCount": 2
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "3b625fed-21d1-498f-8e4e-8099358a6529",
@@ -4305,7 +5379,10 @@
     ],
     "createdAt": 1773265536802,
     "lastUsedAt": 1773265568844,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "109ba60a-fd42-4bfe-a640-ed82b6d68721",
@@ -4317,7 +5394,10 @@
     ],
     "createdAt": 1773265849632,
     "lastUsedAt": 1773265849632,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "dcaddac8-e7d4-4bd2-9025-164c38b2176b",
@@ -4329,7 +5409,10 @@
     ],
     "createdAt": 1773265849654,
     "lastUsedAt": 1773265885234,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "b5014f4f-1be0-42d5-93ee-39e4a9603c45",
@@ -4341,7 +5424,10 @@
     ],
     "createdAt": 1773265849668,
     "lastUsedAt": 1773265885263,
-    "usageCount": 1
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
     "id": "56306966-dccf-41a2-8bc1-c815cabb81a0",
@@ -4353,18 +5439,534 @@
     ],
     "createdAt": 1773401391671,
     "lastUsedAt": 1773401391671,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   },
   {
+    "id": "ab4b1662-d136-4ce5-8d68-3973729adcf6",
     "key": "architecture-compatibility",
     "value": "Verify scheduled tasks remain functional after architectural refactors like multi-agent migrations. Ensure agent communication paths are preserved during system changes.",
     "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent 恢复原设定的每天10点追踪A股的定时任务 修改A股定时任务，添加追踪特定的两个股票：002445和600764 立即执行所有定时任务 立即执行所有定时任务 查看执行日志 查看执行日志 还没看到定时任务返回结果，查看状态 还没看到定时任务返回结果，查看状态 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 请修复 清除多余opencode进程 检查定时任务状态 检查定时任务状态 检查定时任务状态 添加多一个定时任务，每天下午3点推荐优秀的skill，agent和mcp",
     "sessionIDs": [
       "ses_33242dc9effegZm1Mx7VIFIatF"
     ],
-    "id": "ab4b1662-d136-4ce5-8d68-3973729adcf6",
     "createdAt": 1773406539179,
     "lastUsedAt": 1773406539179,
-    "usageCount": 0
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "45fa28e7-cbd1-4647-b3df-2d2bfe98cd00",
+    "key": "sequential-execution-preference",
+    "value": "Configure multiple scheduled tasks to run sequentially rather than in parallel to prevent resource contention and ensure reliable result returns in multi-Agent systems.",
+    "context": "设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent 恢复原设定的每天10点追踪A股的定时任务 修改A股定时任务，添加追踪特定的两个股票：002445和600764 立即执行所有定时任务 立即执行所有定时任务 查看执行日志 查看执行日志 还没看到定时任务返回结果，查看状态 还没看到定时任务返回结果，查看状态 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 请修复 清除多余opencode进程 检查定时任务状态 检查定时任务状态 检查定时任务状态 添加多一个定时任务，每天下午3点推荐优秀的skill，agent和mcp 立即执行一次定时任务",
+    "sessionIDs": [
+      "ses_33242dc9effegZm1Mx7VIFIatF"
+    ],
+    "createdAt": 1773414125497,
+    "lastUsedAt": 1773414125497,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "5a5e4473-c0c2-4939-a3a0-7ff42a45be65",
+    "key": "database-code-audit-approach",
+    "value": "Use a combination of glob to find database-related files (models, migrations, repositories) and grep to search for SQL keywords and ORM method calls to systematically map all database interactions.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773452620406,
+    "lastUsedAt": 1773452620406,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "0846a2cd-7def-479a-95f2-e47b845b6a15",
+    "key": "trace-data-flow-pattern",
+    "value": "Start from entry points (API routes, controllers) and trace the data flow through service layers to database operations, documenting the call chain and data transformations at each layer.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773452620688,
+    "lastUsedAt": 1773452620688,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "96aa0df5-e388-4d07-ae92-32dbeec29e53",
+    "key": "identify-database-abstraction-layers",
+    "value": "Identify and document the database abstraction patterns used (ORM, query builders, raw SQL) to understand the project's data access conventions and potential areas for optimization.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773452620894,
+    "lastUsedAt": 1773452620894,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cecaf59f-a1d1-4b79-81e5-cb9de8670aea",
+    "key": "database-audit-strategy",
+    "value": "Start database audits by using glob to find database-related files (models, migrations, config), then use grep to search for connection strings, ORM patterns, and query operations.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773452822692,
+    "lastUsedAt": 1773452822692,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "85629515-eb17-4cf2-97ac-a6baccf25621",
+    "key": "data-storage-mapping",
+    "value": "Identify all databases by checking configuration files for connection strings, then trace each data model to its corresponding database to create a complete storage map.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773452822891,
+    "lastUsedAt": 1773452822891,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "bf085939-88f9-4a61-b9f4-4f0aaccade5d",
+    "key": "code-review-efficiency",
+    "value": "Use systematic file reading with clear objectives - first identify key files through glob/grep, then read them in logical order to understand the complete data flow architecture.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773452823086,
+    "lastUsedAt": 1773452823086,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "2e7f1fb2-5176-4563-a254-94cad35a25ed",
+    "key": "database-audit-approach",
+    "value": "Start database code review by identifying database configuration files and connection patterns, then systematically trace operations using grep for keywords like 'database', 'db', 'pool', 'connect', and 'query'.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453004810,
+    "lastUsedAt": 1773453004810,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "4ae0f56d-924a-4069-ad92-16c7266fde9d",
+    "key": "data-storage-inventory",
+    "value": "Create a comprehensive inventory mapping each data type to its storage location, noting the database system, schema, and purpose for each to clarify where generated data is persisted.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453005034,
+    "lastUsedAt": 1773453005034,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "998f47a7-80ca-432e-8d64-03812846c30a",
+    "key": "multi-database-project-analysis",
+    "value": "For projects with multiple databases, examine each database's initialization and migration files to understand the schema structure and relationships between different data stores.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453005247,
+    "lastUsedAt": 1773453005247,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8449bc81-921a-4624-8144-9f60e6263888",
+    "key": "database-discovery-workflow",
+    "value": "Start database investigation by using glob to find database files (*.db, *.sqlite) and grep to search for database-related keywords like 'database', 'sqlite', 'prisma', or 'db' to identify all database operations.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453233080,
+    "lastUsedAt": 1773453233080,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "98257086-8a99-4723-afeb-a0b5110a66ab",
+    "key": "database-file-inspection",
+    "value": "Use sqlite3 CLI or similar tools to directly inspect database files - commands like '.tables', '.schema', and 'SELECT' queries help understand the data structure and content without needing the application running.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453233297,
+    "lastUsedAt": 1773453233297,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "e3f6dcd7-3b4d-4924-8be9-1e664176ef37",
+    "key": "code-to-database-tracing",
+    "value": "Trace database operations by reading the database configuration/initialization files first, then follow the imports to understand the full flow of how data is created, read, updated, and deleted across the codebase.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453233898,
+    "lastUsedAt": 1773453233898,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "fc2c97dd-4505-4c8c-a028-4a22ab55e68a",
+    "key": "database-investigation-approach",
+    "value": "When investigating database issues, start by searching for database initialization and connection code using grep patterns like 'sqlite', 'database', 'db.open' to trace the data flow.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453488363,
+    "lastUsedAt": 1773453488363,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b04d650b-d006-432d-849b-038bf4650ce0",
+    "key": "check-database-file-existence",
+    "value": "Before investigating why database operations fail, verify the database file actually exists at the expected path using file system tools or direct path inspection.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453488588,
+    "lastUsedAt": 1773453488588,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cb930c1c-d083-4653-b303-94a1ff1400b2",
+    "key": "backup-restore-vs-initialization",
+    "value": "Having backup/restore functionality doesn't guarantee database existence - these features assume a working database already exists. Check for database creation/initialization logic separately.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453488812,
+    "lastUsedAt": 1773453488812,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "26cf9e82-0117-4a76-9aae-6d52592c65eb",
+    "key": "database-investigation-workflow",
+    "value": "When investigating database operations, start by searching for database initialization code and connection patterns using grep, then trace the data flow through the codebase to understand where data is stored.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？ 在 ~/目录下查找所有含opencode字符串的名字的数据库",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453762181,
+    "lastUsedAt": 1773453762181,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a982c244-a3a5-4f73-8119-a4392565b44d",
+    "key": "missing-database-debugging",
+    "value": "If a database file is missing despite backup/restore functionality existing, check if the database path is correctly configured and whether initialization has been triggered - the database may only be created on first write.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？ 在 ~/目录下查找所有含opencode字符串的名字的数据库",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453762489,
+    "lastUsedAt": 1773453762489,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "c60c32b8-0d70-4b8b-8544-60807c9f642d",
+    "key": "cross-directory-database-search",
+    "value": "Use glob patterns with ** to search for database files recursively across directories, and grep with -l flag to find files containing database-related strings for comprehensive discovery.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？ 在 ~/目录下查找所有含opencode字符串的名字的数据库",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773453762719,
+    "lastUsedAt": 1773453762719,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "22f3e707-6361-44ca-94b8-bb4bcfbe676e",
+    "key": "database-audit-patterns",
+    "value": "When auditing database operations, use multiple grep patterns like 'db', 'database', 'sqlite', 'prisma', 'drizzle' to catch all database-related code across the codebase.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？ 在 ~/目录下查找所有含opencode字符串的名字的数据库 太乱了，基于对项目代码的审查，给出一个合理的数据库使用方案 continue",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773454302655,
+    "lastUsedAt": 1773454302655,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "30cd7e5a-6350-4100-add8-04ea073c0ad2",
+    "key": "database-path-centralization",
+    "value": "Store database file paths in a single configuration file or constant to avoid scattered path definitions and confusion about where data is stored.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？ 在 ~/目录下查找所有含opencode字符串的名字的数据库 太乱了，基于对项目代码的审查，给出一个合理的数据库使用方案 continue",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773454322066,
+    "lastUsedAt": 1773454322066,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "fcdf7543-fbf2-48fc-ba8b-54622229091c",
+    "key": "backup-restore-documentation",
+    "value": "Backup and restore functions should clearly document the expected database location and handle cases where the database file doesn't exist gracefully.",
+    "context": "现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？ 在 ~/目录下查找所有含opencode字符串的名字的数据库 太乱了，基于对项目代码的审查，给出一个合理的数据库使用方案 continue",
+    "sessionIDs": [
+      "ses_315ff3bfbffeN5R0OyG8DVevfT"
+    ],
+    "createdAt": 1773454322291,
+    "lastUsedAt": 1773454322291,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "0ebc4743-85a0-4ba0-b7c0-2353ad19f2be",
+    "key": "staged-automation-workflow",
+    "value": "Structure automated improvement systems as distinct stages (collect → analyze → act) to enable better monitoring, error handling, and resumability at each phase.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773461810070,
+    "lastUsedAt": 1773462112109,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "d2b68cf5-685a-4396-b795-beb22e432172",
+    "key": "safe-mode-flags",
+    "value": "Include preview and status-check flags (--check, --status) in automation tools to allow inspection without side effects, reducing risk during development and testing.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773461810678,
+    "lastUsedAt": 1773461810678,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "ab279118-ef28-4ec7-99af-ce61c5bcbc61",
+    "key": "multi-source-data-aggregation",
+    "value": "Combine diverse authoritative sources (academic papers from arXiv, code from GitHub, packages from PyPI) when gathering intelligence for system improvements to ensure comprehensive coverage.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773461810907,
+    "lastUsedAt": 1773461810907,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "4abd8c7e-1cee-4195-8b14-fbc183e91278",
+    "key": "multi-tool-workflow-orchestration",
+    "value": "Complex automation tasks like self-evolution require orchestrating multiple tools in sequence (evolve, indexing, SQL, todo management). Plan the tool chain order carefully to ensure each step has the data it needs from previous steps.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773462291589,
+    "lastUsedAt": 1773462291589,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "77bd6c76-c3b9-4153-912a-f6c4ab423b6a",
+    "key": "cli-flag-patterns",
+    "value": "Use CLI flags (--execute, --status, --check) to provide safe operational modes. This allows users to preview changes, check status, or execute fully, reducing risk in automated systems.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773462291823,
+    "lastUsedAt": 1773462421790,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "31245572-7552-4ec2-9eef-4c45807740fe",
+    "key": "self-evolution-pipeline",
+    "value": "Self-improvement systems follow a reliable pattern: collect data from external sources, analyze and plan improvements, generate tasks, then optionally execute. This pipeline structure is reusable for similar automation needs.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773462292059,
+    "lastUsedAt": 1773462292059,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "d581ca4f-b5bd-4ac3-ae93-626a1981a897",
+    "key": "self-evolution-workflow",
+    "value": "Structure autonomous improvement systems as a clear pipeline: collect data from external sources, analyze for insights, generate actionable tasks, and optionally execute. This separation allows for human review before execution.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中 详细解释每个建议项",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773462607184,
+    "lastUsedAt": 1773462607184,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "2e2d5122-fd9e-4afb-806a-34e36b9bf803",
+    "key": "multi-source-integration",
+    "value": "Integrate diverse external sources (arXiv for research, GitHub for code trends, PyPI for packages) to gather comprehensive intelligence for system improvements rather than relying on single data sources.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中 详细解释每个建议项",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773462607411,
+    "lastUsedAt": 1773462607411,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "bcb2b473-429d-4268-9bc6-83e1b4830b34",
+    "key": "command-flag-pattern",
+    "value": "Use command flags (--execute, --status, --check) to provide granular control over automated processes, allowing users to preview changes before committing to execution.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中 详细解释每个建议项",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773462607609,
+    "lastUsedAt": 1773462607609,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "85cafa7b-87dd-4f6e-854f-72cb8ea6f35c",
+    "key": "evolution-workflow-phases",
+    "value": "The self-evolution system follows a clear pipeline: collect data from external sources (arXiv, GitHub, PyPI), analyze findings, generate tasks, then optionally execute. Understanding this flow helps debug which stage issues occur in.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中 详细解释每个建议项 阅读下面这些文件，来实施建议，提示：项目本身有增量更新的机制，但需要再分析：[Pasted ~6 lines] /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md\n/Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md\n/Users/lpcw/Documents/opencode/docs/memory-service-refactor-changelog-all.html\n/Users/lpcw/Documents/opencode/docs/permanent-memory-system.md\n/Users/lpcw/Documents/opencode/docs/prompt-refactor-report.md\n/Users/lpcw/Documents/opencode/docs/vector-index-migration-report-2026-03-14.md",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773463464691,
+    "lastUsedAt": 1773463464691,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "9f237e5a-4319-460b-a7d3-dccd659dd74b",
+    "key": "cli-flags-for-safe-operations",
+    "value": "Use --check to preview changes without executing, --status to inspect current state, and --execute only when ready to apply changes. This staged approach prevents unintended modifications.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中 详细解释每个建议项 阅读下面这些文件，来实施建议，提示：项目本身有增量更新的机制，但需要再分析：[Pasted ~6 lines] /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md\n/Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md\n/Users/lpcw/Documents/opencode/docs/memory-service-refactor-changelog-all.html\n/Users/lpcw/Documents/opencode/docs/permanent-memory-system.md\n/Users/lpcw/Documents/opencode/docs/prompt-refactor-report.md\n/Users/lpcw/Documents/opencode/docs/vector-index-migration-report-2026-03-14.md",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773463465107,
+    "lastUsedAt": 1773463465107,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "c65ad21c-6cda-41b9-81d1-6ef734fd2b34",
+    "key": "multi-source-data-collection",
+    "value": "The evolution system aggregates from multiple sources (academic papers, code repositories, package registries) to inform improvements, making it more comprehensive than single-source approaches.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中 详细解释每个建议项 阅读下面这些文件，来实施建议，提示：项目本身有增量更新的机制，但需要再分析：[Pasted ~6 lines] /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md\n/Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md\n/Users/lpcw/Documents/opencode/docs/memory-service-refactor-changelog-all.html\n/Users/lpcw/Documents/opencode/docs/permanent-memory-system.md\n/Users/lpcw/Documents/opencode/docs/prompt-refactor-report.md\n/Users/lpcw/Documents/opencode/docs/vector-index-migration-report-2026-03-14.md",
+    "sessionIDs": [
+      "ses_3169e4a00ffeHDE0DE7FG73Ao8"
+    ],
+    "createdAt": 1773463465341,
+    "lastUsedAt": 1773463465341,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
   }
 ]

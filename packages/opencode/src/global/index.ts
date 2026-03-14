@@ -6,10 +6,38 @@ import { Filesystem } from "../util/filesystem"
 
 const app = "opencode"
 
-const data = path.join(xdgData!, app)
-const cache = path.join(xdgCache!, app)
-const config = path.join(xdgConfig!, app)
-const state = path.join(xdgState!, app)
+function getDataDir(): string {
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Application Support", app)
+  }
+  return path.join(xdgData!, app)
+}
+
+function getCacheDir(): string {
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Caches", app)
+  }
+  return path.join(xdgCache!, app)
+}
+
+function getConfigDir(): string {
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Application Support", app, "config")
+  }
+  return path.join(xdgConfig!, app)
+}
+
+function getStateDir(): string {
+  if (process.platform === "darwin") {
+    return path.join(os.homedir(), "Library", "Application Support", app, "state")
+  }
+  return path.join(xdgState!, app)
+}
+
+const data = getDataDir()
+const cache = getCacheDir()
+const config = getConfigDir()
+const state = getStateDir()
 
 export namespace Global {
   export const Path = {

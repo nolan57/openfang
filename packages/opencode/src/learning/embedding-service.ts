@@ -3,6 +3,7 @@ import { Log } from "../util/log"
 import { Global } from "../global"
 import type { EmbeddingGenerator, VectorType } from "./vector-store-interface"
 import { getConfiguredEmbeddingDim, storeEmbeddingDim, Database } from "../storage/db"
+import { embedWithDimensions } from "./embed-utils"
 
 export namespace EmbeddingService {
   const log = Log.create({ service: "embedding" })
@@ -71,7 +72,7 @@ export namespace EmbeddingService {
     "deepseek-embedding": 1536,
 
     // Default fallback
-    "default": 384,
+    default: 384,
   }
 
   /**
@@ -120,12 +121,12 @@ export namespace EmbeddingService {
    */
   export function getKnownDimensions(modelId: string): number | undefined {
     const { modelId: modelName } = parseModelId(modelId)
-    
+
     // Try exact match first
     if (KNOWN_EMBEDDING_DIMENSIONS[modelName]) {
       return KNOWN_EMBEDDING_DIMENSIONS[modelName]
     }
-    
+
     // Try with full model ID
     if (KNOWN_EMBEDDING_DIMENSIONS[modelId]) {
       return KNOWN_EMBEDDING_DIMENSIONS[modelId]
@@ -133,8 +134,7 @@ export namespace EmbeddingService {
 
     // Try partial match for model names with version
     for (const [key, dim] of Object.entries(KNOWN_EMBEDDING_DIMENSIONS)) {
-      if (modelName.toLowerCase().includes(key.toLowerCase()) || 
-          key.toLowerCase().includes(modelName.toLowerCase())) {
+      if (modelName.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(modelName.toLowerCase())) {
         return dim
       }
     }
@@ -156,9 +156,9 @@ export namespace EmbeddingService {
     // 2. Check known models
     const knownDim = getKnownDimensions(config.modelId)
     if (knownDim) {
-      log.info("embedding_dimensions_from_known_models", { 
-        modelId: config.modelId, 
-        dimensions: knownDim 
+      log.info("embedding_dimensions_from_known_models", {
+        modelId: config.modelId,
+        dimensions: knownDim,
       })
       return knownDim
     }
@@ -168,23 +168,23 @@ export namespace EmbeddingService {
       const generator = await createGenerator(config)
       const testEmbedding = await generator("test", "content")
       const detectedDim = testEmbedding.length
-      log.info("embedding_dimensions_from_api_probe", { 
-        modelId: config.modelId, 
-        dimensions: detectedDim 
+      log.info("embedding_dimensions_from_api_probe", {
+        modelId: config.modelId,
+        dimensions: detectedDim,
       })
       return detectedDim
     } catch (error) {
-      log.warn("embedding_dimensions_probe_failed", { 
-        modelId: config.modelId, 
-        error: error instanceof Error ? error.message : String(error) 
+      log.warn("embedding_dimensions_probe_failed", {
+        modelId: config.modelId,
+        error: error instanceof Error ? error.message : String(error),
       })
     }
 
     // 4. Fallback to default
     const defaultDim = KNOWN_EMBEDDING_DIMENSIONS["default"]
-    log.warn("embedding_dimensions_using_default", { 
-      modelId: config.modelId, 
-      dimensions: defaultDim 
+    log.warn("embedding_dimensions_using_default", {
+      modelId: config.modelId,
+      dimensions: defaultDim,
     })
     return defaultDim
   }
@@ -198,7 +198,7 @@ export namespace EmbeddingService {
 
     // Dynamic import based on provider
     let embeddingModel: any
-    
+
     try {
       switch (provider) {
         case "openai": {
@@ -250,15 +250,24 @@ export namespace EmbeddingService {
           embeddingModel = client.textEmbeddingModel(modelName)
           break
         }
-        default: {
-          // Use OpenAI-compatible for other providers
-          const { createOpenAI } = await import("@ai-sdk/openai")
-          const client = createOpenAI({
-            apiKey: config.apiKey,
-            baseURL: config.baseURL,
-            ...config.options,
-          })
-          embeddingModel = client.textEmbeddingModel(modelName)
+        case "dashscope":
+        case "alibaba": {
+          // Alibaba Cloud DashScope - use embedWithDimensions to support dimensions parameter
+          return async (text: string, _vectorType: VectorType): Promise<Float32Array> => {
+            try {
+              return await embedWithDimensions({
+                model: modelName,
+                value: text,
+                dimensions: config.dimensions,
+                apiKey: config.apiKey || process.env.DASHSCOPE_API_KEY,
+              })
+            } catch (error) {
+              log.error("dashscope_embedding_failed", {
+                error: error instanceof Error ? error.message : String(error),
+              })
+              throw error
+            }
+          }
         }
       }
 
@@ -291,7 +300,7 @@ export namespace EmbeddingService {
     const provider = providerId || config.providerId || "openai"
 
     let embeddingModel: any
-    
+
     // Re-create the model for batch operations
     switch (provider) {
       case "openai": {
@@ -342,10 +351,10 @@ export namespace EmbeddingService {
       // Store new dimension in database using raw SQLite connection
       const sqlite = Database.raw()
       storeEmbeddingDim(sqlite, dimensions)
-      
+
       // Update environment variable for current session
       process.env.EMBEDDING_DIM = String(dimensions)
-      
+
       log.info("embedding_dimensions_auto_configured", {
         previousDimension: currentDim,
         newDimension: dimensions,
@@ -377,10 +386,10 @@ export namespace EmbeddingService {
   }> {
     // Detect and configure dimensions
     const { dimensions, wasConfigured } = await autoConfigureDimensions(config)
-    
+
     // Create generators
     const { single, batch } = await createBatchGenerator(config)
-    
+
     const { providerId, modelId: modelName, fullModelId } = parseModelId(config.modelId)
 
     log.info("embedding_service_created", {

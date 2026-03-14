@@ -3,53 +3,8 @@ import { glob } from "glob"
 import { readFile } from "fs/promises"
 import { resolve, join } from "path"
 import { Database } from "../storage/db"
-import { vector_memory } from "../learning/learning.sql"
-import { eq } from "drizzle-orm"
 import z from "zod"
-
-function hashString(str: string): number {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i)
-    hash = hash & hash
-  }
-  return Math.abs(hash)
-}
-
-function simpleEmbedding(text: string, dimensions: number = 384): number[] {
-  const words = text.toLowerCase().split(/\W+/)
-  const wordFreq: Record<string, number> = {}
-
-  for (const word of words) {
-    if (word.length > 2) {
-      wordFreq[word] = (wordFreq[word] || 0) + 1
-    }
-  }
-
-  const hash1 = hashString(text)
-  const hash2 = hashString(text.split("").reverse().join(""))
-
-  const embedding: number[] = []
-  for (let i = 0; i < dimensions; i++) {
-    const posHash = hashString(text + i)
-    const freqSum = Object.values(wordFreq).reduce((a, b) => a + b, 0)
-
-    const value =
-      Math.sin(hash1 * (i + 1) * 0.1) * 0.3 +
-      Math.cos(hash2 * (i + 1) * 0.1) * 0.3 +
-      (freqSum > 0
-        ? (Object.entries(wordFreq).reduce((sum, [w, f]) => sum + Math.sin(hashString(w) * (i + 1) * 0.01) * f, 0) /
-            freqSum) *
-          0.4
-        : 0)
-
-    embedding.push(Math.tanh(value))
-  }
-
-  const magnitude = Math.sqrt(embedding.reduce((sum, v) => sum + v * v, 0))
-  if (magnitude === 0) return embedding
-  return embedding.map((v) => v / magnitude)
-}
+import { embedWithDimensions } from "../learning/embed-utils"
 
 function extractExports(content: string): string[] {
   const exports: string[] = []
@@ -179,6 +134,18 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
       const now = Date.now()
       let added = 0
 
+      // Use DashScope (Alibaba Cloud) embedding with 1536 dimensions
+      const dashscopeModel = "text-embedding-v4"
+      const embeddingDimensions = 1536
+
+      if (!process.env.DASHSCOPE_API_KEY) {
+        return {
+          title: "Code Index Failed",
+          metadata: { error: "DASHSCOPE_API_KEY not set" },
+          output: "Error: DASHSCOPE_API_KEY environment variable is required for embedding generation",
+        }
+      }
+
       const checkStmt = sqlite.prepare("SELECT 1 FROM vector_memory WHERE id = ?")
       const insertStmt = sqlite.prepare(`
         INSERT INTO vector_memory (id, node_type, node_id, entity_title, vector_type, embedding, model, dimensions, metadata, time_created, time_updated)
@@ -191,7 +158,12 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
           const existing = checkStmt.get(entry.node_id)
           if (existing) continue
 
-          const embedding = simpleEmbedding(entry.content_text)
+          const vector = await embedWithDimensions({
+            model: dashscopeModel,
+            value: entry.content_text,
+            dimensions: embeddingDimensions,
+          })
+          const embedding = Array.from(vector)
           const embeddingJson = JSON.stringify(embedding)
           const metadataJson = JSON.stringify(entry.metadata)
 
@@ -202,14 +174,16 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
             entry.entity_title,
             "code",
             embeddingJson,
-            "simple",
-            embedding.length,
+            `dashscope/${dashscopeModel}`,
+            embeddingDimensions,
             metadataJson,
             now,
             now,
           )
           added++
-        } catch (error) {}
+        } catch (error) {
+          console.error(`Failed to process ${entry.entity_title}:`, error)
+        }
       }
 
       const totalStmt = sqlite.prepare("SELECT COUNT(*) as cnt FROM vector_memory")

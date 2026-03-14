@@ -1,6 +1,6 @@
 /**
  * SQLite-vec implementation of the VectorStore interface
- * 
+ *
  * Uses the sqlite-vec extension for fast vector similarity search.
  * Falls back to text-based search when the extension is not available.
  */
@@ -61,15 +61,15 @@ export class SqliteVecStore implements IVectorStore {
 
   /**
    * Create a VectorStore with automatic embedding model configuration
-   * 
+   *
    * @param modelConfig - Embedding model configuration (model ID or full config)
    * @param storeConfig - Additional VectorStore configuration
    * @returns SqliteVecStore instance with configured embedding generator
-   * 
+   *
    * @example
    * // Using OpenAI text-embedding-3-small
    * const store = await SqliteVecStore.withEmbeddingModel("openai/text-embedding-3-small")
-   * 
+   *
    * // Using custom configuration
    * const store = await SqliteVecStore.withEmbeddingModel({
    *   modelId: "openai/text-embedding-3-small",
@@ -81,13 +81,12 @@ export class SqliteVecStore implements IVectorStore {
     storeConfig: Omit<VectorStoreConfig, "embeddingGenerator" | "defaultDimensions"> = {},
   ): Promise<SqliteVecStore> {
     // Normalize config
-    const config: EmbeddingService.EmbeddingModelConfig = typeof modelConfig === "string"
-      ? { modelId: modelConfig }
-      : modelConfig
-    
+    const config: EmbeddingService.EmbeddingModelConfig =
+      typeof modelConfig === "string" ? { modelId: modelConfig } : modelConfig
+
     // Create service with auto-configuration
     const { generator, dimensions } = await EmbeddingService.createService(config)
-    
+
     return new SqliteVecStore({
       ...storeConfig,
       embeddingGenerator: generator,
@@ -126,6 +125,7 @@ export class SqliteVecStore implements IVectorStore {
     try {
       sqlite.exec(`
         CREATE VIRTUAL TABLE IF NOT EXISTS vec_vector_memory USING vec0(
+          id TEXT,
           embedding float[${this.config.defaultDimensions}]
         )
       `)
@@ -153,21 +153,21 @@ export class SqliteVecStore implements IVectorStore {
           content_rowid='rowid'
         )
       `)
-      
+
       // Create triggers to keep FTS index in sync
       sqlite.exec(`
         CREATE TRIGGER IF NOT EXISTS vector_memory_fts_insert AFTER INSERT ON vector_memory BEGIN
           INSERT INTO vector_memory_fts(rowid, entity_title) VALUES (new.rowid, new.entity_title);
         END
       `)
-      
+
       sqlite.exec(`
         CREATE TRIGGER IF NOT EXISTS vector_memory_fts_delete AFTER DELETE ON vector_memory BEGIN
           INSERT INTO vector_memory_fts(vector_memory_fts, rowid, entity_title) 
           VALUES('delete', old.rowid, old.entity_title);
         END
       `)
-      
+
       sqlite.exec(`
         CREATE TRIGGER IF NOT EXISTS vector_memory_fts_update AFTER UPDATE ON vector_memory BEGIN
           INSERT INTO vector_memory_fts(vector_memory_fts, rowid, entity_title) 
@@ -175,7 +175,7 @@ export class SqliteVecStore implements IVectorStore {
           INSERT INTO vector_memory_fts(rowid, entity_title) VALUES (new.rowid, new.entity_title);
         END
       `)
-      
+
       this.ftsTableInitialized = true
       log.info("fts_table_created")
     } catch (error) {
@@ -188,7 +188,10 @@ export class SqliteVecStore implements IVectorStore {
 
   private async maybeSync(): Promise<void> {
     const needsSync = Database.use((db) => {
-      const nodesCount = db.select({ count: sql<number>`count(*)` }).from(knowledge_nodes).get() as { count: number } | undefined
+      const nodesCount = db
+        .select({ count: sql<number>`count(*)` })
+        .from(knowledge_nodes)
+        .get() as { count: number } | undefined
       const totalNodes = nodesCount?.count ?? 0
 
       if (totalNodes === 0) return false
@@ -247,9 +250,9 @@ export class SqliteVecStore implements IVectorStore {
     if (!this.initialized) await this.init()
 
     // [ENH] Dimension validation - use configured dimension from db.ts
-    const embedding = entry.embedding ?? await this.generateEmbedding(entry.entity_title, entry.vector_type)
+    const embedding = entry.embedding ?? (await this.generateEmbedding(entry.entity_title, entry.vector_type))
     const expectedDim = this.configuredDim
-    
+
     if (embedding.length !== expectedDim) {
       throw new VectorDimensionMismatchError({
         provided: embedding.length,
@@ -281,10 +284,15 @@ export class SqliteVecStore implements IVectorStore {
 
     if (this.vecTableInitialized) {
       const sqlite = Database.raw()
-      sqlite.prepare("INSERT INTO vec_vector_memory(rowid, embedding) VALUES (?, vec_f32(?))").run(id, embeddingJson)
+      sqlite.prepare("INSERT INTO vec_vector_memory(id, embedding) VALUES (?, vec_f32(?))").run(id, embeddingJson)
     }
 
-    log.info("vector_stored", { id, node_type: entry.node_type, vector_type: entry.vector_type, dimensions: embedding.length })
+    log.info("vector_stored", {
+      id,
+      node_type: entry.node_type,
+      vector_type: entry.vector_type,
+      dimensions: embedding.length,
+    })
     return id
   }
 
@@ -301,7 +309,10 @@ export class SqliteVecStore implements IVectorStore {
     if (!this.initialized) await this.init()
 
     const vecResults = this.vecTableInitialized ? await this.searchVec(query, options) : []
-    const fallbackResults = await this.searchFallback(query, { ...options, limit: options.limit ? options.limit * 2 : 20 })
+    const fallbackResults = await this.searchFallback(query, {
+      ...options,
+      limit: options.limit ? options.limit * 2 : 20,
+    })
 
     const merged = new Map<string, SearchResult>()
 
@@ -339,14 +350,16 @@ export class SqliteVecStore implements IVectorStore {
 
     const sqlite = Database.raw()
     const vecResults = sqlite
-      .prepare(`
-        SELECT rowid, vec_distance_cosine(embedding, vec_f32(?)) as distance
+      .prepare(
+        `
+        SELECT id, vec_distance_cosine(embedding, vec_f32(?)) as distance
         FROM vec_vector_memory
-        WHERE rowid IS NOT NULL
+        WHERE id IS NOT NULL
         ORDER BY distance ASC
         LIMIT ?
-      `)
-      .all(embeddingJson, limit * 2) as { rowid: string; distance: number }[]
+      `,
+      )
+      .all(embeddingJson, limit * 2) as { id: string; distance: number }[]
 
     const results: SearchResult[] = []
     for (const vec of vecResults) {
@@ -355,21 +368,24 @@ export class SqliteVecStore implements IVectorStore {
       if (similarity < minSimilarity) continue
 
       const row = Database.use((db) =>
-        db.select({
-          id: vector_memory.id,
-          node_type: vector_memory.node_type,
-          node_id: vector_memory.node_id,
-          entity_title: vector_memory.entity_title,
-          metadata: vector_memory.metadata,
-          expires_at: vector_memory.expires_at,
-        })
+        db
+          .select({
+            id: vector_memory.id,
+            node_type: vector_memory.node_type,
+            node_id: vector_memory.node_id,
+            entity_title: vector_memory.entity_title,
+            metadata: vector_memory.metadata,
+            expires_at: vector_memory.expires_at,
+          })
           .from(vector_memory)
-          .where(and(
-            eq(vector_memory.id, vec.rowid),
-            // [ENH] TTL: Exclude expired entries
-            sql`(${vector_memory.expires_at} IS NULL OR ${vector_memory.expires_at} > ${now})`
-          ))
-          .get()
+          .where(
+            and(
+              eq(vector_memory.id, vec.id),
+              // [ENH] TTL: Exclude expired entries
+              sql`(${vector_memory.expires_at} IS NULL OR ${vector_memory.expires_at} > ${now})`,
+            ),
+          )
+          .get(),
       ) as any
 
       // Skip if not found or expired
@@ -410,16 +426,18 @@ export class SqliteVecStore implements IVectorStore {
 
     // Full table scan fallback (original behavior)
     let queryBuilder = Database.use((db) =>
-      db.select({
-        id: knowledge_nodes.id,
-        type: knowledge_nodes.type,
-        entity_type: knowledge_nodes.entity_type,
-        entity_id: knowledge_nodes.entity_id,
-        title: knowledge_nodes.title,
-        content: knowledge_nodes.content,
-        embedding: knowledge_nodes.embedding,
-        metadata: knowledge_nodes.metadata,
-      }).from(knowledge_nodes)
+      db
+        .select({
+          id: knowledge_nodes.id,
+          type: knowledge_nodes.type,
+          entity_type: knowledge_nodes.entity_type,
+          entity_id: knowledge_nodes.entity_id,
+          title: knowledge_nodes.title,
+          content: knowledge_nodes.content,
+          embedding: knowledge_nodes.embedding,
+          metadata: knowledge_nodes.metadata,
+        })
+        .from(knowledge_nodes),
     )
 
     if (options.node_type) {
@@ -466,19 +484,27 @@ export class SqliteVecStore implements IVectorStore {
     const now = Date.now()
 
     const sqlite = Database.raw()
-    
+
     // Escape special FTS5 characters and build search query
-    const searchTerms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1).join(" OR ")
+    const searchTerms = query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length > 1)
+      .join(" OR ")
     if (!searchTerms) return []
 
     // Query FTS table for matching titles
-    const ftsMatches = sqlite.prepare(`
+    const ftsMatches = sqlite
+      .prepare(
+        `
       SELECT rowid, entity_title
       FROM vector_memory_fts
       WHERE vector_memory_fts MATCH ?
       ORDER BY rank
       LIMIT ?
-    `).all(searchTerms, limit * 2) as { rowid: number; entity_title: string }[]
+    `,
+      )
+      .all(searchTerms, limit * 2) as { rowid: number; entity_title: string }[]
 
     if (ftsMatches.length === 0) return []
 
@@ -486,22 +512,25 @@ export class SqliteVecStore implements IVectorStore {
     const results: SearchResult[] = []
     for (const match of ftsMatches) {
       const row = Database.use((db) =>
-        db.select({
-          id: vector_memory.id,
-          node_type: vector_memory.node_type,
-          node_id: vector_memory.node_id,
-          entity_title: vector_memory.entity_title,
-          embedding: vector_memory.embedding,
-          metadata: vector_memory.metadata,
-          expires_at: vector_memory.expires_at,
-        })
+        db
+          .select({
+            id: vector_memory.id,
+            node_type: vector_memory.node_type,
+            node_id: vector_memory.node_id,
+            entity_title: vector_memory.entity_title,
+            embedding: vector_memory.embedding,
+            metadata: vector_memory.metadata,
+            expires_at: vector_memory.expires_at,
+          })
           .from(vector_memory)
-          .where(and(
-            eq(vector_memory.id, match.rowid.toString()),
-            // [ENH] TTL: Exclude expired entries
-            sql`(${vector_memory.expires_at} IS NULL OR ${vector_memory.expires_at} > ${now})`
-          ))
-          .get()
+          .where(
+            and(
+              eq(vector_memory.id, match.rowid.toString()),
+              // [ENH] TTL: Exclude expired entries
+              sql`(${vector_memory.expires_at} IS NULL OR ${vector_memory.expires_at} > ${now})`,
+            ),
+          )
+          .get(),
       ) as any
 
       if (row) {
@@ -537,9 +566,7 @@ export class SqliteVecStore implements IVectorStore {
   }
 
   async getById(id: string): Promise<VectorEntry | null> {
-    const row = Database.use((db) =>
-      db.select().from(vector_memory).where(eq(vector_memory.id, id)).get()
-    )
+    const row = Database.use((db) => db.select().from(vector_memory).where(eq(vector_memory.id, id)).get())
 
     if (!row) return null
 
@@ -561,7 +588,7 @@ export class SqliteVecStore implements IVectorStore {
 
     if (this.vecTableInitialized) {
       const sqlite = Database.raw()
-      sqlite.prepare("DELETE FROM vec_vector_memory WHERE rowid = ?").run(id)
+      sqlite.prepare("DELETE FROM vec_vector_memory WHERE id = ?").run(id)
     }
 
     log.info("vector_deleted", { id })
@@ -573,16 +600,17 @@ export class SqliteVecStore implements IVectorStore {
 
   async getStats(): Promise<VectorStats> {
     const now = Date.now()
-    
+
     // [ENH] TTL: Count all vectors and expired vectors
-    const all = Database.use((db) => 
-      db.select({
-        vector_type: vector_memory.vector_type,
-        model: vector_memory.model,
-        expires_at: vector_memory.expires_at,
-      })
+    const all = Database.use((db) =>
+      db
+        .select({
+          vector_type: vector_memory.vector_type,
+          model: vector_memory.model,
+          expires_at: vector_memory.expires_at,
+        })
         .from(vector_memory)
-        .all()
+        .all(),
     )
 
     const by_type: Record<string, number> = {}
@@ -599,9 +627,9 @@ export class SqliteVecStore implements IVectorStore {
       }
     }
 
-    return { 
-      total_vectors: all.length - expired_count, 
-      by_type, 
+    return {
+      total_vectors: all.length - expired_count,
+      by_type,
       by_model,
       expired_vectors: expired_count,
     }
@@ -643,7 +671,7 @@ export class SqliteVecStore implements IVectorStore {
     }
 
     const existingIds = new Set(
-      Database.use((db) => db.select({ id: vector_memory.id }).from(vector_memory).all()).map((r) => r.id)
+      Database.use((db) => db.select({ id: vector_memory.id }).from(vector_memory).all()).map((r) => r.id),
     )
 
     const nodesToSync: typeof nodes = []
@@ -705,7 +733,7 @@ export class SqliteVecStore implements IVectorStore {
       })
 
       if (this.vecTableInitialized) {
-        const insertStmt = sqlite.prepare("INSERT INTO vec_vector_memory(rowid, embedding) VALUES (?, vec_f32(?))")
+        const insertStmt = sqlite.prepare("INSERT INTO vec_vector_memory(id, embedding) VALUES (?, vec_f32(?))")
         for (const values of vectorMemoryValues) {
           insertStmt.run(values.id, values.embedding)
         }
@@ -720,11 +748,11 @@ export class SqliteVecStore implements IVectorStore {
 
   async cleanupOrphanedVectors(): Promise<{ removed: number }> {
     const vectorIds = new Set(
-      Database.use((db) => db.select({ id: vector_memory.id }).from(vector_memory).all()).map((r) => r.id)
+      Database.use((db) => db.select({ id: vector_memory.id }).from(vector_memory).all()).map((r) => r.id),
     )
 
     const nodeIds = new Set(
-      Database.use((db) => db.select({ id: knowledge_nodes.id }).from(knowledge_nodes).all()).map((r) => r.id)
+      Database.use((db) => db.select({ id: knowledge_nodes.id }).from(knowledge_nodes).all()).map((r) => r.id),
     )
 
     const orphanedIds = [...vectorIds].filter((id) => !nodeIds.has(id))
@@ -756,11 +784,12 @@ export class SqliteVecStore implements IVectorStore {
 
     // Find expired vector IDs
     const expiredIds = Database.use((db) =>
-      db.select({ id: vector_memory.id })
+      db
+        .select({ id: vector_memory.id })
         .from(vector_memory)
         .where(sql`${vector_memory.expires_at} IS NOT NULL AND ${vector_memory.expires_at} < ${now}`)
-        .all()
-    ).map(r => r.id)
+        .all(),
+    ).map((r) => r.id)
 
     if (expiredIds.length === 0) return { removed: 0 }
 
@@ -788,11 +817,13 @@ export class SqliteVecStore implements IVectorStore {
     // [ENH] Use project's default embedding model if configured
     if (this.config.embeddingGenerator) {
       try {
-        return await this.config.embeddingGenerator(text, _vectorType)
+        const result = await this.config.embeddingGenerator(text, _vectorType)
+        log.debug("generateEmbedding_result", { length: result.length, expected: this.configuredDim })
+        return result
       } catch (error) {
-        log.warn("external_embedding_failed_using_fallback", { 
+        log.warn("external_embedding_failed_using_fallback", {
           error: error instanceof Error ? error.message : String(error),
-          note: "Consider checking embedding service availability"
+          note: "Consider checking embedding service availability",
         })
         // Fall back to simple embedding - do not throw, let the system continue
       }
@@ -828,8 +859,10 @@ export class SqliteVecStore implements IVectorStore {
         (freqSum > 0
           ? (Object.entries(wordFreq).reduce(
               (sum, [w, f]) => sum + Math.sin(this.hashString(w) * (i + 1) * 0.01) * f,
-              0
-            ) / freqSum) * 0.4
+              0,
+            ) /
+              freqSum) *
+            0.4
           : 0)
 
       embedding.push(Math.tanh(value))

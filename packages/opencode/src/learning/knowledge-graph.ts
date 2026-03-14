@@ -36,9 +36,9 @@ export type RelationType =
   | "supersedes"
   | "imports"
   | "calls"
-  | "evolves_to"    // [ENH] Target 2: session -> evolution
-  | "references"   // [ENH] Target 2: cross-type reference
-  | "contains"     // [ENH] Target 2: containment relation
+  | "evolves_to" // [ENH] Target 2: session -> evolution
+  | "references" // [ENH] Target 2: cross-type reference
+  | "contains" // [ENH] Target 2: containment relation
 
 // [ENH] Target 2: Memory type for cross-type linking
 export type MemoryType = "session" | "evolution" | "project" | "media"
@@ -70,20 +70,23 @@ export class KnowledgeGraph {
     const now = Date.now()
 
     Database.use((db) =>
-      db.insert(knowledge_nodes).values({
-        id,
-        type: node.type,
-        entity_type: node.entity_type,
-        entity_id: node.entity_id,
-        title: node.title,
-        content: node.content ?? "",
-        embedding: node.embedding ? JSON.stringify(node.embedding) : null,
-        metadata: node.metadata ? JSON.stringify(node.metadata) : null,
-        // [ENH] Target 2: Store memory type for cross-type linking
-        memory_type: node.memory_type ?? null,
-        time_created: now,
-        time_updated: now,
-      }),
+      db
+        .insert(knowledge_nodes)
+        .values({
+          id,
+          type: node.type,
+          entity_type: node.entity_type,
+          entity_id: node.entity_id,
+          title: node.title,
+          content: node.content ?? "",
+          embedding: node.embedding ? JSON.stringify(node.embedding) : null,
+          metadata: node.metadata ? JSON.stringify(node.metadata) : null,
+          // [ENH] Target 2: Store memory type for cross-type linking
+          memory_type: node.memory_type ?? null,
+          time_created: now,
+          time_updated: now,
+        })
+        .run(),
     )
 
     log.info("node_added", { id, type: node.type, title: node.title, memory_type: node.memory_type })
@@ -94,14 +97,17 @@ export class KnowledgeGraph {
     const id = crypto.randomUUID()
 
     Database.use((db) =>
-      db.insert(knowledge_edges).values({
-        id,
-        source_id: edge.source_id,
-        target_id: edge.target_id,
-        relation: edge.relation,
-        weight: edge.weight,
-        time_created: Date.now(),
-      }),
+      db
+        .insert(knowledge_edges)
+        .values({
+          id,
+          source_id: edge.source_id,
+          target_id: edge.target_id,
+          relation: edge.relation,
+          weight: edge.weight,
+          time_created: Date.now(),
+        })
+        .run(),
     )
 
     log.info("edge_added", { id, relation: edge.relation })
@@ -116,12 +122,7 @@ export class KnowledgeGraph {
    * @param relation - Relation type (e.g., "evolves_to", "references")
    * @param weight - Relation weight (default: 1)
    */
-  async linkMemories(
-    sourceId: string,
-    targetId: string,
-    relation: RelationType,
-    weight: number = 1,
-  ): Promise<string> {
+  async linkMemories(sourceId: string, targetId: string, relation: RelationType, weight: number = 1): Promise<string> {
     // Verify both nodes exist
     const source = await this.getNode(sourceId)
     const target = await this.getNode(targetId)
@@ -178,10 +179,7 @@ export class KnowledgeGraph {
             .select()
             .from(knowledge_nodes)
             .innerJoin(knowledge_edges, eq(knowledge_nodes.id, knowledge_edges.source_id))
-            .where(and(
-              eq(knowledge_edges.target_id, nodeId),
-              eq(knowledge_edges.relation, options.relation)
-            ))
+            .where(and(eq(knowledge_edges.target_id, nodeId), eq(knowledge_edges.relation, options.relation)))
             .all()
         }
         return db
@@ -409,7 +407,7 @@ export class KnowledgeGraph {
         `SELECT vm.id, vm.node_id, vm.node_type, vm.entity_title, 
                 1 - vec_distance_cosine(v.embedding, vec_f32(?)) as similarity
          FROM vec_vector_memory v
-         INNER JOIN vector_memory vm ON v.rowid = vm.id
+         INNER JOIN vector_memory vm ON v.id = vm.id
          WHERE similarity >= ?
          ORDER BY similarity DESC
          LIMIT ?`,
@@ -608,10 +606,7 @@ export class KnowledgeGraph {
 
     // 检查向量维度一致性
     const vectorRecords = Database.use((db) =>
-      db
-        .select({ dimensions: vector_memory.dimensions })
-        .from(vector_memory)
-        .all(),
+      db.select({ dimensions: vector_memory.dimensions }).from(vector_memory).all(),
     )
 
     const dimensions = [...new Set(vectorRecords.map((v) => v.dimensions))]
@@ -625,11 +620,7 @@ export class KnowledgeGraph {
 
     // 检查 golden 快照状态
     const goldenSnapshots = Database.use((db) =>
-      db
-        .select()
-        .from(archive_snapshot)
-        .where(eq(archive_snapshot.is_golden, 1))
-        .all(),
+      db.select().from(archive_snapshot).where(eq(archive_snapshot.is_golden, 1)).all(),
     )
 
     const goldenSnapshot = goldenSnapshots.length > 0
@@ -638,7 +629,9 @@ export class KnowledgeGraph {
     // 检查孤立节点比例（超过 50% 视为不健康）
     const stats = await this.getStats()
     if (stats.nodes > 0 && stats.orphanNodes / stats.nodes > 0.5) {
-      issues.push(`孤立节点比例过高：${stats.orphanNodes}/${stats.nodes} (${Math.round((stats.orphanNodes / stats.nodes) * 100)}%)`)
+      issues.push(
+        `孤立节点比例过高：${stats.orphanNodes}/${stats.nodes} (${Math.round((stats.orphanNodes / stats.nodes) * 100)}%)`,
+      )
     }
 
     return {

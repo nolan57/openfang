@@ -7,52 +7,12 @@ import { Log } from "../util/log"
 import { readFile } from "fs/promises"
 import { resolve, dirname } from "path"
 import { glob } from "glob"
+import { embedWithDimensions } from "./embed-utils"
 
 const log = Log.create({ service: "incremental-indexer" })
 
-function hashString(str: string): number {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i)
-    hash = hash & hash
-  }
-  return Math.abs(hash)
-}
-
-function simpleEmbedding(text: string, dimensions: number = 384): number[] {
-  const words = text.toLowerCase().split(/\W+/)
-  const wordFreq: Record<string, number> = {}
-
-  for (const word of words) {
-    if (word.length > 2) {
-      wordFreq[word] = (wordFreq[word] || 0) + 1
-    }
-  }
-
-  const hash1 = hashString(text)
-  const hash2 = hashString(text.split("").reverse().join(""))
-
-  const embedding: number[] = []
-  for (let i = 0; i < dimensions; i++) {
-    const posHash = hashString(text + i)
-    const freqSum = Object.values(wordFreq).reduce((a, b) => a + b, 0)
-
-    const value =
-      Math.sin(hash1 * (i + 1) * 0.1) * 0.3 +
-      Math.cos(hash2 * (i + 1) * 0.1) * 0.3 +
-      (freqSum > 0
-        ? (Object.entries(wordFreq).reduce((sum, [w, f]) => sum + Math.sin(hashString(w) * (i + 1) * 0.01) * f, 0) /
-            freqSum) *
-          0.4
-        : 0)
-
-    embedding.push(Math.tanh(value))
-  }
-
-  const magnitude = Math.sqrt(embedding.reduce((sum, v) => sum + v * v, 0))
-  if (magnitude === 0) return embedding
-  return embedding.map((v) => v / magnitude)
-}
+const EMBEDDING_MODEL = "text-embedding-v4"
+const EMBEDDING_DIMENSIONS = 1536
 
 function extractExports(content: string): string[] {
   const exports: string[] = []
@@ -227,7 +187,14 @@ export class IncrementalIndexer {
 
     const exports = extractExports(content)
     const purpose = extractPurpose(content)
-    const embedding = simpleEmbedding(`${relativePath}: ${purpose}. Exports: ${exports.join(", ")}`)
+    const contentText = `${relativePath}: ${purpose}. Exports: ${exports.join(", ")}`
+
+    const vector = await embedWithDimensions({
+      model: EMBEDDING_MODEL,
+      value: contentText,
+      dimensions: EMBEDDING_DIMENSIONS,
+    })
+    const embedding = Array.from(vector)
     const now = Date.now()
 
     const metadata = JSON.stringify({
@@ -241,7 +208,19 @@ export class IncrementalIndexer {
     const sqlite = Database.raw()
     sqlite.run(
       `INSERT OR REPLACE INTO vector_memory (id, node_type, node_id, entity_title, vector_type, embedding, model, dimensions, metadata, time_created, time_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nodeId, "file", nodeId, relativePath, "code", JSON.stringify(embedding), "simple", 384, metadata, now, now],
+      [
+        nodeId,
+        "file",
+        nodeId,
+        relativePath,
+        "code",
+        JSON.stringify(embedding),
+        `dashscope/${EMBEDDING_MODEL}`,
+        EMBEDDING_DIMENSIONS,
+        metadata,
+        now,
+        now,
+      ],
     )
 
     log.debug("indexed_file", { file: relativePath, nodeId })
@@ -253,7 +232,14 @@ export class IncrementalIndexer {
     const nodeId = generateNodeId(relativePath, this.packageName)
     const exports = extractExports(content)
     const purpose = extractPurpose(content)
-    const embedding = simpleEmbedding(`${relativePath}: ${purpose}. Exports: ${exports.join(", ")}`)
+    const contentText = `${relativePath}: ${purpose}. Exports: ${exports.join(", ")}`
+
+    const vector = await embedWithDimensions({
+      model: EMBEDDING_MODEL,
+      value: contentText,
+      dimensions: EMBEDDING_DIMENSIONS,
+    })
+    const embedding = Array.from(vector)
     const now = Date.now()
 
     const metadata = JSON.stringify({
@@ -265,12 +251,10 @@ export class IncrementalIndexer {
     })
 
     const sqlite = Database.raw()
-    sqlite.run(`UPDATE vector_memory SET embedding = ?, metadata = ?, time_updated = ? WHERE node_id = ?`, [
-      JSON.stringify(embedding),
-      metadata,
-      now,
-      nodeId,
-    ])
+    sqlite.run(
+      `UPDATE vector_memory SET embedding = ?, model = ?, dimensions = ?, metadata = ?, time_updated = ? WHERE node_id = ?`,
+      [JSON.stringify(embedding), `dashscope/${EMBEDDING_MODEL}`, EMBEDDING_DIMENSIONS, metadata, now, nodeId],
+    )
 
     log.debug("updated_file_index", { file: relativePath, nodeId })
   }

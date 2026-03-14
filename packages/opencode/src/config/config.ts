@@ -1246,6 +1246,24 @@ export namespace Config {
         })
         .optional()
         .describe("Self-evolution configuration for AI-driven improvements"),
+      embedding: z
+        .object({
+          provider: z
+            .enum(["dashscope", "openai", "cohere", "voyage"])
+            .optional()
+            .default("dashscope")
+            .describe("Embedding provider"),
+          model: z.string().optional().describe("Embedding model name (e.g., 'text-embedding-v4' for dashscope)"),
+          dimensions: z
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe("Embedding dimensions (default depends on model)"),
+          apiKey: z.string().optional().describe("API key (optional, uses environment variable if not provided)"),
+        })
+        .optional()
+        .describe("Embedding configuration for vector indexing"),
       mcpCronPath: z
         .string()
         .optional()

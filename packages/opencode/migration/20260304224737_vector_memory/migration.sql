@@ -38,10 +38,13 @@ CREATE TABLE `vector_memory` (
 	`vector_type` text NOT NULL,
 	`embedding` text NOT NULL,
 	`model` text DEFAULT 'simple' NOT NULL,
-	`dimensions` integer DEFAULT 384 NOT NULL,
+	`dimensions` integer DEFAULT 1536 NOT NULL,
 	`metadata` text,
 	`time_created` integer NOT NULL,
 	`time_updated` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE VIRTUAL TABLE IF NOT EXISTS `vec_vector_memory` USING vec0(embedding float[384]);
+CREATE VIRTUAL TABLE IF NOT EXISTS `vec_vector_memory` USING vec0(
+  id TEXT,
+  embedding float[1536]
+);

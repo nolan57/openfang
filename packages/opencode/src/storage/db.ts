@@ -11,7 +11,17 @@ import { NamedError } from "@opencode-ai/util/error"
 import z from "zod"
 import path from "path"
 import os from "os"
-import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync, statSync, unlinkSync, realpathSync, writeFileSync } from "fs"
+import {
+  readFileSync,
+  readdirSync,
+  existsSync,
+  mkdirSync,
+  copyFileSync,
+  statSync,
+  unlinkSync,
+  realpathSync,
+  writeFileSync,
+} from "fs"
 import * as schema from "./schema"
 
 declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number }[] | undefined
@@ -24,7 +34,7 @@ declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number }[] | undefi
  * Default embedding dimension
  * Can be overridden via EMBEDDING_DIM environment variable
  */
-const DEFAULT_EMBEDDING_DIM = 384
+const DEFAULT_EMBEDDING_DIM = 1536
 
 /**
  * Get configured embedding dimension from environment or default
@@ -86,9 +96,7 @@ function ensureSystemMetadataTable(sqlite: BunDatabase): void {
 function getStoredEmbeddingDim(sqlite: BunDatabase): number | undefined {
   try {
     const result = sqlite
-      .query<{ value: string }, [string]>(
-        `SELECT value FROM ${SYSTEM_METADATA_TABLE} WHERE key = ?`,
-      )
+      .query<{ value: string }, [string]>(`SELECT value FROM ${SYSTEM_METADATA_TABLE} WHERE key = ?`)
       .get(EMBEDDING_DIM_KEY)
     if (result?.value) {
       return parseInt(result.value, 10)
@@ -117,21 +125,21 @@ function storeEmbeddingDim(sqlite: BunDatabase, dim: number): void {
 /**
  * Validate and initialize vector dimensions
  * This should be called during database initialization
- * 
+ *
  * Logic:
  * 1. If EMBEDDING_DIM env is set, use it (user explicit config)
  * 2. If database has stored dimension, use it (preserve existing vectors)
  * 3. Otherwise use default (fresh database)
- * 
+ *
  * Only throws error when user explicitly sets EMBEDDING_DIM that conflicts
  * with the stored dimension in database.
- * 
+ *
  * @throws VectorDimensionMismatchError if user explicitly sets EMBEDDING_DIM that conflicts with stored dimension
  */
 function validateVectorDimensions(sqlite: BunDatabase, logger: typeof log): number {
   const envDim = process.env.EMBEDDING_DIM
   const storedDim = getStoredEmbeddingDim(sqlite)
-  
+
   // Parse environment variable if set
   const configuredDim = envDim ? parseInt(envDim, 10) : undefined
   const hasExplicitConfig = envDim !== undefined && !isNaN(configuredDim!) && configuredDim! > 0
@@ -146,9 +154,9 @@ function validateVectorDimensions(sqlite: BunDatabase, logger: typeof log): numb
   // If no dimension stored yet, this is a fresh database
   if (storedDim === undefined) {
     const dimToUse = configuredDim ?? DEFAULT_EMBEDDING_DIM
-    logger.info("initializing_vector_dimension", { 
+    logger.info("initializing_vector_dimension", {
       dimension: dimToUse,
-      source: hasExplicitConfig ? "env" : "default"
+      source: hasExplicitConfig ? "env" : "default",
     })
     storeEmbeddingDim(sqlite, dimToUse)
     return dimToUse
@@ -160,7 +168,7 @@ function validateVectorDimensions(sqlite: BunDatabase, logger: typeof log): numb
       logger.debug("vector_dimension_verified", { dimension: configuredDim, source: "env" })
       return configuredDim!
     }
-    
+
     // User explicitly set a conflicting dimension - this is an error
     logger.error("vector_dimension_mismatch", {
       stored: storedDim,
@@ -182,15 +190,15 @@ After changing dimension, restart the application.`,
   }
 
   // No explicit config - use stored dimension to preserve existing vectors
-  logger.info("vector_dimension_using_stored", { 
-    dimension: storedDim, 
+  logger.info("vector_dimension_using_stored", {
+    dimension: storedDim,
     source: "database",
-    hint: "Set EMBEDDING_DIM env to override"
+    hint: "Set EMBEDDING_DIM env to override",
   })
-  
+
   // Update env var so EmbeddingService picks up the correct dimension
   process.env.EMBEDDING_DIM = String(storedDim)
-  
+
   return storedDim
 }
 
@@ -200,13 +208,20 @@ export { validateVectorDimensions, storeEmbeddingDim, getStoredEmbeddingDim, ens
 const DB_PATH = path.join(Global.Path.data, "opencode.db")
 const BACKUP_DIR = path.join(Global.Path.data, "backups")
 const MAX_BACKUPS = 5
+const MAX_CORRUPTED = 3
+const OLD_DATA_DIRS = [
+  path.join(os.homedir(), ".local", "share", "opencode"),
+  path.join(os.homedir(), "Library", "Application Support", "opencode"),
+]
 
 function isDatabaseHealthy(dbPath: string): boolean {
   try {
     const db = new BunDatabase(dbPath)
     const result = db.query("PRAGMA quick_check;").all()
     db.close()
-    return result.length === 0 || (result.length === 1 && (result[0] as Record<string, unknown>)["quick_check"] === "ok")
+    return (
+      result.length === 0 || (result.length === 1 && (result[0] as Record<string, unknown>)["quick_check"] === "ok")
+    )
   } catch (err) {
     log.warn("database health check failed", { path: dbPath, error: err })
     return false
@@ -222,6 +237,69 @@ function getLatestBackup(): string | null {
     .sort((a, b) => b.time - a.time)
 
   return backups.length > 0 ? path.join(BACKUP_DIR, backups[0].name) : null
+}
+
+function getFallbackBackups(): string[] {
+  const fallbacks: { path: string; time: number }[] = []
+
+  const fallbackPatterns = ["opencode.db.backup", "opencode.db.old", "opencode.db.old2", "opencode.db.bak"]
+
+  for (const pattern of fallbackPatterns) {
+    const fallbackPath = path.join(Global.Path.data, pattern)
+    if (existsSync(fallbackPath)) {
+      fallbacks.push({ path: fallbackPath, time: statSync(fallbackPath).mtimeMs })
+    }
+  }
+
+  for (const oldDir of OLD_DATA_DIRS) {
+    if (oldDir === Global.Path.data) continue
+    const oldDbPath = path.join(oldDir, "opencode.db")
+    if (existsSync(oldDbPath)) {
+      fallbacks.push({ path: oldDbPath, time: statSync(oldDbPath).mtimeMs })
+    }
+    for (const pattern of fallbackPatterns) {
+      const fallbackPath = path.join(oldDir, pattern)
+      if (existsSync(fallbackPath)) {
+        fallbacks.push({ path: fallbackPath, time: statSync(fallbackPath).mtimeMs })
+      }
+    }
+  }
+
+  return fallbacks.sort((a, b) => b.time - a.time).map((f) => f.path)
+}
+
+function tryRestoreFromBackup(): boolean {
+  const latestBackup = getLatestBackup()
+  if (latestBackup) {
+    log.info("attempting to restore from backup directory", { backup: latestBackup })
+    try {
+      copyFileSync(latestBackup, DB_PATH)
+      if (isDatabaseHealthy(DB_PATH)) {
+        log.info("database restored from backup directory")
+        return true
+      }
+      log.warn("backup from backup directory is corrupted, trying fallbacks")
+    } catch (e) {
+      log.warn("failed to restore from backup directory", { error: e })
+    }
+  }
+
+  const fallbacks = getFallbackBackups()
+  for (const fallback of fallbacks) {
+    log.info("attempting to restore from fallback", { fallback })
+    try {
+      copyFileSync(fallback, DB_PATH)
+      if (isDatabaseHealthy(DB_PATH)) {
+        log.info("database restored from fallback", { fallback })
+        return true
+      }
+      log.warn("fallback is corrupted, trying next", { fallback })
+    } catch (e) {
+      log.warn("failed to restore from fallback", { fallback, error: e })
+    }
+  }
+
+  return false
 }
 
 export function createBackup(): void {
@@ -268,23 +346,24 @@ export function createBackup(): void {
           }
         })
     }
-      } catch (err) {
-      log.error("failed to create database backup", { error: err })
-    }
+  } catch (err) {
+    log.error("failed to create database backup", { error: err })
   }
-  
-  /**
-   * Default backup interval in milliseconds (30 minutes)
-   */
-  const DEFAULT_BACKUP_INTERVAL = 30 * 60 * 1000
-  
-  /**
-   * Start periodic database backup using the scheduler
-   * @param intervalMs - Backup interval in milliseconds (default: 30 minutes)
-   */
-  export function startPeriodicBackup(intervalMs: number = DEFAULT_BACKUP_INTERVAL): void {
-    // Import Scheduler lazily to avoid circular dependencies
-    import("../scheduler").then(({ Scheduler }) => {
+}
+
+/**
+ * Default backup interval in milliseconds (30 minutes)
+ */
+const DEFAULT_BACKUP_INTERVAL = 30 * 60 * 1000
+
+/**
+ * Start periodic database backup using the scheduler
+ * @param intervalMs - Backup interval in milliseconds (default: 30 minutes)
+ */
+export function startPeriodicBackup(intervalMs: number = DEFAULT_BACKUP_INTERVAL): void {
+  // Import Scheduler lazily to avoid circular dependencies
+  import("../scheduler")
+    .then(({ Scheduler }) => {
       Scheduler.register({
         id: "database-backup",
         interval: intervalMs,
@@ -294,60 +373,75 @@ export function createBackup(): void {
         },
       })
       log.info("periodic database backup started", { intervalMs })
-    }).catch((err) => {
+    })
+    .catch((err) => {
       log.error("failed to start periodic backup", { error: err })
     })
+}
+
+function ensureDatabaseIntegrity(): void {
+  if (!existsSync(DB_PATH)) {
+    log.info("database does not exist, attempting to restore from backup...")
+    if (tryRestoreFromBackup()) {
+      log.info("database restored successfully")
+      return
+    }
+    log.info("no valid backup found, database will be created on first use")
+    return
   }
-  
-  function ensureDatabaseIntegrity(): void {
-    // If database doesn't exist, let Drizzle create it later
-    if (!existsSync(DB_PATH)) {
-      log.info("database does not exist, will be created on first use")
-      return
-    }
 
-    if (isDatabaseHealthy(DB_PATH)) {
-      log.info("database is healthy")
-      return
-    }
+  if (isDatabaseHealthy(DB_PATH)) {
+    log.info("database is healthy")
+    return
+  }
 
-    log.warn("database is corrupted or unreadable, attempting recovery...")
+  log.warn("database is corrupted or unreadable, attempting recovery...")
 
-    // First, backup the corrupted database for debugging
-    const corruptedPath = path.join(BACKUP_DIR, `opencode.db.corrupted.${Date.now()}`)
-    try {
-      if (!existsSync(BACKUP_DIR)) mkdirSync(BACKUP_DIR, { recursive: true })
-      copyFileSync(DB_PATH, corruptedPath)
-      log.info("corrupted database saved for inspection", { path: corruptedPath })
-    } catch (e) {
-      log.error("failed to save corrupted database", { error: e })
-    }
+  if (!existsSync(BACKUP_DIR)) mkdirSync(BACKUP_DIR, { recursive: true })
 
-    // Try to restore from latest backup
-    const latestBackup = getLatestBackup()
-    if (latestBackup) {
-      log.info("restoring database from backup", { backup: latestBackup })
+  const corruptedPath = path.join(BACKUP_DIR, `opencode.db.corrupted.${Date.now()}`)
+  try {
+    copyFileSync(DB_PATH, corruptedPath)
+    log.info("corrupted database saved for inspection", { path: corruptedPath })
+  } catch (e) {
+    log.error("failed to save corrupted database", { error: e })
+  }
+
+  try {
+    unlinkSync(DB_PATH)
+  } catch (e) {
+    log.error("failed to delete corrupted database", { error: e })
+    return
+  }
+
+  if (tryRestoreFromBackup()) {
+    log.info("database recovery successful!")
+    return
+  }
+
+  log.warn("all recovery attempts failed, database will be recreated on next use")
+  cleanupOldCorruptedFiles()
+}
+
+function cleanupOldCorruptedFiles(): void {
+  if (!existsSync(BACKUP_DIR)) return
+
+  const corruptedFiles = readdirSync(BACKUP_DIR)
+    .filter((f) => f.startsWith("opencode.db.corrupted."))
+    .map((f) => ({ name: f, time: statSync(path.join(BACKUP_DIR, f)).mtimeMs }))
+    .sort((a, b) => b.time - a.time)
+
+  if (corruptedFiles.length > MAX_CORRUPTED) {
+    corruptedFiles.slice(MAX_CORRUPTED).forEach((f) => {
       try {
-        copyFileSync(latestBackup, DB_PATH)
-        if (isDatabaseHealthy(DB_PATH)) {
-          log.info("database recovery successful!")
-          return
-        } else {
-          log.error("backup is also corrupted, will try other options")
-        }
+        unlinkSync(path.join(BACKUP_DIR, f.name))
+        log.debug("removed old corrupted file", { name: f.name })
       } catch (e) {
-        log.error("failed to restore from backup", { error: e })
+        log.warn("failed to remove old corrupted file", { name: f.name, error: e })
       }
-    }
-
-    // All backups failed, delete corrupted database and let Drizzle recreate it
-    try {
-      unlinkSync(DB_PATH)
-      log.info("deleted corrupted database, will recreate on next use")
-    } catch (e) {
-      log.error("failed to delete corrupted database", { error: e })
-    }
+    })
   }
+}
 // ====== End of Backup & Recovery Logic ======
 
 export const NotFoundError = NamedError.create(
@@ -660,7 +754,7 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
     const metaDir = import.meta.dirname
     if (metaDir) {
       const projectRoot = path.resolve(metaDir, "../../../..")
-      
+
       // Dynamic version scanning for Bun's hoisted node_modules
       const bunModulesDir = path.join(projectRoot, "node_modules", ".bun")
       try {
@@ -687,7 +781,7 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
               }
               return parseVer(b.version) - parseVer(a.version)
             })
-          
+
           // Add the newest version first
           if (vecVersions.length > 0) {
             possiblePaths.push(vecVersions[0].path)
@@ -700,7 +794,7 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
       } catch (scanErr) {
         logger.warn("failed to scan bun modules for sqlite-vec versions", { error: String(scanErr) })
       }
-      
+
       // Standard npm/yarn node_modules
       possiblePaths.push(
         path.join(projectRoot, "node_modules", platformPkg, config.fileName),
@@ -732,7 +826,7 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
   for (const vecPath of uniquePaths) {
     // Resolve symlink if applicable
     const realPath = getRealPath(vecPath) || vecPath
-    
+
     if (!existsSync(realPath)) {
       continue
     }
@@ -789,7 +883,7 @@ function loadSqliteVecExtension(sqlite: BunDatabase, logger: typeof log): VecLoa
  * Find Homebrew SQLite dylib path on macOS
  * Apple's system SQLite doesn't support dynamic extensions,
  * so we need to use Homebrew's vanilla SQLite.
- * 
+ *
  * Strategy:
  * 1. Check SQLITE_CUSTOM_PATH environment variable
  * 2. Auto-detect from Homebrew Cellar (Intel and Apple Silicon paths)
@@ -830,10 +924,10 @@ function findMacOSSQLitePath(): string | null {
 
       if (versions.length > 0) {
         const selectedPath = path.join(baseDir, versions[0], "lib", "libsqlite3.dylib")
-        log.info("found homebrew sqlite", { 
-          path: selectedPath, 
+        log.info("found homebrew sqlite", {
+          path: selectedPath,
           version: versions[0],
-          searched: baseDir 
+          searched: baseDir,
         })
         return selectedPath
       }

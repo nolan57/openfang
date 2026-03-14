@@ -3132,6 +3132,7 @@
     "status": "draft"
   },
   {
+    "id": "0d3e6b7b-98eb-4729-ba54-05bc8a6b8d18",
     "name": "auto-cron_cron_add-task",
     "description": "Auto-generated skill for 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent",
     "content": "# 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开\n\n## Description\n\nAuto-generated skill for: 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent 恢复原设定的每天10点追踪A股的定时任务 修改A股定时任务，添加追踪特定的两个股票：002445和600764 立即执行所有定时任务 立即执行所有定时任务 查看执行日志 查看执行日志 还没看到定时任务返回结果，查看状态 还没看到定时任务返回结果，查看状态 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 请修复 清除多余opencode进程 检查定时任务状态 检查定时任务状态 检查定时任务状态 添加多一个定时任务，每天下午3点推荐优秀的skill，agent和mcp\n\n## Triggers\n\nThis skill activates when:\n- Working with cron_cron_add operations\n- Working with cron_cron_run operations\n- Working with cron_cron_list operations\n- Working with cron_cron_status operations\n- Working with cron_cron_list_executions operations\n- Working with cron_cron_update operations\n- Working with cron_cron_get_logs operations\n- Working with cron_cron_remove operations\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
@@ -3143,8 +3144,571 @@
       "3skillagentmcp"
     ],
     "sessionID": "ses_33242dc9effegZm1Mx7VIFIatF",
-    "id": "0d3e6b7b-98eb-4729-ba54-05bc8a6b8d18",
     "createdAt": 1773406512889,
+    "status": "draft"
+  },
+  {
+    "id": "7daab958-e753-48c3-80d9-c2151a6ee892",
+    "name": "auto-cron_cron_add-task",
+    "description": "Auto-generated skill for 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent",
+    "content": "# 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开\n\n## Description\n\nAuto-generated skill for: 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent 恢复原设定的每天10点追踪A股的定时任务 修改A股定时任务，添加追踪特定的两个股票：002445和600764 立即执行所有定时任务 立即执行所有定时任务 查看执行日志 查看执行日志 还没看到定时任务返回结果，查看状态 还没看到定时任务返回结果，查看状态 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 请修复 清除多余opencode进程 检查定时任务状态 检查定时任务状态 检查定时任务状态 添加多一个定时任务，每天下午3点推荐优秀的skill，agent和mcp 立即执行一次定时任务\n\n## Triggers\n\nThis skill activates when:\n- Working with cron_cron_add operations\n- Working with cron_cron_run operations\n- Working with cron_cron_list operations\n- Working with cron_cron_status operations\n- Working with cron_cron_list_executions operations\n- Working with cron_cron_update operations\n- Working with cron_cron_get_logs operations\n- Working with cron_cron_remove operations\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "8skillmcpagent",
+      "a002445600764",
+      "agentagent",
+      "opencode",
+      "3skillagentmcp"
+    ],
+    "sessionID": "ses_33242dc9effegZm1Mx7VIFIatF",
+    "createdAt": 1773414104257,
+    "status": "draft"
+  },
+  {
+    "id": "86caa610-2973-4a49-97d9-0781f7abd611",
+    "name": "auto-cron_cron_add-task",
+    "description": "Auto-generated skill for 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent",
+    "content": "# 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开\n\n## Description\n\nAuto-generated skill for: 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 设定一个定时任务，每天早上9点，推荐3个优秀开源项目 检查定时任务状态 检查定时任务状态 添加定时任务，每天8点推荐skill，mcp，agent 恢复原设定的每天10点追踪A股的定时任务 修改A股定时任务，添加追踪特定的两个股票：002445和600764 立即执行所有定时任务 立即执行所有定时任务 查看执行日志 查看执行日志 还没看到定时任务返回结果，查看状态 还没看到定时任务返回结果，查看状态 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 取消重新设定，并立即执行，可以逐个顺序执行，一个执行完返回结果后再执行另一个 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 现在项目已被改造成多Agent架构，是不是改造后导致之前的Agent运行异常？ 请修复 清除多余opencode进程 检查定时任务状态 检查定时任务状态 检查定时任务状态 添加多一个定时任务，每天下午3点推荐优秀的skill，agent和mcp 立即执行一次定时任务 重启服务 立即执行定时任务一次\n\n## Triggers\n\nThis skill activates when:\n- Working with cron_cron_add operations\n- Working with cron_cron_run operations\n- Working with cron_cron_list operations\n- Working with cron_cron_status operations\n- Working with cron_cron_list_executions operations\n- Working with cron_cron_update operations\n- Working with cron_cron_get_logs operations\n- Working with cron_cron_remove operations\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "8skillmcpagent",
+      "a002445600764",
+      "agentagent",
+      "opencode",
+      "3skillagentmcp"
+    ],
+    "sessionID": "ses_33242dc9effegZm1Mx7VIFIatF",
+    "createdAt": 1773415414909,
+    "status": "draft"
+  },
+  {
+    "id": "f66e91a3-7d6b-4513-b4c7-7985b28b0882",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results.\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773442113143,
+    "status": "draft"
+  },
+  {
+    "id": "cb5a0c4c-5aad-4856-8412-edb5dc86c4e5",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results.\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773442156911,
+    "status": "draft"
+  },
+  {
+    "id": "7853d153-22e6-4d18-9dc8-168b176db8cc",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773442341645,
+    "status": "draft"
+  },
+  {
+    "id": "4ee5ced4-4b32-4b0c-a5dc-3c20bf8faf6e",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773442600146,
+    "status": "draft"
+  },
+  {
+    "id": "f3b49d12-50e5-4bbb-bc92-c6757ef477cd",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with bash operations\n- Working with grep operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773443275420,
+    "status": "draft"
+  },
+  {
+    "id": "24457245-850f-46fe-9c89-bcd7b9972ffe",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with bash operations\n- Working with grep operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773443900986,
+    "status": "draft"
+  },
+  {
+    "id": "a0331996-3da3-4839-93b9-f25248bf0a29",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with toolbox_query_knowledge_nodes operations\n- Working with grep operations\n- Working with read operations\n- Working with glob operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-13\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773444325783,
+    "status": "draft"
+  },
+  {
+    "id": "cab7c142-677e-4d9f-8c80-136cb8fec780",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 参考~/.config/opencode/opencode.json  使用项目配置好的模型 有个问题：项目具有自动备份、自动恢复数据库的功能的，创建知识图谱要考虑到这点，否则新建的知识图谱会被覆盖掉。另外，我们要全盘考虑，如何处理维度的问题 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理；4、项目代码中已有自动检测模型维度的函数，请尽可能复用 设置默认维度为1536，模型使用v4 疑问：维度1024怎么来的？之前有设置个这个默认维度吗？在哪设置了？ 参考下面的 代码 来修改模型使用的维度：[Pasted ~51 lines]import dashscope\nimport numpy as np\n\n\ndef cosine_similarity(a, b):\n    \"\"\"计算余弦相似度\"\"\"\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\n\ndef detect_anomaly(new_comment, normal_comments, threshold=0.6):\n    # 1. 向量化所有正常评论和新评论\n    all_texts = normal_comments + [new_comment]\n    resp = dashscope.TextEmbedding.call(\n        model=\"text-embedding-v4\",\n        input=all_texts,\n        dimension=1024\n    )\n    embeddings = [item['embedding'] for item in resp.output['embeddings']]\n\n    # 2. 计算正常评论的中心向量（平均值）\n    normal_embeddings = np.array(embeddings[:-1])\n    normal_center_vector = np.mean(normal_embeddings, axis=0)\n\n    # 3. 计算新评论与中心向量的相似度\n    new_comment_embedding = np.array(embeddings[-1])\n    similarity = cosine_similarity(new_comment_embedding, normal_center_vector)\n\n    # 4. 判断是否为异常\n    is_anomaly = similarity < threshold\n    return is_anomaly, similarity\n\n\n# 使用示例\nnormal_user_comments = [\n    \"今天的会议很有成效\",\n    \"项目进展顺利\",\n    \"下周发布新版本\",\n    \"用户反馈良好\"\n]\n\ntest_comments = {\n    \"正常评论\": \"功能符合预期\",\n    \"异常-无意义乱码\": \"asdfghjkl zxcvbnm\"\n}\n\nprint(\"--- 异常检测示例 ---\")\nfor desc, comment in test_comments.items():\n    is_anomaly, score = detect_anomaly(comment, normal_user_comments)\n    result = \"是\" if is_anomaly else \"否\"\n    print(f\"评论: '{comment}'\")\n    print(f\"是否为异常: {result} (与正常样本相似度: {score:.3f})\\n\") continue\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with toolbox_query_knowledge_nodes operations\n- Working with grep operations\n- Working with read operations\n- Working with glob operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773448752141,
+    "status": "draft"
+  },
+  {
+    "id": "745412a1-b193-4c41-91f4-f46c868465af",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 参考~/.config/opencode/opencode.json  使用项目配置好的模型 有个问题：项目具有自动备份、自动恢复数据库的功能的，创建知识图谱要考虑到这点，否则新建的知识图谱会被覆盖掉。另外，我们要全盘考虑，如何处理维度的问题 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理；4、项目代码中已有自动检测模型维度的函数，请尽可能复用 设置默认维度为1536，模型使用v4 疑问：维度1024怎么来的？之前有设置个这个默认维度吗？在哪设置了？ 参考下面的 代码 来修改模型使用的维度：[Pasted ~51 lines]import dashscope\nimport numpy as np\n\n\ndef cosine_similarity(a, b):\n    \"\"\"计算余弦相似度\"\"\"\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\n\ndef detect_anomaly(new_comment, normal_comments, threshold=0.6):\n    # 1. 向量化所有正常评论和新评论\n    all_texts = normal_comments + [new_comment]\n    resp = dashscope.TextEmbedding.call(\n        model=\"text-embedding-v4\",\n        input=all_texts,\n        dimension=1024\n    )\n    embeddings = [item['embedding'] for item in resp.output['embeddings']]\n\n    # 2. 计算正常评论的中心向量（平均值）\n    normal_embeddings = np.array(embeddings[:-1])\n    normal_center_vector = np.mean(normal_embeddings, axis=0)\n\n    # 3. 计算新评论与中心向量的相似度\n    new_comment_embedding = np.array(embeddings[-1])\n    similarity = cosine_similarity(new_comment_embedding, normal_center_vector)\n\n    # 4. 判断是否为异常\n    is_anomaly = similarity < threshold\n    return is_anomaly, similarity\n\n\n# 使用示例\nnormal_user_comments = [\n    \"今天的会议很有成效\",\n    \"项目进展顺利\",\n    \"下周发布新版本\",\n    \"用户反馈良好\"\n]\n\ntest_comments = {\n    \"正常评论\": \"功能符合预期\",\n    \"异常-无意义乱码\": \"asdfghjkl zxcvbnm\"\n}\n\nprint(\"--- 异常检测示例 ---\")\nfor desc, comment in test_comments.items():\n    is_anomaly, score = detect_anomaly(comment, normal_user_comments)\n    result = \"是\" if is_anomaly else \"否\"\n    print(f\"评论: '{comment}'\")\n    print(f\"是否为异常: {result} (与正常样本相似度: {score:.3f})\\n\") continue 先恢复之前的数据库，然后考虑能不能继承Vercel ai sdk，然后修改sdk支持dimenesions 原来的数据库中有 knowledge_node 和 vector_memory 表就行了，不管这两个表有没数据，从最近一个正常的恢复\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with toolbox_query_knowledge_nodes operations\n- Working with grep operations\n- Working with read operations\n- Working with glob operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773449324838,
+    "status": "draft"
+  },
+  {
+    "id": "a165a7d6-91f6-4bfe-b719-fb41a93dc612",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 参考~/.config/opencode/opencode.json  使用项目配置好的模型 有个问题：项目具有自动备份、自动恢复数据库的功能的，创建知识图谱要考虑到这点，否则新建的知识图谱会被覆盖掉。另外，我们要全盘考虑，如何处理维度的问题 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理；4、项目代码中已有自动检测模型维度的函数，请尽可能复用 设置默认维度为1536，模型使用v4 疑问：维度1024怎么来的？之前有设置个这个默认维度吗？在哪设置了？ 参考下面的 代码 来修改模型使用的维度：[Pasted ~51 lines]import dashscope\nimport numpy as np\n\n\ndef cosine_similarity(a, b):\n    \"\"\"计算余弦相似度\"\"\"\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\n\ndef detect_anomaly(new_comment, normal_comments, threshold=0.6):\n    # 1. 向量化所有正常评论和新评论\n    all_texts = normal_comments + [new_comment]\n    resp = dashscope.TextEmbedding.call(\n        model=\"text-embedding-v4\",\n        input=all_texts,\n        dimension=1024\n    )\n    embeddings = [item['embedding'] for item in resp.output['embeddings']]\n\n    # 2. 计算正常评论的中心向量（平均值）\n    normal_embeddings = np.array(embeddings[:-1])\n    normal_center_vector = np.mean(normal_embeddings, axis=0)\n\n    # 3. 计算新评论与中心向量的相似度\n    new_comment_embedding = np.array(embeddings[-1])\n    similarity = cosine_similarity(new_comment_embedding, normal_center_vector)\n\n    # 4. 判断是否为异常\n    is_anomaly = similarity < threshold\n    return is_anomaly, similarity\n\n\n# 使用示例\nnormal_user_comments = [\n    \"今天的会议很有成效\",\n    \"项目进展顺利\",\n    \"下周发布新版本\",\n    \"用户反馈良好\"\n]\n\ntest_comments = {\n    \"正常评论\": \"功能符合预期\",\n    \"异常-无意义乱码\": \"asdfghjkl zxcvbnm\"\n}\n\nprint(\"--- 异常检测示例 ---\")\nfor desc, comment in test_comments.items():\n    is_anomaly, score = detect_anomaly(comment, normal_user_comments)\n    result = \"是\" if is_anomaly else \"否\"\n    print(f\"评论: '{comment}'\")\n    print(f\"是否为异常: {result} (与正常样本相似度: {score:.3f})\\n\") continue 先恢复之前的数据库，然后考虑能不能继承Vercel ai sdk，然后修改sdk支持dimenesions 原来的数据库中有 knowledge_node 和 vector_memory 表就行了，不管这两个表有没数据，从最近一个正常的恢复 检查现在的数据库的数据，有哪些表，有哪些数据，是什么维度\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with toolbox_query_knowledge_nodes operations\n- Working with grep operations\n- Working with read operations\n- Working with glob operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773449617848,
+    "status": "draft"
+  },
+  {
+    "id": "05dbfa7e-acfd-4e88-82f5-88c296c6951d",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 参考~/.config/opencode/opencode.json  使用项目配置好的模型 有个问题：项目具有自动备份、自动恢复数据库的功能的，创建知识图谱要考虑到这点，否则新建的知识图谱会被覆盖掉。另外，我们要全盘考虑，如何处理维度的问题 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理；4、项目代码中已有自动检测模型维度的函数，请尽可能复用 设置默认维度为1536，模型使用v4 疑问：维度1024怎么来的？之前有设置个这个默认维度吗？在哪设置了？ 参考下面的 代码 来修改模型使用的维度：[Pasted ~51 lines]import dashscope\nimport numpy as np\n\n\ndef cosine_similarity(a, b):\n    \"\"\"计算余弦相似度\"\"\"\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\n\ndef detect_anomaly(new_comment, normal_comments, threshold=0.6):\n    # 1. 向量化所有正常评论和新评论\n    all_texts = normal_comments + [new_comment]\n    resp = dashscope.TextEmbedding.call(\n        model=\"text-embedding-v4\",\n        input=all_texts,\n        dimension=1024\n    )\n    embeddings = [item['embedding'] for item in resp.output['embeddings']]\n\n    # 2. 计算正常评论的中心向量（平均值）\n    normal_embeddings = np.array(embeddings[:-1])\n    normal_center_vector = np.mean(normal_embeddings, axis=0)\n\n    # 3. 计算新评论与中心向量的相似度\n    new_comment_embedding = np.array(embeddings[-1])\n    similarity = cosine_similarity(new_comment_embedding, normal_center_vector)\n\n    # 4. 判断是否为异常\n    is_anomaly = similarity < threshold\n    return is_anomaly, similarity\n\n\n# 使用示例\nnormal_user_comments = [\n    \"今天的会议很有成效\",\n    \"项目进展顺利\",\n    \"下周发布新版本\",\n    \"用户反馈良好\"\n]\n\ntest_comments = {\n    \"正常评论\": \"功能符合预期\",\n    \"异常-无意义乱码\": \"asdfghjkl zxcvbnm\"\n}\n\nprint(\"--- 异常检测示例 ---\")\nfor desc, comment in test_comments.items():\n    is_anomaly, score = detect_anomaly(comment, normal_user_comments)\n    result = \"是\" if is_anomaly else \"否\"\n    print(f\"评论: '{comment}'\")\n    print(f\"是否为异常: {result} (与正常样本相似度: {score:.3f})\\n\") continue 先恢复之前的数据库，然后考虑能不能继承Vercel ai sdk，然后修改sdk支持dimenesions 原来的数据库中有 knowledge_node 和 vector_memory 表就行了，不管这两个表有没数据，从最近一个正常的恢复 检查现在的数据库的数据，有哪些表，有哪些数据，是什么维度 哪些是向量索引的表？\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with toolbox_query_knowledge_nodes operations\n- Working with grep operations\n- Working with read operations\n- Working with glob operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773449677606,
+    "status": "draft"
+  },
+  {
+    "id": "ff49a5bf-61da-4ad1-a34b-552ecfc9f4f1",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 参考~/.config/opencode/opencode.json  使用项目配置好的模型 有个问题：项目具有自动备份、自动恢复数据库的功能的，创建知识图谱要考虑到这点，否则新建的知识图谱会被覆盖掉。另外，我们要全盘考虑，如何处理维度的问题 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理；4、项目代码中已有自动检测模型维度的函数，请尽可能复用 设置默认维度为1536，模型使用v4 疑问：维度1024怎么来的？之前有设置个这个默认维度吗？在哪设置了？ 参考下面的 代码 来修改模型使用的维度：[Pasted ~51 lines]import dashscope\nimport numpy as np\n\n\ndef cosine_similarity(a, b):\n    \"\"\"计算余弦相似度\"\"\"\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\n\ndef detect_anomaly(new_comment, normal_comments, threshold=0.6):\n    # 1. 向量化所有正常评论和新评论\n    all_texts = normal_comments + [new_comment]\n    resp = dashscope.TextEmbedding.call(\n        model=\"text-embedding-v4\",\n        input=all_texts,\n        dimension=1024\n    )\n    embeddings = [item['embedding'] for item in resp.output['embeddings']]\n\n    # 2. 计算正常评论的中心向量（平均值）\n    normal_embeddings = np.array(embeddings[:-1])\n    normal_center_vector = np.mean(normal_embeddings, axis=0)\n\n    # 3. 计算新评论与中心向量的相似度\n    new_comment_embedding = np.array(embeddings[-1])\n    similarity = cosine_similarity(new_comment_embedding, normal_center_vector)\n\n    # 4. 判断是否为异常\n    is_anomaly = similarity < threshold\n    return is_anomaly, similarity\n\n\n# 使用示例\nnormal_user_comments = [\n    \"今天的会议很有成效\",\n    \"项目进展顺利\",\n    \"下周发布新版本\",\n    \"用户反馈良好\"\n]\n\ntest_comments = {\n    \"正常评论\": \"功能符合预期\",\n    \"异常-无意义乱码\": \"asdfghjkl zxcvbnm\"\n}\n\nprint(\"--- 异常检测示例 ---\")\nfor desc, comment in test_comments.items():\n    is_anomaly, score = detect_anomaly(comment, normal_user_comments)\n    result = \"是\" if is_anomaly else \"否\"\n    print(f\"评论: '{comment}'\")\n    print(f\"是否为异常: {result} (与正常样本相似度: {score:.3f})\\n\") continue 先恢复之前的数据库，然后考虑能不能继承Vercel ai sdk，然后修改sdk支持dimenesions 原来的数据库中有 knowledge_node 和 vector_memory 表就行了，不管这两个表有没数据，从最近一个正常的恢复 检查现在的数据库的数据，有哪些表，有哪些数据，是什么维度 哪些是向量索引的表？ 先恢复session表的数据，从最近正常的数据库备份中恢复\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with toolbox_query_knowledge_nodes operations\n- Working with grep operations\n- Working with read operations\n- Working with glob operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773449907520,
+    "status": "draft"
+  },
+  {
+    "id": "2cc4c861-d9c2-4594-9c4f-ae1a1467d4fc",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 参考~/.config/opencode/opencode.json  使用项目配置好的模型 有个问题：项目具有自动备份、自动恢复数据库的功能的，创建知识图谱要考虑到这点，否则新建的知识图谱会被覆盖掉。另外，我们要全盘考虑，如何处理维度的问题 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理；4、项目代码中已有自动检测模型维度的函数，请尽可能复用 设置默认维度为1536，模型使用v4 疑问：维度1024怎么来的？之前有设置个这个默认维度吗？在哪设置了？ 参考下面的 代码 来修改模型使用的维度：[Pasted ~51 lines]import dashscope\nimport numpy as np\n\n\ndef cosine_similarity(a, b):\n    \"\"\"计算余弦相似度\"\"\"\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\n\ndef detect_anomaly(new_comment, normal_comments, threshold=0.6):\n    # 1. 向量化所有正常评论和新评论\n    all_texts = normal_comments + [new_comment]\n    resp = dashscope.TextEmbedding.call(\n        model=\"text-embedding-v4\",\n        input=all_texts,\n        dimension=1024\n    )\n    embeddings = [item['embedding'] for item in resp.output['embeddings']]\n\n    # 2. 计算正常评论的中心向量（平均值）\n    normal_embeddings = np.array(embeddings[:-1])\n    normal_center_vector = np.mean(normal_embeddings, axis=0)\n\n    # 3. 计算新评论与中心向量的相似度\n    new_comment_embedding = np.array(embeddings[-1])\n    similarity = cosine_similarity(new_comment_embedding, normal_center_vector)\n\n    # 4. 判断是否为异常\n    is_anomaly = similarity < threshold\n    return is_anomaly, similarity\n\n\n# 使用示例\nnormal_user_comments = [\n    \"今天的会议很有成效\",\n    \"项目进展顺利\",\n    \"下周发布新版本\",\n    \"用户反馈良好\"\n]\n\ntest_comments = {\n    \"正常评论\": \"功能符合预期\",\n    \"异常-无意义乱码\": \"asdfghjkl zxcvbnm\"\n}\n\nprint(\"--- 异常检测示例 ---\")\nfor desc, comment in test_comments.items():\n    is_anomaly, score = detect_anomaly(comment, normal_user_comments)\n    result = \"是\" if is_anomaly else \"否\"\n    print(f\"评论: '{comment}'\")\n    print(f\"是否为异常: {result} (与正常样本相似度: {score:.3f})\\n\") continue 先恢复之前的数据库，然后考虑能不能继承Vercel ai sdk，然后修改sdk支持dimenesions 原来的数据库中有 knowledge_node 和 vector_memory 表就行了，不管这两个表有没数据，从最近一个正常的恢复 检查现在的数据库的数据，有哪些表，有哪些数据，是什么维度 哪些是向量索引的表？ 先恢复session表的数据，从最近正常的数据库备份中恢复 project表是什么数据\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with toolbox_query_knowledge_nodes operations\n- Working with grep operations\n- Working with read operations\n- Working with glob operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773450014626,
+    "status": "draft"
+  },
+  {
+    "id": "8be8ba77-4265-4ee3-99bf-7beccde67d19",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 参考~/.config/opencode/opencode.json  使用项目配置好的模型 有个问题：项目具有自动备份、自动恢复数据库的功能的，创建知识图谱要考虑到这点，否则新建的知识图谱会被覆盖掉。另外，我们要全盘考虑，如何处理维度的问题 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理 改造方案：1、全局默认使用1024维度；2、根据 [Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0key已经在~/.zshrc已经配置好;3、所有使用到text emedding的地方统一调用相同的模型处理；4、项目代码中已有自动检测模型维度的函数，请尽可能复用 设置默认维度为1536，模型使用v4 疑问：维度1024怎么来的？之前有设置个这个默认维度吗？在哪设置了？ 参考下面的 代码 来修改模型使用的维度：[Pasted ~51 lines]import dashscope\nimport numpy as np\n\n\ndef cosine_similarity(a, b):\n    \"\"\"计算余弦相似度\"\"\"\n    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))\n\n\ndef detect_anomaly(new_comment, normal_comments, threshold=0.6):\n    # 1. 向量化所有正常评论和新评论\n    all_texts = normal_comments + [new_comment]\n    resp = dashscope.TextEmbedding.call(\n        model=\"text-embedding-v4\",\n        input=all_texts,\n        dimension=1024\n    )\n    embeddings = [item['embedding'] for item in resp.output['embeddings']]\n\n    # 2. 计算正常评论的中心向量（平均值）\n    normal_embeddings = np.array(embeddings[:-1])\n    normal_center_vector = np.mean(normal_embeddings, axis=0)\n\n    # 3. 计算新评论与中心向量的相似度\n    new_comment_embedding = np.array(embeddings[-1])\n    similarity = cosine_similarity(new_comment_embedding, normal_center_vector)\n\n    # 4. 判断是否为异常\n    is_anomaly = similarity < threshold\n    return is_anomaly, similarity\n\n\n# 使用示例\nnormal_user_comments = [\n    \"今天的会议很有成效\",\n    \"项目进展顺利\",\n    \"下周发布新版本\",\n    \"用户反馈良好\"\n]\n\ntest_comments = {\n    \"正常评论\": \"功能符合预期\",\n    \"异常-无意义乱码\": \"asdfghjkl zxcvbnm\"\n}\n\nprint(\"--- 异常检测示例 ---\")\nfor desc, comment in test_comments.items():\n    is_anomaly, score = detect_anomaly(comment, normal_user_comments)\n    result = \"是\" if is_anomaly else \"否\"\n    print(f\"评论: '{comment}'\")\n    print(f\"是否为异常: {result} (与正常样本相似度: {score:.3f})\\n\") continue 先恢复之前的数据库，然后考虑能不能继承Vercel ai sdk，然后修改sdk支持dimenesions 原来的数据库中有 knowledge_node 和 vector_memory 表就行了，不管这两个表有没数据，从最近一个正常的恢复 检查现在的数据库的数据，有哪些表，有哪些数据，是什么维度 哪些是向量索引的表？ 先恢复session表的数据，从最近正常的数据库备份中恢复 project表是什么数据 内容都是空的？\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with toolbox_query_knowledge_nodes operations\n- Working with grep operations\n- Working with read operations\n- Working with glob operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773450079697,
+    "status": "draft"
+  },
+  {
+    "id": "9170d1a5-9f8a-4cc7-a1bd-d69673d0ec78",
+    "name": "auto-cron_cron_list-task",
+    "description": "Auto-generated skill for 检查有没定时任务 删除重复的任务",
+    "content": "# 检查有没定时任务 删除重复的任务\n\n## Description\n\nAuto-generated skill for: 检查有没定时任务 删除重复的任务\n\n## Triggers\n\nThis skill activates when:\n- Working with cron_cron_list operations\n- Working with cron_cron_remove operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [],
+    "sessionID": "ses_31610af05ffe2M1uHyLDAOdKE2",
+    "createdAt": 1773451411798,
+    "status": "draft"
+  },
+  {
+    "id": "cd0ee8a2-2c9f-4448-b0a6-6cf0de974610",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程",
+    "content": "# 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程\n\n## Description\n\nAuto-generated skill for: 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [],
+    "sessionID": "ses_315ff3bfbffeN5R0OyG8DVevfT",
+    "createdAt": 1773452627908,
+    "status": "draft"
+  },
+  {
+    "id": "a744d13d-ca22-48d8-b0bb-721d6f6fb67f",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？",
+    "content": "# 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？\n\n## Description\n\nAuto-generated skill for: 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [],
+    "sessionID": "ses_315ff3bfbffeN5R0OyG8DVevfT",
+    "createdAt": 1773452821019,
+    "status": "draft"
+  },
+  {
+    "id": "2f2eeb4b-26c1-4e29-b672-35eeabc82947",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据",
+    "content": "# 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？\n\n## Description\n\nAuto-generated skill for: 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with toolbox_execute_sql operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [],
+    "sessionID": "ses_315ff3bfbffeN5R0OyG8DVevfT",
+    "createdAt": 1773453006670,
+    "status": "draft"
+  },
+  {
+    "id": "c89bec3f-cf7a-4810-b32c-e332a12ad230",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Document",
+    "content": "# 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？\n\n## Description\n\nAuto-generated skill for: 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with toolbox_execute_sql operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "userslpcwdocumentsopencodepackagesopencodeopencodedb"
+    ],
+    "sessionID": "ses_315ff3bfbffeN5R0OyG8DVevfT",
+    "createdAt": 1773453245567,
+    "status": "draft"
+  },
+  {
+    "id": "75b4e790-1a77-47af-b1d0-b57c2e60ffc2",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Document",
+    "content": "# 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？\n\n## Description\n\nAuto-generated skill for: 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with toolbox_execute_sql operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "userslpcwdocumentsopencodepackagesopencodeopencodedb"
+    ],
+    "sessionID": "ses_315ff3bfbffeN5R0OyG8DVevfT",
+    "createdAt": 1773453494195,
+    "status": "draft"
+  },
+  {
+    "id": "e1a1bde3-8ad7-44b6-a64b-e8779d166cf5",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Document",
+    "content": "# 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？\n\n## Description\n\nAuto-generated skill for: 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？ 在 ~/目录下查找所有含opencode字符串的名字的数据库\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with toolbox_execute_sql operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "userslpcwdocumentsopencodepackagesopencodeopencodedb",
+      "opencode"
+    ],
+    "sessionID": "ses_315ff3bfbffeN5R0OyG8DVevfT",
+    "createdAt": 1773453769239,
+    "status": "draft"
+  },
+  {
+    "id": "8930f7b1-7ab2-4464-8643-5649837c7ac9",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Document",
+    "content": "# 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？\n\n## Description\n\nAuto-generated skill for: 现在审查项目所有涉及数据库操作的代码，全面理清项目操作数据库的流程 生成的数据都保存在哪几个数据库？ 查看数据库中的数据 查看这个数据库最近一次更新是什么时候 /Users/lpcw/Documents/opencode/packages/opencode/opencode.db 问题是项目不是有备份和恢复数据库的功能吗？主数据库为什么不存在的？ 在 ~/目录下查找所有含opencode字符串的名字的数据库 太乱了，基于对项目代码的审查，给出一个合理的数据库使用方案 continue\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with grep operations\n- Working with read operations\n- Working with toolbox_execute_sql operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "userslpcwdocumentsopencodepackagesopencodeopencodedb",
+      "opencode",
+      "continue"
+    ],
+    "sessionID": "ses_315ff3bfbffeN5R0OyG8DVevfT",
+    "createdAt": 1773454314819,
+    "status": "draft"
+  },
+  {
+    "id": "2cd6d3fe-0151-4ad0-8d45-06fe38bb70b5",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773455060658,
+    "status": "draft"
+  },
+  {
+    "id": "9c79a14e-ac3f-4e0d-9597-01a9f5405d58",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773455301046,
+    "status": "draft"
+  },
+  {
+    "id": "6f3d2416-23bf-4fc2-b2ad-a98f1fd04caa",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移 将旧目录下的数据库备份文件也迁移过去\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773455842925,
+    "status": "draft"
+  },
+  {
+    "id": "f0bcc23e-fc2c-4bed-9877-9e891901b5c9",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移 将旧目录下的数据库备份文件也迁移过去 旧目录下的数据库备份文件在 /Users/lpcw/.local/share/opencode/backups\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig",
+      "userslpcwlocalshareopencodebackups"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773455920126,
+    "status": "draft"
+  },
+  {
+    "id": "15cd0abd-05eb-4c72-b2d9-ab34dc5e051f",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移 将旧目录下的数据库备份文件也迁移过去 旧目录下的数据库备份文件在 /Users/lpcw/.local/share/opencode/backups 执行迁移，损坏的数据库删除，迁移后清理旧目录 将旧目录下的tool-output和storage也迁移过去\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig",
+      "userslpcwlocalshareopencodebackups",
+      "tooloutputstorage"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773456286293,
+    "status": "draft"
+  },
+  {
+    "id": "b9177ccc-04de-44b2-81f8-f992b829992c",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移 将旧目录下的数据库备份文件也迁移过去 旧目录下的数据库备份文件在 /Users/lpcw/.local/share/opencode/backups 执行迁移，损坏的数据库删除，迁移后清理旧目录 将旧目录下的tool-output和storage也迁移过去 检查新目录下数据库备份文件的大小和创建时间\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig",
+      "userslpcwlocalshareopencodebackups",
+      "tooloutputstorage"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773456515164,
+    "status": "draft"
+  },
+  {
+    "id": "693ea8cf-578f-4352-9cd2-ac81de1a3fd4",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移 将旧目录下的数据库备份文件也迁移过去 旧目录下的数据库备份文件在 /Users/lpcw/.local/share/opencode/backups 执行迁移，损坏的数据库删除，迁移后清理旧目录 将旧目录下的tool-output和storage也迁移过去 检查新目录下数据库备份文件的大小和创建时间 确认主数据库中表的维度\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig",
+      "userslpcwlocalshareopencodebackups",
+      "tooloutputstorage"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773456660597,
+    "status": "draft"
+  },
+  {
+    "id": "0bf878f2-d0d8-4e76-b0ff-610c6a04c10b",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移 将旧目录下的数据库备份文件也迁移过去 旧目录下的数据库备份文件在 /Users/lpcw/.local/share/opencode/backups 执行迁移，损坏的数据库删除，迁移后清理旧目录 将旧目录下的tool-output和storage也迁移过去 检查新目录下数据库备份文件的大小和创建时间 确认主数据库中表的维度 将/Users/lpcw/Library/Application Support/opencode/backups/opencode.db.bak.2026-03-14T01-12-50-577Z 中的session表和message表中的数据合并到当前主数据库中\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig",
+      "userslpcwlocalshareopencodebackups",
+      "tooloutputstorage"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773456913867,
+    "status": "draft"
+  },
+  {
+    "id": "12cb33a0-a528-4d40-aac8-f7f86b395d6e",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移 将旧目录下的数据库备份文件也迁移过去 旧目录下的数据库备份文件在 /Users/lpcw/.local/share/opencode/backups 执行迁移，损坏的数据库删除，迁移后清理旧目录 将旧目录下的tool-output和storage也迁移过去 检查新目录下数据库备份文件的大小和创建时间 确认主数据库中表的维度 将/Users/lpcw/Library/Application Support/opencode/backups/opencode.db.bak.2026-03-14T01-12-50-577Z 中的session表和message表中的数据合并到当前主数据库中 执行合并\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig",
+      "userslpcwlocalshareopencodebackups",
+      "tooloutputstorage"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773456957769,
+    "status": "draft"
+  },
+  {
+    "id": "300421fd-7494-42eb-a4c5-4eb7b1a58d8b",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application",
+    "content": "# 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认\n\n## Description\n\nAuto-generated skill for: 之前项目启动使用的配置文件是 ~/.config/opencode/opencode.json，确认现在项目加载配置文件的路径是否改成了 /Users/lpcw/Library/Application Support/opencode/config，若是，请给出迁移方案 执行迁移 将旧目录下的数据库备份文件也迁移过去 旧目录下的数据库备份文件在 /Users/lpcw/.local/share/opencode/backups 执行迁移，损坏的数据库删除，迁移后清理旧目录 将旧目录下的tool-output和storage也迁移过去 检查新目录下数据库备份文件的大小和创建时间 确认主数据库中表的维度 将/Users/lpcw/Library/Application Support/opencode/backups/opencode.db.bak.2026-03-14T01-12-50-577Z 中的session表和message表中的数据合并到当前主数据库中 执行合并 对比其他表的结构，如果结构一致的都合并到主数据库中\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "configopencodeopencodejson",
+      "userslpcwlibraryapplication",
+      "supportopencodeconfig",
+      "userslpcwlocalshareopencodebackups",
+      "tooloutputstorage"
+    ],
+    "sessionID": "ses_315d8c42cffeNvnD0y3q5tfw6z",
+    "createdAt": 1773457097138,
+    "status": "draft"
+  },
+  {
+    "id": "26cda8a4-2230-40e0-83bd-7456f4f21ac8",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with grep operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773461834742,
+    "status": "draft"
+  },
+  {
+    "id": "3f5eb187-d6f8-4f5d-9d5b-d73334e3e889",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with grep operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773462309651,
+    "status": "draft"
+  },
+  {
+    "id": "c87ceaf3-0036-42bb-8077-9d891290611c",
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中 详细解释每个建议项\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with grep operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "createdAt": 1773462659212,
+    "status": "draft"
+  },
+  {
+    "name": "auto-evolve-task",
+    "description": "Auto-generated skill for Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, ",
+    "content": "# Trigger the OpenCode self-evolution system to:\n\n1.\n\n## Description\n\nAuto-generated skill for: Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--check\n\nIf no arguments provided, run full evolution cycle and report results. 检查向量数据库是否已有项目自身代码的向量索引 再次扫描项目所有代码，按三层访问策略，建立自身代码的全量向量索引，并更新到向量数据库，并确认自动增量建立向量索引是否有效 知识图谱如何建立？之前确认到知识图谱是空的 知识图谱应该集成到项目流程中自动创建，统一将知识图谱的数据写到项目中的opencode.db中，另外需要将现在的384维度迁移到1536维度，可以参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md 来修复，另外，既然已经建立了项目本身代码的向量索引，知识图谱的更新是通过直接扫描项目代码文件建立好还是利用已建立的向量索引更新好？ 开始执行迁移 现在主数据库的路径是/Users/lpcw/Library/Application Support/opencode/opencode.db，备份数据库在/Users/lpcw/Library/Application Support/opencode/backups 中，现在检查主数据库的表结构和数据 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 不要使用simpleEmbedding，而是使用阿里云的模型，相关的API KEY环境变量已经在~/.zshrc设置好了，项目中已统一使用sdk中的代码来使用真正的embedding，参考内容：[Pasted ~1 lines] https://help.aliyun.com/zh/model-studio/embedding?spm=5176.30275541.J_ZGek9Blx07Hclc3Ddt9dg.1.75232f3d4mVsBd&scm=20140722.S_help@@%E6%96%87%E6%A1%A3@@2842587._.ID_help@@%E6%96%87%E6%A1%A3@@2842587-RL_text~DAS~embedding-LOC_2024SPAllResult-OR_ser-PAR1_2166933617734458587676212d12bf-V_4-PAR3_o-RE_new5-P0_0-P1_0 维度设置为1536，同时注意主数据库有没设置为其他维度的限制，若有就清除它 continue 回顾之前修复的过程 ，参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md,  用英文详细总结到一个新的md文件中 详细解释每个建议项 阅读下面这些文件，来实施建议，提示：项目本身有增量更新的机制，但需要再分析：[Pasted ~6 lines] /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-13.md\n/Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md\n/Users/lpcw/Documents/opencode/docs/memory-service-refactor-changelog-all.html\n/Users/lpcw/Documents/opencode/docs/permanent-memory-system.md\n/Users/lpcw/Documents/opencode/docs/prompt-refactor-report.md\n/Users/lpcw/Documents/opencode/docs/vector-index-migration-report-2026-03-14.md\n\n## Triggers\n\nThis skill activates when:\n- Working with evolve operations\n- Working with build_code_index operations\n- Working with toolbox_execute_sql operations\n- Working with todowrite operations\n- Working with write operations\n- Working with bash operations\n- Working with grep operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "trigger",
+      "opencode",
+      "selfevolution",
+      "system",
+      "collect"
+    ],
+    "sessionID": "ses_3169e4a00ffeHDE0DE7FG73Ao8",
+    "id": "53a4156a-db48-4385-a172-c9d2d0ad3abb",
+    "createdAt": 1773463481700,
     "status": "draft"
   }
 ]
