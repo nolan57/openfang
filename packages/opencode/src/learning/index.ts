@@ -95,4 +95,13 @@ export {
 } from "./rollback-manager"
 export { EmbeddingService } from "./embedding-service"
 export type { EmbeddingModelConfig, EmbeddingModelInfo } from "./embedding-service"
+export {
+  getKnowledgeIndexManager,
+  initKnowledgeIndexManager,
+  triggerSessionEndIndex,
+  defaultIndexManagerConfig,
+  type IndexManagerConfig,
+  type IndexResult,
+  type IndexStatus,
+} from "./knowledge-index-manager"
 export * from "./learning.sql"

@@ -282,6 +282,9 @@ export class SqliteVecStore implements IVectorStore {
       })
     })
 
+    // [SYNC] Auto-sync to knowledge_node for graph-based queries
+    this.syncToKnowledgeNode(id, entry, embeddingJson, now)
+
     if (this.vecTableInitialized) {
       const sqlite = Database.raw()
       sqlite.prepare("INSERT INTO vec_vector_memory(id, embedding) VALUES (?, vec_f32(?))").run(id, embeddingJson)
@@ -294,6 +297,78 @@ export class SqliteVecStore implements IVectorStore {
       dimensions: embedding.length,
     })
     return id
+  }
+
+  /**
+   * [SYNC] Sync vector entry to knowledge_node table for graph queries
+   * This ensures both vector search and graph traversal work on the same data
+   */
+  private syncToKnowledgeNode(
+    id: string,
+    entry: Omit<VectorEntry, "id">,
+    embeddingJson: string,
+    now: number,
+  ): void {
+    // Map node_type to KnowledgeGraph NodeType
+    const nodeType = this.mapNodeType(entry.node_type)
+
+    Database.use((db) => {
+      db.insert(knowledge_nodes)
+        .values({
+          id,
+          type: nodeType,
+          entity_type: entry.node_type,
+          entity_id: entry.node_id,
+          title: entry.entity_title,
+          content: "",
+          embedding: embeddingJson,
+          metadata: JSON.stringify({
+            vector_type: entry.vector_type,
+            model: entry.model ?? this.config.defaultModel,
+            dimensions: embeddingJson ? JSON.parse(embeddingJson).length : 0,
+            ...entry.metadata,
+          }),
+          memory_type: this.inferMemoryType(entry.node_type),
+          time_created: now,
+          time_updated: now,
+        })
+        .onConflictDoNothing()
+        .run()
+    })
+  }
+
+  /**
+   * [SYNC] Map vector_memory node_type to knowledge_node type
+   */
+  private mapNodeType(nodeType: string): string {
+    const typeMap: Record<string, string> = {
+      module: "file",
+      file: "file",
+      project_file: "file",
+      skill: "skill",
+      memory: "memory",
+      constraint: "constraint",
+      agenda: "agenda",
+      code_entity: "code_entity",
+    }
+    return typeMap[nodeType] ?? "memory"
+  }
+
+  /**
+   * [SYNC] Infer memory_type from node_type
+   */
+  private inferMemoryType(nodeType: string): string | null {
+    const memoryTypeMap: Record<string, string> = {
+      module: "project",
+      file: "project",
+      project_file: "project",
+      skill: "evolution",
+      memory: "session",
+      constraint: "project",
+      agenda: "evolution",
+      code_entity: "project",
+    }
+    return memoryTypeMap[nodeType] ?? null
   }
 
   async storeBatch(entries: Omit<VectorEntry, "id">[]): Promise<string[]> {
@@ -636,7 +711,11 @@ export class SqliteVecStore implements IVectorStore {
   }
 
   async clear(): Promise<void> {
-    Database.use((db) => db.delete(vector_memory))
+    Database.use((db) => {
+      db.delete(vector_memory)
+      // [SYNC] Also clear knowledge_nodes for consistency
+      db.delete(knowledge_nodes)
+    })
 
     if (this.vecTableInitialized) {
       const sqlite = Database.raw()
@@ -744,6 +823,71 @@ export class SqliteVecStore implements IVectorStore {
 
     log.info("knowledge_nodes_synced", { synced: nodesToSync.length, skipped })
     return { synced: nodesToSync.length, skipped }
+  }
+
+  /**
+   * Migrate vector_memory data to knowledge_node table
+   * Note: Edge generation is handled by Memory.indexProject() for proper AST analysis
+   * 
+   * @returns Statistics about the migration
+   */
+  async migrateToKnowledgeGraph(): Promise<{
+    nodesMigrated: number
+    edgesCreated: number
+    errors: string[]
+  }> {
+    const errors: string[] = []
+    let nodesMigrated = 0
+
+    const now = Date.now()
+
+    // Migrate vector_memory -> knowledge_node
+    try {
+      const existingNodeIds = new Set(
+        Database.use((db) => db.select({ id: knowledge_nodes.id }).from(knowledge_nodes).all()).map((r) => r.id),
+      )
+
+      const vectorsToMigrate = Database.use((db) => db.select().from(vector_memory).all()).filter(
+        (v) => !existingNodeIds.has(v.id),
+      )
+
+      for (const v of vectorsToMigrate) {
+        const nodeType = this.mapNodeType(v.node_type)
+        const memoryType = this.inferMemoryType(v.node_type)
+
+        Database.use((db) => {
+          db.insert(knowledge_nodes)
+            .values({
+              id: v.id,
+              type: nodeType,
+              entity_type: v.node_type,
+              entity_id: v.node_id,
+              title: v.entity_title,
+              content: v.metadata ?? "",
+              embedding: v.embedding,
+              metadata: JSON.stringify({
+                vector_type: v.vector_type,
+                model: v.model,
+                dimensions: v.dimensions,
+              }),
+              memory_type: memoryType,
+              time_created: v.time_created ?? now,
+              time_updated: v.time_updated ?? now,
+            })
+            .onConflictDoNothing()
+            .run()
+        })
+        nodesMigrated++
+      }
+
+      log.info("migrated_vector_to_knowledge_node", { count: nodesMigrated })
+    } catch (error) {
+      errors.push(`Failed to migrate nodes: ${error instanceof Error ? error.message : String(error)}`)
+    }
+
+    // Note: Edges are generated by Memory.indexProject() via AST analysis
+    // This provides more accurate relationships (imports, calls) instead of path-based inference
+    return { nodesMigrated, edgesCreated: 0, errors }
   }
 
   async cleanupOrphanedVectors(): Promise<{ removed: number }> {

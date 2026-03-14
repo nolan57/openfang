@@ -15,6 +15,7 @@ import { runLearning } from "../../learning/command"
 import { Instance } from "../../project/instance"
 import { Deployer } from "../../learning/deployer"
 import { EvolutionExecutor } from "../../learning/evolution-executor"
+import { Memory } from "../../memory"
 
 export const EvolveCommand: CommandModule = {
   command: "evolve",
@@ -48,6 +49,19 @@ export const EvolveCommand: CommandModule = {
       .command("memories", "List learned memories", {}, listMemories)
       .command("pending", "List pending skill approvals", {}, listPending)
       .command("status", "Show evolution system status", {}, showStatus)
+      .command(
+        "migrate [path]",
+        "Migrate vector_memory to knowledge graph with full code analysis",
+        (yargs) =>
+          yargs
+            .positional("path", { type: "string", default: ".", describe: "Directory to analyze" })
+            .option("ext", {
+              type: "array",
+              default: [".ts", ".tsx", ".js", ".jsx"],
+              describe: "File extensions to analyze",
+            }),
+        (args) => migrateKnowledgeGraph({ path: args.path as string, ext: args.ext as string[] }),
+      )
       .command("tasks", "List pending deployment tasks", {}, listTasks)
       // New self-evolution commands
       .command("scan", "Scan and report code issues", {}, scanCode)
@@ -61,6 +75,20 @@ export const EvolveCommand: CommandModule = {
         (args) => searchSummaries(args.query as string),
       )
       .command("overview", "Generate project overview", {}, generateOverview)
+      .command(
+        "index [path]",
+        "Index project files into knowledge graph",
+        (yargs) =>
+          yargs
+            .positional("path", { type: "string", default: ".", describe: "Directory to index" })
+            .option("clear", { type: "boolean", default: false, describe: "Clear existing data before indexing" })
+            .option("ext", {
+              type: "array",
+              default: ["ts", "tsx", "js", "jsx"],
+              describe: "File extensions to index",
+            }),
+        (args) => indexProjectFiles(args as any),
+      )
       .demandCommand(0, ""),
   handler: async (args: any) => {
     if (args.mode === "spec") {
@@ -155,38 +183,43 @@ async function listPending() {
 }
 
 async function showStatus() {
-  const cfg = await Config.get()
-  const evolution = cfg.evolution ?? {}
-  const directions = evolution.directions ?? defaultLearningConfig.topics
-  const sources = evolution.sources ?? defaultLearningConfig.sources
+  await Instance.provide({
+    directory: process.cwd(),
+    fn: async () => {
+      const cfg = await Config.get()
+      const evolution = cfg.evolution ?? {}
+      const directions = evolution.directions ?? defaultLearningConfig.topics
+      const sources = evolution.sources ?? defaultLearningConfig.sources
 
-  const graph = new KnowledgeGraph()
-  const safety = new Safety()
-  const trigger = new EvolutionTrigger()
+      const graph = new KnowledgeGraph()
+      const safety = new Safety()
+      const trigger = new EvolutionTrigger()
 
-  const [stats, safetyCheck, triggerStatus] = await Promise.all([
-    graph.getStats(),
-    safety.checkCooldown(),
-    trigger.getStatus(),
-  ])
+      const [stats, safetyCheck, triggerStatus] = await Promise.all([
+        graph.getStats(),
+        safety.checkCooldown(),
+        trigger.getStatus(),
+      ])
 
-  console.log("\n=== Evolution Status ===\n")
-  console.log("📋 Directions:")
-  for (const d of directions) {
-    console.log(`   - ${d}`)
-  }
-  console.log(`\n🔍 Sources: ${sources.join(", ")}`)
-  console.log(`\n🟢 Enabled: ${evolution.enabled ?? true}`)
-  console.log("\n--- System ---")
-  console.log(`📊 Knowledge Graph: ${stats.nodes} nodes, ${stats.edges} edges`)
-  console.log(`🛡️ Safety: ${safetyCheck.allowed ? "Ready" : "Cooldown active"}`)
-  if (safetyCheck.cooldown_remaining_ms) {
-    console.log(`   Cooldown remaining: ${Math.round(safetyCheck.cooldown_remaining_ms / 1000 / 60)} min`)
-  }
-  console.log(
-    `⏱️ Last check: ${triggerStatus.last_check ? new Date(triggerStatus.last_check).toLocaleString() : "Never"}`,
-  )
-  console.log(`📋 Pending tasks: ${triggerStatus.pending_tasks}`)
+      console.log("\n=== Evolution Status ===\n")
+      console.log("📋 Directions:")
+      for (const d of directions) {
+        console.log(`   - ${d}`)
+      }
+      console.log(`\n🔍 Sources: ${sources.join(", ")}`)
+      console.log(`\n🟢 Enabled: ${evolution.enabled ?? true}`)
+      console.log("\n--- System ---")
+      console.log(`📊 Knowledge Graph: ${stats.nodes} nodes, ${stats.edges} edges`)
+      console.log(`🛡️ Safety: ${safetyCheck.allowed ? "Ready" : "Cooldown active"}`)
+      if (safetyCheck.cooldown_remaining_ms) {
+        console.log(`   Cooldown remaining: ${Math.round(safetyCheck.cooldown_remaining_ms / 1000 / 60)} min`)
+      }
+      console.log(
+        `⏱️ Last check: ${triggerStatus.last_check ? new Date(triggerStatus.last_check).toLocaleString() : "Never"}`,
+      )
+      console.log(`📋 Pending tasks: ${triggerStatus.pending_tasks}`)
+    },
+  })
 }
 
 async function listTasks() {
@@ -355,6 +388,153 @@ async function generateOverview() {
   } else {
     console.log("Failed to generate overview")
   }
+}
+
+// Index project files into knowledge graph
+async function indexProjectFiles(args: { path: string; clear: boolean; ext: string[] }) {
+  const dir = path.resolve(process.cwd(), args.path)
+  const extensions = args.ext.map((e) => (e.startsWith(".") ? e : `.${e}`))
+
+  console.log(`Indexing project files from: ${dir}`)
+  console.log(`Extensions: ${extensions.join(", ")}`)
+  console.log(`Clear existing: ${args.clear}`)
+
+  await Instance.provide({
+    directory: dir,
+    fn: async () => {
+      // Scan for source files
+      const { glob } = await import("glob")
+      const { readFile } = await import("fs/promises")
+
+      const patterns = extensions.map((ext) => `**/*${ext}`)
+      const files: Array<{ path: string; content: string; type: string }> = []
+
+      for (const pattern of patterns) {
+        const matches = await glob(pattern, {
+          cwd: dir,
+          ignore: ["**/node_modules/**", "**/dist/**", "**/.git/**", "**/build/**"],
+          absolute: true,
+        })
+
+        for (const filePath of matches) {
+          try {
+            const content = await readFile(filePath, "utf-8")
+            const relativePath = path.relative(dir, filePath)
+            const ext = path.extname(filePath)
+            let type = "file"
+            if (ext === ".ts" || ext === ".tsx") type = "typescript"
+            else if (ext === ".js" || ext === ".jsx") type = "javascript"
+
+            files.push({ path: relativePath, content, type })
+          } catch (error) {
+            console.warn(`Failed to read: ${filePath}`)
+          }
+        }
+      }
+
+      if (files.length === 0) {
+        console.log("No files found to index")
+        return
+      }
+
+      console.log(`Found ${files.length} files to index`)
+
+      // Initialize memory and index files
+      await Memory.init()
+      const result = await Memory.indexProject({
+        files,
+        clearExisting: args.clear,
+      })
+
+      console.log("\n=== Indexing Complete ===")
+      console.log(`Entities added: ${result.entitiesAdded}`)
+      console.log(`Relations added: ${result.relationsAdded}`)
+    },
+  })
+}
+
+// Migrate vector_memory to knowledge graph
+async function migrateKnowledgeGraph(args: { path?: string; ext?: string[] }) {
+  const dir = args.path ? path.resolve(process.cwd(), args.path) : process.cwd()
+  const extensions = args.ext ?? [".ts", ".tsx", ".js", ".jsx"]
+
+  console.log("Migrating vector_memory to knowledge graph...")
+  console.log(`Source directory: ${dir}`)
+  console.log(`Extensions: ${extensions.join(", ")}`)
+
+  await Instance.provide({
+    directory: dir,
+    fn: async () => {
+      // Step 1: Migrate existing vector_memory nodes to knowledge_node
+      const { getSharedVectorStore } = await import("../../learning/vector-store")
+      const vectorStore = await getSharedVectorStore()
+
+      if (vectorStore.migrateToKnowledgeGraph) {
+        const migrateResult = await vectorStore.migrateToKnowledgeGraph()
+        console.log(`\n📦 Nodes migrated: ${migrateResult.nodesMigrated}`)
+        if (migrateResult.errors.length > 0) {
+          console.log("Errors during node migration:")
+          for (const error of migrateResult.errors) {
+            console.log(`  - ${error}`)
+          }
+        }
+      }
+
+      // Step 2: Run Memory.indexProject() for complete code analysis (generates edges)
+      console.log("\n🔍 Running code analysis for edges...")
+
+      const { glob } = await import("glob")
+      const { readFile } = await import("fs/promises")
+
+      const patterns = extensions.map((ext) => `**/*${ext}`)
+      const files: Array<{ path: string; content: string; type: string }> = []
+
+      for (const pattern of patterns) {
+        const matches = await glob(pattern, {
+          cwd: dir,
+          ignore: ["**/node_modules/**", "**/dist/**", "**/.git/**", "**/build/**"],
+          absolute: true,
+        })
+
+        for (const filePath of matches) {
+          try {
+            const content = await readFile(filePath, "utf-8")
+            const relativePath = path.relative(dir, filePath)
+            const ext = path.extname(filePath)
+            let type = "file"
+            if (ext === ".ts" || ext === ".tsx") type = "typescript"
+            else if (ext === ".js" || ext === ".jsx") type = "javascript"
+
+            files.push({ path: relativePath, content, type })
+          } catch (error) {
+            // Skip files that can't be read
+          }
+        }
+      }
+
+      if (files.length === 0) {
+        console.log("No files found to analyze")
+        return
+      }
+
+      console.log(`Found ${files.length} files to analyze`)
+
+      await Memory.init()
+      const indexResult = await Memory.indexProject({
+        files,
+        clearExisting: false, // Don't clear, we already migrated nodes
+      })
+
+      console.log("\n=== Migration Complete ===")
+      console.log(`Entities added: ${indexResult.entitiesAdded}`)
+      console.log(`Relations (edges) added: ${indexResult.relationsAdded}`)
+
+      // Show final stats
+      const graph = new KnowledgeGraph()
+      const stats = await graph.getStats()
+      console.log(`\n📊 Knowledge Graph: ${stats.nodes} nodes, ${stats.edges} edges`)
+    },
+  })
 }
 
 export default EvolveCommand

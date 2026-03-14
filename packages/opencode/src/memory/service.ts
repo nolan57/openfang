@@ -559,6 +559,14 @@ class SessionMemoryService {
     )
 
     log.info("session_ended", { sessionId })
+    
+    // Trigger knowledge graph indexing on session end
+    try {
+      const { triggerSessionEndIndex } = await import("../learning/knowledge-index-manager")
+      await triggerSessionEndIndex()
+    } catch (error) {
+      log.warn("failed_to_trigger_session_end_index", { error: String(error) })
+    }
   }
 
   /**

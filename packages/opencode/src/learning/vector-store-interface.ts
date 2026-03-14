@@ -199,6 +199,17 @@ export interface IVectorStore {
   generateEmbedding(text: string, vectorType: VectorType): Promise<Float32Array>
 
   /**
+   * Migrate vector_memory data to knowledge graph (nodes and edges)
+   * This is a one-time migration for existing data
+   * @returns Statistics about the migration
+   */
+  migrateToKnowledgeGraph?(): Promise<{
+    nodesMigrated: number
+    edgesCreated: number
+    errors: string[]
+  }>
+
+  /**
    * Close the vector store and release resources
    */
   close?(): Promise<void>
