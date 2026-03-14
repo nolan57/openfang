@@ -230,17 +230,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                             {info.error}
                           </text>
                         </Show>
-                        <Show when={info.logs.length > 0}>
-                          <scrollbox height={10} paddingLeft={2}>
-                            <For each={info.logs.slice(-20)}>
-                              {(log) => (
-                                <text fg={theme.textMuted}>
-                                  [{new Date(log.timestamp).toLocaleTimeString()}] {log.message}
-                                </text>
-                              )}
-                            </For>
-                          </scrollbox>
-                        </Show>
                       </box>
                     )}
                   </For>
@@ -297,16 +286,6 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                           <text fg={theme.error} paddingLeft={2}>
                             {info.lastError}
                           </text>
-                        </Show>
-                        <Show when={info.logs.length > 0}>
-                          <For each={info.logs.slice(-3)}>
-                            {(log) => (
-                              <text fg={theme.textMuted} paddingLeft={2}>
-                                [{new Date(log.timestamp).toLocaleTimeString()}] {log.message}
-                                {log.error ? ` - ${log.error}` : ""}
-                              </text>
-                            )}
-                          </For>
                         </Show>
                       </box>
                     )}

@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1773479136770,
-    "usageCount": 264,
+    "lastUsedAt": 1773484586492,
+    "usageCount": 267,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -68,8 +68,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1773479192860,
-    "usageCount": 207,
+    "lastUsedAt": 1773493955925,
+    "usageCount": 209,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -143,8 +143,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1773474150392,
-    "usageCount": 238,
+    "lastUsedAt": 1773493149049,
+    "usageCount": 239,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1773477425850,
-    "usageCount": 281,
+    "lastUsedAt": 1773483879686,
+    "usageCount": 282,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -218,8 +218,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1773473982338,
-    "usageCount": 177,
+    "lastUsedAt": 1773484089010,
+    "usageCount": 179,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -6450,13 +6450,13 @@
     "archived": false
   },
   {
+    "id": "2abe583c-b8bf-47e8-828e-cacca0578507",
     "key": "jaeger-ui-troubleshooting",
     "value": "When Jaeger UI shows empty traces via dropdown but works with direct URLs, try refreshing the page or clearing browser cache - the UI may have stale state or caching issues.",
     "context": "项目是如何启动 /Users/lpcw/Documents/opencode/packages/opencode/src/observability 的？ 问题：Jaeger UI的opencode-agent的traces为空 用 open \"http://localhost:16686/search?service=opencode-agent\" 打开没问题，看到traces了，但奇怪的是通过页面dropdown中选中opencode-agent和all，点击traces却显示为空 jaeger-all-in-one的traces是实时的，但opencode-agent的traces最新的却直到昨晚的 Analyze this session and extract non-obvious learnings to add to AGENTS.md files.\n\nAGENTS.md files can exist at any directory level, not just the project root. When an agent reads a file, any AGENTS.md in parent directories are automatically loaded into the context of the tool read. Place learnings as close to the relevant code as possible:\n\n- Project-wide learnings → root AGENTS.md\n- Package/module-specific → packages/foo/AGENTS.md\n- Feature-specific → src/auth/AGENTS.md\n\nWhat counts as a learning (non-obvious discoveries only):\n\n- Hidden relationships between files or modules\n- Execution paths that differ from how code appears\n- Non-obvious configuration, env vars, or flags\n- Debugging breakthroughs when error messages were misleading\n- API/tool quirks and workarounds\n- Build/test commands not in README\n- Architectural decisions and constraints\n- Files that must change together\n\nWhat NOT to include:\n\n- Obvious facts from documentation\n- Standard language/framework behavior\n- Things already in an AGENTS.md\n- Verbose explanations\n- Session-specific details\n\nProcess:\n\n1. Review session for discoveries, errors that took multiple attempts, unexpected connections\n2. Determine scope - what directory does each learning apply to?\n3. Read existing AGENTS.md files at relevant levels\n4. Create or update AGENTS.md at the appropriate level\n5. Keep entries to 1-3 lines per insight\n\nAfter updating, summarize which AGENTS.md files were created/updated and how many learnings per file.",
     "sessionIDs": [
       "ses_31496057effei5gu1LcU4qajAo"
     ],
-    "id": "2abe583c-b8bf-47e8-828e-cacca0578507",
     "createdAt": 1773479326550,
     "lastUsedAt": 1773479326550,
     "usageCount": 0,

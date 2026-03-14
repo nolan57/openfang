@@ -12,3 +12,20 @@
 - **Command**: `bun run db generate --name <slug>`.
 - **Output**: creates `migration/<timestamp>_<slug>/migration.sql` and `snapshot.json`.
 - **Tests**: migration tests should read the per-folder layout (no `_journal.json`).
+
+## Config Paths
+
+- **macOS**: `~/Library/Application Support/opencode/config/` (defined in `src/global/index.ts`)
+- **Linux**: `$XDG_CONFIG_HOME/opencode`
+- **Windows**: `%APPDATA%/opencode`
+
+## Database Merge
+
+To merge SQLite databases with identical schemas:
+
+```sql
+ATTACH DATABASE '/path/to/backup.db' AS backup;
+INSERT OR IGNORE INTO target_table SELECT * FROM backup.target_table;
+```
+
+Use `INSERT OR IGNORE` when IDs don't overlap (safe, no duplicates).

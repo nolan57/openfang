@@ -565,3 +565,10 @@ Migrations are stored in `packages/opencode/migration/` with per-folder layout:
 - `20260310000000_collab_system/`
 
 Each migration folder contains `migration.sql` and `snapshot.json`.
+
+## Config Paths
+
+- **macOS**: `~/Library/Application Support/opencode/config/` (defined in `src/global/index.ts`)
+- **Linux**: `$XDG_CONFIG_HOME/opencode`
+- **Windows**: `%APPDATA%/opencode`
+- Old path `~/.config/opencode/` is deprecated but docs may still reference it.
