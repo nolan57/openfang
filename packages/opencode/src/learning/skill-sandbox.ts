@@ -2,6 +2,7 @@ import { spawn } from "child_process"
 import { writeFile, readFile, mkdir, rm } from "fs/promises"
 import { resolve, dirname, join } from "path"
 import { Log } from "../util/log"
+import { withSpan, spanAttrs } from "./tracing"
 
 const log = Log.create({ service: "skill-sandbox" })
 
@@ -53,52 +54,73 @@ export class SkillSandbox {
    * Run skill test cases in isolated environment
    */
   async runTests(skillCode: string, testCases: TestCase[]): Promise<SandboxResult> {
-    const startTime = Date.now()
+    return withSpan(
+      "learning.skill_sandbox.run_tests",
+      async (span) => {
+        span.setAttributes({
+          "code.length": skillCode.length,
+          "test_cases.count": testCases.length,
+        })
+        const startTime = Date.now()
 
-    try {
-      // Create sandbox directory
-      await mkdir(this.tempDir, { recursive: true })
+        try {
+          // Create sandbox directory
+          await mkdir(this.tempDir, { recursive: true })
 
-      // Write skill code to sandbox
-      const skillFile = join(this.tempDir, "skill.js")
-      await writeFile(skillFile, skillCode)
+          // Write skill code to sandbox
+          const skillFile = join(this.tempDir, "skill.js")
+          await writeFile(skillFile, skillCode)
 
-      // Generate test runner
-      const testRunner = this.generateTestRunner(testCases)
-      const testFile = join(this.tempDir, "test-runner.js")
-      await writeFile(testFile, testRunner)
+          // Generate test runner
+          const testRunner = this.generateTestRunner(testCases)
+          const testFile = join(this.tempDir, "test-runner.js")
+          await writeFile(testFile, testRunner)
 
-      // Execute tests
-      const result = await this.executeTest(testFile)
+          // Execute tests
+          const result = await this.executeTest(testFile)
 
-      return {
-        ...result,
-        duration_ms: Date.now() - startTime,
-      } as SandboxResult
-    } catch (error) {
-      return {
-        success: false,
-        output: "",
-        error: String(error),
-        duration_ms: Date.now() - startTime,
-      } as SandboxResult
-    } finally {
-      // Cleanup
-      await this.cleanup().catch((e) => log.warn("cleanup_failed", { error: String(e) }))
-    }
+          span.setAttributes({
+            ...spanAttrs.success(result.success),
+            "duration.ms": Date.now() - startTime,
+          })
+          return {
+            ...result,
+            duration_ms: Date.now() - startTime,
+          } as SandboxResult
+        } catch (error) {
+          span.setAttributes({ ...spanAttrs.success(false), "error.message": String(error) })
+          return {
+            success: false,
+            output: "",
+            error: String(error),
+            duration_ms: Date.now() - startTime,
+          } as SandboxResult
+        } finally {
+          // Cleanup
+          await this.cleanup().catch((e) => log.warn("cleanup_failed", { error: String(e) }))
+        }
+      },
+    )
   }
 
   /**
    * Execute a single skill with input
    */
   async execute(skillCode: string, input: string): Promise<SandboxResult> {
-    const startTime = Date.now()
+    return withSpan(
+      "learning.skill_sandbox.execute",
+      async (span) => {
+        span.setAttributes({
+          "code.length": skillCode.length,
+          "input.length": input.length,
+        })
+        const startTime = Date.now()
 
-    try {
-      await mkdir(this.tempDir, { recursive: true })
+        try {
+          await mkdir(this.tempDir, { recursive: true })
 
-      const mainFile = join(this.tempDir, "main.js")
-      const runnerCode = `
+          const mainFile = join(this.tempDir, "main.js")
+          const runnerCode = `
 const skill = require('./skill.js');
 try {
   const result = skill.execute(${JSON.stringify(input)});
@@ -107,36 +129,43 @@ try {
   console.log(JSON.stringify({ success: false, error: e.message }));
 }
 `
-      await writeFile(mainFile, runnerCode)
-      await writeFile(join(this.tempDir, "skill.js"), skillCode)
+          await writeFile(mainFile, runnerCode)
+          await writeFile(join(this.tempDir, "skill.js"), skillCode)
 
-      const output = await this.runCommand("node", [mainFile], {
-        timeout: this.config.timeout_ms,
-      })
+          const output = await this.runCommand("node", [mainFile], {
+            timeout: this.config.timeout_ms,
+          })
 
-      let parsed
-      try {
-        parsed = JSON.parse(output.trim())
-      } catch {
-        parsed = { success: false, output }
-      }
+          let parsed
+          try {
+            parsed = JSON.parse(output.trim())
+          } catch {
+            parsed = { success: false, output }
+          }
 
-      return {
-        success: parsed.success ?? false,
-        output: parsed.result ?? parsed.output ?? "",
-        error: parsed.error,
-        duration_ms: Date.now() - startTime,
-      }
-    } catch (error) {
-      return {
-        success: false,
-        output: "",
-        error: String(error),
-        duration_ms: Date.now() - startTime,
-      } as SandboxResult
-    } finally {
-      await this.cleanup().catch(() => {})
-    }
+          span.setAttributes({
+            ...spanAttrs.success(parsed.success ?? false),
+            "duration.ms": Date.now() - startTime,
+          })
+          return {
+            success: parsed.success ?? false,
+            output: parsed.result ?? parsed.output ?? "",
+            error: parsed.error,
+            duration_ms: Date.now() - startTime,
+          }
+        } catch (error) {
+          span.setAttributes({ ...spanAttrs.success(false), "error.message": String(error) })
+          return {
+            success: false,
+            output: "",
+            error: String(error),
+            duration_ms: Date.now() - startTime,
+          } as SandboxResult
+        } finally {
+          await this.cleanup().catch(() => {})
+        }
+      },
+    )
   }
 
   /**

@@ -2,6 +2,7 @@ import { Log } from "../util/log"
 import * as fs from "fs"
 import * as path from "path"
 import { spawn } from "child_process"
+import { withSpan, spanAttrs } from "./tracing"
 
 const log = Log.create({ service: "self-refactor" })
 
@@ -52,19 +53,28 @@ export class SelfRefactor {
   }
 
   async scanForIssues(extensions: string[] = [".ts", ".tsx"]): Promise<CodeIssue[]> {
-    const issues: CodeIssue[] = []
+    return withSpan(
+      "learning.self_refactor.scan",
+      async (span) => {
+        const issues: CodeIssue[] = []
 
-    await this.walkDir(this.srcDir, async (filePath) => {
-      const ext = path.extname(filePath)
-      if (!extensions.includes(ext)) return
+        await this.walkDir(this.srcDir, async (filePath) => {
+          const ext = path.extname(filePath)
+          if (!extensions.includes(ext)) return
 
-      const content = await fs.promises.readFile(filePath, "utf-8")
-      const fileIssues = this.analyzeFile(filePath, content)
-      issues.push(...fileIssues)
-    })
+          const content = await fs.promises.readFile(filePath, "utf-8")
+          const fileIssues = this.analyzeFile(filePath, content)
+          issues.push(...fileIssues)
+        })
 
-    log.info("scan_complete", { issues_found: issues.length })
-    return issues
+        span.setAttributes({
+          ...spanAttrs.count(issues.length),
+          "extensions": extensions.join(","),
+        })
+        log.info("scan_complete", { issues_found: issues.length })
+        return issues
+      },
+    )
   }
 
   private analyzeFile(filePath: string, content: string): CodeIssue[] {
@@ -174,39 +184,46 @@ export class SelfRefactor {
   }
 
   async fixIssues(issues: CodeIssue[], dryRun: boolean = true): Promise<{ fixed: number; failed: number }> {
-    let fixed = 0
-    let failed = 0
+    return withSpan(
+      "learning.self_refactor.fix",
+      async (span) => {
+        span.setAttributes({
+          "issues.count": issues.length,
+          "dry_run": dryRun,
+        })
+        let fixed = 0
+        let failed = 0
 
-    const byFile = new Map<string, CodeIssue[]>()
-    for (const issue of issues) {
-      const list = byFile.get(issue.file) || []
-      list.push(issue)
-      byFile.set(issue.file, list)
-    }
-
-    for (const [relPath, fileIssues] of byFile) {
-      const filePath = path.join(this.srcDir, relPath)
-
-      if (!fs.existsSync(filePath)) {
-        failed += fileIssues.length
-        continue
-      }
-
-      try {
-        let content = await fs.promises.readFile(filePath, "utf-8")
-
-        const removableIssues = fileIssues.filter((i) => i.type === "console_log" || i.type === "TODO")
-
-        for (const issue of removableIssues) {
-          if (issue.type === "console_log") {
-            const regex = /console\.(log|warn|error|info)\s*\([^)]*\);?/g
-            content = content.replace(regex, "")
-          } else if (issue.type === "TODO") {
-            const lines = content.split("\n")
-            lines.splice((issue.line || 1) - 1, 1)
-            content = lines.join("\n")
-          }
+        const byFile = new Map<string, CodeIssue[]>()
+        for (const issue of issues) {
+          const list = byFile.get(issue.file) || []
+          list.push(issue)
+          byFile.set(issue.file, list)
         }
+
+        for (const [relPath, fileIssues] of byFile) {
+          const filePath = path.join(this.srcDir, relPath)
+
+          if (!fs.existsSync(filePath)) {
+            failed += fileIssues.length
+            continue
+          }
+
+          try {
+            let content = await fs.promises.readFile(filePath, "utf-8")
+
+            const removableIssues = fileIssues.filter((i) => i.type === "console_log" || i.type === "TODO")
+
+            for (const issue of removableIssues) {
+              if (issue.type === "console_log") {
+                const regex = /console\.(log|warn|error|info)\s*\([^)]*\);?/g
+                content = content.replace(regex, "")
+              } else if (issue.type === "TODO") {
+                const lines = content.split("\n")
+                lines.splice((issue.line || 1) - 1, 1)
+                content = lines.join("\n")
+              }
+            }
 
         if (!dryRun) {
           await fs.promises.writeFile(filePath, content, "utf-8")
@@ -219,8 +236,14 @@ export class SelfRefactor {
       }
     }
 
+    span.setAttributes({
+      "issues.fixed": fixed,
+      "issues.failed": failed,
+    })
     log.info("fix_complete", { fixed, failed, dry_run: dryRun })
     return { fixed, failed }
+  },
+)
   }
 
   async createPullRequest(issues: CodeIssue[], branchName: string = "refactor/auto-fix"): Promise<RefactorResult> {

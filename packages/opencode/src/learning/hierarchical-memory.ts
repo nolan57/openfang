@@ -5,6 +5,7 @@ import { getSharedVectorStore, type IVectorStore } from "./vector-store"
 import { Provider } from "../provider/provider"
 import { generateText } from "ai"
 import { Log } from "../util/log"
+import { withSpan, spanAttrs } from "./tracing"
 
 const log = Log.create({ service: "hierarchical-memory" })
 
@@ -92,89 +93,111 @@ export class HierarchicalMemory {
    * Generate module summary using LLM
    */
   async generateModuleSummary(filePath: string, content: string): Promise<ModuleSummary | null> {
-    try {
-      const modelInfo = await Provider.defaultModel()
-      const model = await Provider.getModel(modelInfo.providerID, modelInfo.modelID)
-      const languageModel = await Provider.getLanguage(model)
+    return withSpan(
+      "learning.hierarchical_memory.generate_summary",
+      async (span) => {
+        span.setAttributes({
+          ...spanAttrs.file(filePath),
+          "content.length": content.length,
+        })
+        try {
+          const modelInfo = await Provider.defaultModel()
+          const model = await Provider.getModel(modelInfo.providerID, modelInfo.modelID)
+          const languageModel = await Provider.getLanguage(model)
 
-      const prompt = SUMMARY_PROMPT.replace("{filename}", relative(this.projectDir, filePath)).replace(
-        "{content}",
-        content.slice(0, 8000),
-      )
+          const prompt = SUMMARY_PROMPT.replace("{filename}", relative(this.projectDir, filePath)).replace(
+            "{content}",
+            content.slice(0, 8000),
+          )
 
-      const result = await generateText({
-        model: languageModel,
-        system: "You are a code analysis assistant that extracts structured summaries from code.",
-        prompt,
-      })
+          const result = await generateText({
+            model: languageModel,
+            system: "You are a code analysis assistant that extracts structured summaries from code.",
+            prompt,
+          })
 
-      const text = result.text.trim()
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) {
-        log.warn("no_json_in_summary_response", { file: filePath })
-        return null
-      }
+          const text = result.text.trim()
+          const jsonMatch = text.match(/\{[\s\S]*\}/)
+          if (!jsonMatch) {
+            log.warn("no_json_in_summary_response", { file: filePath })
+            return null
+          }
 
-      const parsed = JSON.parse(jsonMatch[0])
-      const summary: ModuleSummary = {
-        module: parsed.module || relative(this.projectDir, filePath).replace(/\.[^.]+$/, ""),
-        file: relative(this.projectDir, filePath),
-        purpose: parsed.purpose || "",
-        keyFunctions: Array.isArray(parsed.keyFunctions) ? parsed.keyFunctions : [],
-        dependencies: Array.isArray(parsed.dependencies) ? parsed.dependencies : [],
-        lastUpdated: Date.now(),
-      }
+          const parsed = JSON.parse(jsonMatch[0])
+          const summary: ModuleSummary = {
+            module: parsed.module || relative(this.projectDir, filePath).replace(/\.[^.]+$/, ""),
+            file: relative(this.projectDir, filePath),
+            purpose: parsed.purpose || "",
+            keyFunctions: Array.isArray(parsed.keyFunctions) ? parsed.keyFunctions : [],
+            dependencies: Array.isArray(parsed.dependencies) ? parsed.dependencies : [],
+            lastUpdated: Date.now(),
+          }
 
-      // Store embedding
-      const vs = await this.getVectorStore()
-      const embeddingId = await vs.store({
-        node_type: "module_summary",
-        node_id: summary.file,
-        entity_title: `${summary.module}: ${summary.purpose}`,
-        vector_type: "code",
-        metadata: summary as unknown as Record<string, unknown>,
-      })
-      summary.embeddingId = embeddingId
+          // Store embedding
+          const vs = await this.getVectorStore()
+          const embeddingId = await vs.store({
+            node_type: "module_summary",
+            node_id: summary.file,
+            entity_title: `${summary.module}: ${summary.purpose}`,
+            vector_type: "code",
+            metadata: summary as unknown as Record<string, unknown>,
+          })
+          summary.embeddingId = embeddingId
 
-      return summary
-    } catch (error) {
-      log.error("failed_to_generate_summary", { file: filePath, error: String(error) })
-      return null
-    }
+          span.setAttributes({
+            ...spanAttrs.success(true),
+            "summary.module": summary.module,
+            "summary.functions_count": summary.keyFunctions.length,
+          })
+          return summary
+        } catch (error) {
+          log.error("failed_to_generate_summary", { file: filePath, error: String(error) })
+          span.setAttributes({ ...spanAttrs.success(false), "error.message": String(error) })
+          return null
+        }
+      },
+    )
   }
 
   /**
    * Build summaries for all TypeScript files in the project
    */
   async buildAllSummaries(extensions: string[] = [".ts", ".tsx"]): Promise<number> {
-    await this.ensureDir()
+    return withSpan(
+      "learning.hierarchical_memory.build_all",
+      async (span) => {
+        await this.ensureDir()
 
-    const patterns = extensions.map((ext) => `**/*${ext}`)
-    const files = await glob(patterns, {
-      cwd: this.projectDir,
-      ignore: ["**/node_modules/**", "**/dist/**", "**/.git/**"],
-    })
+        const patterns = extensions.map((ext) => `**/*${ext}`)
+        const files = await glob(patterns, {
+          cwd: this.projectDir,
+          ignore: ["**/node_modules/**", "**/dist/**", "**/.git/**"],
+        })
 
-    log.info("building_summaries", { totalFiles: files.length })
+        span.setAttribute("files.total", files.length)
+        log.info("building_summaries", { totalFiles: files.length })
 
-    let successCount = 0
-    for (const file of files) {
-      const filePath = resolve(this.projectDir, file)
-      try {
-        const content = await readFile(filePath, "utf-8")
-        const summary = await this.generateModuleSummary(filePath, content)
+        let successCount = 0
+        for (const file of files) {
+          const filePath = resolve(this.projectDir, file)
+          try {
+            const content = await readFile(filePath, "utf-8")
+            const summary = await this.generateModuleSummary(filePath, content)
 
-        if (summary) {
-          await this.saveSummary(summary)
-          successCount++
+            if (summary) {
+              await this.saveSummary(summary)
+              successCount++
+            }
+          } catch (error) {
+            log.warn("failed_to_process_file", { file, error: String(error) })
+          }
         }
-      } catch (error) {
-        log.warn("failed_to_process_file", { file, error: String(error) })
-      }
-    }
 
-    log.info("summaries_built", { successCount, totalFiles: files.length })
-    return successCount
+        span.setAttribute("files.processed", successCount)
+        log.info("summaries_built", { successCount, totalFiles: files.length })
+        return successCount
+      },
+    )
   }
 
   /**
@@ -206,27 +229,41 @@ export class HierarchicalMemory {
    * Search module summaries using vector similarity
    */
   async searchSummaries(query: string, limit: number = 5): Promise<ModuleSummary[]> {
-    try {
-      const vs = await this.getVectorStore()
-      const results = await vs.search(query, {
-        limit,
-        min_similarity: 0.2,
-        node_type: "module_summary",
-      })
+    return withSpan(
+      "learning.hierarchical_memory.search",
+      async (span) => {
+        span.setAttributes({
+          "query.length": query.length,
+          "limit": limit,
+        })
+        try {
+          const vs = await this.getVectorStore()
+          const results = await vs.search(query, {
+            limit,
+            min_similarity: 0.2,
+            node_type: "module_summary",
+          })
 
-      const summaries: ModuleSummary[] = []
-      for (const r of results) {
-        const summary = await this.getSummary(resolve(this.projectDir, r.node_id))
-        if (summary) {
-          summaries.push(summary)
+          const summaries: ModuleSummary[] = []
+          for (const r of results) {
+            const summary = await this.getSummary(resolve(this.projectDir, r.node_id))
+            if (summary) {
+              summaries.push(summary)
+            }
+          }
+
+          span.setAttributes({
+            ...spanAttrs.success(true),
+            "results.count": summaries.length,
+          })
+          return summaries
+        } catch (error) {
+          log.error("search_summaries_failed", { error: String(error) })
+          span.setAttributes({ ...spanAttrs.success(false), "error.message": String(error) })
+          return []
         }
-      }
-
-      return summaries
-    } catch (error) {
-      log.error("search_summaries_failed", { error: String(error) })
-      return []
-    }
+      },
+    )
   }
 
   /**

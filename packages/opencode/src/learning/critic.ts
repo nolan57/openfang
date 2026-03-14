@@ -4,6 +4,7 @@ import { Archive, type ArchiveState } from "./archive"
 import { Log } from "../util/log"
 import { generateText } from "ai"
 import { getNovelLanguageModel } from "../novel/model"
+import { withSpan, spanAttrs } from "./tracing"
 
 const log = Log.create({ service: "learning-critic" })
 
@@ -59,52 +60,65 @@ export class Critic {
   }
 
   async verify(plans: RefactoringPlan[], state: ArchiveState): Promise<CriticResult[]> {
-    const results: CriticResult[] = []
+    return withSpan(
+      "learning.critic.verify",
+      async (span) => {
+        span.setAttribute("plans.count", plans.length)
+        const results: CriticResult[] = []
 
-    for (const plan of plans) {
-      if (plan.action === "reject") {
-        results.push({
-          plan_id: plan.proposal_id,
-          status: "failed",
-          attempts: 0,
-          error: "Rejected by Architect",
+        for (const plan of plans) {
+          if (plan.action === "reject") {
+            results.push({
+              plan_id: plan.proposal_id,
+              status: "failed",
+              attempts: 0,
+              error: "Rejected by Architect",
+            })
+            continue
+          }
+
+          if (plan.action === "human_review") {
+            results.push({
+              plan_id: plan.proposal_id,
+              status: "failed",
+              attempts: 0,
+              error: "Requires human review",
+            })
+            continue
+          }
+
+          const result = await this.verifyWithRetry(plan, state)
+          results.push(result)
+
+          if (result.status === "failed") {
+            await this.negativeMemory.recordFailure({
+              failure_type: "performance_regression",
+              description: `Plan ${plan.proposal_id} failed: ${result.error}`,
+              context: { plan_id: plan.proposal_id, error: result.error },
+              severity: 2,
+              blocked_items: [],
+            })
+          }
+        }
+
+        const passed = results.filter((r) => r.status === "passed").length
+        const failed = results.filter((r) => r.status === "failed").length
+        span.setAttributes({
+          "results.total": results.length,
+          "results.passed": passed,
+          "results.failed": failed,
         })
-        continue
-      }
-
-      if (plan.action === "human_review") {
-        results.push({
-          plan_id: plan.proposal_id,
-          status: "failed",
-          attempts: 0,
-          error: "Requires human review",
+        log.info("verification_completed", {
+          total: results.length,
+          passed,
+          failed,
+          retried: results.filter((r) => r.status === "retrying").length,
+          rolled_back: results.filter((r) => r.status === "rolled_back").length,
         })
-        continue
-      }
 
-      const result = await this.verifyWithRetry(plan, state)
-      results.push(result)
-
-      if (result.status === "failed") {
-        await this.negativeMemory.recordFailure({
-          failure_type: "performance_regression",
-          description: `Plan ${plan.proposal_id} failed: ${result.error}`,
-          context: { plan_id: plan.proposal_id, error: result.error },
-          severity: 2,
-          blocked_items: [],
-        })
-      }
-    }
-
-    log.info("verification_completed", {
-      total: results.length,
-      passed: results.filter((r) => r.status === "passed").length,
-      failed: results.filter((r) => r.status === "failed").length,
-      retried: results.filter((r) => r.status === "retrying").length,
-      rolled_back: results.filter((r) => r.status === "rolled_back").length,
-    })
-
-    return results
+        return results
+      },
+    )
   }
 
   private async verifyWithRetry(plan: RefactoringPlan, state: ArchiveState): Promise<CriticResult> {

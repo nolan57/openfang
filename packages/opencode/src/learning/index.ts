@@ -1,5 +1,6 @@
 export { LearningScheduler } from "./scheduler"
 export { Collector, type CollectedItem } from "./collector"
+export { getTracer, withSpan, startChildSpan, addSpanEvent, spanAttrs } from "./tracing"
 export { Analyzer, type AnalyzedItem } from "./analyzer"
 export { NoteGenerator } from "./notes"
 export { KnowledgeStore } from "./store"

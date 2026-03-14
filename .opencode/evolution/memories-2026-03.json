@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1773465928253,
-    "usageCount": 261,
+    "lastUsedAt": 1773479136770,
+    "usageCount": 264,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -68,8 +68,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1773459674985,
-    "usageCount": 201,
+    "lastUsedAt": 1773479192860,
+    "usageCount": 207,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -143,8 +143,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1773465048600,
-    "usageCount": 236,
+    "lastUsedAt": 1773474150392,
+    "usageCount": 238,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1773463010318,
-    "usageCount": 273,
+    "lastUsedAt": 1773477425850,
+    "usageCount": 281,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -218,8 +218,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1773456894382,
-    "usageCount": 175,
+    "lastUsedAt": 1773473982338,
+    "usageCount": 177,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -6144,6 +6144,321 @@
     ],
     "createdAt": 1773466129272,
     "lastUsedAt": 1773466129272,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f7fe7de1-de6b-44d0-aa32-a7878a78de27",
+    "key": "evolution-workflow-phases",
+    "value": "Self-evolution systems follow a structured pipeline: collect → analyze → create tasks → execute. Each phase should be independently testable and the workflow should support stopping at any phase.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_314d7c106ffedHvieqBjOMKGFD"
+    ],
+    "createdAt": 1773471854997,
+    "lastUsedAt": 1773471854997,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "0335ba02-fc00-43ba-afd0-f3bdcf6e9f52",
+    "key": "safe-mode-flags",
+    "value": "Include safety flags like --check and --status in automation commands to allow previewing changes before execution, reducing risk of unintended modifications.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_314d7c106ffedHvieqBjOMKGFD"
+    ],
+    "createdAt": 1773471855205,
+    "lastUsedAt": 1773471855205,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "d7a1a7d7-e139-4f8c-9621-963474108960",
+    "key": "multi-source-integration",
+    "value": "Effective self-evolution requires gathering information from diverse sources (arXiv for research, GitHub for code patterns, PyPI for packages) to ensure comprehensive improvement suggestions.",
+    "context": "Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_314d7c106ffedHvieqBjOMKGFD"
+    ],
+    "createdAt": 1773471855490,
+    "lastUsedAt": 1773471855490,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "3fee4d34-a1db-487d-9b9e-231a9a7457f0",
+    "key": "public-ip-query-methods",
+    "value": "Use curl with services like 'curl ifconfig.me', 'curl ipinfo.io/ip', or 'curl icanhazip.com' to quickly retrieve public IPv4 address.",
+    "context": "使用工具查询本机公网ip4地址",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773473719909,
+    "lastUsedAt": 1773473719909,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "69e6178c-8625-49f3-b1fb-4b13c36b1cdc",
+    "key": "fallback-services",
+    "value": "Keep multiple IP query services in mind as fallbacks, since some services may be temporarily unavailable or blocked in certain networks.",
+    "context": "使用工具查询本机公网ip4地址",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773473720358,
+    "lastUsedAt": 1773473720358,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f223f506-65ad-4ab6-b189-68a863b09c2e",
+    "key": "public-ip-query",
+    "value": "Use curl with IPv4-specific services like 'curl -4 ifconfig.me' or 'curl -4 ip.sb' to query public IPv4 address.",
+    "context": "使用工具查询本机公网ip4地址 检查plugin-qqbot状态",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773474045147,
+    "lastUsedAt": 1773474045147,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "6e55a109-74aa-4809-b2aa-f832415fbe6c",
+    "key": "plugin-status-check",
+    "value": "Check plugin/service status using systemctl, docker ps, or reading configuration files in project directories.",
+    "context": "使用工具查询本机公网ip4地址 检查plugin-qqbot状态",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773474046480,
+    "lastUsedAt": 1773474046480,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "c9523628-642b-4182-b4d8-4b528f06bd96",
+    "key": "public-ip-query",
+    "value": "Use curl with external services like `curl ifconfig.me` or `curl ipinfo.io/ip` to quickly query the public IPv4 address from command line.",
+    "context": "使用工具查询本机公网ip4地址 检查plugin-qqbot状态 配置在/Users/lpcw/Library/Application Support/opencode/config/opencode.json",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773474126255,
+    "lastUsedAt": 1773474126255,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "631cc80f-0d0e-4abe-a5ff-ae660457379c",
+    "key": "macos-config-path",
+    "value": "macOS application configs are typically stored in ~/Library/Application Support/[app-name]/ - remember to quote paths containing spaces when using in bash commands.",
+    "context": "使用工具查询本机公网ip4地址 检查plugin-qqbot状态 配置在/Users/lpcw/Library/Application Support/opencode/config/opencode.json",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773474127401,
+    "lastUsedAt": 1773474127401,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "86730cba-6faf-460a-a275-5f85b98f2691",
+    "key": "plugin-status-check",
+    "value": "When checking plugin status, first read the configuration file to understand the plugin setup, then use appropriate commands to verify its running state.",
+    "context": "使用工具查询本机公网ip4地址 检查plugin-qqbot状态 配置在/Users/lpcw/Library/Application Support/opencode/config/opencode.json",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773474127604,
+    "lastUsedAt": 1773474127604,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cb29f3a6-c1f3-4aa1-b552-bc63e0595b09",
+    "key": "opencode-config-path",
+    "value": "On macOS, opencode configuration is stored at ~/Library/Application Support/opencode/config/opencode.json - reference this path when modifying settings or checking plugin configurations.",
+    "context": "使用工具查询本机公网ip4地址 检查plugin-qqbot状态 配置在/Users/lpcw/Library/Application Support/opencode/config/opencode.json 环境变量在 ~/.zshrc",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773474174155,
+    "lastUsedAt": 1773474174155,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "48a242fc-d5b8-42ca-a5ee-f18848261b61",
+    "key": "public-ip-query",
+    "value": "Use 'curl ifconfig.me' or 'curl ipinfo.io/ip' to quickly query the local public IPv4 address from command line.",
+    "context": "使用工具查询本机公网ip4地址 检查plugin-qqbot状态 配置在/Users/lpcw/Library/Application Support/opencode/config/opencode.json 环境变量在 ~/.zshrc",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773474174374,
+    "lastUsedAt": 1773474174374,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "7ff61e63-168c-4076-b8e9-1cdc7492a739",
+    "key": "macos-env-file",
+    "value": "On macOS with zsh, environment variables are typically configured in ~/.zshrc - check this file when troubleshooting environment-related issues.",
+    "context": "使用工具查询本机公网ip4地址 检查plugin-qqbot状态 配置在/Users/lpcw/Library/Application Support/opencode/config/opencode.json 环境变量在 ~/.zshrc",
+    "sessionIDs": [
+      "ses_314bbcc84ffe8E3zeJtgopDBi2"
+    ],
+    "createdAt": 1773474174584,
+    "lastUsedAt": 1773474174584,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "07dd78d1-43e7-4a88-b507-6ef04ab65a42",
+    "key": "cron-status-check",
+    "value": "Use cron_status tool to quickly verify the health and running state of scheduled tasks without manual inspection.",
+    "context": "检查定时任务状态",
+    "sessionIDs": [
+      "ses_3149e50d3ffe5YHsHA74SnfnL7"
+    ],
+    "createdAt": 1773475604570,
+    "lastUsedAt": 1773475604570,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cbb37a17-0675-40ab-a923-834b101aab4f",
+    "key": "cron-workflow-pattern",
+    "value": "When working with cron tasks, follow the pattern of checking status first, then listing tasks to understand current state, before executing any actions.",
+    "context": "检查定时任务状态 立即执行一次定时任务 任务数不是只有3个吗",
+    "sessionIDs": [
+      "ses_3149e50d3ffe5YHsHA74SnfnL7"
+    ],
+    "createdAt": 1773475835082,
+    "lastUsedAt": 1773475835082,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "12707d37-1b4e-49c2-a8e2-273810cd6ea1",
+    "key": "code-exploration-strategy",
+    "value": "When investigating how a module initializes, start by reading the main index or entry file, then trace through exports and initialization functions.",
+    "context": "项目是如何启动 /Users/lpcw/Documents/opencode/packages/opencode/src/observability 的？",
+    "sessionIDs": [
+      "ses_31496057effei5gu1LcU4qajAo"
+    ],
+    "createdAt": 1773476250878,
+    "lastUsedAt": 1773476250878,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "c2eb7dd5-3b95-48ce-b251-e27b1f9dd172",
+    "key": "tracing-debugging-approach",
+    "value": "When traces are empty in Jaeger, systematically check: 1) if the tracing provider is initialized, 2) if the exporter endpoint is correctly configured, 3) if spans are actually being created and exported.",
+    "context": "项目是如何启动 /Users/lpcw/Documents/opencode/packages/opencode/src/observability 的？ 问题：Jaeger UI的opencode-agent的traces为空",
+    "sessionIDs": [
+      "ses_31496057effei5gu1LcU4qajAo"
+    ],
+    "createdAt": 1773476593573,
+    "lastUsedAt": 1773476593573,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a7f71ccf-a97f-4044-b593-f18e7333ecf3",
+    "key": "jaeger-ui-troubleshooting",
+    "value": "When Jaeger traces appear via direct URL but not through dropdown selection, check time range filters and service name matching - direct URLs may have different default parameters than UI selections.",
+    "context": "项目是如何启动 /Users/lpcw/Documents/opencode/packages/opencode/src/observability 的？ 问题：Jaeger UI的opencode-agent的traces为空 用 open \"http://localhost:16686/search?service=opencode-agent\" 打开没问题，看到traces了，但奇怪的是通过页面dropdown中选中opencode-agent和all，点击traces却显示为空",
+    "sessionIDs": [
+      "ses_31496057effei5gu1LcU4qajAo"
+    ],
+    "createdAt": 1773477134622,
+    "lastUsedAt": 1773477134622,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "59566f7c-956d-40ba-a716-df205e2a285e",
+    "key": "jaeger-ui-troubleshooting",
+    "value": "When Jaeger UI shows empty traces via dropdown but works with direct URL access, check time range filters and UI caching issues rather than assuming trace collection is broken.",
+    "context": "项目是如何启动 /Users/lpcw/Documents/opencode/packages/opencode/src/observability 的？ 问题：Jaeger UI的opencode-agent的traces为空 用 open \"http://localhost:16686/search?service=opencode-agent\" 打开没问题，看到traces了，但奇怪的是通过页面dropdown中选中opencode-agent和all，点击traces却显示为空 jaeger-all-in-one的traces是实时的，但opencode-agent的traces最新的却直到昨晚的",
+    "sessionIDs": [
+      "ses_31496057effei5gu1LcU4qajAo"
+    ],
+    "createdAt": 1773477651807,
+    "lastUsedAt": 1773477651807,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "555a45e9-001e-4b2e-81b1-7dff06ed9ff0",
+    "key": "agents-md-hierarchy",
+    "value": "AGENTS.md files cascade from parent directories automatically when files are read. Place them at the appropriate scope level rather than consolidating everything at the root.",
+    "context": "Analyze this session and extract non-obvious learnings to add to AGENTS.md files.\n\nAGENTS.md files can exist at any directory level, not just the project root. When an agent reads a file, any AGENTS.md in parent directories are automatically loaded into the context of the tool read. Place learnings as close to the relevant code as possible:\n\n- Project-wide learnings → root AGENTS.md\n- Package/module-specific → packages/foo/AGENTS.md\n- Feature-specific → src/auth/AGENTS.md\n\nWhat counts as a learning (non-obvious discoveries only):\n\n- Hidden relationships between files or modules\n- Execution paths that differ from how code appears\n- Non-obvious configuration, env vars, or flags\n- Debugging breakthroughs when error messages were misleading\n- API/tool quirks and workarounds\n- Build/test commands not in README\n- Architectural decisions and constraints\n- Files that must change together\n\nWhat NOT to include:\n\n- Obvious facts from documentation\n- Standard language/framework behavior\n- Things already in an AGENTS.md\n- Verbose explanations\n- Session-specific details\n\nProcess:\n\n1. Review session for discoveries, errors that took multiple attempts, unexpected connections\n2. Determine scope - what directory does each learning apply to?\n3. Read existing AGENTS.md files at relevant levels\n4. Create or update AGENTS.md at the appropriate level\n5. Keep entries to 1-3 lines per insight\n\nAfter updating, summarize which AGENTS.md files were created/updated and how many learnings per file.",
+    "sessionIDs": [
+      "ses_314680d14ffehaxh3684RfBgK0"
+    ],
+    "createdAt": 1773479157150,
+    "lastUsedAt": 1773479157150,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "key": "jaeger-ui-troubleshooting",
+    "value": "When Jaeger UI shows empty traces via dropdown but works with direct URLs, try refreshing the page or clearing browser cache - the UI may have stale state or caching issues.",
+    "context": "项目是如何启动 /Users/lpcw/Documents/opencode/packages/opencode/src/observability 的？ 问题：Jaeger UI的opencode-agent的traces为空 用 open \"http://localhost:16686/search?service=opencode-agent\" 打开没问题，看到traces了，但奇怪的是通过页面dropdown中选中opencode-agent和all，点击traces却显示为空 jaeger-all-in-one的traces是实时的，但opencode-agent的traces最新的却直到昨晚的 Analyze this session and extract non-obvious learnings to add to AGENTS.md files.\n\nAGENTS.md files can exist at any directory level, not just the project root. When an agent reads a file, any AGENTS.md in parent directories are automatically loaded into the context of the tool read. Place learnings as close to the relevant code as possible:\n\n- Project-wide learnings → root AGENTS.md\n- Package/module-specific → packages/foo/AGENTS.md\n- Feature-specific → src/auth/AGENTS.md\n\nWhat counts as a learning (non-obvious discoveries only):\n\n- Hidden relationships between files or modules\n- Execution paths that differ from how code appears\n- Non-obvious configuration, env vars, or flags\n- Debugging breakthroughs when error messages were misleading\n- API/tool quirks and workarounds\n- Build/test commands not in README\n- Architectural decisions and constraints\n- Files that must change together\n\nWhat NOT to include:\n\n- Obvious facts from documentation\n- Standard language/framework behavior\n- Things already in an AGENTS.md\n- Verbose explanations\n- Session-specific details\n\nProcess:\n\n1. Review session for discoveries, errors that took multiple attempts, unexpected connections\n2. Determine scope - what directory does each learning apply to?\n3. Read existing AGENTS.md files at relevant levels\n4. Create or update AGENTS.md at the appropriate level\n5. Keep entries to 1-3 lines per insight\n\nAfter updating, summarize which AGENTS.md files were created/updated and how many learnings per file.",
+    "sessionIDs": [
+      "ses_31496057effei5gu1LcU4qajAo"
+    ],
+    "id": "2abe583c-b8bf-47e8-828e-cacca0578507",
+    "createdAt": 1773479326550,
+    "lastUsedAt": 1773479326550,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,
