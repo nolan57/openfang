@@ -483,6 +483,29 @@ Suggestions should:
     return lines.join("\n")
   }
 
+  getStats(): {
+    motifs: number
+    evolutions: number
+    correlations: number
+    variations: number
+    avgStrength: number
+  } {
+    const allEvolutions = Array.from(this.evolutions.values()).flat()
+    const allCorrelations = Array.from(this.correlations.values()).flat()
+    const allVariations = Array.from(this.variations.values()).flat()
+
+    return {
+      motifs: this.evolutions.size,
+      evolutions: allEvolutions.length,
+      correlations: allCorrelations.length,
+      variations: allVariations.length,
+      avgStrength:
+        allEvolutions.length > 0
+          ? (allEvolutions.reduce((sum, e) => sum + e.thematicSignificance, 0) / allEvolutions.length) * 10
+          : 50,
+    }
+  }
+
   clear(): void {
     this.evolutions.clear()
     this.correlations.clear()
