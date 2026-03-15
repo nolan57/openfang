@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import type { PromptStyle } from "./config"
+import type { PromptStyle } from "./novel-config"
 
 const log = Log.create({ service: "dynamic-prompt" })
 
