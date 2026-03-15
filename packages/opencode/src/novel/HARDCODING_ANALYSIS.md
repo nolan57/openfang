@@ -1,16 +1,16 @@
-# Novel Engine 硬编码分析报告
+# Novel Engine Hardcoding Analysis Report
 
-## 概述
+## Overview
 
-本报告分析 `packages/opencode/src/novel/` 模块中的所有硬编码内容，并评估是否应该像混乱表那样进行动态化处理。
+This report analyzes all hardcoded content in the `packages/opencode/src/novel/` module and evaluates whether it should be dynamicized like the chaos table.
 
 ---
 
-## 硬编码分类
+## Hardcoding Classification
 
-### 1. 类型和分类常量 ✅ 保持硬编码
+### 1. Type and Category Constants ✅ Keep Hardcoded
 
-**位置：** `types.ts`
+**Location:** `types.ts`
 
 ```typescript
 export const TRAUMA_TAGS = {
@@ -18,20 +18,20 @@ export const TRAUMA_TAGS = {
   NIGHTMARE: "PTSD_Nightmare",
   FLASHBACK: "PTSD_Flashback",
   PAIN: "Physical_Pain",
-  // ... 20+ 种创伤类型
+  // ... 20+ trauma types
 }
 
 export const SKILL_CATEGORIES = {
   ANALYSIS: "Mental_Analysis",
   DEDUCTION: "Mental_Deduction",
-  // ... 20+ 种技能类别
+  // ... 20+ skill categories
 }
 
 export const CHARACTER_STATUS = {
   ACTIVE: "active",
   INJURED: "injured",
   STRESSED: "stressed",
-  // ... 10+ 种状态
+  // ... 10+ statuses
 }
 
 export const ATTACHMENT_STYLES = {
@@ -42,20 +42,20 @@ export const ATTACHMENT_STYLES = {
 }
 ```
 
-**分析：**
+**Analysis:**
 
-- ✅ **应该保持硬编码**
-- 这些是**数据模型的 schema 定义**
-- 需要与数据库、UI、API 保持一致
-- LLM 生成内容时会 reference 这些固定值
+- ✅ **Should remain hardcoded**
+- These are **data model schema definitions**
+- Need to maintain consistency with database, UI, API
+- LLM will reference these fixed values when generating content
 
-**建议：** 保持不变，但可以考虑让 LLM 扩展新类型
+**Suggestion:** Keep unchanged, but consider allowing LLM to extend new types
 
 ---
 
-### 2. 提示词模板 ⚠️ 部分动态化
+### 2. Prompt Templates ⚠️ Partially Dynamic
 
-**位置：** `evolution-rules.ts`, `character-deepener.ts`, 等
+**Location:** `evolution-rules.ts`, `character-deepener.ts`, etc.
 
 ```typescript
 // evolution-rules.ts
@@ -80,17 +80,17 @@ Story Segment:
 Output only JSON, no other text.`
 ```
 
-**分析：**
+**Analysis:**
 
-- ⚠️ **部分需要动态化**
-- 核心规则应该保持（技能/创伤获取规则）
-- 但提示词的语气、风格可以适配故事基调
-- 当前是静态的，不考虑故事类型（奇幻/科幻/言情等）
+- ⚠️ **Partially needs dynamicization**
+- Core rules should remain (skill/trauma acquisition rules)
+- But prompt tone and style can adapt to story tone
+- Currently static, doesn't consider story type (fantasy/sci-fi/romance, etc.)
 
-**建议改进：**
+**Suggested Improvement:**
 
 ```typescript
-// 添加动态提示词生成器
+// Add dynamic prompt generator
 async function buildStateEvaluationPrompt(storySegment: string, storyTone?: string, genre?: string): Promise<string> {
   const toneInstruction = storyTone
     ? `The story tone is "${storyTone}". Pay attention to events that match this tone.`
@@ -112,9 +112,9 @@ ${storySegment}
 
 ---
 
-### 3. 权重和评分公式 ⚠️ 可配置化
+### 3. Weights and Scoring Formulas ⚠️ Make Configurable
 
-**位置：** `branch-manager.ts`
+**Location:** `branch-manager.ts`
 
 ```typescript
 calculateBranchScore(branch: Branch): number {
@@ -136,16 +136,16 @@ calculateBranchScore(branch: Branch): number {
 }
 ```
 
-**分析：**
+**Analysis:**
 
-- ⚠️ **应该可配置**
-- 当前权重是硬编码的
-- 不同类型的故事可能需要不同权重
-  - 动作故事：tensionLevel 权重更高
-  - 角色驱动故事：characterDevelopment 权重更高
-  - 主题驱动故事：thematicRelevance 权重更高
+- ⚠️ **Should be configurable**
+- Currently weights are hardcoded
+- Different story types may need different weights
+  - Action stories: higher tensionLevel weight
+  - Character-driven stories: higher characterDevelopment weight
+  - Theme-driven stories: higher thematicRelevance weight
 
-**建议改进：**
+**Suggested Improvement:**
 
 ```typescript
 interface ScoringConfig {
@@ -165,28 +165,28 @@ const PRESET_CONFIGS: Record<string, ScoringConfig> = {
   action: {
     weights: {
       narrativeQuality: 0.2,
-      tensionLevel: 0.3, // 更高
+      tensionLevel: 0.3, // Higher
       characterDevelopment: 0.15,
       // ...
     },
   },
   character: {
     weights: {
-      characterDevelopment: 0.35, // 更高
+      characterDevelopment: 0.35, // Higher
       // ...
     },
   },
   balanced: {
-    /* 默认权重 */
+    /* default weights */
   },
 }
 ```
 
 ---
 
-### 4. 阈值和限制 ⚠️ 可配置化
+### 4. Thresholds and Limits ⚠️ Make Configurable
 
-**位置：** 多处
+**Location:** Multiple files
 
 ```typescript
 // evolution-rules.ts
@@ -211,20 +211,20 @@ const DEFAULT_CONFIG: VectorIndexConfig = {
 }
 ```
 
-**分析：**
+**Analysis:**
 
-- ⚠️ **应该可配置**
-- 当前是硬编码的常量
-- 不同用户可能偏好不同难度/密度
-- 不同类型故事需要不同阈值
+- ⚠️ **Should be configurable**
+- Currently hardcoded constants
+- Different users may prefer different difficulty/density
+- Different story types need different thresholds
 
-**建议改进：**
+**Suggested Improvement:**
 
 ```typescript
 interface NovelConfig {
   stressThresholds: {
-    critical: number // 默认 90
-    high: number // 默认 70
+    critical: number // Default 90
+    high: number // Default 70
   }
   branchConfig: {
     maxBranches: number
@@ -235,11 +235,11 @@ interface NovelConfig {
 
 const DIFFICULTY_PRESETS: Record<string, NovelConfig> = {
   easy: {
-    stressThresholds: { critical: 100, high: 80 }, // 更宽容
+    stressThresholds: { critical: 100, high: 80 }, // More lenient
     branchConfig: { maxBranches: 30, minQualityThreshold: 2 },
   },
   hard: {
-    stressThresholds: { critical: 80, high: 60 }, // 更严苛
+    stressThresholds: { critical: 80, high: 60 }, // Stricter
     branchConfig: { maxBranches: 10, minQualityThreshold: 5 },
   },
 }
@@ -247,9 +247,9 @@ const DIFFICULTY_PRESETS: Record<string, NovelConfig> = {
 
 ---
 
-### 5. 关系类型和动态 ✅ 保持硬编码 + LLM 扩展
+### 5. Relationship Types and Dynamics ✅ Keep Hardcoded + LLM Extension
 
-**位置：** `faction-detector.ts`, `relationship-analyzer.ts`
+**Location:** `faction-detector.ts`, `relationship-analyzer.ts`
 
 ```typescript
 export const FACTION_TYPES = [
@@ -276,35 +276,35 @@ export const RELATIONSHIP_TYPES = [
 ]
 ```
 
-**分析：**
+**Analysis:**
 
-- ✅ **基本类型保持硬编码**
-- 这些是核心数据模型
-- 但 LLM 应该能够识别和创建新的子类型
+- ✅ **Keep base types hardcoded**
+- These are core data models
+- But LLM should be able to recognize and create new subtypes
 
-**建议改进：**
+**Suggested Improvement:**
 
 ```typescript
-// 基础类型硬编码，LLM 可以扩展子类型
+// Base types hardcoded, LLM can extend subtypes
 interface Relationship {
-  type: RelationshipType  // 基础类型（硬编码）
-  subType?: string        // LLM 生成的子类型
-  description?: string    // LLM 生成的描述
+  type: RelationshipType  // Base type (hardcoded)
+  subType?: string        // LLM-generated subtype
+  description?: string    // LLM-generated description
 }
 
-// 示例
+// Example
 {
   type: "ally",
-  subType: "reluctant_ally",  // LLM 生成
+  subType: "reluctant_ally",  // LLM generated
   description: "Allied due to common enemy, but distrustful"
 }
 ```
 
 ---
 
-### 6. 生命周期阶段 ⚠️ 可动态化
+### 6. Life Stages ⚠️ Can Be Dynamic
 
-**位置：** `character-lifecycle.ts`
+**Location:** `character-lifecycle.ts`
 
 ```typescript
 export const CharacterLifeStageSchema = z.enum([
@@ -319,17 +319,17 @@ export const CharacterLifeStageSchema = z.enum([
 ])
 ```
 
-**分析：**
+**Analysis:**
 
-- ⚠️ **对于奇幻/科幻故事可能不够**
-- 现代/现实故事：当前设置足够
-- 奇幻故事：可能需要 "magical_child", "ascended", "undead" 等
-- 科幻故事：可能需要 "cyborg", "digital_consciousness", "cloned" 等
+- ⚠️ **May be insufficient for fantasy/sci-fi stories**
+- Modern/realistic stories: current settings sufficient
+- Fantasy stories: may need "magical_child", "ascended", "undead", etc.
+- Sci-fi stories: may need "cyborg", "digital_consciousness", "cloned", etc.
 
-**建议改进：**
+**Suggested Improvement:**
 
 ```typescript
-// 保持基础阶段，但允许 LLM 扩展
+// Keep base stages, but allow LLM to extend
 const BASE_LIFE_STAGES = [
   "infant", "child", "adolescent",
   "young_adult", "adult", "middle_aged",
@@ -337,12 +337,12 @@ const BASE_LIFE_STAGES = [
 ]
 
 interface CharacterLifecycle {
-  baseStage: LifeStage  // 基础阶段（硬编码）
-  modifiedStage?: string  // LLM 生成的变体
-  stageDescription?: string  // LLM 描述
+  baseStage: LifeStage  // Base stage (hardcoded)
+  modifiedStage?: string  // LLM-generated variant
+  stageDescription?: string  // LLM description
 }
 
-// 示例
+// Example
 {
   baseStage: "adult",
   modifiedStage: "cursed_immortal_adult",
@@ -352,85 +352,85 @@ interface CharacterLifecycle {
 
 ---
 
-### 7. 故事类型和基调 🔲 完全动态化
+### 7. Story Types and Tones 🔲 Fully Dynamic
 
-**当前位置：** 未明确定义，分散在各处
+**Current Location:** Not explicitly defined, scattered throughout
 
-**分析：**
+**Analysis:**
 
-- 🔲 **应该完全由 LLM 决定**
-- 当前没有明确的故事类型/基调配置
-- 这应该完全由用户输入和 LLM 分析决定
+- 🔲 **Should be fully determined by LLM**
+- Currently no explicit story type/tone configuration
+- This should be fully determined by user input and LLM analysis
 
-**建议实现：**
+**Suggested Implementation:**
 
 ```typescript
 interface StoryProfile {
-  genre: string // LLM 分析得出
-  tone: string // LLM 分析得出
-  themes: string[] // LLM 分析得出
-  targetAudience: string // LLM 分析得出
-  contentRating: string // LLM 分析得出
+  genre: string // LLM analyzed
+  tone: string // LLM analyzed
+  themes: string[] // LLM analyzed
+  targetAudience: string // LLM analyzed
+  contentRating: string // LLM analyzed
 }
 
 async function analyzeStoryProfile(
   initialPrompt: string,
   userPreferences?: Partial<StoryProfile>,
 ): Promise<StoryProfile> {
-  // 调用 LLM 分析故事类型和基调
-  // 用于调整后续所有生成的风格
+  // Call LLM to analyze story type and tone
+  // Used to adjust all subsequent generation style
 }
 ```
 
 ---
 
-## 总结和建议
+## Summary and Recommendations
 
-### 保持硬编码（✅）
+### Keep Hardcoded (✅)
 
-| 项目         | 原因                           |
-| ------------ | ------------------------------ |
-| 数据类型定义 | 需要与数据库、API、UI 保持一致 |
-| Schema 验证  | Zod schemas 需要固定结构       |
-| 核心关系类型 | 基础分类，LLM 可扩展子类型     |
+| Item                    | Reason                                   |
+| ----------------------- | ---------------------------------------- |
+| Data type definitions   | Need consistency with database, API, UI  |
+| Schema validation       | Zod schemas need fixed structure         |
+| Core relationship types | Base categories, LLM can extend subtypes |
 
-### 可配置化（⚠️）
+### Make Configurable (⚠️)
 
-| 项目         | 建议                |
-| ------------ | ------------------- |
-| 评分权重     | 按故事类型预设配置  |
-| 阈值限制     | 按难度等级预设配置  |
-| 生命周期阶段 | 基础 + LLM 扩展变体 |
+| Item              | Suggestion                                |
+| ----------------- | ----------------------------------------- |
+| Scoring weights   | Preset configurations by story type       |
+| Threshold limits  | Preset configurations by difficulty level |
+| Life cycle stages | Base + LLM extension variants             |
 
-### 完全动态化（🔲）
+### Fully Dynamic (🔲)
 
-| 项目          | 建议                 |
-| ------------- | -------------------- |
-| 提示词风格    | 根据故事基调动态调整 |
-| 故事类型/基调 | 完全由 LLM 分析决定  |
-| 具体事件生成  | 已完成（混乱表）     |
-| 角色/情节细节 | 完全由 LLM 生成      |
-
----
-
-## 优先级排序
-
-| 优先级 | 项目           | 工作量 | 影响 |
-| ------ | -------------- | ------ | ---- |
-| 🔴 高  | 提示词动态化   | 中     | 高   |
-| 🟡 中  | 评分权重可配置 | 低     | 中   |
-| 🟡 中  | 阈值可配置     | 低     | 中   |
-| 🟢 低  | 生命周期扩展   | 中     | 低   |
-| 🟢 低  | 关系子类型     | 低     | 低   |
+| Item                   | Suggestion                             |
+| ---------------------- | -------------------------------------- |
+| Prompt style           | Dynamically adjust based on story tone |
+| Story type/tone        | Fully analyzed by LLM                  |
+| Specific events        | Completed (chaos table)                |
+| Character/plot details | Fully generated by LLM                 |
 
 ---
 
-## 下一步行动
+## Priority Ranking
 
-1. **实现提示词动态生成器** - 根据故事基调调整提示词风格
-2. **添加难度配置** - easy/normal/hard/nightmare 预设
-3. **添加故事类型预设** - action/character/theme 评分权重预设
-4. **保持核心数据模型** - 类型定义保持硬编码
+| Priority  | Item                         | Effort | Impact |
+| --------- | ---------------------------- | ------ | ------ |
+| 🔴 High   | Dynamic prompt generator     | Medium | High   |
+| 🟡 Medium | Configurable scoring weights | Low    | Medium |
+| 🟡 Medium | Configurable thresholds      | Low    | Medium |
+| 🟢 Low    | Life cycle extension         | Medium | Low    |
+| 🟢 Low    | Relationship subtypes        | Low    | Low    |
+
+---
+
+## Next Steps
+
+1. **Implement dynamic prompt generator** - Adjust prompt style based on story tone
+2. **Add difficulty configuration** - easy/normal/hard/nightmare presets
+3. **Add story type presets** - action/character/theme scoring weight presets
+4. **Keep core data models** - Type definitions remain hardcoded
 
 ---
 
