@@ -5,7 +5,7 @@ import { generateText } from "ai"
 import { Provider } from "../provider/provider"
 import { Skill } from "../skill/skill"
 import { StateExtractor } from "./state-extractor"
-import { EvolutionRulesEngine } from "./evolution-rules"
+import { EvolutionRulesEngine, type ChaosEvent } from "./evolution-rules"
 import { RelationshipAnalyzer } from "./relationship-analyzer"
 import { CharacterDeepener } from "./character-deepener"
 import { mkdir } from "fs/promises"
@@ -716,14 +716,22 @@ Output JSON:
     this.log(`   Loaded ${this.patterns.length} patterns`)
 
     const chaosEvent = EvolutionRulesEngine.rollChaos()
+
+    // 动态生成具体事件
+    const chaosEventWithDetail = await EvolutionRulesEngine.generateChaosEventWithLLM(chaosEvent, {
+      currentStory: promptContent,
+      characters: Object.keys(this.storyState.characters || {}),
+      recentEvents: this.storyState.world?.events || [],
+    })
+
     const chaosResult: ChaosResult = {
-      roll: chaosEvent.roll,
-      event: chaosEvent.description,
-      narrativePrompt: chaosEvent.narrativePrompt,
-      category: chaosEvent.category,
+      roll: chaosEventWithDetail.roll,
+      event: chaosEventWithDetail.generatedEvent || chaosEventWithDetail.narrativeDirection,
+      narrativePrompt: chaosEventWithDetail.narrativeDirection,
+      category: chaosEventWithDetail.category,
     }
     this.lastChaosResult = chaosResult
-    this.log(`   Chaos Roll: ${chaosEvent.roll}/6 - ${chaosEvent.category.toUpperCase()}`)
+    this.log(`   Chaos Roll: ${chaosEventWithDetail.roll}/6 - ${chaosEventWithDetail.category.toUpperCase()}`)
 
     this.log(`   Parsing prompt...`)
     const elements = await this.parsePromptWithLLM(promptContent)
@@ -1104,11 +1112,12 @@ Generate only the title, nothing else:`
       const summaryDir = resolve(getSummariesPath())
       await mkdir(summaryDir, { recursive: true })
 
-      const chaosEvent = {
+      const chaosEventForSummary: ChaosEvent = {
         roll: chaosResult.roll,
-        category: chaosResult.category as any,
-        description: chaosResult.event,
-        narrativePrompt: chaosResult.narrativePrompt,
+        category: chaosResult.category as ChaosEvent["category"],
+        label: chaosResult.event,
+        narrativeDirection: chaosResult.narrativePrompt,
+        generatedEvent: chaosResult.event,
       }
 
       const summary = EvolutionRulesEngine.generateTurnSummary(
@@ -1119,7 +1128,7 @@ Generate only the title, nothing else:`
           storySegment: this.storyState.fullStory.split("\n\n").slice(-1)[0] || "",
         },
         stateUpdates,
-        chaosEvent,
+        chaosEventForSummary,
       )
 
       const fileName = `turn_${this.storyState.chapterCount.toString().padStart(3, "0")}_summary.md`

@@ -76,51 +76,25 @@ interface TraumaAward {
   reason: string
 }
 
-interface ChaosEvent {
+export interface ChaosEvent {
   roll: number
   category: "catastrophic" | "complication" | "neutral" | "boon"
-  description: string
-  narrativePrompt: string
+  label: string
+  narrativeDirection: string
+  generatedEvent?: string // LLM 生成的具体事件
 }
 
-const CHAOS_TABLE: ChaosEvent[] = [
-  {
-    roll: 1,
-    category: "catastrophic",
-    description: "灾难性失败",
-    narrativePrompt: "突发灾难：装备故障/盟友受伤/关键证据丢失/敌人增援抵达",
-  },
-  {
-    roll: 2,
-    category: "complication",
-    description: "复杂情况",
-    narrativePrompt: "新障碍：时间限制缩减/新敌人出现/环境恶化/资源耗尽",
-  },
-  {
-    roll: 3,
-    category: "complication",
-    description: "意外阻碍",
-    narrativePrompt: "意外阻碍：通讯中断/路径封锁/身份暴露/内部矛盾",
-  },
-  {
-    roll: 4,
-    category: "neutral",
-    description: "标准流程",
-    narrativePrompt: "按当前剧情自然推进，无外部干扰",
-  },
-  {
-    roll: 5,
-    category: "neutral",
-    description: "平稳发展",
-    narrativePrompt: "维持当前节奏，允许角色展现能力",
-  },
-  {
-    roll: 6,
-    category: "boon",
-    description: "意外收获",
-    narrativePrompt: "意外助力：发现隐藏物品/盟友及时赶到/关键线索揭示/敌人失误",
-  },
-]
+const CHAOS_CATEGORIES: Record<
+  number,
+  { category: ChaosEvent["category"]; label: string; narrativeDirection: string }
+> = {
+  1: { category: "catastrophic", label: "灾难性失败", narrativeDirection: "突发灾难性事件" },
+  2: { category: "complication", label: "复杂情况", narrativeDirection: "新的复杂障碍" },
+  3: { category: "complication", label: "意外阻碍", narrativeDirection: "意外情况阻碍进展" },
+  4: { category: "neutral", label: "标准流程", narrativeDirection: "按当前剧情自然推进" },
+  5: { category: "neutral", label: "平稳发展", narrativeDirection: "维持节奏，小进展" },
+  6: { category: "boon", label: "意外收获", narrativeDirection: "意外助力或好运" },
+}
 
 export class EvolutionRulesEngine {
   private static readonly STRESS_THRESHOLD_CRITICAL = 90
@@ -130,9 +104,69 @@ export class EvolutionRulesEngine {
 
   static rollChaos(): ChaosEvent {
     const roll = Math.floor(Math.random() * 6) + 1
-    const event = CHAOS_TABLE[roll - 1]
-    log.info("chaos_rolled", { roll, category: event.category, description: event.description })
-    return { ...event, roll }
+    const chaosData = CHAOS_CATEGORIES[roll]
+    log.info("chaos_rolled", { roll, category: chaosData.category, label: chaosData.label })
+    return {
+      roll,
+      ...chaosData,
+    }
+  }
+
+  /**
+   * 基于 LLM 动态生成混乱事件
+   * @param chaosEvent - 基础混乱事件（包含方向和类别）
+   * @param storyContext - 当前故事上下文
+   * @returns 带有具体事件的混乱事件
+   */
+  static async generateChaosEventWithLLM(
+    chaosEvent: ChaosEvent,
+    storyContext: {
+      currentStory: string
+      characters: string[]
+      recentEvents: string[]
+    },
+  ): Promise<ChaosEvent> {
+    try {
+      const languageModel = await getNovelLanguageModel()
+
+      const prompt = `You are a creative storyteller. Based on the chaos event category, generate a specific narrative event that fits the current story.
+
+Chaos Category: ${chaosEvent.category.toUpperCase()}
+Direction: ${chaosEvent.narrativeDirection}
+
+Current Story Context:
+${storyContext.currentStory.substring(0, 1000)}
+
+Characters: ${storyContext.characters.join(", ")}
+
+Recent Events:
+${storyContext.recentEvents.join("\n")}
+
+Generate a specific event (2-3 sentences) that:
+1. Matches the chaos category (${chaosEvent.category})
+2. Fits naturally into the current story
+3. Involves the existing characters or plot elements
+4. Creates interesting narrative tension
+
+Output ONLY the event description, no other text.`
+
+      const result = await generateText({
+        model: languageModel,
+        prompt,
+      })
+
+      chaosEvent.generatedEvent = result.text.trim()
+      log.info("chaos_event_generated", {
+        roll: chaosEvent.roll,
+        category: chaosEvent.category,
+        hasGeneratedEvent: !!chaosEvent.generatedEvent,
+      })
+    } catch (error) {
+      log.warn("chaos_event_generation_failed", { error: String(error) })
+      chaosEvent.generatedEvent = `${chaosEvent.narrativeDirection}（LLM 生成失败）`
+    }
+
+    return chaosEvent
   }
 
   static async checkStateChanges(context: EvolutionContext): Promise<{ skills: SkillAward[]; traumas: TraumaAward[] }> {
@@ -237,8 +271,7 @@ export class EvolutionRulesEngine {
     lines.push("## 🎲 Chaos Event")
     lines.push(`- **Roll**: ${chaosEvent.roll}/6`)
     lines.push(`- **Category**: ${chaosEvent.category.toUpperCase()}`)
-    lines.push(`- **Event**: ${chaosEvent.description}`)
-    lines.push(`- **Narrative**: ${chaosEvent.narrativePrompt}`)
+    lines.push(`- **Event**: ${chaosEvent.generatedEvent || chaosEvent.narrativeDirection}`)
     lines.push("")
 
     lines.push("## 📈 State Changes")

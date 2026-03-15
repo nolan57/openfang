@@ -3,11 +3,13 @@ import { EvolutionRulesEngine } from "./evolution-rules"
 
 describe("EvolutionRulesEngine", () => {
   test("rollChaos returns valid result", () => {
-    const result = EvolutionRulesEngine.rollChaos()
-    expect(result.roll).toBeGreaterThanOrEqual(1)
-    expect(result.roll).toBeLessThanOrEqual(6)
-    expect(result.description).toBeDefined()
-    expect(result.category).toBeDefined()
+    const chaosEvent = EvolutionRulesEngine.rollChaos()
+
+    expect(chaosEvent.roll).toBeGreaterThanOrEqual(1)
+    expect(chaosEvent.roll).toBeLessThanOrEqual(6)
+    expect(["catastrophic", "complication", "neutral", "boon"]).toContain(chaosEvent.category)
+    expect(chaosEvent.label).toBeDefined()
+    expect(chaosEvent.narrativeDirection).toBeDefined()
   })
 
   test("enforceStressLimits caps stress", () => {
