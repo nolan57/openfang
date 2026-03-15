@@ -13,12 +13,12 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        OpenCode Evolution System                       │
-│                         (通用自进化框架)                                 │
+│                         (General evolution框架)                                 │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
 │  ┌──────────────────────┐    ┌──────────────────────┐                  │
 │  │  General Evolution   │    │   Novel Engine       │                  │
-│  │  (通用自进化)         │    │   (小说引擎)          │                  │
+│  │  (General evolution)         │    │   (小说引擎)          │                  │
 │  │                      │    │                      │                  │
 │  │  - skill.ts          │    │  - orchestrator.ts   │                  │
 │  │  - prompt.ts         │    │  - pattern-miner.ts  │                  │
@@ -55,7 +55,7 @@
  * Standalone function to analyze and evolve patterns
  */
 export async function analyzeAndEvolve(context: string, currentPatterns: any[] = []): Promise<void> {
-  // 1. 调用 LLM 分析故事模式
+  // 1. Call LLM to analyze story patterns
   const languageModel = await getNovelLanguageModel()
 
   // 2. 提取新的叙事模式
@@ -80,7 +80,7 @@ novel.ts:handleEvolve()
   ↓
 orchestrator.ts:analyzeAndEvolve()
   ↓
-PatternMiner: 分析故事 → 提取模式 → 保存模式
+PatternMiner: Analyze story → Extract patterns → Save patterns
 ```
 
 ---
@@ -111,7 +111,7 @@ import { getNovelLanguageModel } from "./model"
 
 - Evolve 系统生成的技能使用 novel 的 LLM
 - Novel 系统生成的模式可以被 evolve 使用
-- 两者共享相同的模型配置和 fallback 链
+- Both share the same model configuration and fallback chain
 
 ---
 
@@ -159,11 +159,11 @@ async function handleEvolve() {
   // 1. 加载已有的模式
   const patterns = await loadDynamicPatterns()
 
-  // 2. 获取 orchestrator 和故事状态
+  // 2. Get orchestrator and story state
   const engine = await getOrchestrator()
   const state = engine.getState()
 
-  // 3. 调用 analyzeAndEvolve 分析整个故事
+  // 3. Call analyzeAndEvolve to analyze entire story
   await analyzeAndEvolve(state.fullStory || "", patterns)
 
   console.log("✓ Evolution complete!")
@@ -183,7 +183,7 @@ async function handleEvolve() {
    ↓
 5. analyzeAndEvolve(fullStory, patterns)
    ↓
-6. LLM 分析故事 → 提取新模式
+6. LLM analyzes story → Extracts new patterns
    ↓
 7. 保存新模式到 dynamic-patterns.json
    ↓
@@ -200,7 +200,7 @@ async function handleEvolve() {
 
 ```typescript
 async function handleStart(args: any) {
-  // 1. 加载提示词
+  // 1. Load prompt
   let promptContent = "Starting new creative session..."
   if (args.prompt) {
     promptContent = await readFile(args.prompt, "utf-8")
@@ -216,7 +216,7 @@ async function handleStart(args: any) {
       await analyzeAndEvolve(promptContent, await loadDynamicPatterns())
     }
 
-    // 生成故事
+    // Generate story
     const result = await engine.runNovelCycle(promptContent)
   }
 }
@@ -233,7 +233,7 @@ async function handleStart(args: any) {
    ↓
 4. Loop N times:
    a. analyzeAndEvolve() → 提取模式
-   b. runNovelCycle() → 生成故事
+   b. runNovelCycle() → Generate story
    c. StateExtractor → 提取状态变更
    d. EvolutionRules → 应用规则
    e. Save state to .opencode/novel/state/story_bible.json
@@ -284,7 +284,7 @@ async function handleStart(args: any) {
 
 ## 共享数据存储
 
-### 1. 故事圣经 (Story Bible)
+### 1. Story Bible (Story Bible)
 
 **路径：** `.opencode/novel/state/story_bible.json`
 
@@ -337,7 +337,7 @@ async function handleStart(args: any) {
 
 **使用者：**
 
-- Novel: 指导故事生成
+- Novel: Guide story generation
 - Evolve: 生成新技能的基础
 
 ---
@@ -383,7 +383,7 @@ Character faces impossible moral choice
 
 | 特性         | Novel Engine            | Evolve System           | 关系                       |
 | ------------ | ----------------------- | ----------------------- | -------------------------- |
-| **目的**     | 小说故事生成            | 通用自进化              | Novel 是 Evolve 的应用领域 |
+| **目的**     | Novel story generation            | General evolution              | Novel is an application domain of Evolve |
 | **核心组件** | EvolutionOrchestrator   | Skill/Prompt/Memory     | 共享 analyzeAndEvolve      |
 | **LLM 获取** | getNovelLanguageModel() | getNovelLanguageModel() | **完全相同**               |
 | **模式挖掘** | PatternMiner            | PatternMiner            | **完全相同**               |
@@ -401,7 +401,7 @@ Character faces impossible moral choice
    - `PatternMiner` - 模式挖掘
    - `Skill` - 技能生成
 3. **共享数据存储：**
-   - Novel 生成的故事 → Evolve 分析的输入
+   - Novel generated story → Evolve analysis input
    - Evolve 生成的技能 → Novel 使用的指导
    - 共同维护的模式库
 
@@ -418,7 +418,7 @@ CLI: novel.ts:handleEvolve()
          ↓
 调用：analyzeAndEvolve(fullStory, patterns)
          ↓
-LLM 分析故事 → 提取新模式 → 保存到模式库
+LLM analyzes story → Extracts new patterns → 保存到模式库
          ↓
 检查是否需要生成技能 → 保存到技能库
          ↓
