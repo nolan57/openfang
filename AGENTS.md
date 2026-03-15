@@ -1,105 +1,12 @@
-- To regenerate the JavaScript SDK, run `./packages/sdk/js/script/build.ts`.
-- ALWAYS USE PARALLEL TOOLS WHEN APPLICABLE.
-- The default branch in this repo is `v2`.
-- Local `main` ref may not exist; use `v2` or `opencodeclaw/v2` for diffs.
-- Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
-- NEVER commit changes unless the user explicitly asks you to. It is VERY IMPORTANT to only commit when explicitly asked.
-- When making significant code changes, run typecheck and tests before considering the task complete.
+# OpenCode Agent Guidelines
 
-## Project Structure
+This file provides instructions for agentic coding agents operating in this repository. It covers build/test/lint commands, code style guidelines, and repository-specific practices.
 
-```
-packages/
-├── app/           # SolidJS web app (main UI)
-├── console/       # Console sub-packages
-│   ├── app/       # Console web app
-│   ├── core/      # Core logic with DB scripts
-│   ├── function/  # Cloud functions for console
-│   ├── mail/      # Email templates
-│   └── resource/  # Resources
-├── containers/    # Docker container configs (base, bun-node, publish, rust, tauri-linux)
-├── desktop/       # Tauri desktop app
-├── docs/          # Documentation assets
-├── enterprise/    # Enterprise web app
-├── extensions/    # IDE extensions (zed)
-├── function/      # Cloud functions
-├── identity/      # Branding assets (logos, icons)
-├── opencode/      # Main CLI package
-├── plugin/        # Plugin SDK
-├── plugin-qqbot/  # QQ Bot plugin
-├── script/        # Build scripts
-├── sdk/           # JavaScript SDK (js/)
-├── slack/         # Slack integration
-├── ui/            # Shared UI components
-├── util/          # Shared utilities
-└── web/           # Astro docs site
-```
-
-### packages/opencode Source Structure
-
-```
-src/
-├── acp/           # Agent Client Protocol (IDE integration)
-├── agent/         # Agent logic and orchestration
-├── auth/          # Authentication system
-├── bun/           # Bun-specific utilities and registry
-├── bus/           # Event bus for inter-component communication
-├── cli/           # Command-line interface
-├── collab/        # Collaboration system (multi-agent coordination)
-├── command/       # Command execution
-├── config/        # Configuration management
-├── context/       # Context management
-├── control/       # Flow control
-├── env/           # Environment utilities
-├── evolution/     # Self-evolution system (prompts, skills, memories)
-├── file/          # File operations
-├── flag/          # Feature flags
-├── format/        # Formatting utilities
-├── global/        # Global state
-├── id/            # ID generation
-├── ide/           # IDE integration
-├── installation/  # Installation management
-├── learning/      # Learning system (knowledge graph, memory, self-evolution)
-├── lsp/           # Language Server Protocol integration
-├── mcp/           # Model Context Protocol (OAuth support)
-├── memory/        # Memory system (session, evolution, project, code-analyzer)
-├── middleware/    # Middleware layer
-├── novel/         # Novel writing self-evolution
-├── observability/ # OpenTelemetry observability (X-Ray Mode)
-├── patch/         # Patching utilities
-├── permission/    # Permission system
-├── plugin/        # Plugin system
-├── project/       # Project management
-├── prompts/       # Prompt templates
-├── provider/      # AI provider integrations
-├── pty/           # Pseudo-terminal
-├── question/      # Question handling
-├── scheduler/     # Task scheduling
-├── server/        # Server implementation
-├── session/       # Session management
-├── share/         # Session sharing
-├── shell/         # Shell integration
-├── skill/         # Skill system
-├── snapshot/      # Snapshot management
-├── storage/       # Storage layer (SQLite, JSON migration)
-├── tool/          # Tool implementations
-├── types/         # Type definitions
-├── util/          # Utilities
-├── worktree/      # Git worktree management
-└── zeroclaw/      # ZeroClaw integration
-```
-
-## Commands
+## 🔧 Development Commands
 
 ### Running Tests
 
-**From repo root (NOT allowed):**
-
-```bash
-bun test  # Will fail with "do not run tests from root"
-```
-
-**From package directories:**
+**From package directories (NOT repo root):**
 
 ```bash
 # packages/opencode
@@ -191,103 +98,7 @@ bun run dev             # Enterprise web app
 bun run build           # Generate SDK from OpenAPI spec
 ```
 
-### MCP Commands
-
-```bash
-opencode mcp list                 # List MCP servers and status
-opencode mcp add                  # Add an MCP server interactively
-opencode mcp auth [name]          # Authenticate with OAuth-enabled MCP server
-opencode mcp auth list            # List OAuth-capable servers and auth status
-opencode mcp logout [name]        # Remove OAuth credentials
-opencode mcp debug <name>         # Debug OAuth connection for MCP server
-```
-
-### Memory Commands
-
-```bash
-opencode memory add <content>              # Add a memory
-opencode memory add <content> --type <type>  # Add memory with type (session|evolution|project)
-opencode memory search <query>             # Search memories
-opencode memory search <query> --type <type>  # Search specific memory type
-opencode memory list                       # List all memories
-opencode memory list --type <type>         # List memories by type
-opencode memory show <id>                  # Show memory details
-opencode memory delete <id>                # Delete a memory
-```
-
-### Evolution Commands
-
-```bash
-opencode evolve list              # List evolution artifacts (prompts, skills, memories)
-opencode evolve status            # Show evolution system status
-opencode evolve pending           # List pending skill approvals
-opencode evolve approve <id>      # Approve a skill proposal
-opencode evolve reject <id>       # Reject a skill proposal
-opencode evolve memories          # List learned memories
-opencode evolve reload            # Reload skills cache
-opencode evolve tasks             # List pending deployment tasks
-opencode evolve scan              # Scan code for issues
-opencode evolve fix               # Auto-fix code issues
-opencode evolve stats             # Show code statistics
-opencode evolve summaries build   # Build module summaries
-opencode evolve summaries search <query>  # Search module summaries
-opencode evolve overview          # Generate project overview
-opencode evolve --mode spec --spec-file <path>  # Implement from spec file
-opencode evolve --mode execute    # Execute all pending evolution tasks
-```
-
-### Novel Commands
-
-```bash
-opencode novel start [--prompt <file>] [--loops <n>]  # Start creative session
-opencode novel continue                               # Continue from last state
-opencode novel inject --file <path>                   # Inject content
-opencode novel export --output <path>                 # Export novel
-opencode novel status                                 # Show novel state
-opencode novel evolve                                 # Evolve novel patterns
-```
-
-### Session Commands
-
-```bash
-opencode session list             # List sessions
-opencode session show <id>        # Show session details
-opencode session delete <id>      # Delete a session
-```
-
-### Export/Import Commands
-
-```bash
-opencode export [options]         # Export data
-opencode import [options]         # Import data
-```
-
-### Other Commands
-
-```bash
-opencode run                      # Run the main agent
-opencode generate                 # Generate code
-opencode auth                     # Authentication commands
-opencode agent                    # Agent management
-opencode upgrade                  # Upgrade OpenCode
-opencode uninstall                # Uninstall OpenCode
-opencode serve                    # Start server
-opencode web                      # Web interface
-opencode models                   # Model management
-opencode stats                    # Statistics
-opencode github                   # GitHub integration
-opencode pr                       # Pull request operations
-opencode db                       # Database operations
-```
-
-### ACP (Agent Client Protocol)
-
-```bash
-opencode acp                      # Start ACP server
-opencode acp --cwd <dir>          # Start ACP server with custom working directory
-```
-
-## Style Guide
+## 📝 Code Style Guidelines
 
 ### General Principles
 
@@ -351,7 +162,7 @@ Use snake_case for field names so column names don't need to be redefined as str
 
 - Always prefer `createStore` over multiple `createSignal` calls
 
-## Testing
+## 🧪 Testing Practices
 
 - Avoid mocks as much as possible
 - Test actual implementation, do not duplicate logic into tests
@@ -360,7 +171,7 @@ Use snake_case for field names so column names don't need to be redefined as str
 - Prefer integration tests over unit tests when testing real implementations
 - Use descriptive test names that explain what is being tested
 
-## Browser Automation (packages/app)
+## 🌐 Browser Automation (packages/app)
 
 Use `agent-browser` for web automation. Run `agent-browser --help` for all commands.
 
@@ -371,7 +182,7 @@ Core workflow:
 3. `agent-browser click @e1` / `fill @e2 "text"` - Interact using refs
 4. Re-snapshot after page changes
 
-## Packages Notes
+## 📦 Package-Specific Notes
 
 ### packages/desktop
 
@@ -409,7 +220,7 @@ Core workflow:
 - Includes `TraceVisualizer` component for observability traces.
 - See `packages/ui/AGENTS.md` for detailed component architecture.
 
-## Integrations
+## 🔗 Integrations
 
 ### MCP (Model Context Protocol)
 
@@ -463,7 +274,7 @@ Astro-based documentation site. Run with `bun run dev` from the package director
 
 IDE extension for Zed editor. Contains extension configuration and icons.
 
-## Workspace Dependencies
+## 📦 Workspace Dependencies
 
 This project uses Bun workspaces with a catalog for shared dependency versions. Key catalogs are defined in the root `package.json` under `workspaces.catalog`.
 
@@ -478,7 +289,7 @@ Use `catalog:` to reference catalog versions in package dependencies:
 }
 ```
 
-## Evolution System
+## 🚀 Evolution System
 
 The evolution system enables self-improvement through:
 
@@ -500,7 +311,7 @@ Configuration in `opencode.json`:
 }
 ```
 
-## Memory System
+## 🧠 Memory System
 
 Three-level memory architecture:
 
@@ -516,7 +327,7 @@ Memory supports:
 - Similarity scoring
 - Code entity extraction via `CodeAnalyzer` (AST-based analysis for .ts/.tsx/.js/.jsx files)
 
-## Collaboration System
+## 👥 Collaboration System
 
 Multi-agent collaboration system (`src/collab/`):
 
@@ -525,7 +336,7 @@ Multi-agent collaboration system (`src/collab/`):
 - **Events**: Inter-agent event bus
 - **Schema**: Collaboration data models
 
-## Observability System (X-Ray Mode)
+## 👁️ Observability System (X-Ray Mode)
 
 OpenTelemetry-based observability for tracing and debugging (`src/observability/`):
 
@@ -552,7 +363,7 @@ Observability stack in `deploy/observability/`:
 
 - `TraceVisualizer` in `packages/ui/src/components/observability/` for visualizing traces
 
-## Database Migrations
+## 🗄️ Database Migrations
 
 Migrations are stored in `packages/opencode/migration/` with per-folder layout:
 
@@ -566,9 +377,17 @@ Migrations are stored in `packages/opencode/migration/` with per-folder layout:
 
 Each migration folder contains `migration.sql` and `snapshot.json`.
 
-## Config Paths
+## ⚙️ Config Paths
 
 - **macOS**: `~/Library/Application Support/opencode/config/` (defined in `src/global/index.ts`)
 - **Linux**: `$XDG_CONFIG_HOME/opencode`
 - **Windows**: `%APPDATA%/opencode`
 - Old path `~/.config/opencode/` is deprecated but docs may still reference it.
+
+## 🔁 Version Control Practices
+
+- NEVER commit changes unless the user explicitly asks you to. It is VERY IMPORTANT to only commit when explicitly asked.
+- When making significant code changes, run typecheck and tests before considering the task complete.
+- Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
+- The default branch in this repo is `v2`.
+- Local `main` ref may not exist; use `v2` or `opencodeclaw/v2` for diffs.

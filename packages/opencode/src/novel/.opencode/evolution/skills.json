@@ -1,0 +1,18 @@
+[
+  {
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for Please analyze this codebase and create an AGENTS.md file containing:\n1. Build/lint/test commands - ",
+    "content": "# Please analyze this codebase and create an AGENTS.\n\n## Description\n\nAuto-generated skill for: Please analyze this codebase and create an AGENTS.md file containing:\n1. Build/lint/test commands - especially for running a single test\n2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.\n\nThe file you create will be given to agentic coding agents (such as yourself) that operate in this repository. Make it about 150 lines long.\nIf there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them.\n\nIf there's already an AGENTS.md, improve it if it's located in /Users/lpcw/Documents/opencode\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-14\n",
+    "triggerPatterns": [
+      "please",
+      "analyze",
+      "this",
+      "codebase",
+      "create"
+    ],
+    "sessionID": "ses_311698b4effeLepLbMLRIC6z73",
+    "id": "36be32c7-c412-4cd5-b4c8-0f3937d74bc5",
+    "createdAt": 1773529667096,
+    "status": "draft"
+  }
+]

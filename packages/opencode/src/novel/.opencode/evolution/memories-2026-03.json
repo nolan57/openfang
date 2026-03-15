@@ -1,0 +1,62 @@
+[
+  {
+    "id": "4c9533eb-f08c-4792-8031-2d1ac5090e80",
+    "key": "testing-approach",
+    "value": "Write tests first (TDD) for better design",
+    "context": "Please analyze this codebase and create an AGENTS.md file containing:\n1. Build/lint/test commands - especially for running a single test\n2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.\n\nThe file you create will be given to agentic coding agents (such as yourself) that operate in this repository. Make it about 150 lines long.\nIf there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them.\n\nIf there's already an AGENTS.md, improve it if it's located in /Users/lpcw/Documents/opencode",
+    "sessionIDs": [
+      "ses_311698b4effeLepLbMLRIC6z73"
+    ],
+    "createdAt": 1773529667099,
+    "lastUsedAt": 1773529667099,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "2d9a967b-5598-4a8b-95a1-089a3496d78e",
+    "key": "refactoring-guidance",
+    "value": "Make small, incremental changes",
+    "context": "Please analyze this codebase and create an AGENTS.md file containing:\n1. Build/lint/test commands - especially for running a single test\n2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.\n\nThe file you create will be given to agentic coding agents (such as yourself) that operate in this repository. Make it about 150 lines long.\nIf there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them.\n\nIf there's already an AGENTS.md, improve it if it's located in /Users/lpcw/Documents/opencode",
+    "sessionIDs": [
+      "ses_311698b4effeLepLbMLRIC6z73"
+    ],
+    "createdAt": 1773529674618,
+    "lastUsedAt": 1773529674618,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "5f4235ab-7817-4641-bcd3-1dbfd777980b",
+    "key": "debugging-tips",
+    "value": "Start with minimal reproduction case",
+    "context": "Please analyze this codebase and create an AGENTS.md file containing:\n1. Build/lint/test commands - especially for running a single test\n2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.\n\nThe file you create will be given to agentic coding agents (such as yourself) that operate in this repository. Make it about 150 lines long.\nIf there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them.\n\nIf there's already an AGENTS.md, improve it if it's located in /Users/lpcw/Documents/opencode",
+    "sessionIDs": [
+      "ses_311698b4effeLepLbMLRIC6z73"
+    ],
+    "createdAt": 1773529674833,
+    "lastUsedAt": 1773529674833,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "key": "git-workflow",
+    "value": "Make small, focused commits with clear messages",
+    "context": "Please analyze this codebase and create an AGENTS.md file containing:\n1. Build/lint/test commands - especially for running a single test\n2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.\n\nThe file you create will be given to agentic coding agents (such as yourself) that operate in this repository. Make it about 150 lines long.\nIf there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them.\n\nIf there's already an AGENTS.md, improve it if it's located in /Users/lpcw/Documents/opencode",
+    "sessionIDs": [
+      "ses_311698b4effeLepLbMLRIC6z73"
+    ],
+    "id": "0fa12771-ea76-4efc-8c86-906e6fc428d1",
+    "createdAt": 1773529675055,
+    "lastUsedAt": 1773529675055,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  }
+]
