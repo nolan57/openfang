@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { Log } from "../util/log"
+import { novelConfigManager } from "./novel-config"
 
 const log = Log.create({ service: "branch-manager" })
 
@@ -86,15 +87,7 @@ export class BranchManager {
   }
 
   calculateBranchScore(branch: Branch): number {
-    const weights = {
-      narrativeQuality: 0.25,
-      tensionLevel: 0.15,
-      characterDevelopment: 0.2,
-      plotProgression: 0.15,
-      characterGrowth: 0.1,
-      riskReward: 0.05,
-      thematicRelevance: 0.1,
-    }
+    const weights = novelConfigManager.getStoryTypeWeights()
 
     return (
       branch.evaluation.narrativeQuality * weights.narrativeQuality +

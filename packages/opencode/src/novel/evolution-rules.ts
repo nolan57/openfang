@@ -2,43 +2,10 @@ import { Log } from "../util/log"
 import { generateText } from "ai"
 import { TRAUMA_TAGS, SKILL_CATEGORIES, CHARACTER_STATUS } from "./types"
 import { getNovelLanguageModel } from "./model"
+import { createPromptBuilder, type StoryTone } from "./dynamic-prompt"
+import { novelConfigManager } from "./novel-config"
 
 const log = Log.create({ service: "evolution-rules" })
-
-const STATE_CHANGE_EVALUATION_PROMPT = `You are a strict game master (GM) responsible for extracting state changes from story text.
-
-Character State Rules:
-- Skill Award: A character can only receive a new skill when they successfully overcome a specific and challenging obstacle. Skills represent learned competence through adversity.
-- Trauma Trigger: A character receives trauma when experiencing life-threatening events, extreme pressure (witnessing death, betrayal), or cumulative stress exceeds critical threshold.
-
-Your task:
-Analyze the story segment below. Identify ALL skill awards and trauma triggers following the rules above.
-
-Output Format (strict JSON):
-{
-  "skill_awards": [
-    {
-      "character_name": "Character name from the story",
-      "skill_name": "Descriptive name for the new skill (e.g., 'Quick Reflexes', 'Deceptive Charm')",
-      "skill_category": "General category (e.g., Combat, Social, Mental, Technical, Physical, Survival)",
-      "reason_in_story": "What happened in the story that warrants this skill"
-    }
-  ],
-  "trauma_awards": [
-    {
-      "character_name": "Character name from the story",
-      "trauma_name": "Descriptive name for the trauma (e.g., 'Fear of Fire', 'Trust Issues')",
-      "trauma_tags": ["General tags: Physical, Psychological, Social, Loss, Betrayal, Fear, Pain"],
-      "severity": 1-10,
-      "reason_in_story": "What happened in the story that caused this trauma"
-    }
-  ]
-}
-
-Story Segment:
-{{STORY_SEGMENT}}
-
-Output only JSON, no other text.`
 
 interface CharacterState {
   stress: number
@@ -104,8 +71,6 @@ const MAGNITUDE_LABELS: Record<number, ChaosEvent["magnitude"]> = {
 }
 
 export class EvolutionRulesEngine {
-  private static readonly STRESS_THRESHOLD_CRITICAL = 90
-  private static readonly STRESS_THRESHOLD_HIGH = 70
   private static readonly STRESS_DELTA_LARGE = 20
   private static readonly DIFFICULTY_THRESHOLD_HIGH = 7
 
@@ -147,43 +112,41 @@ export class EvolutionRulesEngine {
       recentEvents: string[]
       themes?: string[]
     },
-    storyTone?: string,
+    storyTone?: StoryTone,
   ): Promise<ChaosEvent> {
     try {
+      const config = novelConfigManager.getConfig()
+      const promptBuilder = createPromptBuilder("chaosEvent", config.promptStyle)
+
+      if (storyTone) {
+        promptBuilder.withTone(storyTone)
+      }
+
+      const impactLabel =
+        chaosEvent.impact === "positive"
+          ? "POSITIVE (Something beneficial occurs)"
+          : chaosEvent.impact === "negative"
+            ? "NEGATIVE (Something harmful occurs)"
+            : "NEUTRAL (Something neither clearly good nor bad occurs)"
+
+      const magnitudeLabel =
+        chaosEvent.magnitude === "major"
+          ? "MAJOR (Significant change that alters the situation)"
+          : chaosEvent.magnitude === "minor"
+            ? "MINOR (Small but noticeable change)"
+            : "STATIC (Minimal change, status quo maintained)"
+
+      const prompt = promptBuilder
+        .withVariables({
+          IMPACT: impactLabel,
+          MAGNITUDE: magnitudeLabel,
+          STORY_CONTEXT: storyContext.currentStory.substring(0, 1500),
+          CHARACTERS: storyContext.characters.join(", "),
+          RECENT_EVENTS: storyContext.recentEvents.join("\n") || "None",
+        })
+        .build()
+
       const languageModel = await getNovelLanguageModel()
-
-      const tonePrompt = storyTone ? `\nStory Tone: ${storyTone}\nThe event should align with this overall tone.` : ""
-
-      const prompt = `You are a creative storyteller with complete narrative freedom.
-
-Based on the abstract chaos dimensions below, decide WHAT SPECIFICALLY happens in the story.
-
-## Chaos Dimensions
-- **Impact Direction**: ${chaosEvent.impact.toUpperCase()}
-  - positive: Something beneficial occurs
-  - negative: Something harmful occurs  
-  - neutral: Something neither clearly good nor bad occurs
-
-- **Change Magnitude**: ${chaosEvent.magnitude.toUpperCase()}
-  - static: Minimal change, status quo maintained
-  - minor: Small but noticeable change
-  - major: Significant change that alters the situation
-
-## Current Story Context
-${storyContext.currentStory.substring(0, 1500)}
-
-## Characters
-${storyContext.characters.join(", ")}
-
-## Recent Events
-${storyContext.recentEvents.join("\n") || "None"}
-${storyContext.themes?.length ? `\n## Themes\n${storyContext.themes.join("\n")}` : ""}
-${tonePrompt}
-
-## Your Task
-Decide what SPECIFICALLY happens. Be creative and unexpected while staying true to the story.
-
-Output ONLY the event description (2-4 sentences). No other text.`
 
       const result = await generateText({
         model: languageModel,
@@ -214,7 +177,10 @@ Output ONLY the event description (2-4 sentences). No other text.`
     return chaosEvent
   }
 
-  static async checkStateChanges(context: EvolutionContext): Promise<{ skills: SkillAward[]; traumas: TraumaAward[] }> {
+  static async checkStateChanges(
+    context: EvolutionContext,
+    storyTone?: StoryTone,
+  ): Promise<{ skills: SkillAward[]; traumas: TraumaAward[] }> {
     const storyText = context.storySegment
 
     if (storyText.length < 20) {
@@ -222,9 +188,16 @@ Output ONLY the event description (2-4 sentences). No other text.`
     }
 
     try {
-      const languageModel = await getNovelLanguageModel()
+      const config = novelConfigManager.getConfig()
+      const promptBuilder = createPromptBuilder("stateEvaluation", config.promptStyle)
 
-      const prompt = STATE_CHANGE_EVALUATION_PROMPT.split("{{STORY_SEGMENT}}").join(storyText)
+      if (storyTone) {
+        promptBuilder.withTone(storyTone)
+      }
+
+      const prompt = promptBuilder.withVariables({ STORY_SEGMENT: storyText }).build()
+
+      const languageModel = await getNovelLanguageModel()
 
       const result = await generateText({
         model: languageModel,
@@ -260,8 +233,13 @@ Output ONLY the event description (2-4 sentences). No other text.`
         reason: "LLM semantic analysis",
       }))
 
+      // Use config thresholds instead of hard-coded values
+      const difficulty = novelConfigManager.getDifficultyPreset()
+      const STRESS_THRESHOLD_CRITICAL = difficulty.stressThresholds.critical
+      const STRESS_THRESHOLD_HIGH = difficulty.stressThresholds.high
+
       for (const [charName, char] of Object.entries(context.characters)) {
-        if (char.stress >= this.STRESS_THRESHOLD_CRITICAL) {
+        if (char.stress >= STRESS_THRESHOLD_CRITICAL) {
           traumaAwards.push({
             characterName: charName,
             trauma: {
@@ -291,11 +269,16 @@ Output ONLY the event description (2-4 sentences). No other text.`
   static enforceStressLimits(character: CharacterState): { stressed: boolean; breakdown: boolean } {
     const result = { stressed: false, breakdown: false }
 
-    if (character.stress >= this.STRESS_THRESHOLD_CRITICAL) {
+    // Use config thresholds
+    const difficulty = novelConfigManager.getDifficultyPreset()
+    const STRESS_THRESHOLD_CRITICAL = difficulty.stressThresholds.critical
+    const STRESS_THRESHOLD_HIGH = difficulty.stressThresholds.high
+
+    if (character.stress >= STRESS_THRESHOLD_CRITICAL) {
       result.breakdown = true
       character.status = CHARACTER_STATUS.STRESSED
       log.warn("character_breakdown", { stress: character.stress })
-    } else if (character.stress >= this.STRESS_THRESHOLD_HIGH) {
+    } else if (character.stress >= STRESS_THRESHOLD_HIGH) {
       result.stressed = true
       log.info("character_stressed", { stress: character.stress })
     }

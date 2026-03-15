@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1773560644181,
-    "usageCount": 278,
+    "lastUsedAt": 1773568349043,
+    "usageCount": 279,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -8064,6 +8064,51 @@
     ],
     "createdAt": 1773566725486,
     "lastUsedAt": 1773566725486,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b95c555a-884d-4f16-88e5-253804e4a437",
+    "key": "iterative-implementation",
+    "value": "Break down large architectural evolutions into manageable phases to ensure steady progress without overwhelming the codebase.",
+    "context": "review all the codes in /Users/lpcw/Documents/opencode/packages/opencode/src/novel Based on a comprehensive analysis of the code, what improvements and refinements are needed? Please propose a plan aimed at achieving the goal of evolving \"from a simple initial idea into an epic masterpiece with numerous characters and a complex structure\" through self-evolution.  Begin implementing the improvements for Phase 1. continue continue 用git检查修改的情况，然后尽可能继续对novel引擎执行改进方案，目的是：[Pasted ~1 lines] Based on a comprehensive analysis of the code, what improvements and refinements are needed? Please propose a plan aimed at achieving the goal of evolving \"from a simple initial idea into an epic masterpiece with numerous characters and a complex structure\" through self-evolution. continue 参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md 的格式，将今天的工作用英文详细总结到一个新的md文件 push local to remote 继续实现改进方案余下的计划 继续完成phase 2 continue continue 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 接下来，继续完成phase 2 optional continue continue continue continue 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 搜索和定位这个方案中所有调用llm的代码，确认所有调用llm的方法是统一一致的 描述一下，统一后的llm调用方式 getNovelLanguageModel是如何获取llm模型的？ 3层调用模型的配置文件为何设定3个不同路径？ 3层调用模型的配置文件为何设定3个不同路径？ 项目的全局配置文件的路径已经被 /Users/lpcw/Documents/opencode/packages/opencode/src/global/index.ts 中设定了，结合这个文件，再次确认这3层不同的配置路径是否正确 搜索和确认这个方案中有没调用text-embedding的代码，如果有，确认所有调用text-embedding的方法是不是和项目其他模块（例如 /Users/lpcw/Documents/opencode/packages/opencode/src/learning  ）是统一一致的 continue 确认novel的自进化是否还是基于 /Users/lpcw/Documents/opencode/packages/opencode/src/evolution  混乱表是1到6随机数来定故事走向，若改成任意随机整数有没必要？ 混乱表硬编码感觉太死了，应该是基于不同数字，调用llm结合生成的故事本身来生成不同的场景 其实我的想法是这样的：方向不通过硬编码方式来具体设定，而是从逻辑上覆盖所有变化方向，例如只需区分： 正向或负向，变化或不变化，该如何变，就全交给llm根据当前故事片段和原初基调来自动生成具体的方向 查询和定位novel还有哪些硬编码的地方，如果有，请判断是否也做类似混乱表这样的处理 请按核心原则和以混乱表的设计作为典范，结合前面的判断，对所有硬编码的代码做改进，能交由LLM判断的交给LLM，能配置的交给配置文件",
+    "sessionIDs": [
+      "ses_31159b37effebxoMkND73EN3n0"
+    ],
+    "createdAt": 1773568046098,
+    "lastUsedAt": 1773568046098,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "1d21def5-dd8b-4c63-a2a0-7711e7545873",
+    "key": "version-control-checks",
+    "value": "Regularly check git status during refactoring to track modifications and maintain a safety net for reversing changes if needed.",
+    "context": "review all the codes in /Users/lpcw/Documents/opencode/packages/opencode/src/novel Based on a comprehensive analysis of the code, what improvements and refinements are needed? Please propose a plan aimed at achieving the goal of evolving \"from a simple initial idea into an epic masterpiece with numerous characters and a complex structure\" through self-evolution.  Begin implementing the improvements for Phase 1. continue continue 用git检查修改的情况，然后尽可能继续对novel引擎执行改进方案，目的是：[Pasted ~1 lines] Based on a comprehensive analysis of the code, what improvements and refinements are needed? Please propose a plan aimed at achieving the goal of evolving \"from a simple initial idea into an epic masterpiece with numerous characters and a complex structure\" through self-evolution. continue 参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md 的格式，将今天的工作用英文详细总结到一个新的md文件 push local to remote 继续实现改进方案余下的计划 继续完成phase 2 continue continue 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 接下来，继续完成phase 2 optional continue continue continue continue 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 搜索和定位这个方案中所有调用llm的代码，确认所有调用llm的方法是统一一致的 描述一下，统一后的llm调用方式 getNovelLanguageModel是如何获取llm模型的？ 3层调用模型的配置文件为何设定3个不同路径？ 3层调用模型的配置文件为何设定3个不同路径？ 项目的全局配置文件的路径已经被 /Users/lpcw/Documents/opencode/packages/opencode/src/global/index.ts 中设定了，结合这个文件，再次确认这3层不同的配置路径是否正确 搜索和确认这个方案中有没调用text-embedding的代码，如果有，确认所有调用text-embedding的方法是不是和项目其他模块（例如 /Users/lpcw/Documents/opencode/packages/opencode/src/learning  ）是统一一致的 continue 确认novel的自进化是否还是基于 /Users/lpcw/Documents/opencode/packages/opencode/src/evolution  混乱表是1到6随机数来定故事走向，若改成任意随机整数有没必要？ 混乱表硬编码感觉太死了，应该是基于不同数字，调用llm结合生成的故事本身来生成不同的场景 其实我的想法是这样的：方向不通过硬编码方式来具体设定，而是从逻辑上覆盖所有变化方向，例如只需区分： 正向或负向，变化或不变化，该如何变，就全交给llm根据当前故事片段和原初基调来自动生成具体的方向 查询和定位novel还有哪些硬编码的地方，如果有，请判断是否也做类似混乱表这样的处理 请按核心原则和以混乱表的设计作为典范，结合前面的判断，对所有硬编码的代码做改进，能交由LLM判断的交给LLM，能配置的交给配置文件",
+    "sessionIDs": [
+      "ses_31159b37effebxoMkND73EN3n0"
+    ],
+    "createdAt": 1773568046441,
+    "lastUsedAt": 1773568348723,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "44bcc179-b518-4a80-afd6-489d28508e8a",
+    "key": "comprehensive-code-review",
+    "value": "Perform a thorough review of existing code structures before proposing improvements to ensure compatibility with the overall system architecture.",
+    "context": "review all the codes in /Users/lpcw/Documents/opencode/packages/opencode/src/novel Based on a comprehensive analysis of the code, what improvements and refinements are needed? Please propose a plan aimed at achieving the goal of evolving \"from a simple initial idea into an epic masterpiece with numerous characters and a complex structure\" through self-evolution.  Begin implementing the improvements for Phase 1. continue continue 用git检查修改的情况，然后尽可能继续对novel引擎执行改进方案，目的是：[Pasted ~1 lines] Based on a comprehensive analysis of the code, what improvements and refinements are needed? Please propose a plan aimed at achieving the goal of evolving \"from a simple initial idea into an epic masterpiece with numerous characters and a complex structure\" through self-evolution. continue 参考 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-14.md 的格式，将今天的工作用英文详细总结到一个新的md文件 push local to remote 继续实现改进方案余下的计划 继续完成phase 2 continue continue 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 接下来，继续完成phase 2 optional continue continue continue continue 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 继续实现改进方案余下的计划 继续实现改进方案余下的计划 完整更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-15.md ，反映所有已完成的工作 搜索和定位这个方案中所有调用llm的代码，确认所有调用llm的方法是统一一致的 描述一下，统一后的llm调用方式 getNovelLanguageModel是如何获取llm模型的？ 3层调用模型的配置文件为何设定3个不同路径？ 3层调用模型的配置文件为何设定3个不同路径？ 项目的全局配置文件的路径已经被 /Users/lpcw/Documents/opencode/packages/opencode/src/global/index.ts 中设定了，结合这个文件，再次确认这3层不同的配置路径是否正确 搜索和确认这个方案中有没调用text-embedding的代码，如果有，确认所有调用text-embedding的方法是不是和项目其他模块（例如 /Users/lpcw/Documents/opencode/packages/opencode/src/learning  ）是统一一致的 continue 确认novel的自进化是否还是基于 /Users/lpcw/Documents/opencode/packages/opencode/src/evolution  混乱表是1到6随机数来定故事走向，若改成任意随机整数有没必要？ 混乱表硬编码感觉太死了，应该是基于不同数字，调用llm结合生成的故事本身来生成不同的场景 其实我的想法是这样的：方向不通过硬编码方式来具体设定，而是从逻辑上覆盖所有变化方向，例如只需区分： 正向或负向，变化或不变化，该如何变，就全交给llm根据当前故事片段和原初基调来自动生成具体的方向 查询和定位novel还有哪些硬编码的地方，如果有，请判断是否也做类似混乱表这样的处理 请按核心原则和以混乱表的设计作为典范，结合前面的判断，对所有硬编码的代码做改进，能交由LLM判断的交给LLM，能配置的交给配置文件",
+    "sessionIDs": [
+      "ses_31159b37effebxoMkND73EN3n0"
+    ],
+    "createdAt": 1773568047547,
+    "lastUsedAt": 1773568047547,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,

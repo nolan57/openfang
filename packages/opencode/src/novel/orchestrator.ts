@@ -12,6 +12,7 @@ import { mkdir } from "fs/promises"
 import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
 import { stateAuditor } from "../middleware/state-auditor"
+import { novelConfigManager } from "./novel-config"
 import {
   createNarrativeSkeleton,
   loadNarrativeSkeleton,
@@ -199,6 +200,11 @@ export class EvolutionOrchestrator {
     this.characterDeepener = new CharacterDeepener()
     this.branchOptions = config.branchOptions || 3
     this.verbose = config.verbose || false
+
+    // Load novel config on initialization
+    novelConfigManager.load().catch((err) => {
+      log.warn("novel_config_load_failed_in_orchestrator", { error: String(err) })
+    })
   }
 
   /**
