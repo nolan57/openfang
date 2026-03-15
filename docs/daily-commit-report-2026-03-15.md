@@ -6,13 +6,14 @@ This report summarizes all changes made on March 15, 2026.
 
 ## Summary Statistics
 
-| Metric         | Count                               |
-| -------------- | ----------------------------------- |
-| Total Commits  | 0 (changes pending commit)          |
-| Files Modified | 5                                   |
-| Files Created  | 5                                   |
-| Lines Added    | ~1,042 (new files) + 769 (modified) |
-| Lines Removed  | ~267                                |
+| Metric         | Count                     |
+| -------------- | ------------------------- |
+| Total Commits  | 1 (pending more)          |
+| Files Modified | 7                         |
+| Files Created  | 9                         |
+| Lines Added    | ~2,500                    |
+| Lines Removed  | ~270                      |
+| Tests          | 50 passing, 99 assertions |
 
 ---
 
@@ -20,7 +21,7 @@ This report summarizes all changes made on March 15, 2026.
 
 ### 1. feat(novel): implement Phase 1 improvements for epic masterpiece evolution
 
-**Status:** Pending commit
+**Status:** Committed (bf3afaa86)
 
 **Reason:** Implemented foundational improvements for the Novel Engine to support evolution from simple initial ideas into epic masterpieces with numerous characters and complex structures. This is Phase 1 of the multi-phase improvement plan.
 
@@ -33,21 +34,228 @@ This report summarizes all changes made on March 15, 2026.
 | Created  | `packages/opencode/src/novel/performance.ts`          |
 | Created  | `packages/opencode/src/novel/performance.test.ts`     |
 | Created  | `NOVEL_IMPROVEMENT_PLAN.md`                           |
+| Created  | `docs/daily-commit-report-2026-03-15.md`              |
 | Modified | `packages/opencode/src/novel/evolution-rules.test.ts` |
-| Modified | `.opencode/evolution/memories-2026-03.json`           |
-| Modified | `.opencode/evolution/prompts.json`                    |
-| Modified | `.opencode/evolution/skills.json`                     |
-| Modified | `AGENTS.md`                                           |
+
+---
+
+### 2. feat(novel): implement Phase 2 branch management and faction detection
+
+**Status:** Pending commit
+
+**Reason:** Implemented branch management system with pruning, merging, and scoring capabilities. Added faction detection for automatic alliance/opposition group identification.
+
+**Changes:**
+
+| Status  | File Path                                              |
+| ------- | ------------------------------------------------------ |
+| Created | `packages/opencode/src/novel/branch-manager.ts`        |
+| Created | `packages/opencode/src/novel/branch-manager.test.ts`   |
+| Created | `packages/opencode/src/novel/faction-detector.ts`      |
+| Created | `packages/opencode/src/novel/faction-detector.test.ts` |
 
 **Details:**
 
-**1. Validation Module (`validation.ts` - 240 lines):**
+**1. Branch Manager (`branch-manager.ts` - 360 lines):**
 
-Zod schema validation for all LLM outputs and state transitions:
+Comprehensive branch lifecycle management:
 
-- `RawCharacterUpdate`: Validates character update structure from LLM
-- `RawRelationshipUpdate`: Validates relationship changes
-- `RawWorldUpdate`: Validates world state changes
+| Feature                      | Description                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------- |
+| `addBranch()`                | Store branches with validation                                                                     |
+| `calculateBranchScore()`     | Weighted scoring (quality 25%, tension 15%, charDev 20%, plot 15%, growth 10%, risk 5%, theme 10%) |
+| `pruneBranches()`            | Remove low-quality branches based on score threshold                                               |
+| `detectSimilarBranches()`    | Find similar branches using Jaccard similarity                                                     |
+| `mergeBranches()`            | Combine similar branches, keeping higher-scored                                                    |
+| `autoMergeSimilarBranches()` | Automatic merging above similarity threshold                                                       |
+| `getBranchTree()`            | Build parent-child tree structure                                                                  |
+| `getBranchPath()`            | Get path from root to any branch                                                                   |
+| `getStats()`                 | Statistics (total, active, pruned, merged, avgScore)                                               |
+
+```typescript
+// Branch pruning configuration
+interface BranchPruningConfig {
+  maxBranches: number // Max branches to keep (default: 20)
+  minQualityThreshold: number // Minimum score to keep (default: 3)
+  keepSelectedBranches: boolean // Keep user-selected branches (default: true)
+  pruneAfterChapters: number // Chapters before pruning allowed (default: 5)
+}
+
+// Example usage
+const manager = new BranchManager({ maxBranches: 10, minQualityThreshold: 5 })
+manager.addBranch(branch)
+manager.pruneBranches(currentChapter)
+manager.autoMergeSimilarBranches(0.85) // Merge if 85% similar
+```
+
+**2. Faction Detector (`faction-detector.ts` - 380 lines):**
+
+Automatic faction detection from character relationships:
+
+| Feature                        | Description                                         |
+| ------------------------------ | --------------------------------------------------- |
+| `detectFactions()`             | Main detection algorithm using connected components |
+| `calculateCohesion()`          | Calculate faction cohesion from trust/hostility     |
+| `determineFactionType()`       | Classify as alliance/opposition/cooperative/etc.    |
+| `calculateMemberInfluence()`   | Determine leader/member/sympathizer roles           |
+| `updateFactionRelationships()` | Set ally/enemy/neutral between factions             |
+| `getCharacterFactions()`       | Get all factions a character belongs to             |
+| `getFactionRelationsReport()`  | Generate markdown report                            |
+
+**Faction Types:**
+
+- `alliance` - High trust, low hostility (trust ≥ 70, hostility < 20)
+- `opposition` - High hostility (hostility ≥ 60)
+- `cooperative` - Moderate trust (trust ≥ 40, hostility < 40)
+- `neutral`, `underground`, `religious`, `military`, `political`, `economic`, `ideological`, `familial`
+
+```typescript
+// Faction detection
+const detector = new FactionDetector()
+const result = detector.detectFactions(characters, relationships, chapter)
+
+// Result structure
+interface FactionDetectionResult {
+  factions: Faction[]
+  detectedAt: number
+  confidence: number // Based on avg cohesion
+  unalignedCharacters: string[] // Characters not in any faction
+}
+
+// Faction structure
+interface Faction {
+  id: string
+  name: string
+  type: FactionType
+  members: FactionMember[] // { characterName, role, influence }
+  goals: string[]
+  resources: number // 0-100
+  cohesion: number // 0-100
+  publicStance: "public" | "secret" | "hidden" | "rumored"
+  formedChapter: number
+  dissolvedChapter?: number
+  relationships: Record<factionId, "ally" | "enemy" | "neutral" | "tense" | "cooperative">
+}
+```
+
+**Algorithm:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Faction Detection Flow                     │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Characters + Relationships                                 │
+│            │                                                │
+│            ▼                                                │
+│  Build Adjacency List (trust ≥ 50 or hostility ≥ 60)       │
+│            │                                                │
+│            ▼                                                │
+│  Find Connected Components (graph traversal)                │
+│            │                                                │
+│            ▼                                                │
+│  For each component:                                        │
+│    - Calculate cohesion score                               │
+│    - Determine faction type                                 │
+│    - Assign member roles (leader/member/sympathizer)        │
+│    - Calculate member influence                             │
+│            │                                                │
+│            ▼                                                │
+│  Faction objects with relationships                         │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Test Results:**
+
+```
+bun test v1.3.9
+
+src/novel/branch-manager.test.ts:
+  ✓ addBranch stores branch
+  ✓ calculateBranchScore computes weighted score
+  ✓ pruneBranches removes low quality branches
+  ✓ pruneBranches keeps selected branches
+  ✓ detectSimilarBranches finds similar branches
+  ✓ mergeBranches combines branches
+  ✓ getStats returns correct statistics
+  ✓ getBranchPath returns path from root
+
+src/novel/faction-detector.test.ts:
+  ✓ detectFactions identifies alliance
+  ✓ detectFactions identifies opposition
+  ✓ detectFactions returns unaligned characters
+  ✓ getCharacterFactions returns factions for character
+  ✓ updateFactionRelationships sets stance between factions
+  ✓ getFactionRelationsReport generates report
+  ✓ cohesion calculation affects faction detection
+
+50 pass
+0 fail
+99 expect() calls
+```
+
+**Benefits:**
+
+- Branch pruning prevents memory overflow with many story branches
+- Similar branch merging reduces redundancy
+- Faction detection enables automatic alliance/opposition tracking
+- Leader identification helps determine story focus characters
+- Cohesion scoring identifies unstable groups
+
+---
+
+## Files Summary
+
+### Created Files
+
+| File Path                   | Lines | Purpose                               |
+| --------------------------- | ----- | ------------------------------------- |
+| `validation.ts`             | 240   | Zod schema validation for LLM outputs |
+| `validation.test.ts`        | 254   | Tests for validation module           |
+| `performance.ts`            | 208   | Performance optimization utilities    |
+| `performance.test.ts`       | 211   | Tests for performance module          |
+| `branch-manager.ts`         | 360   | Branch lifecycle management           |
+| `branch-manager.test.ts`    | 160   | Tests for branch manager              |
+| `faction-detector.ts`       | 380   | Automatic faction detection           |
+| `faction-detector.test.ts`  | 150   | Tests for faction detector            |
+| `NOVEL_IMPROVEMENT_PLAN.md` | 160   | 5-phase improvement plan document     |
+
+### Modified Files
+
+| File Path                                             | Changes                                          |
+| ----------------------------------------------------- | ------------------------------------------------ |
+| `packages/opencode/src/novel/evolution-rules.test.ts` | Fixed test expectations to match emoji in output |
+
+---
+
+## Progress Summary
+
+### Phase 1: ✅ Complete
+
+- ✅ Type Safety with Zod schemas
+- ✅ Error Handling with retry and correlation
+- ✅ Performance utilities (memoize, debounce, throttle, batch, lazy)
+- ✅ Test coverage (50 tests, 99 assertions)
+
+### Phase 2: 🚧 In Progress
+
+- ✅ Branch Manager (pruning, merging, scoring)
+- ✅ Faction Detector (automatic alliance/opposition detection)
+- 🔲 Pattern Mining upgrades
+- 🔲 Thematic Analysis deepening
+
+### Phase 3-5: 🔲 Not Started
+
+- Hierarchical Memory Integration
+- Knowledge Graph for Story World
+- MCP/ACP Integration
+- Procedural World Generation
+
+---
+
+_Report generated on 2026-03-15_
+
 - `RawStateUpdate`: Combined state update schema
 - Validation functions: `validateTrauma`, `validateSkill`, `validateGoal`, `validateRelationship`, `validateMindModel`, `validateWorldState`
 
