@@ -5,11 +5,12 @@ describe("EvolutionRulesEngine", () => {
   test("rollChaos returns valid result", () => {
     const chaosEvent = EvolutionRulesEngine.rollChaos()
 
-    expect(chaosEvent.roll).toBeGreaterThanOrEqual(1)
-    expect(chaosEvent.roll).toBeLessThanOrEqual(6)
-    expect(["catastrophic", "complication", "neutral", "boon"]).toContain(chaosEvent.category)
-    expect(chaosEvent.label).toBeDefined()
-    expect(chaosEvent.narrativeDirection).toBeDefined()
+    expect(["positive", "negative", "neutral"]).toContain(chaosEvent.impact)
+    expect(["static", "minor", "major"]).toContain(chaosEvent.magnitude)
+    expect(chaosEvent.rollImpact).toBeGreaterThanOrEqual(1)
+    expect(chaosEvent.rollImpact).toBeLessThanOrEqual(6)
+    expect(chaosEvent.rollMagnitude).toBeGreaterThanOrEqual(1)
+    expect(chaosEvent.rollMagnitude).toBeLessThanOrEqual(6)
   })
 
   test("enforceStressLimits caps stress", () => {

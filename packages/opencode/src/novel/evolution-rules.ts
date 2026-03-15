@@ -77,23 +77,30 @@ interface TraumaAward {
 }
 
 export interface ChaosEvent {
-  roll: number
-  category: "catastrophic" | "complication" | "neutral" | "boon"
-  label: string
-  narrativeDirection: string
+  rollImpact: number // 1-6: 影响方向
+  rollMagnitude: number // 1-6: 变化幅度
+  impact: "positive" | "negative" | "neutral"
+  magnitude: "static" | "minor" | "major"
+  narrativeDirection: string // LLM 生成的方向描述
   generatedEvent?: string // LLM 生成的具体事件
 }
 
-const CHAOS_CATEGORIES: Record<
-  number,
-  { category: ChaosEvent["category"]; label: string; narrativeDirection: string }
-> = {
-  1: { category: "catastrophic", label: "灾难性失败", narrativeDirection: "突发灾难性事件" },
-  2: { category: "complication", label: "复杂情况", narrativeDirection: "新的复杂障碍" },
-  3: { category: "complication", label: "意外阻碍", narrativeDirection: "意外情况阻碍进展" },
-  4: { category: "neutral", label: "标准流程", narrativeDirection: "按当前剧情自然推进" },
-  5: { category: "neutral", label: "平稳发展", narrativeDirection: "维持节奏，小进展" },
-  6: { category: "boon", label: "意外收获", narrativeDirection: "意外助力或好运" },
+const IMPACT_LABELS: Record<number, ChaosEvent["impact"]> = {
+  1: "negative",
+  2: "negative",
+  3: "neutral",
+  4: "neutral",
+  5: "positive",
+  6: "positive",
+}
+
+const MAGNITUDE_LABELS: Record<number, ChaosEvent["magnitude"]> = {
+  1: "static",
+  2: "static",
+  3: "minor",
+  4: "minor",
+  5: "major",
+  6: "major",
 }
 
 export class EvolutionRulesEngine {
@@ -102,20 +109,34 @@ export class EvolutionRulesEngine {
   private static readonly STRESS_DELTA_LARGE = 20
   private static readonly DIFFICULTY_THRESHOLD_HIGH = 7
 
+  /**
+   * 掷双骰子决定混乱事件
+   * @returns 包含影响方向和变化幅度的混乱事件
+   */
   static rollChaos(): ChaosEvent {
-    const roll = Math.floor(Math.random() * 6) + 1
-    const chaosData = CHAOS_CATEGORIES[roll]
-    log.info("chaos_rolled", { roll, category: chaosData.category, label: chaosData.label })
+    const rollImpact = Math.floor(Math.random() * 6) + 1
+    const rollMagnitude = Math.floor(Math.random() * 6) + 1
+
+    const impact = IMPACT_LABELS[rollImpact]
+    const magnitude = MAGNITUDE_LABELS[rollMagnitude]
+
+    log.info("chaos_rolled", { rollImpact, rollMagnitude, impact, magnitude })
+
     return {
-      roll,
-      ...chaosData,
+      rollImpact,
+      rollMagnitude,
+      impact,
+      magnitude,
+      narrativeDirection: `${impact.toUpperCase()} impact, ${magnitude} change`,
     }
   }
 
   /**
    * 基于 LLM 动态生成混乱事件
-   * @param chaosEvent - 基础混乱事件（包含方向和类别）
+   * 完全由 LLM 根据故事状态决定具体发生什么
+   * @param chaosEvent - 基础混乱事件（包含抽象维度）
    * @param storyContext - 当前故事上下文
+   * @param storyTone - 故事原初基调（可选）
    * @returns 带有具体事件的混乱事件
    */
   static async generateChaosEventWithLLM(
@@ -124,46 +145,70 @@ export class EvolutionRulesEngine {
       currentStory: string
       characters: string[]
       recentEvents: string[]
+      themes?: string[]
     },
+    storyTone?: string,
   ): Promise<ChaosEvent> {
     try {
       const languageModel = await getNovelLanguageModel()
 
-      const prompt = `You are a creative storyteller. Based on the chaos event category, generate a specific narrative event that fits the current story.
+      const tonePrompt = storyTone ? `\nStory Tone: ${storyTone}\nThe event should align with this overall tone.` : ""
 
-Chaos Category: ${chaosEvent.category.toUpperCase()}
-Direction: ${chaosEvent.narrativeDirection}
+      const prompt = `You are a creative storyteller with complete narrative freedom.
 
-Current Story Context:
-${storyContext.currentStory.substring(0, 1000)}
+Based on the abstract chaos dimensions below, decide WHAT SPECIFICALLY happens in the story.
 
-Characters: ${storyContext.characters.join(", ")}
+## Chaos Dimensions
+- **Impact Direction**: ${chaosEvent.impact.toUpperCase()}
+  - positive: Something beneficial occurs
+  - negative: Something harmful occurs  
+  - neutral: Something neither clearly good nor bad occurs
 
-Recent Events:
-${storyContext.recentEvents.join("\n")}
+- **Change Magnitude**: ${chaosEvent.magnitude.toUpperCase()}
+  - static: Minimal change, status quo maintained
+  - minor: Small but noticeable change
+  - major: Significant change that alters the situation
 
-Generate a specific event (2-3 sentences) that:
-1. Matches the chaos category (${chaosEvent.category})
-2. Fits naturally into the current story
-3. Involves the existing characters or plot elements
-4. Creates interesting narrative tension
+## Current Story Context
+${storyContext.currentStory.substring(0, 1500)}
 
-Output ONLY the event description, no other text.`
+## Characters
+${storyContext.characters.join(", ")}
+
+## Recent Events
+${storyContext.recentEvents.join("\n") || "None"}
+${storyContext.themes?.length ? `\n## Themes\n${storyContext.themes.join("\n")}` : ""}
+${tonePrompt}
+
+## Your Task
+Decide what SPECIFICALLY happens. Be creative and unexpected while staying true to the story.
+
+Output ONLY the event description (2-4 sentences). No other text.`
 
       const result = await generateText({
         model: languageModel,
         prompt,
       })
 
+      chaosEvent.narrativeDirection =
+        chaosEvent.impact === "positive"
+          ? `正向影响 (${chaosEvent.magnitude})`
+          : chaosEvent.impact === "negative"
+            ? `负向影响 (${chaosEvent.magnitude})`
+            : `中性影响 (${chaosEvent.magnitude})`
+
       chaosEvent.generatedEvent = result.text.trim()
+
       log.info("chaos_event_generated", {
-        roll: chaosEvent.roll,
-        category: chaosEvent.category,
+        rollImpact: chaosEvent.rollImpact,
+        rollMagnitude: chaosEvent.rollMagnitude,
+        impact: chaosEvent.impact,
+        magnitude: chaosEvent.magnitude,
         hasGeneratedEvent: !!chaosEvent.generatedEvent,
       })
     } catch (error) {
       log.warn("chaos_event_generation_failed", { error: String(error) })
-      chaosEvent.generatedEvent = `${chaosEvent.narrativeDirection}（LLM 生成失败）`
+      chaosEvent.generatedEvent = `${chaosEvent.impact} impact, ${chaosEvent.magnitude} change (LLM failed)`
     }
 
     return chaosEvent
@@ -269,8 +314,8 @@ Output ONLY the event description, no other text.`
     lines.push("")
 
     lines.push("## 🎲 Chaos Event")
-    lines.push(`- **Roll**: ${chaosEvent.roll}/6`)
-    lines.push(`- **Category**: ${chaosEvent.category.toUpperCase()}`)
+    lines.push(`- **Impact**: ${chaosEvent.impact.toUpperCase()}`)
+    lines.push(`- **Magnitude**: ${chaosEvent.magnitude.toUpperCase()}`)
     lines.push(`- **Event**: ${chaosEvent.generatedEvent || chaosEvent.narrativeDirection}`)
     lines.push("")
 

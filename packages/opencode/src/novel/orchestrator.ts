@@ -725,13 +725,13 @@ Output JSON:
     })
 
     const chaosResult: ChaosResult = {
-      roll: chaosEventWithDetail.roll,
+      roll: chaosEventWithDetail.rollImpact,
       event: chaosEventWithDetail.generatedEvent || chaosEventWithDetail.narrativeDirection,
       narrativePrompt: chaosEventWithDetail.narrativeDirection,
-      category: chaosEventWithDetail.category,
+      category: `${chaosEventWithDetail.impact}-${chaosEventWithDetail.magnitude}` as any,
     }
     this.lastChaosResult = chaosResult
-    this.log(`   Chaos Roll: ${chaosEventWithDetail.roll}/6 - ${chaosEventWithDetail.category.toUpperCase()}`)
+    this.log(`   Chaos: ${chaosEventWithDetail.impact.toUpperCase()} impact, ${chaosEventWithDetail.magnitude} change`)
 
     this.log(`   Parsing prompt...`)
     const elements = await this.parsePromptWithLLM(promptContent)
@@ -1112,10 +1112,16 @@ Generate only the title, nothing else:`
       const summaryDir = resolve(getSummariesPath())
       await mkdir(summaryDir, { recursive: true })
 
+      const [impact, magnitude] = (chaosResult.category as string).split("-") as [
+        ChaosEvent["impact"],
+        ChaosEvent["magnitude"],
+      ]
+
       const chaosEventForSummary: ChaosEvent = {
-        roll: chaosResult.roll,
-        category: chaosResult.category as ChaosEvent["category"],
-        label: chaosResult.event,
+        rollImpact: chaosResult.roll,
+        rollMagnitude: chaosResult.roll,
+        impact: impact || "neutral",
+        magnitude: magnitude || "minor",
         narrativeDirection: chaosResult.narrativePrompt,
         generatedEvent: chaosResult.event,
       }
