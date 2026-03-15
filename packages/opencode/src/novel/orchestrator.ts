@@ -1,15 +1,12 @@
 import { Log } from "../util/log"
 import { readFile, writeFile, readdir } from "fs/promises"
 import { resolve, dirname, join } from "path"
-import { generateText } from "ai"
-import { Provider } from "../provider/provider"
 import { Skill } from "../skill/skill"
 import { StateExtractor } from "./state-extractor"
 import { EvolutionRulesEngine, type ChaosEvent } from "./evolution-rules"
 import { RelationshipAnalyzer } from "./relationship-analyzer"
 import { CharacterDeepener } from "./character-deepener"
 import { mkdir } from "fs/promises"
-import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
 import { stateAuditor } from "../middleware/state-auditor"
 import { novelConfigManager } from "./novel-config"
@@ -24,6 +21,17 @@ import {
 } from "./narrative-skeleton"
 import { runThematicReflection, getLatestReflectionTurn } from "./thematic-analyst"
 import { generateAndSaveVisualPanels, type VisualGenerationInput } from "./visual-orchestrator"
+import { callLLM, callLLMJson, type LLMCallOptions } from "./llm-wrapper"
+import { BranchManager, type Branch } from "./branch-manager"
+import { novelObservability } from "./observability"
+import { StoryWorldMemory, storyWorldMemory } from "./story-world-memory"
+import { StoryKnowledgeGraph, storyKnowledgeGraph } from "./story-knowledge-graph"
+import { BranchStorage, branchStorage } from "./branch-storage"
+import { MotifTracker, motifTracker } from "./motif-tracker"
+import { CharacterLifecycleManager, characterLifecycleManager } from "./character-lifecycle"
+import { EndGameDetector, endGameDetector } from "./end-game-detection"
+import { FactionDetector, factionDetector } from "./faction-detector"
+import { RelationshipInertiaManager, relationshipInertiaManager } from "./relationship-inertia"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
@@ -178,9 +186,19 @@ export class EvolutionOrchestrator {
   private stateExtractor: StateExtractor
   private relationshipAnalyzer: RelationshipAnalyzer
   private characterDeepener: CharacterDeepener
+  private branchManager: BranchManager
+  private storyWorldMemory: StoryWorldMemory
+  private storyKnowledgeGraph: StoryKnowledgeGraph
+  private branchStorage: BranchStorage
+  private motifTracker: MotifTracker
+  private characterLifecycleManager: CharacterLifecycleManager
+  private endGameDetector: EndGameDetector
+  private factionDetector: FactionDetector
+  private relationshipInertiaManager: RelationshipInertiaManager
   private lastChaosResult: ChaosResult | null = null
   private branchOptions: number = 3
   private verbose: boolean = false
+  private advancedModulesInitialized: boolean = false
 
   constructor(config: OrchestratorConfig = {}) {
     this.storyState = {
@@ -198,6 +216,15 @@ export class EvolutionOrchestrator {
     this.stateExtractor = new StateExtractor()
     this.relationshipAnalyzer = new RelationshipAnalyzer()
     this.characterDeepener = new CharacterDeepener()
+    this.branchManager = new BranchManager()
+    this.storyWorldMemory = storyWorldMemory
+    this.storyKnowledgeGraph = storyKnowledgeGraph
+    this.branchStorage = branchStorage
+    this.motifTracker = motifTracker
+    this.characterLifecycleManager = characterLifecycleManager
+    this.endGameDetector = endGameDetector
+    this.factionDetector = factionDetector
+    this.relationshipInertiaManager = relationshipInertiaManager
     this.branchOptions = config.branchOptions || 3
     this.verbose = config.verbose || false
 
@@ -205,6 +232,29 @@ export class EvolutionOrchestrator {
     novelConfigManager.load().catch((err) => {
       log.warn("novel_config_load_failed_in_orchestrator", { error: String(err) })
     })
+  }
+
+  /**
+   * Initialize advanced modules (databases)
+   */
+  private async initializeAdvancedModules(): Promise<void> {
+    if (this.advancedModulesInitialized) return
+
+    try {
+      await this.storyWorldMemory.initialize()
+      await this.storyKnowledgeGraph.initialize()
+      await this.branchStorage.initialize()
+      await this.motifTracker.initialize()
+
+      this.advancedModulesInitialized = true
+      this.log("Advanced modules initialized", {
+        memory: "story-memory.db",
+        graph: "story-graph.db",
+        branches: "branches.db",
+      })
+    } catch (error) {
+      log.warn("advanced_modules_init_failed", { error: String(error) })
+    }
   }
 
   /**
@@ -287,7 +337,6 @@ export class EvolutionOrchestrator {
       chapter: baseState.chapterCount + 1,
     })
 
-    const languageModel = await getNovelLanguageModel()
     const charSummary = this.stateExtractor.generateContextString(baseState)
 
     // Step 1: Analyze relationships to inform branch generation
@@ -360,9 +409,9 @@ Output JSON array:
     let branchData: any[] = []
 
     try {
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLM({
         prompt: branchGenerationPrompt,
+        callType: "branch_generation",
       })
 
       const match = result.text.match(/\[[\s\S]*\]/)
@@ -435,8 +484,6 @@ Output JSON array:
     baseState: StoryState,
     chaosResult: ChaosResult,
   ): Promise<StoryBranch> {
-    const languageModel = await getNovelLanguageModel()
-
     const branchesSummary = branches
       .map(
         (b, i) =>
@@ -481,7 +528,7 @@ OUTPUT JSON:
 }`
 
     try {
-      const result = await generateText({ model: languageModel, prompt })
+      const result = await callLLM({ prompt, callType: "branch_selection" })
       const match = result.text.match(/\{[\s\S]*\}/)
       if (match) {
         const selection = JSON.parse(match[0])
@@ -521,20 +568,23 @@ OUTPUT JSON:
     branchPoint: string,
     choice: string,
   ): Promise<string> {
-    const languageModel = await getNovelLanguageModel()
-
     const previousStory = baseState.fullStory || "(这是故事的开始)"
     const characterInfo = Object.keys(baseState.characters).join(", ") || "主角"
+
+    // Detect language from prompt [LANGUAGE: ...] tag
+    const languageMatch = promptContent.match(/\[LANGUAGE:\s*([^\]]+)\]/i)
+    const specifiedLanguage = languageMatch ? languageMatch[1].trim() : "Chinese"
+    const languageInstruction = `IMPORTANT: Write all story content in ${specifiedLanguage}.`
 
     const systemPrompt = `You are a creative story writer. Continue the story with a SPECIFIC choice.
 
 Rules:
-- Write in Chinese
+- ${languageInstruction}
 - The protagonist makes a clear choice: "${choice}"
 - This choice should stem from: "${branchPoint}"
 - Maintain consistency with established characters
 - Create engaging, descriptive narrative
-- Chapter length: 300-500 Chinese characters
+- Chapter length: 300-500 words (or 500-800 Chinese characters)
 - INCORPORATE the chaos event naturally`
 
     const userPrompt = `Story Context (previous chapters):
@@ -551,10 +601,10 @@ ${chaosResult.narrativePrompt}
 
 Write Chapter ${baseState.chapterCount + 1}:`
 
-    const result = await generateText({
-      model: languageModel,
-      system: systemPrompt,
+    const result = await callLLM({
       prompt: userPrompt,
+      system: systemPrompt,
+      callType: "branch_story_generation",
     })
 
     return result.text.trim()
@@ -566,8 +616,6 @@ Write Chapter ${baseState.chapterCount + 1}:`
     chaosResult: ChaosResult,
     rationale?: string,
   ): Promise<StoryBranch["evaluation"]> {
-    const languageModel = await getNovelLanguageModel()
-
     const charSummary = this.stateExtractor.generateContextString(baseState)
 
     const evalPrompt = `Evaluate this story branch on a scale of 1-10:
@@ -601,9 +649,9 @@ Output JSON:
 }`
 
     try {
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLM({
         prompt: evalPrompt,
+        callType: "branch_evaluation",
       })
 
       const match = result.text.match(/\{[\s\S]*\}/)
@@ -715,6 +763,9 @@ Output JSON:
     })
     this.log(`\nStarting Chapter ${this.storyState.chapterCount + 1}...`)
 
+    // Initialize advanced modules (databases)
+    await this.initializeAdvancedModules()
+
     await this.ensureNarrativeSkeleton(promptContent)
 
     this.patterns = await loadDynamicPatterns()
@@ -763,6 +814,27 @@ Output JSON:
         this.log(`      ${i + 1}. ${b.choiceMade} (quality: ${b.evaluation.narrativeQuality}/10)`)
       })
       this.log(`   Selected: ${selectedBranch.choiceMade}`)
+
+      // Store branches in branch storage
+      try {
+        for (const branch of allBranches) {
+          await this.branchStorage.saveBranch({
+            id: branch.id || `branch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            storySegment: branch.storySegment,
+            branchPoint: branch.branchPoint,
+            choiceMade: branch.choiceMade,
+            choiceRationale: branch.choiceRationale,
+            stateAfter: branch.stateAfter,
+            evaluation: branch.evaluation,
+            selected: branch === selectedBranch,
+            createdAt: Date.now(),
+            chapter: this.storyState.chapterCount + 1,
+          })
+        }
+        this.log(`   Stored ${allBranches.length} branches`)
+      } catch (error) {
+        log.warn("branch_storage_failed", { error: String(error) })
+      }
 
       // Update state from selected branch
       this.storyState = selectedBranch.stateAfter
@@ -859,6 +931,141 @@ Output JSON:
     // Analyze and evolve patterns/skills
     await analyzeAndEvolve(storySegment, this.patterns)
 
+    // === ADVANCED MODULES INTEGRATION ===
+
+    // 1. Store chapter summary in story memory
+    try {
+      await this.storyWorldMemory.storeChapterSummary(
+        this.storyState.chapterCount,
+        storySegment.substring(0, 500),
+        Object.keys(this.storyState.characters),
+        elements.location ? [elements.location] : [],
+        this.storyState.world?.events || [],
+        this.storyState.narrativeSkeleton?.theme ? [this.storyState.narrativeSkeleton.theme] : [],
+      )
+      this.log(`   Stored chapter ${this.storyState.chapterCount} in story memory`)
+    } catch (error) {
+      log.warn("story_memory_store_failed", { error: String(error) })
+    }
+
+    // 2. Update knowledge graph with entities
+    try {
+      for (const charName of Object.keys(this.storyState.characters)) {
+        const existingNode = await this.storyKnowledgeGraph.getNode(`character_${charName}`)
+        if (!existingNode) {
+          await this.storyKnowledgeGraph.addCharacter(charName, this.storyState.chapterCount, {
+            stress: this.storyState.characters[charName].stress,
+            status: this.storyState.characters[charName].status,
+          })
+        } else {
+          await this.storyKnowledgeGraph.updateNodeStatus(
+            `character_${charName}`,
+            this.storyState.characters[charName].status || "active",
+            this.storyState.chapterCount,
+          )
+        }
+      }
+      if (elements.location) {
+        await this.storyKnowledgeGraph.addLocation(elements.location, this.storyState.chapterCount)
+      }
+      this.log(`   Updated knowledge graph`)
+    } catch (error) {
+      log.warn("knowledge_graph_update_failed", { error: String(error) })
+    }
+
+    // 3. Update character lifecycle
+    try {
+      this.characterLifecycleManager.setCurrentChapter(this.storyState.chapterCount)
+      for (const [charName, char] of Object.entries(this.storyState.characters)) {
+        const lifecycle = this.characterLifecycleManager.getLifecycle(charName)
+        if (!lifecycle) {
+          this.characterLifecycleManager.registerCharacter(charName, this.storyState.chapterCount, 25)
+        }
+        if (char.status === "deceased" || char.status === "dead") {
+          this.characterLifecycleManager.recordDeath(charName, "story event")
+        }
+      }
+    } catch (error) {
+      log.warn("lifecycle_update_failed", { error: String(error) })
+    }
+
+    // 4. Update relationship inertia
+    try {
+      for (const [relKey, rel] of Object.entries(this.storyState.relationships || {})) {
+        const [charA, charB] = relKey.split("-")
+        if (charA && charB) {
+          const inertia = this.relationshipInertiaManager.getInertia(charA, charB)
+          if (!inertia) {
+            this.relationshipInertiaManager.initializeRelationship(charA, charB, (rel as any).trust || 50)
+          }
+        }
+      }
+      // Generate plot hooks based on relationships
+      if (this.storyState.chapterCount % 3 === 0) {
+        await this.relationshipInertiaManager.generatePlotHooks(
+          this.storyState.relationships,
+          this.storyState.characters,
+          this.storyState.chapterCount,
+        )
+      }
+    } catch (error) {
+      log.warn("relationship_inertia_update_failed", { error: String(error) })
+    }
+
+    // 5. Detect factions (every 5 chapters)
+    if (this.storyState.chapterCount % 5 === 0) {
+      try {
+        const factionResult = this.factionDetector.detectFactions(
+          this.storyState.characters,
+          this.storyState.relationships,
+          this.storyState.chapterCount,
+        )
+        if (factionResult.factions.length > 0) {
+          this.log(`   Detected ${factionResult.factions.length} factions`)
+        }
+      } catch (error) {
+        log.warn("faction_detection_failed", { error: String(error) })
+      }
+    }
+
+    // 6. Check end game conditions (every 10 chapters)
+    if (this.storyState.chapterCount % 10 === 0) {
+      try {
+        this.endGameDetector.updateStoryMetrics({
+          totalChapters: this.storyState.chapterCount,
+          resolvedArcs: this.storyState.narrativeSkeleton?.storyLines?.filter(
+            (s: any) => s.status === "completed",
+          ).length || 0,
+          totalArcs: this.storyState.narrativeSkeleton?.storyLines?.length || 1,
+          thematicCoverage: 70,
+          resolvedConflicts: 0,
+          totalConflicts: Object.keys(this.storyState.relationships || {}).length,
+        })
+        const endGameReport = this.endGameDetector.checkCompletion()
+        if (endGameReport.isComplete) {
+          this.log(`   *** Story completion detected! Score: ${endGameReport.completionScore.toFixed(1)}% ***`)
+        }
+      } catch (error) {
+        log.warn("end_game_check_failed", { error: String(error) })
+      }
+    }
+
+    // 7. Analyze motifs (using motif-tracker)
+    if (this.storyState.chapterCount % 3 === 0 && this.patterns.length > 0) {
+      try {
+        await this.motifTracker.analyzeMotifEvolution(
+          this.patterns,
+          storySegment,
+          this.storyState.characters,
+          this.storyState.chapterCount,
+        )
+      } catch (error) {
+        log.warn("motif_analysis_failed", { error: String(error) })
+      }
+    }
+
+    // === END ADVANCED MODULES INTEGRATION ===
+
     const currentTurn = this.storyState.turnCount || 0
     if (currentTurn > 0 && currentTurn % THEMATIC_REFLECTION_INTERVAL === 0) {
       this.log(`   Running thematic reflection (turn ${currentTurn})...`)
@@ -916,8 +1123,6 @@ Output JSON:
     }
 
     try {
-      const languageModel = await getNovelLanguageModel()
-
       const systemPrompt = `You are a story element extractor. Analyze the following prompt and extract story elements in JSON format.
 
 Extract ONLY these fields:
@@ -932,10 +1137,10 @@ Extract ONLY these fields:
 
 If a field is not mentioned, use empty string or empty array.`
 
-      const result = await generateText({
-        model: languageModel,
-        system: systemPrompt,
+      const result = await callLLM({
         prompt: promptContent.substring(0, 3000),
+        system: systemPrompt,
+        callType: "prompt_parsing",
       })
 
       const text = result.text.trim()
@@ -971,23 +1176,28 @@ If a field is not mentioned, use empty string or empty array.`
    */
   private async generateWithLLM(promptContent: string, elements: any, chaosResult: ChaosResult): Promise<string> {
     try {
-      const languageModel = await getNovelLanguageModel()
-
       const previousStory = this.storyState.fullStory || "(This is where the story begins)"
       const characterInfo = Object.keys(this.storyState.characters).join(", ") || "The protagonist"
       const currentChapter = this.storyState.chapterCount + 1
 
       const skeletonContext = this.buildSkeletonContextForChapter(currentChapter)
 
+      // Detect language from prompt [LANGUAGE: ...] tag
+      const languageMatch = promptContent.match(/\[LANGUAGE:\s*([^\]]+)\]/i)
+      const specifiedLanguage = languageMatch ? languageMatch[1].trim() : null
+      const languageInstruction = specifiedLanguage
+        ? `IMPORTANT: Write all story content, dialogue, and narration in ${specifiedLanguage}. This is a strict requirement.`
+        : "Write in the same language as the prompt"
+
       const systemPrompt = `You are a creative story writer. Continue or start a story based on the given prompt and context.
 
 Rules:
-- Write in the same language as the prompt
+- ${languageInstruction}
 - If this is chapter 1, start fresh from the prompt
 - If continuing, pick up from where the story left off
 - Maintain consistency with established characters and plot
 - Create engaging, descriptive narrative
-- Chapter length: 300-500 words
+- Chapter length: 300-500 words (or 500-800 Chinese characters)
 - INCORPORATE the chaos event naturally into the narrative
 - ALIGN with the narrative skeleton and thematic motifs provided`
 
@@ -1008,10 +1218,10 @@ Force the narrative to address this chaos event naturally while advancing the st
 
 Write Chapter ${currentChapter}:`
 
-      const result = await generateText({
-        model: languageModel,
-        system: systemPrompt,
+      const result = await callLLM({
         prompt: userPrompt,
+        system: systemPrompt,
+        callType: "story_generation",
       })
 
       return result.text.trim()
@@ -1069,8 +1279,6 @@ Write Chapter ${currentChapter}:`
    */
   private async extractChapterTitle(content: string): Promise<string> {
     try {
-      const languageModel = await getNovelLanguageModel()
-
       const systemPrompt = `You are a story title generator. Extract a concise, evocative title (max 12 characters in Chinese or 50 characters in English) that captures the main theme or event of the chapter.`
 
       const userPrompt = `Analyze this chapter and generate a title:
@@ -1079,10 +1287,10 @@ ${content.substring(0, 2000)}
 
 Generate only the title, nothing else:`
 
-      const result = await generateText({
-        model: languageModel,
-        system: systemPrompt,
+      const result = await callLLM({
         prompt: userPrompt,
+        system: systemPrompt,
+        callType: "chapter_title_extraction",
       })
 
       return result.text.trim()
@@ -1163,8 +1371,6 @@ export async function analyzeAndEvolve(context: string, currentPatterns: any[] =
   })
 
   try {
-    const languageModel = await getNovelLanguageModel()
-
     const prompt = `You are a narrative pattern analyst.
 Analyze this story segment and extract unique patterns NOT in the existing list.
 
@@ -1174,9 +1380,9 @@ Story Segment: ${context.substring(0, 1500)}
 Output JSON array of new patterns. Each pattern:
 { "keyword": "pattern name", "category": "character_trait|plot_device|world_rule|tone", "description": "what this pattern does" }`
 
-    const result = await generateText({
-      model: languageModel,
+    const result = await callLLM({
       prompt: prompt,
+      callType: "pattern_analysis",
     })
 
     const text = result.text
@@ -1213,8 +1419,6 @@ Output JSON array of new patterns. Each pattern:
 
 async function checkAndGenerateSkills(context: string): Promise<void> {
   try {
-    const languageModel = await getNovelLanguageModel()
-
     const prompt = `Analyze this story segment and determine if a narrative skill should be generated.
 
 Story Segment (last 500 chars):
@@ -1229,9 +1433,9 @@ Output JSON:
   "examples": ["example 1", "example 2"]
 }`
 
-    const result = await generateText({
-      model: languageModel,
+    const result = await callLLM({
       prompt: prompt,
+      callType: "skill_generation_check",
     })
 
     const match = result.text.match(/\{[\s\S]*\}/)

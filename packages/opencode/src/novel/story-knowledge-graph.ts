@@ -14,7 +14,15 @@ function getProjectDirectory(): string {
   }
 }
 
-const GRAPH_DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/story-graph.db")
+// Lazy-initialized database path
+let GRAPH_DB_PATH: string | null = null
+
+function getDbPath(): string {
+  if (!GRAPH_DB_PATH) {
+    GRAPH_DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/story-graph.db")
+  }
+  return GRAPH_DB_PATH
+}
 
 export const NodeTypeSchema = z.enum(["character", "location", "item", "event", "faction", "concept", "theme"])
 
@@ -88,11 +96,12 @@ export class StoryKnowledgeGraph {
   async initialize(): Promise<void> {
     if (this.initialized) return
 
+    const dbPath = getDbPath()
     try {
-      await mkdir(dirname(GRAPH_DB_PATH), { recursive: true })
+      await mkdir(dirname(dbPath), { recursive: true })
 
       const { Database } = await import("bun:sqlite")
-      this.db = new Database(GRAPH_DB_PATH)
+      this.db = new Database(dbPath)
 
       this.db.run(`
         CREATE TABLE IF NOT EXISTS nodes (
@@ -130,7 +139,7 @@ export class StoryKnowledgeGraph {
       this.db.run(`CREATE INDEX IF NOT EXISTS idx_edges_type ON edges(type)`)
 
       this.initialized = true
-      log.info("story_knowledge_graph_initialized", { path: GRAPH_DB_PATH })
+      log.info("story_knowledge_graph_initialized", { path: dbPath })
     } catch (error) {
       log.error("story_knowledge_graph_init_failed", { error: String(error) })
       throw error

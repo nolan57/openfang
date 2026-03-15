@@ -32,29 +32,41 @@ export async function getNovelModel(): Promise<NovelModelResult> {
       return agent.model
     }
   } catch (error) {
-    log.debug("agent_model_unavailable", { error: String(error) })
+    log.warn("agent_model_unavailable", { error: String(error) })
   }
 
   // 尝试 2: 从 Provider.defaultModel() 获取（会检查全局配置和最近使用）
   try {
+    log.debug("attempting_provider_defaultModel")
     const configured = await Provider.defaultModel()
+    log.debug("provider_defaultModel_success", { model: `${configured.providerID}/${configured.modelID}` })
+
     // 验证模型是否真正可用
+    log.debug("validating_model", { model: `${configured.providerID}/${configured.modelID}` })
     await Provider.getModel(configured.providerID, configured.modelID)
     log.info("using_configured_model", { model: `${configured.providerID}/${configured.modelID}` })
     return configured
   } catch (error) {
-    log.debug("configured_model_unavailable", { error: String(error) })
+    log.warn("configured_model_unavailable", {
+      error: String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
   }
 
   // 尝试 3: 获取任意可用的 provider 和模型
   try {
+    log.debug("attempting_fallback_provider_list")
     const providers = await Provider.list()
+    log.debug("provider_list_result", { count: Object.keys(providers).length, providers: Object.keys(providers) })
+
     const providerEntries = Object.values(providers)
 
     if (providerEntries.length > 0) {
       // 查找有模型的第一个 provider
       for (const provider of providerEntries) {
         const models = Object.values(provider.models)
+        log.debug("checking_provider", { provider: provider.id, modelCount: models.length })
+
         if (models.length > 0) {
           // 使用排序选择最佳模型
           const sorted = Provider.sort(models)
@@ -71,9 +83,14 @@ export async function getNovelModel(): Promise<NovelModelResult> {
           }
         }
       }
+    } else {
+      log.warn("no_providers_available")
     }
   } catch (error) {
-    log.debug("fallback_provider_search_failed", { error: String(error) })
+    log.warn("fallback_provider_search_failed", {
+      error: String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
   }
 
   throw new Error(

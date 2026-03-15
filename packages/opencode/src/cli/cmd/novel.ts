@@ -68,59 +68,67 @@ async function handleStart(args: any) {
 }
 
 async function handleContinue() {
-  const engine = await getOrchestrator()
-  const state = engine.getState()
-  console.log(`Continuing from Chapter ${state.chapterCount}: ${state.currentChapter || "Untitled"}`)
-  const result = await engine.runNovelCycle("Continue the story from the current state.")
-  console.log("\n ✓ Next chapter generated!")
-  console.log("Preview:", result.substring(0, 150) + "...")
+  await bootstrap(process.cwd(), async () => {
+    const engine = await getOrchestrator()
+    const state = engine.getState()
+    console.log(`Continuing from Chapter ${state.chapterCount}: ${state.currentChapter || "Untitled"}`)
+    const result = await engine.runNovelCycle("Continue the story from the current state.")
+    console.log("\n ✓ Next chapter generated!")
+    console.log("Preview:", result.substring(0, 150) + "...")
+  })
 }
 
 async function handleInject(args: any) {
-  const filePath = resolve(args.file as string)
-  const content = await readFile(filePath, "utf-8")
-  console.log(`💉 Injecting context from: ${args.file}`)
+  await bootstrap(process.cwd(), async () => {
+    const filePath = resolve(args.file as string)
+    const content = await readFile(filePath, "utf-8")
+    console.log(`💉 Injecting context from: ${args.file}`)
 
-  await analyzeAndEvolve(content, await loadDynamicPatterns())
-  console.log(" ✓ Context injected and patterns updated!")
+    await analyzeAndEvolve(content, await loadDynamicPatterns())
+    console.log(" ✓ Context injected and patterns updated!")
+  })
 }
 
 async function handleEvolve() {
-  console.log(" Triggering PatternMiner evolution...")
-  const patterns = await loadDynamicPatterns()
-  const engine = await getOrchestrator()
-  const state = engine.getState()
-  await analyzeAndEvolve(state.fullStory || "", patterns)
-  console.log(" ✓ Evolution complete!")
+  await bootstrap(process.cwd(), async () => {
+    console.log(" Triggering PatternMiner evolution...")
+    const patterns = await loadDynamicPatterns()
+    const engine = await getOrchestrator()
+    const state = engine.getState()
+    await analyzeAndEvolve(state.fullStory || "", patterns)
+    console.log(" ✓ Evolution complete!")
+  })
 }
 
 async function handleState(args: any) {
-  const target = args.target as string
-  const engine = await getOrchestrator()
-  const state = engine.getState()
+  await bootstrap(process.cwd(), async () => {
+    const target = args.target as string
+    const engine = await getOrchestrator()
+    const state = engine.getState()
 
-  if (target === "world") {
-    console.log(
-      " World State:",
-      JSON.stringify(
-        {
-          chapter: state.currentChapter,
-          chapterCount: state.chapterCount,
-          characters: Object.keys(state.characters || {}),
-          timestamps: state.timestamps,
-        },
-        null,
-        2,
-      ),
-    )
-  } else {
-    console.log(` State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
-  }
+    if (target === "world") {
+      console.log(
+        " World State:",
+        JSON.stringify(
+          {
+            chapter: state.currentChapter,
+            chapterCount: state.chapterCount,
+            characters: Object.keys(state.characters || {}),
+            timestamps: state.timestamps,
+          },
+          null,
+          2,
+        ),
+      )
+    } else {
+      console.log(` State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
+    }
+  })
 }
 
 async function handleExport(args: any) {
-  const format = args.format as "md" | "json" | "pdf"
   await bootstrap(process.cwd(), async () => {
+    const format = args.format as "md" | "json" | "pdf"
     const engine = await getOrchestrator()
     const state = engine.getState()
 
@@ -138,21 +146,25 @@ async function handleExport(args: any) {
 }
 
 async function handlePatterns() {
-  const patterns = await loadDynamicPatterns()
-  console.log("  Discovered Patterns:")
-  if (patterns.length === 0) {
-    console.log("  (No patterns discovered yet)")
-  } else {
-    for (const p of patterns) {
-      console.log(`  - ${p.keyword} (${p.category}): ${p.description}`)
+  await bootstrap(process.cwd(), async () => {
+    const patterns = await loadDynamicPatterns()
+    console.log("  Discovered Patterns:")
+    if (patterns.length === 0) {
+      console.log("  (No patterns discovered yet)")
+    } else {
+      for (const p of patterns) {
+        console.log(`  - ${p.keyword} (${p.category}): ${p.description}`)
+      }
     }
-  }
+  })
 }
 
 async function handleReset() {
-  const engine = await getOrchestrator()
-  await engine.reset()
-  console.log(" ✓ Story state reset!")
+  await bootstrap(process.cwd(), async () => {
+    const engine = await getOrchestrator()
+    await engine.reset()
+    console.log(" ✓ Story state reset!")
+  })
 }
 
 export const NovelCommand: CommandModule = {

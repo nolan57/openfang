@@ -17,7 +17,15 @@ function getProjectDirectory(): string {
   }
 }
 
-const MotifTrackingPath = resolve(getProjectDirectory(), ".opencode/novel/motif-tracking")
+// Lazy-initialized path
+let MotifTrackingPath: string | null = null
+
+function getTrackingPath(): string {
+  if (!MotifTrackingPath) {
+    MotifTrackingPath = resolve(getProjectDirectory(), ".opencode/novel/motif-tracking")
+  }
+  return MotifTrackingPath
+}
 
 export const MotifEvolutionSchema = z.object({
   motifId: z.string(),
@@ -72,7 +80,7 @@ async function fileExists(path: string): Promise<boolean> {
 }
 
 async function ensureDir(): Promise<void> {
-  await mkdir(MotifTrackingPath, { recursive: true })
+  await mkdir(getTrackingPath(), { recursive: true })
 }
 
 export class MotifTracker {
@@ -87,7 +95,7 @@ export class MotifTracker {
 
   private async load(): Promise<void> {
     try {
-      const path = resolve(MotifTrackingPath, "tracking-data.json")
+      const path = resolve(getTrackingPath(), "tracking-data.json")
       if (await fileExists(path)) {
         const content = await readFile(path, "utf-8")
         const data: MotifTrackingData = JSON.parse(content)
@@ -130,7 +138,7 @@ export class MotifTracker {
       lastUpdated: Date.now(),
     }
 
-    const path = resolve(MotifTrackingPath, "tracking-data.json")
+    const path = resolve(getTrackingPath(), "tracking-data.json")
     await writeFile(path, JSON.stringify(data, null, 2))
 
     log.info("motif_tracking_saved", {

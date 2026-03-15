@@ -15,7 +15,15 @@ function getProjectDirectory(): string {
   }
 }
 
-const DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/branches.db")
+// Lazy-initialized database path
+let DB_PATH: string | null = null
+
+function getDbPath(): string {
+  if (!DB_PATH) {
+    DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/branches.db")
+  }
+  return DB_PATH
+}
 
 export const BranchRecordSchema = z.object({
   id: z.string(),
@@ -59,11 +67,12 @@ export class BranchStorage {
   async initialize(): Promise<void> {
     if (this.initialized) return
 
+    const dbPath = getDbPath()
     try {
-      await mkdir(dirname(DB_PATH), { recursive: true })
+      await mkdir(dirname(dbPath), { recursive: true })
 
       const { Database } = await import("bun:sqlite")
-      this.db = new Database(DB_PATH)
+      this.db = new Database(dbPath)
 
       this.db.run(`
         CREATE TABLE IF NOT EXISTS branches (
@@ -98,7 +107,7 @@ export class BranchStorage {
       `)
 
       this.initialized = true
-      log.info("branch_storage_initialized", { path: DB_PATH })
+      log.info("branch_storage_initialized", { path: dbPath })
     } catch (error) {
       log.error("branch_storage_init_failed", { error: String(error) })
       throw error

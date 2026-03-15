@@ -1,0 +1,436 @@
+{
+  "storyLines": [
+    {
+      "name": "现世寻踪线",
+      "keyBeats": [
+        {
+          "chapter": 1,
+          "description": "建筑师林默买下杭州北关废弃老宅，意图改造为工作室，签约当晚听闻鬼宅传闻。",
+          "characters": [
+            "林默",
+            "中介"
+          ],
+          "thematicRelevance": "现代人对历史创伤的无知介入，背叛的 echoes 开始苏醒。"
+        },
+        {
+          "chapter": 3,
+          "description": "林默在墙夹层中发现一枚生锈铜镜，镜面模糊，映不出人影，只有血红痕迹。",
+          "characters": [
+            "林默"
+          ],
+          "thematicRelevance": "铜镜作为真相的载体，暗示被遮蔽的历史即将显现。"
+        },
+        {
+          "chapter": 6,
+          "description": "深夜施工时，林默听见戏文唱段，循声找到埋藏的红绳，绳结已腐朽发黑。",
+          "characters": [
+            "林默",
+            "鬼影"
+          ],
+          "thematicRelevance": "红绳象征断裂的契约，现代与过去的连接点正式建立。"
+        },
+        {
+          "chapter": 9,
+          "description": "林默查阅地方志，发现宅邸原主姓刘，明代曾有一桩悬案涉及负心书生。",
+          "characters": [
+            "林默",
+            "档案员"
+          ],
+          "thematicRelevance": "文字记录证实背叛的存在，历史开始干涉现实决策。"
+        },
+        {
+          "chapter": 12,
+          "description": "林默梦中见到女子悬梁，惊醒后发现手中紧握那根红绳，掌心灼伤。",
+          "characters": [
+            "林默",
+            "沈婉"
+          ],
+          "thematicRelevance": "创伤跨越时空传递，受害者试图向现代求援。"
+        },
+        {
+          "chapter": 15,
+          "description": "林默找到清代蔡氏日记残页，记载了当年与鬼对话的真相，非驱鬼而是共情。",
+          "characters": [
+            "林默",
+            "蔡炳侯"
+          ],
+          "thematicRelevance": "揭示化解背叛的关键并非镇压，而是理解与承认。"
+        },
+        {
+          "chapter": 18,
+          "description": "林默决定停止改造，改为修缮祭祀，在院中柳树下设坛，准备超度。",
+          "characters": [
+            "林默"
+          ],
+          "thematicRelevance": "现代主角选择承担历史责任，打破逃避的循环。"
+        },
+        {
+          "chapter": 21,
+          "description": "仪式当晚暴雨，林默手持铜镜与红绳，对着虚空念出沈婉之名，承诺昭雪。",
+          "characters": [
+            "林默",
+            "沈婉"
+          ],
+          "thematicRelevance": "名字的呼唤是对个体尊严的恢复，对抗被遗忘的命运。"
+        },
+        {
+          "chapter": 23,
+          "description": "镜中血痕消退，映出林默面容，红绳化为灰烬，宅内寒气骤减。",
+          "characters": [
+            "林默"
+          ],
+          "thematicRelevance": "物证的变化象征因果了结，背叛的毒素开始清除。"
+        },
+        {
+          "chapter": 24,
+          "description": "林默将宅邸改为历史纪念馆，讲述沈婉故事，老宅不再闹鬼，唯有柳荫依旧。",
+          "characters": [
+            "林默",
+            "游客"
+          ],
+          "thematicRelevance": "记忆被公开传承，悲剧转化为警示，完成主题升华。"
+        }
+      ],
+      "status": "active",
+      "currentBeatIndex": 0
+    },
+    {
+      "name": "明代孽缘线",
+      "keyBeats": [
+        {
+          "chapter": 2,
+          "description": "明代万历年间，绣娘沈婉与书生刘章在北关小屋相识，刘章许诺功成名就后迎娶。",
+          "characters": [
+            "沈婉",
+            "刘章"
+          ],
+          "thematicRelevance": "信任的建立，背叛的种子在美好的誓言中埋下。"
+        },
+        {
+          "chapter": 4,
+          "description": "沈婉耗尽积蓄资助刘章进京赶考，赠予祖传铜镜作为信物，盼其勿忘初心。",
+          "characters": [
+            "沈婉",
+            "刘章"
+          ],
+          "thematicRelevance": "物质与情感的双重交付，加重了背叛的道德重量。"
+        },
+        {
+          "chapter": 7,
+          "description": "刘章高中状元，为攀附权贵，隐瞒婚史，写信要求沈婉切勿寻访，永断联系。",
+          "characters": [
+            "刘章",
+            "沈婉"
+          ],
+          "thematicRelevance": "背叛发生，利益压倒信义，命运的转折点。"
+        },
+        {
+          "chapter": 10,
+          "description": "沈婉得知真相，持铜镜闯入刘章婚宴，被家丁殴打驱逐，镜碎人伤。",
+          "characters": [
+            "沈婉",
+            "刘章",
+            "家丁"
+          ],
+          "thematicRelevance": "真相被暴力掩盖，受害者的痛苦被权力结构无视。"
+        },
+        {
+          "chapter": 13,
+          "description": "沈婉回到北关小屋，写下血书控诉，将红绳系于梁上，决意自尽以示清白。",
+          "characters": [
+            "沈婉"
+          ],
+          "thematicRelevance": "绝望的终极反抗，死亡成为凝固时间的诅咒。"
+        },
+        {
+          "chapter": 16,
+          "description": "沈婉魂魄不散，因怨气太重，无法投胎，化为厉鬼困于宅中，等待复仇。",
+          "characters": [
+            "沈婉"
+          ],
+          "thematicRelevance": "背叛的后果超越生死，转化为持续的负面能量。"
+        },
+        {
+          "chapter": 19,
+          "description": "刘章晚年失势，病中常闻女子哭声，试图请道士镇压，却愈发病重。",
+          "characters": [
+            "刘章",
+            "沈婉"
+          ],
+          "thematicRelevance": "背叛者亦受煎熬，因果报应虽迟但到，但不解冤屈。"
+        },
+        {
+          "chapter": 20,
+          "description": "刘章临终前写下悔过书，藏于宅底，但无人发现，怨气继续累积百年。",
+          "characters": [
+            "刘章"
+          ],
+          "thematicRelevance": "迟来的悔意若无见证，无法平息受害者的痛苦。"
+        },
+        {
+          "chapter": 22,
+          "description": "沈婉之魂目睹林默举动，回忆起当年刘章初遇时的真诚，怨气稍敛。",
+          "characters": [
+            "沈婉",
+            "林默"
+          ],
+          "thematicRelevance": "记忆的多面性，爱恨交织，为最终和解提供可能。"
+        },
+        {
+          "chapter": 24,
+          "description": "真相大白，沈婉魂魄向林默致谢，终于放下执念，走向轮回之光。",
+          "characters": [
+            "沈婉",
+            "林默"
+          ],
+          "thematicRelevance": "跨越百年的背叛终被抚平，主题得到最终救赎。"
+        }
+      ],
+      "status": "active",
+      "currentBeatIndex": 0
+    },
+    {
+      "name": "清代渡厄线",
+      "keyBeats": [
+        {
+          "chapter": 5,
+          "description": "清代乾隆年间，宅邸已成凶宅，屡易其主皆不得安，人人传言内有吊死鬼索命。",
+          "characters": [
+            "邻居",
+            "房主"
+          ],
+          "thematicRelevance": "背叛的遗产成为公共恐惧，历史被妖魔化。"
+        },
+        {
+          "chapter": 8,
+          "description": "书生蔡炳侯不信邪，低价买下宅邸，家人惊恐逃离，蔡独自在厅堂秉烛夜坐。",
+          "characters": [
+            "蔡炳侯",
+            "家人"
+          ],
+          "thematicRelevance": "理性与勇气的介入，试图打破迷信与恐惧的循环。"
+        },
+        {
+          "chapter": 11,
+          "description": "夜半沈婉鬼魂显现，颈拖红绳，再挂一绳于梁，招手邀请蔡同死。",
+          "characters": [
+            "蔡炳侯",
+            "沈婉"
+          ],
+          "thematicRelevance": "创伤的重复诱惑，受害者试图拉他人进入自己的痛苦。"
+        },
+        {
+          "chapter": 14,
+          "description": "蔡曳一足就之，却笑言汝误才有今日，我勿误也，表示愿理解但不愿同沉。",
+          "characters": [
+            "蔡炳侯",
+            "沈婉"
+          ],
+          "thematicRelevance": "关键转折，用共情而非对抗回应暴力，改变互动模式。"
+        },
+        {
+          "chapter": 17,
+          "description": "鬼大哭，伏地再拜去，蔡未驱鬼，而是为鬼设牌位，每日诵读经文超度。",
+          "characters": [
+            "蔡炳侯",
+            "沈婉"
+          ],
+          "thematicRelevance": "尊重的力量，承认受害者的存在是疗愈的第一步。"
+        },
+        {
+          "chapter": 20,
+          "description": "蔡炳侯登第后未忘旧宅，修葺房屋，但未能找到根本怨源，鬼患暂歇未绝。",
+          "characters": [
+            "蔡炳侯"
+          ],
+          "thematicRelevance": " Partial resolution, 显示仅有善意不足以根除深层历史创伤。"
+        },
+        {
+          "chapter": 21,
+          "description": "蔡氏后人将日记封存于夹墙，期待有缘人发现，完成未竟的救赎之旅。",
+          "characters": [
+            "蔡氏后人"
+          ],
+          "thematicRelevance": "希望的传递，代际之间的责任交接。"
+        },
+        {
+          "chapter": 22,
+          "description": "蔡之魂魄在林默仪式中出现，辅助沈婉解开心结，两代书生跨越时空对话。",
+          "characters": [
+            "蔡炳侯",
+            "林默",
+            "沈婉"
+          ],
+          "thematicRelevance": "善意的累积效应，历史中的微光汇聚成救赎之力。"
+        },
+        {
+          "chapter": 23,
+          "description": "蔡氏牌位与沈婉灵位并列供奉，象征加害者与旁观者共同面对历史。",
+          "characters": [
+            "林默"
+          ],
+          "thematicRelevance": "和解的具象化，所有相关方在记忆中和解。"
+        },
+        {
+          "chapter": 24,
+          "description": "蔡炳侯之名被后世知晓，不再仅是志怪主角，而是历史见证者与守护者。",
+          "characters": [
+            "林默",
+            "蔡炳侯"
+          ],
+          "thematicRelevance": "叙事的重构，赋予历史人物新的道德意义。"
+        }
+      ],
+      "status": "active",
+      "currentBeatIndex": 0
+    },
+    {
+      "name": "宅邸记忆线",
+      "keyBeats": [
+        {
+          "chapter": 1,
+          "description": "北关老宅在风雨中屹立，砖缝间渗出暗红水渍，似血非血，见证百年孤寂。",
+          "characters": [
+            "宅邸"
+          ],
+          "thematicRelevance": "空间作为记忆容器，物理环境反映心理创伤。"
+        },
+        {
+          "chapter": 3,
+          "description": "宅内柳树莫名枯荣，现世林默来时枯枝发芽，似感知到生机与变化。",
+          "characters": [
+            "宅邸",
+            "林默"
+          ],
+          "thematicRelevance": "自然物象作为生命力的隐喻，呼应主题的复苏。"
+        },
+        {
+          "chapter": 6,
+          "description": "每逢雷雨夜，宅内回荡明代戏文声，墙壁显现模糊人影，似在重演旧事。",
+          "characters": [
+            "宅邸",
+            "沈婉"
+          ],
+          "thematicRelevance": "建筑本身具有记录功能，创伤在特定条件下回放。"
+        },
+        {
+          "chapter": 9,
+          "description": "清代蔡氏居住时，宅内寒气稍减，但梁上红绳痕迹始终无法抹去。",
+          "characters": [
+            "宅邸",
+            "蔡炳侯"
+          ],
+          "thematicRelevance": "物理痕迹象征心理印记，表面修复难除根本。"
+        },
+        {
+          "chapter": 12,
+          "description": "现世装修 drilling 声惊动宅灵，墙体裂缝扩大，露出当年藏匿的血书残片。",
+          "characters": [
+            "宅邸",
+            "林默"
+          ],
+          "thematicRelevance": "现代侵入迫使历史真相物理性暴露，不可再藏。"
+        },
+        {
+          "chapter": 15,
+          "description": "宅邸气场随林默调查深入而变化，从敌对排斥转为沉默等待。",
+          "characters": [
+            "宅邸",
+            "林默"
+          ],
+          "thematicRelevance": "空间情绪的转变，反映叙事张力的缓和。"
+        },
+        {
+          "chapter": 18,
+          "description": "林默设坛后，宅内阴风停止，灰尘落地，光线首次穿透厚重窗帘。",
+          "characters": [
+            "宅邸",
+            "林默"
+          ],
+          "thematicRelevance": "环境净化象征心灵净化，外部世界与内部世界同步。"
+        },
+        {
+          "chapter": 21,
+          "description": "仪式高潮时，宅邸梁柱发出吱呀声，似叹息似解脱，结构趋于稳定。",
+          "characters": [
+            "宅邸",
+            "沈婉"
+          ],
+          "thematicRelevance": "建筑的物理反应作为情感释放的共鸣箱。"
+        },
+        {
+          "chapter": 23,
+          "description": "红绳灰烬落入泥土，柳树开出白花，宅邸彻底失去灵异属性，回归普通。",
+          "characters": [
+            "宅邸"
+          ],
+          "thematicRelevance": "神话性的消退，意味着历史回归日常，创伤被正常化。"
+        },
+        {
+          "chapter": 24,
+          "description": "老宅成为纪念馆，游人如织，砖瓦间不再有血渍，唯有岁月斑驳。",
+          "characters": [
+            "宅邸",
+            "游客"
+          ],
+          "thematicRelevance": "最终状态，创伤转化为文化记忆，生命继续流动。"
+        }
+      ],
+      "status": "active",
+      "currentBeatIndex": 0
+    }
+  ],
+  "thematicMotifs": {
+    "红绳": {
+      "description": "象征承诺、束缚与命运的连接，从婚约信物变为自缢工具，最后化为灰烬。",
+      "chapters": [
+        2,
+        6,
+        11,
+        13,
+        21,
+        23
+      ],
+      "variations": [
+        "定情红绳",
+        "索命红绳",
+        "解脱灰烬"
+      ]
+    },
+    "铜镜": {
+      "description": "象征真相与自我认知，破碎代表信任破裂，重圆代表历史真相的还原。",
+      "chapters": [
+        3,
+        4,
+        10,
+        21,
+        23
+      ],
+      "variations": [
+        "祖传信物",
+        "破碎残镜",
+        "映真古镜"
+      ]
+    },
+    "北关夜雨": {
+      "description": "象征悲凉氛围与清洗力量，每次关键转折必伴随雨声，冲刷罪恶与泪水。",
+      "chapters": [
+        1,
+        7,
+        13,
+        18,
+        21
+      ],
+      "variations": [
+        "凄冷小雨",
+        "狂暴暴雨",
+        "雨后初晴"
+      ]
+    }
+  },
+  "createdAt": 1773588854656,
+  "lastUpdated": 1773588854657,
+  "theme": "The Echoes of Betrayal Across Time — How a single act of broken trust in the past reverberates through generations",
+  "tone": "Haunting",
+  "initialPrompt": "[THEME: The Echoes of Betrayal Across Time — How a single act of broken trust in the past reverberates through generations, shaping destinies in the present.]\n[TONE: Haunting, Elegant, Heartrending, Multi-generational, Interwoven]\n[GENRE: A sprawling, multi-era narrative in the spirit of \"Dream of the Red Chamber\", weaving together classical Chinese ghost lore, historical drama, and contemporary mystery.]\n[FOCUS: Begin with loosely connected storylines across different time periods (e.g., Ming Dynasty, Late Qing, Present Day). Allow their thematic and karmic connections to gradually deepen, culminating in a powerful convergence that reveals the original sin and its enduring legacy.]\n[LANGUAGE: Chinese — All story content, dialogue, and narration must be written in Chinese (中文). Keep the literary style elegant and classical when appropriate for historical periods, modern Chinese for contemporary scenes.]\n\n杭州北关门外有一屋，鬼屡见，人不敢居，扃锁甚固。书生蔡姓者将买其宅。人危之，蔡不听。券成，家人不肯入。蔡亲自启屋，秉烛坐。至夜半，有女子冉冉来，颈拖红怖色。女子再挂一绳，招蔡。蔡曳一足就之。女子曰：\"君误矣。\"蔡笑曰：\"汝误才有今日，我勿误也。\"鬼大哭，伏地再拜去。自此，怪遂绝，蔡亦登第。或云即蔡炳侯方伯也\n"
+}

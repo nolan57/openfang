@@ -15,7 +15,15 @@ function getProjectDirectory(): string {
   }
 }
 
-const MEMORY_DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/story-memory.db")
+// Lazy-initialized database path
+let MEMORY_DB_PATH: string | null = null
+
+function getDbPath(): string {
+  if (!MEMORY_DB_PATH) {
+    MEMORY_DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/story-memory.db")
+  }
+  return MEMORY_DB_PATH
+}
 
 export const MemoryLevelSchema = z.enum(["sentence", "scene", "chapter", "arc", "story"])
 
@@ -70,11 +78,12 @@ export class StoryWorldMemory {
   async initialize(): Promise<void> {
     if (this.initialized) return
 
+    const dbPath = getDbPath()
     try {
-      await mkdir(dirname(MEMORY_DB_PATH), { recursive: true })
+      await mkdir(dirname(dbPath), { recursive: true })
 
       const { Database } = await import("bun:sqlite")
-      this.db = new Database(MEMORY_DB_PATH)
+      this.db = new Database(dbPath)
 
       this.db.run(`
         CREATE TABLE IF NOT EXISTS memory_entries (
@@ -113,7 +122,7 @@ export class StoryWorldMemory {
       `)
 
       this.initialized = true
-      log.info("story_world_memory_initialized", { path: MEMORY_DB_PATH })
+      log.info("story_world_memory_initialized", { path: dbPath })
     } catch (error) {
       log.error("story_world_memory_init_failed", { error: String(error) })
       throw error
