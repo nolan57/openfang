@@ -22,8 +22,8 @@ describe("PatternVectorIndex", () => {
 
     const embedding = await index.generateEmbedding("test text")
 
-    expect(Array.isArray(embedding)).toBe(true)
-    expect(embedding.length).toBe(384)
+    expect(embedding instanceof Float32Array).toBe(true)
+    expect(embedding.length).toBe(1536)
   })
 
   test("indexPattern stores pattern", async () => {

@@ -3,6 +3,8 @@ import { Log } from "../util/log"
 import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
+import { EmbeddingService } from "../learning/embedding-service"
+import type { EmbeddingGenerator } from "../learning/vector-store-interface"
 import type { EnhancedPattern, Archetype, Motif } from "./pattern-miner-enhanced"
 
 const log = Log.create({ service: "pattern-vector-index" })
@@ -54,19 +56,21 @@ export interface VectorIndexConfig {
   embeddingDimension: number
   similarityThreshold: number
   maxResults: number
+  embeddingModelId?: string // 使用 learning 模块的 embedding 模型
 }
 
 const DEFAULT_CONFIG: VectorIndexConfig = {
-  embeddingDimension: 384,
+  embeddingDimension: 1536, // OpenAI text-embedding-3-small
   similarityThreshold: 0.7,
   maxResults: 10,
+  embeddingModelId: "text-embedding-3-small",
 }
 
 export class PatternVectorIndex {
   private db: any = null
   private config: VectorIndexConfig
   private initialized: boolean = false
-  private embeddingFn: ((text: string) => Promise<number[]>) | null = null
+  private embeddingGenerator: EmbeddingGenerator | null = null
 
   constructor(config: Partial<VectorIndexConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
@@ -102,7 +106,7 @@ export class PatternVectorIndex {
         CREATE INDEX IF NOT EXISTS idx_strength ON pattern_vectors(strength)
       `)
 
-      await this.initializeEmbeddingFunction()
+      await this.initializeEmbeddingGenerator()
 
       this.initialized = true
       log.info("pattern_vector_index_initialized", {
@@ -115,18 +119,30 @@ export class PatternVectorIndex {
     }
   }
 
-  private async initializeEmbeddingFunction(): Promise<void> {
-    this.embeddingFn = async (text: string): Promise<number[]> => {
-      return this.generateRandomEmbedding()
+  private async initializeEmbeddingGenerator(): Promise<void> {
+    if (this.config.embeddingModelId) {
+      try {
+        const service = await EmbeddingService.createService({
+          modelId: this.config.embeddingModelId,
+        })
+        this.embeddingGenerator = service.generator
+        log.info("pattern_vector_embedding_initialized", {
+          modelId: this.config.embeddingModelId,
+          dimensions: service.dimensions,
+        })
+      } catch (error) {
+        log.warn("pattern_vector_embedding_init_failed_using_fallback", { error: String(error) })
+        this.embeddingGenerator = null
+      }
     }
   }
 
-  private generateRandomEmbedding(): number[] {
+  private generateRandomEmbedding(): Float32Array {
     const embedding: number[] = []
     for (let i = 0; i < this.config.embeddingDimension; i++) {
       embedding.push(Math.random() * 2 - 1)
     }
-    return this.normalizeVector(embedding)
+    return new Float32Array(this.normalizeVector(embedding))
   }
 
   private normalizeVector(vec: number[]): number[] {
@@ -135,13 +151,15 @@ export class PatternVectorIndex {
     return vec.map((v) => v / magnitude)
   }
 
-  async generateEmbedding(text: string): Promise<number[]> {
-    if (!this.embeddingFn) {
-      return this.generateRandomEmbedding()
+  async generateEmbedding(text: string): Promise<Float32Array> {
+    if (this.embeddingGenerator) {
+      try {
+        return await this.embeddingGenerator(text, "content")
+      } catch (error) {
+        log.warn("pattern_vector_embedding_generation_failed_using_fallback", { error: String(error) })
+      }
     }
-
-    const embedding = await this.embeddingFn(text)
-    return this.normalizeVector(embedding)
+    return this.generateRandomEmbedding()
   }
 
   async indexPattern(pattern: EnhancedPattern): Promise<void> {
@@ -314,7 +332,7 @@ export class PatternVectorIndex {
     return stmt.all(limit) as PatternVector[]
   }
 
-  private cosineSimilarity(a: number[], b: number[]): number {
+  private cosineSimilarity(a: Float32Array, b: number[]): number {
     if (a.length !== b.length) return 0
 
     let dotProduct = 0
