@@ -28,7 +28,7 @@
    - 🔲 Add property-based tests for branch generation consistency
    - 🔲 Create snapshot tests for narrative skeleton outputs
 
-## Phase 2: Scalability & Complexity Handling 🚧
+## Phase 2: Scalability & Complexity Handling ✅
 
 1. **Branching & State Management** ✅
    - ✅ Created `branch-manager.ts` with branch pruning
@@ -38,26 +38,30 @@
    - 🔲 Add persistent branch storage (SQLite)
    - 🔲 Allow branch dependencies
 
-2. **Pattern Mining & Evolution** 🔲
-   - Upgrade pattern miner to extract higher-order abstractions (archetypes, plot templates).
-   - Store patterns in a vector index for semantic similarity search.
-   - Add pattern decay mechanism: outdated patterns fade unless reinforced.
-   - Enable cross-story pattern transfer (learn from multiple novel instances).
+2. **Pattern Mining & Evolution** ✅
+   - ✅ Created `pattern-miner-enhanced.ts` with higher-order abstractions
+   - ✅ Added archetype extraction (hero, mentor, shadow, trickster, etc.)
+   - ✅ Added plot template extraction (three_act, hero_journey, etc.)
+   - ✅ Added motif extraction and evolution tracking
+   - ✅ Implemented pattern decay mechanism with reinforcement
+   - 🔲 Store patterns in a vector index for semantic similarity search
+   - 🔲 Enable cross-story pattern transfer (learn from multiple novel instances)
 
-3. **Thematic Analysis Deepening** 🔲
-   - Extend `thematic-analyst.ts` to track motif evolution across chapters/characters.
-   - Generate motif variation suggestions automatically.
-   - Correlate motif strength with character arcs and relationship tension.
-   - Export thematic evolution as a knowledge graph for LLM prompting.
+3. **Thematic Analysis Deepening** ✅
+   - ✅ Created `motif-tracker.ts` for motif evolution tracking
+   - ✅ Track motif evolution across chapters/characters
+   - ✅ Generate motif variation suggestions automatically
+   - ✅ Correlate motif strength with character arcs
+   - ✅ Export thematic evolution as knowledge graph
 
 4. **Relationship & Faction Modeling** ✅
    - ✅ Created `faction-detector.ts` with automatic faction detection
    - ✅ Implemented faction types: alliance, opposition, cooperative, etc.
    - ✅ Added faction cohesion calculation and member influence scoring
    - ✅ Added faction relationship tracking (ally, enemy, neutral, tense, cooperative)
+   - ✅ Created `relationship-inertia.ts` with resistance to sudden shifts
+   - ✅ Added plot hook generation (betrayal, alliance, rivalry_escalation, etc.)
    - 🔲 Model multi-way relationships (triads, groups) not just dyads
-   - 🔲 Add relationship inertia: resistance to sudden trust/hostility shifts
-   - 🔲 Generate relationship-based plot hooks
 
 ## Phase 3: Advanced Self-Evolution (Meta‑Learning)
 
