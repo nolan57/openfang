@@ -155,10 +155,10 @@ export class EvolutionRulesEngine {
 
       chaosEvent.narrativeDirection =
         chaosEvent.impact === "positive"
-          ? `正向影响 (${chaosEvent.magnitude})`
+          ? `Positive Impact (${chaosEvent.magnitude})`
           : chaosEvent.impact === "negative"
-            ? `负向影响 (${chaosEvent.magnitude})`
-            : `中性影响 (${chaosEvent.magnitude})`
+            ? `Negative Impact (${chaosEvent.magnitude})`
+            : `Neutral Impact (${chaosEvent.magnitude})`
 
       chaosEvent.generatedEvent = result.text.trim()
 

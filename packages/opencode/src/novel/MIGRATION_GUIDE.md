@@ -1,50 +1,50 @@
-# 硬编码改进迁移指南
+# Hardcoding Improvement Migration Guide
 
-## 概述
+## Overview
 
-本文档指导如何将 Novel Engine 中的硬编码内容迁移到新的配置化和动态化系统。
+This document guides you through migrating hardcoded content in the Novel Engine to the new configurable and dynamic system.
 
 ---
 
-## 已完成 ✅
+## Completed ✅
 
-### 1. 统一配置系统
+### 1. Unified Configuration System
 
-**文件：** `config.ts`
+**File:** `novel-config.ts`
 
-**功能：**
+**Features:**
 
-- 难度等级配置（easy/normal/hard/nightmare）
-- 故事类型权重（action/character/theme/balanced）
-- 提示词风格（concise/balanced/creative）
+- Difficulty presets (easy/normal/hard/nightmare)
+- Story type weights (action/character/theme/balanced)
+- Prompt style presets (concise/balanced/creative)
 
-**使用示例：**
+**Usage Example:**
 
 ```typescript
-import { novelConfigManager } from "./config"
+import { novelConfigManager } from "./novel-config"
 
-// 加载配置
+// Load configuration
 await novelConfigManager.load()
 
-// 获取难度预设
+// Get difficulty preset
 const difficulty = novelConfigManager.getDifficultyPreset()
 console.log(difficulty.stressThresholds.critical) // 90 (normal)
 
-// 获取故事类型权重
+// Get story type weights
 const weights = novelConfigManager.getStoryTypeWeights()
 console.log(weights.tensionLevel) // 0.15 (balanced)
 
-// 更新配置
+// Update configuration
 novelConfigManager.update({
   difficulty: "hard",
   storyType: "action",
 })
 
-// 保存配置
+// Save configuration
 await novelConfigManager.save()
 ```
 
-**配置文件格式：**
+**Configuration File Format:**
 
 ```json
 {
@@ -61,26 +61,26 @@ await novelConfigManager.save()
 
 ---
 
-### 2. 动态提示词构建器
+### 2. Dynamic Prompt Builder
 
-**文件：** `dynamic-prompt.ts`
+**File:** `dynamic-prompt.ts`
 
-**功能：**
+**Features:**
 
-- 基于模板构建提示词
-- 自动注入故事基调指令
-- 自动注入风格指令
-- 支持自定义变量
+- Template-based prompt construction
+- Automatic tone instruction injection
+- Automatic style instruction injection
+- Custom variable support
 
-**使用示例：**
+**Usage Example:**
 
 ```typescript
 import { createPromptBuilder } from "./dynamic-prompt"
 
-// 创建提示词构建器
+// Create prompt builder
 const builder = createPromptBuilder("stateEvaluation")
 
-// 设置故事基调
+// Set story tone
 builder.withTone({
   genre: "dark fantasy",
   mood: "tense",
@@ -90,34 +90,34 @@ builder.withTone({
   style: "descriptive",
 })
 
-// 设置变量并构建
+// Set variables and build
 const prompt = builder.withVariables({ STORY_SEGMENT: storyText }).build()
 ```
 
-**预定义模板：**
+**Predefined Templates:**
 
-- `stateEvaluation` - 状态变更评估
-- `chaosEvent` - 混乱事件生成
-- `characterAnalysis` - 角色心理分析
-- `branchGeneration` - 分支生成
+- `stateEvaluation` - State change evaluation
+- `chaosEvent` - Chaos event generation
+- `characterAnalysis` - Character psychology analysis
+- `branchGeneration` - Branch generation
 
 ---
 
-## 待完成 🔲
+## Pending Migration 🔲
 
-### 1. 更新 evolution-rules.ts
+### 1. Update evolution-rules.ts
 
-**当前状态：** 使用硬编码提示词模板
+**Current Status:** Using hardcoded prompt template
 
-**迁移步骤：**
+**Migration Steps:**
 
 ```typescript
-// 旧代码
+// Old code
 const prompt = STATE_CHANGE_EVALUATION_PROMPT.replace("{{STORY_SEGMENT}}", storyText)
 
-// 新代码
+// New code
 import { createPromptBuilder } from "./dynamic-prompt"
-import { novelConfigManager } from "./config"
+import { novelConfigManager } from "./novel-config"
 
 const config = novelConfigManager.getConfig()
 const builder = createPromptBuilder("stateEvaluation", config.promptStyle)
@@ -129,16 +129,16 @@ if (storyTone) {
 const prompt = builder.withVariables({ STORY_SEGMENT: storyText }).build()
 ```
 
-**文件位置：** `evolution-rules.ts:117-130`
+**File Location:** `evolution-rules.ts:117-130`
 
 ---
 
-### 2. 更新 branch-manager.ts 评分权重
+### 2. Update branch-manager.ts Scoring Weights
 
-**当前状态：** 硬编码权重
+**Current Status:** Hardcoded weights
 
 ```typescript
-// 旧代码
+// Old code
 const weights = {
   narrativeQuality: 0.25,
   tensionLevel: 0.15,
@@ -150,39 +150,39 @@ const weights = {
 }
 ```
 
-**迁移步骤：**
+**Migration Steps:**
 
 ```typescript
-// 新代码
-import { novelConfigManager } from "./config"
+// New code
+import { novelConfigManager } from "./novel-config"
 
 const weights = novelConfigManager.getStoryTypeWeights()
 
-// 现在权重会根据故事类型自动调整
+// Weights now automatically adjust based on story type
 // action: tensionLevel = 0.30
 // character: characterDevelopment = 0.35
 // theme: thematicRelevance = 0.30
 ```
 
-**文件位置：** `branch-manager.ts:82-95`
+**File Location:** `branch-manager.ts:82-95`
 
 ---
 
-### 3. 更新阈值常量
+### 3. Update Threshold Constants
 
-**当前状态：** 硬编码阈值
+**Current Status:** Hardcoded thresholds
 
 ```typescript
-// 旧代码
+// Old code
 private static readonly STRESS_THRESHOLD_CRITICAL = 90
 private static readonly STRESS_THRESHOLD_HIGH = 70
 ```
 
-**迁移步骤：**
+**Migration Steps:**
 
 ```typescript
-// 新代码
-import { novelConfigManager } from "./config"
+// New code
+import { novelConfigManager } from "./novel-config"
 
 const thresholds = novelConfigManager.getDifficultyPreset().stressThresholds
 
@@ -190,20 +190,20 @@ const STRESS_THRESHOLD_CRITICAL = thresholds.critical // 90 (normal) or 80 (hard
 const STRESS_THRESHOLD_HIGH = thresholds.high // 70 (normal) or 60 (hard)
 ```
 
-**文件位置：** `evolution-rules.ts:85-86`
+**File Location:** `evolution-rules.ts:85-86`
 
 ---
 
-### 4. 更新 character-deepener.ts
+### 4. Update character-deepener.ts
 
-**当前状态：** 静态提示词
+**Current Status:** Static prompts
 
-**迁移步骤：**
+**Migration Steps:**
 
 ```typescript
-// 新代码
+// New code
 import { createPromptBuilder } from "./dynamic-prompt"
-import { novelConfigManager } from "./config"
+import { novelConfigManager } from "./novel-config"
 
 const config = novelConfigManager.getConfig()
 const builder = createPromptBuilder("characterAnalysis", config.promptStyle)
@@ -215,13 +215,13 @@ if (storyTone) {
 const prompt = builder.withVariables({ CHARACTER_STATE: characterStateJson }).build()
 ```
 
-**文件位置：** `character-deepener.ts:112-150`
+**File Location:** `character-deepener.ts:112-150`
 
 ---
 
-## 配置示例
+## Configuration Examples
 
-### 动作故事配置
+### Action Story Configuration
 
 ```json
 {
@@ -236,16 +236,17 @@ const prompt = builder.withVariables({ CHARACTER_STATE: characterStateJson }).bu
 }
 ```
 
-**效果：**
+**Effects:**
 
-- 压力阈值更低（critical: 80, high: 60）
-- 紧张度权重更高（0.30 vs 0.15）
-- 分支数量更少（10 vs 20）
-- 创伤更频繁（1.5x）
+- Lower stress thresholds (critical: 80, high: 60)
+- Higher tension weight (0.30 vs 0.15)
+- Fewer branches (10 vs 20)
+- More frequent trauma (1.5x)
+- Concise and direct prompts
 
 ---
 
-### 角色驱动故事配置
+### Character-Driven Story Configuration
 
 ```json
 {
@@ -260,16 +261,16 @@ const prompt = builder.withVariables({ CHARACTER_STATE: characterStateJson }).bu
 }
 ```
 
-**效果：**
+**Effects:**
 
-- 角色发展权重最高（0.35）
-- 提示词更详细
-- 创造性更高
-- 结构限制更少
+- Highest character development weight (0.35)
+- Detailed prompts
+- High creativity
+- Fewer structure restrictions
 
 ---
 
-### 主题驱动故事配置
+### Theme-Driven Story Configuration
 
 ```json
 {
@@ -284,125 +285,125 @@ const prompt = builder.withVariables({ CHARACTER_STATE: characterStateJson }).bu
 }
 ```
 
-**效果：**
+**Effects:**
 
-- 主题相关性权重最高（0.30）
-- 压力阈值更高（critical: 100）
-- 分支数量更多（30）
-- 技能获取更频繁（1.5x）
+- Highest thematic relevance weight (0.30)
+- Higher stress thresholds (critical: 100)
+- More branches (30)
+- More frequent skill awards (1.5x)
 
 ---
 
-## 最佳实践
+## Best Practices
 
-### 1. 使用预设而非自定义
+### 1. Use Presets Instead of Custom Configuration
 
 ```typescript
-// ✅ 推荐：使用预设
+// ✅ Recommended: Use presets
 novelConfigManager.update({
   difficulty: "hard",
   storyType: "action",
 })
 
-// ⚠️ 避免：手动配置所有权重
+// ⚠️ Avoid: Manually configuring all weights
 novelConfigManager.update({
   customWeights: {
     narrativeQuality: 0.2,
     tensionLevel: 0.3,
-    // ... 手动配置所有 7 个权重
+    // ... manually configuring all 7 weights
   },
 })
 ```
 
-### 2. 加载配置后再使用
+### 2. Load Configuration Before Use
 
 ```typescript
-// ✅ 推荐
+// ✅ Recommended
 await novelConfigManager.load()
 const config = novelConfigManager.getConfig()
 
-// ⚠️ 避免：未加载就使用
-const config = novelConfigManager.getConfig() // 可能是默认值
+// ⚠️ Avoid: Using before loading
+const config = novelConfigManager.getConfig() // May be default value
 ```
 
-### 3. 保存用户偏好
+### 3. Save User Preferences
 
 ```typescript
-// 用户首次设置后保存
+// Save after first-time setup
 novelConfigManager.update({
   difficulty: "normal",
   storyType: "balanced",
 })
 await novelConfigManager.save()
 
-// 后续会话自动加载
+// Subsequent sessions auto-load
 await novelConfigManager.load()
 ```
 
-### 4. 故事基调与配置分离
+### 4. Separate Story Tone from Configuration
 
 ```typescript
-// 配置：持久的用户偏好
+// Configuration: Persistent user preferences
 novelConfigManager.update({
-  storyType: "action", // 类型
-  difficulty: "normal", // 难度
+  storyType: "action", // Type
+  difficulty: "normal", // Difficulty
 })
 
-// 基调：单个故事的特定设置
+// Tone: Story-specific settings
 const storyTone = {
-  genre: "cyberpunk", // 具体类型
-  mood: "dark", // 情绪
-  pacing: "fast", // 节奏
+  genre: "cyberpunk", // Specific genre
+  mood: "dark", // Mood
+  pacing: "fast", // Pacing
   // ...
 }
 
-// 使用
+// Usage
 builder.withTone(storyTone)
 ```
 
 ---
 
-## 迁移检查清单
+## Migration Checklist
 
-- [ ] 安装新模块（config.ts, dynamic-prompt.ts）
-- [ ] 更新 evolution-rules.ts 使用动态提示词
-- [ ] 更新 branch-manager.ts 使用配置权重
-- [ ] 更新 character-deepener.ts 使用动态提示词
-- [ ] 更新 orchestrator.ts 加载配置
-- [ ] 创建默认配置文件
-- [ ] 测试不同配置组合
-- [ ] 更新文档
+- [ ] Install new modules (novel-config.ts, dynamic-prompt.ts)
+- [ ] Update evolution-rules.ts to use dynamic prompts
+- [ ] Update branch-manager.ts to use configured weights
+- [ ] Update character-deepener.ts to use dynamic prompts
+- [ ] Update orchestrator.ts to load configuration
+- [ ] Create default configuration file
+- [ ] Test different configuration combinations
+- [ ] Update documentation
 
 ---
 
-## 故障排除
+## Troubleshooting
 
-### 配置加载失败
+### Configuration Load Failed
 
-**问题：** `novel_config_load_failed`
+**Problem:** `novel_config_load_failed`
 
-**解决：**
+**Solution:**
 
 ```typescript
 try {
   await novelConfigManager.load()
 } catch (error) {
-  // 自动使用默认配置
+  // Automatically use default configuration
   console.log("Using default configuration")
 }
 ```
 
-### 提示词模板未知
+### Unknown Prompt Template
 
-**问题：** `Unknown template: xxx`
+**Problem:** `Unknown template: xxx`
 
-**解决：** 检查模板 ID 是否在 `PROMPT_TEMPLATES` 中定义
+**Solution:** Check if template ID is defined in `PROMPT_TEMPLATES`
 
-### 权重和不等于 1
+### Weights Don't Sum to 1
 
-**问题：** 分支评分异常
+**Problem:** Branch scoring anomalies
 
-**解决：** 验证自定义权重：
+**Solution:** Validate custom weights:
 
 ```typescript
 const weights = novelConfigManager.getStoryTypeWeights()
@@ -412,46 +413,46 @@ console.assert(Math.abs(sum - 1.0) < 0.001, "Weights must sum to 1")
 
 ---
 
-## 性能考虑
+## Performance Considerations
 
-### 配置加载
+### Configuration Loading
 
-- 首次加载：~10ms（读取文件）
-- 后续访问：~0ms（内存缓存）
+- First load: ~10ms (file read)
+- Subsequent access: ~0ms (memory cached)
 
-### 提示词构建
+### Prompt Construction
 
-- 简单替换：~1ms
-- 注入基调指令：~2ms
-- 总体影响：可忽略不计
+- Simple substitution: ~1ms
+- Tone instruction injection: ~2ms
+- Overall impact: Negligible
 
-### 建议
+### Recommendations
 
-- ✅ 在应用启动时加载配置
-- ✅ 复用配置对象而非重复加载
-- ✅ 提示词构建在 LLM 调用前进行
+- ✅ Load configuration at application startup
+- ✅ Reuse configuration objects instead of reloading
+- ✅ Construct prompts before LLM calls
 
 ---
 
-## 后续计划
+## Next Steps
 
-### Phase 1 (已完成)
+### Phase 1 (Completed)
 
-- ✅ 统一配置系统
-- ✅ 动态提示词构建器
-- ✅ 预定义模板
+- ✅ Unified configuration system
+- ✅ Dynamic prompt builder
+- ✅ Predefined templates
 
-### Phase 2 (进行中)
+### Phase 2 (In Progress)
 
-- 🔲 更新所有模块使用新系统
-- 🔲 添加配置 UI
-- 🔲 添加配置验证
+- 🔲 Update all modules to use new system
+- 🔲 Add configuration UI
+- 🔲 Add configuration validation
 
-### Phase 3 (计划中)
+### Phase 3 (Planned)
 
-- 🔲 运行时配置热更新
-- 🔲 配置导入/导出
-- 🔲 配置分享功能
+- 🔲 Runtime configuration hot updates
+- 🔲 Configuration import/export
+- 🔲 Configuration sharing features
 
 ---
 
