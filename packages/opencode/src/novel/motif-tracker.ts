@@ -6,23 +6,16 @@ import { generateText } from "ai"
 import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
 import type { Motif } from "./pattern-miner-enhanced"
+import { getMotifTrackingPath } from "./novel-config"
 
 const log = Log.create({ service: "motif-tracker" })
-
-function getProjectDirectory(): string {
-  try {
-    return Instance.directory
-  } catch {
-    return resolve(process.cwd())
-  }
-}
 
 // Lazy-initialized path
 let MotifTrackingPath: string | null = null
 
 function getTrackingPath(): string {
   if (!MotifTrackingPath) {
-    MotifTrackingPath = resolve(getProjectDirectory(), ".opencode/novel/motif-tracking")
+    MotifTrackingPath = getMotifTrackingPath()
   }
   return MotifTrackingPath
 }
@@ -63,6 +56,26 @@ export type MotifEvolution = z.infer<typeof MotifEvolutionSchema>
 export type MotifCharacterCorrelation = z.infer<typeof MotifCharacterCorrelationSchema>
 export type MotifVariation = z.infer<typeof MotifVariationSchema>
 
+export interface HighImpactMotifEvent {
+  motifId: string
+  motifName: string
+  evolution: MotifEvolution
+  impactScore: number
+  eventType: "thematic_shift" | "strength_surge" | "character_transformation" | "narrative_climax"
+}
+
+export interface MotifTrackerConfig {
+  highImpactThematicSignificanceThreshold: number
+  highImpactStrengthChangeThreshold: number
+  onHighImpactEvent?: (event: HighImpactMotifEvent) => void
+}
+
+const DEFAULT_CONFIG: MotifTrackerConfig = {
+  highImpactThematicSignificanceThreshold: 8,
+  highImpactStrengthChangeThreshold: 30,
+  onHighImpactEvent: undefined,
+}
+
 export interface MotifTrackingData {
   evolutions: MotifEvolution[]
   correlations: MotifCharacterCorrelation[]
@@ -87,6 +100,12 @@ export class MotifTracker {
   private evolutions: Map<string, MotifEvolution[]> = new Map()
   private correlations: Map<string, MotifCharacterCorrelation[]> = new Map()
   private variations: Map<string, MotifVariation[]> = new Map()
+  private motifStrengths: Map<string, number> = new Map()
+  private config: MotifTrackerConfig
+
+  constructor(config: Partial<MotifTrackerConfig> = {}) {
+    this.config = { ...DEFAULT_CONFIG, ...config }
+  }
 
   async initialize(): Promise<void> {
     await ensureDir()
@@ -181,6 +200,93 @@ export class MotifTracker {
       parentMotifId: variation.parentMotifId,
       variation: variation.variationName,
     })
+  }
+
+  getMotifEvolutions(motifId: string): MotifEvolution[] {
+    return this.evolutions.get(motifId) || []
+  }
+
+  getCharacterCorrelations(characterName: string): MotifCharacterCorrelation[] {
+    return Array.from(this.correlations.values())
+      .flat()
+      .filter((c) => c.characterName === characterName)
+  }
+
+  getMotifCorrelations(motifId: string): MotifCharacterCorrelation[] {
+    return Array.from(this.correlations.values())
+      .flat()
+      .filter((c) => c.motifId === motifId)
+  }
+
+  getVariations(motifId: string): MotifVariation[] {
+    return this.variations.get(motifId) || []
+  }
+
+  calculateThematicSaturation(coreMotifId: string): number {
+    const evolutions = this.getMotifEvolutions(coreMotifId)
+    const correlations = this.getMotifCorrelations(coreMotifId)
+    const variations = this.getVariations(coreMotifId)
+
+    if (evolutions.length === 0 && correlations.length === 0) {
+      return 0
+    }
+
+    const avgSignificance =
+      evolutions.length > 0 ? evolutions.reduce((sum, e) => sum + e.thematicSignificance, 0) / evolutions.length : 0
+
+    const evolutionScore = Math.min(avgSignificance * 8, 40)
+
+    const evolutionDiversityScore = Math.min(evolutions.length * 4, 20)
+
+    const avgCorrelationStrength =
+      correlations.length > 0
+        ? correlations.reduce((sum, c) => sum + c.correlationStrength, 0) / correlations.length
+        : 0
+    const correlationScore = (avgCorrelationStrength / 100) * 25
+
+    const variationScore = Math.min(variations.length * 5, 15)
+
+    const totalScore = evolutionScore + evolutionDiversityScore + correlationScore + variationScore
+
+    return Math.min(100, Math.round(totalScore))
+  }
+
+  generateThematicDeepeningSuggestion(coreMotifId: string, currentChapter: number): string | null {
+    const evolutions = this.getMotifEvolutions(coreMotifId)
+    const correlations = this.getMotifCorrelations(coreMotifId)
+
+    if (evolutions.length === 0) {
+      return null
+    }
+
+    const latestEvolution = evolutions[evolutions.length - 1]
+    const currentStrength = this.motifStrengths.get(coreMotifId) || 50
+
+    if (currentStrength < 40) {
+      const stronglyCorrelatedChars = correlations.filter((c) => c.correlationStrength >= 70)
+      if (stronglyCorrelatedChars.length > 0) {
+        const char = stronglyCorrelatedChars[0]
+        return `在下一章，让${char.characterName}在关键时刻${
+          char.impactType === "positive" ? "展现" : "对抗"
+        }"${latestEvolution.motifName}"的主题。通过${
+          char.arcPhase === "denial"
+            ? "拒绝接受现实"
+            : char.arcPhase === "resistance"
+              ? "内心挣扎后的妥协"
+              : char.arcPhase === "exploration"
+                ? "主动探索新的可能性"
+                : char.arcPhase === "integration"
+                  ? "将主题融入日常行为"
+                  : "以大师级的方式展现主题"
+        }，来强化此母题与角色弧光的关联。`
+      }
+    }
+
+    if (latestEvolution.thematicSignificance >= 7) {
+      return `"${latestEvolution.motifName}"已达到重要强度（${latestEvolution.thematicSignificance}/10）。建议：创造一次主题变奏——让此母题以相反或镜像的形式再次出现，形成呼应。例如，如果之前是"${latestEvolution.fromState}"，现在可以展现"${latestEvolution.toState}"的代价或后果。`
+    }
+
+    return null
   }
 
   async analyzeMotifEvolution(
@@ -280,6 +386,55 @@ Output JSON. If no evolution/correlation, use empty arrays.`
 
         this.recordEvolution(evolution)
         newEvolutions.push(evolution)
+
+        const previousStrength = this.motifStrengths.get(motif.id) || motif.strength
+        this.motifStrengths.set(motif.id, motif.strength)
+        const strengthChange = Math.abs(motif.strength - previousStrength)
+
+        const isHighImpact =
+          evolution.thematicSignificance >= this.config.highImpactThematicSignificanceThreshold ||
+          strengthChange >= this.config.highImpactStrengthChangeThreshold
+
+        if (isHighImpact) {
+          const impactScore = evolution.thematicSignificance * 10 + strengthChange
+          let eventType: HighImpactMotifEvent["eventType"] = "thematic_shift"
+
+          if (evolution.thematicSignificance >= 9) {
+            eventType = "narrative_climax"
+          } else if (strengthChange >= 40) {
+            eventType = "strength_surge"
+          } else if (evolution.characterInvolved) {
+            const char = characters[evolution.characterInvolved]
+            if (char?.arcPhase === "integration" || char?.arcPhase === "mastery") {
+              eventType = "character_transformation"
+            }
+          }
+
+          const highImpactEvent: HighImpactMotifEvent = {
+            motifId: motif.id,
+            motifName: evolution.motifName,
+            evolution,
+            impactScore,
+            eventType,
+          }
+
+          log.warn("high_impact_motif_event_detected", {
+            motifId: motif.id,
+            motifName: evolution.motifName,
+            eventType,
+            impactScore,
+            thematicSignificance: evolution.thematicSignificance,
+            strengthChange,
+          })
+
+          if (this.config.onHighImpactEvent) {
+            try {
+              this.config.onHighImpactEvent(highImpactEvent)
+            } catch (error) {
+              log.error("high_impact_event_callback_failed", { error: String(error) })
+            }
+          }
+        }
       }
 
       for (const corr of data.correlations || []) {
@@ -320,70 +475,6 @@ Output JSON. If no evolution/correlation, use empty arrays.`
       return newEvolutions
     } catch (error) {
       log.error("motif_evolution_analysis_failed", { error: String(error) })
-      return []
-    }
-  }
-
-  getMotifEvolutions(motifId: string): MotifEvolution[] {
-    return this.evolutions.get(motifId) || []
-  }
-
-  getCharacterCorrelations(characterName: string): MotifCharacterCorrelation[] {
-    return Array.from(this.correlations.values())
-      .flat()
-      .filter((c) => c.characterName === characterName)
-  }
-
-  getMotifCorrelations(motifId: string): MotifCharacterCorrelation[] {
-    return Array.from(this.correlations.values())
-      .flat()
-      .filter((c) => c.motifId === motifId)
-  }
-
-  getVariations(motifId: string): MotifVariation[] {
-    return this.variations.get(motifId) || []
-  }
-
-  async generateMotifVariationSuggestions(motif: Motif, currentChapter: number): Promise<string[]> {
-    const languageModel = await getNovelLanguageModel()
-
-    const evolutionHistory = this.getMotifEvolutions(motif.id)
-      .map((e) => `Ch.${e.triggerChapter}: ${e.fromState} → ${e.toState} (${e.triggerEvent})`)
-      .join("\n")
-
-    const prompt = `Based on this motif's history, suggest 2-3 possible variations or evolutions for future chapters.
-
-MOTIF: ${motif.name}
-TYPE: ${motif.type}
-DESCRIPTION: ${motif.description}
-CURRENT STRENGTH: ${motif.strength}%
-
-EVOLUTION HISTORY:
-${evolutionHistory || "No evolution yet"}
-
-CURRENT CHAPTER: ${currentChapter}
-
-Output JSON array of suggestions:
-[
-  "suggestion 1: description of variation",
-  "suggestion 2: description of variation",
-  "suggestion 3: description of variation"
-]
-
-Suggestions should:
-- Be thematically consistent
-- Offer narrative potential
-- Deepen the motif's significance
-- Create opportunities for character growth`
-
-    try {
-      const result = await generateText({ model: languageModel, prompt })
-      const match = result.text.match(/\[[\s\S]*\]/)
-      if (!match) return []
-
-      return JSON.parse(match[0])
-    } catch (error) {
-      log.error("motif_variation_suggestions_failed", { error: String(error) })
       return []
     }
   }

@@ -6,18 +6,19 @@ import { mkdir } from "fs/promises"
 import { EmbeddingService } from "../learning/embedding-service"
 import type { EmbeddingGenerator } from "../learning/vector-store-interface"
 import type { EnhancedPattern, Archetype, Motif } from "./pattern-miner-enhanced"
+import { getPatternVectorDbPath } from "./novel-config"
 
 const log = Log.create({ service: "pattern-vector-index" })
 
-function getProjectDirectory(): string {
-  try {
-    return Instance.directory
-  } catch {
-    return resolve(process.cwd())
-  }
-}
+// Lazy-initialized database path
+let DB_PATH: string | null = null
 
-const DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/pattern-vectors.db")
+function getDbPath(): string {
+  if (!DB_PATH) {
+    DB_PATH = getPatternVectorDbPath()
+  }
+  return DB_PATH
+}
 
 export const PatternVectorSchema = z.object({
   id: z.string(),
@@ -80,10 +81,11 @@ export class PatternVectorIndex {
     if (this.initialized) return
 
     try {
-      await mkdir(dirname(DB_PATH), { recursive: true })
+      const dbPath = getDbPath()
+      await mkdir(dirname(dbPath), { recursive: true })
 
       const { Database } = await import("bun:sqlite")
-      this.db = new Database(DB_PATH)
+      this.db = new Database(dbPath)
 
       this.db.run(`
         CREATE TABLE IF NOT EXISTS pattern_vectors (
@@ -110,7 +112,7 @@ export class PatternVectorIndex {
 
       this.initialized = true
       log.info("pattern_vector_index_initialized", {
-        path: DB_PATH,
+        path: dbPath,
         dimension: this.config.embeddingDimension,
       })
     } catch (error) {

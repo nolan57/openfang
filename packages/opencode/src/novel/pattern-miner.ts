@@ -8,6 +8,7 @@ import { generateText } from "ai"
 import { Provider } from "../provider/provider"
 import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
+import { getDynamicPatternsPath, getSkillsPath } from "./novel-config"
 
 const log = Log.create({ service: "pattern-miner" })
 
@@ -79,17 +80,6 @@ async function findProjectRoot(startDir: string): Promise<string> {
   throw new Error("Could not find project root")
 }
 
-function getProjectDirectory(): string {
-  try {
-    return Instance.directory
-  } catch {
-    return resolve(process.cwd())
-  }
-}
-
-const DynamicPatternsPath = resolve(getProjectDirectory(), ".opencode/novel/patterns/dynamic-patterns.json")
-const SkillsPath = resolve(getProjectDirectory(), ".opencode/novel/skills")
-
 async function fileExists(path: string): Promise<boolean> {
   try {
     await readFile(path)
@@ -101,7 +91,7 @@ async function fileExists(path: string): Promise<boolean> {
 
 export async function loadDynamicPatterns(): Promise<any[]> {
   try {
-    const path = resolve(DynamicPatternsPath)
+    const path = resolve(getDynamicPatternsPath())
     if (await fileExists(path)) {
       const content = await readFile(path, "utf-8")
       const data = JSON.parse(content)
@@ -145,7 +135,7 @@ Output a JSON list of NEW patterns to add. Return an empty array if none found.`
 
     if (newPatterns.length > 0) {
       // Update Dynamic Patterns File
-      const dynamicPath = resolve(DynamicPatternsPath)
+      const dynamicPath = resolve(getDynamicPatternsPath())
       const existing = (await fileExists(dynamicPath))
         ? JSON.parse(await readFile(dynamicPath, "utf-8"))
         : { patterns: [], version: "1.0" }
@@ -213,7 +203,7 @@ Be conservative - only recommend a skill if the story demonstrates something gen
 
     if (needsSkill && skillInfo.name) {
       const skillContent = await generateSkillContent(context, skillInfo)
-      const fileName = `${SkillsPath}/auto-${Date.now()}.md`
+      const fileName = `${getSkillsPath()}/auto-${Date.now()}.md`
       await writeFile(resolve(fileName), skillContent)
 
       await Skill.reload()

@@ -1,10 +1,90 @@
 import { z } from "zod"
 import { Log } from "../util/log"
 import { mkdir, writeFile, readFile } from "fs/promises"
-import { resolve, dirname } from "path"
+import { resolve, dirname, join } from "path"
 import { Instance } from "../project/instance"
 
 const log = Log.create({ service: "novel-config" })
+
+/**
+ * Get the novel data directory - always uses git root (.opencode/novel/)
+ * This ensures consistent storage location regardless of where command is executed
+ */
+export function getNovelDataDir(): string {
+  try {
+    // Instance.worktree is the git root directory (where .git is located)
+    // Falls back to Instance.directory if not in a git repo
+    const root = Instance.worktree !== "/" ? Instance.worktree : Instance.directory
+    return join(root, ".opencode", "novel")
+  } catch {
+    // Fallback for tests or when Instance context is not available
+    return join(process.cwd(), ".opencode", "novel")
+  }
+}
+
+/**
+ * Path getters for all novel data files
+ * All paths are relative to git root/.opencode/novel/
+ */
+export function getStoryBiblePath(): string {
+  return join(getNovelDataDir(), "state", "story_bible.json")
+}
+
+export function getDynamicPatternsPath(): string {
+  return join(getNovelDataDir(), "patterns", "dynamic-patterns.json")
+}
+
+export function getSkillsPath(): string {
+  return join(getNovelDataDir(), "skills")
+}
+
+export function getSummariesPath(): string {
+  return join(getNovelDataDir(), "summaries")
+}
+
+export function getPanelsPath(): string {
+  return join(getNovelDataDir(), "panels")
+}
+
+export function getReflectionsPath(): string {
+  return join(getNovelDataDir(), "reflections")
+}
+
+export function getNarrativeSkeletonPath(): string {
+  return join(getNovelDataDir(), "narrative_skeleton.json")
+}
+
+export function getNovelConfigPath(): string {
+  return join(getNovelDataDir(), "config", "novel-config.json")
+}
+
+export function getStoryMemoryDbPath(): string {
+  return join(getNovelDataDir(), "data", "story-memory.db")
+}
+
+export function getStoryGraphDbPath(): string {
+  return join(getNovelDataDir(), "data", "story-graph.db")
+}
+
+export function getBranchStorageDbPath(): string {
+  return join(getNovelDataDir(), "data", "branches.db")
+}
+
+export function getPatternVectorDbPath(): string {
+  return join(getNovelDataDir(), "data", "pattern-vectors.db")
+}
+
+export function getProceduralWorldDbPath(): string {
+  return join(getNovelDataDir(), "data", "procedural-world.db")
+}
+
+export function getMotifTrackingPath(): string {
+  return join(getNovelDataDir(), "motif-tracking")
+}
+
+export function getPatternsDirPath(): string {
+  return join(getNovelDataDir(), "patterns")
+}
 
 /**
  * 难度等级配置
@@ -175,7 +255,7 @@ export const DEFAULT_CONFIG: NovelEngineConfig = {
 }
 
 function getConfigPath(): string {
-  return resolve(Instance.directory, ".opencode/novel/config/novel-config.json")
+  return getNovelConfigPath()
 }
 
 /**

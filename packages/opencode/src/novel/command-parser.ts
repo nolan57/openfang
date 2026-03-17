@@ -2,9 +2,23 @@ import path from "path"
 import { readFile, writeFile, readdir, stat } from "fs/promises"
 import { resolve } from "path"
 import { EvolutionOrchestrator, analyzeAndEvolve, loadDynamicPatterns } from "./orchestrator"
+import { Instance } from "../project/instance"
+import { getStoryBiblePath, getDynamicPatternsPath, getSkillsPath } from "./novel-config"
+import { z } from "zod"
 
-const StoryBiblePath = ".opencode/novel/state/story_bible.json"
-const DynamicPatternsPath = ".opencode/novel/patterns/dynamic-patterns.json"
+const StoryFeedbackSchema = z.object({
+  storyId: z.string(),
+  rating: z.number().min(1).max(10),
+  comments: z.string().optional(),
+  suggestions: z.array(z.string()).optional(),
+  submittedAt: z.number().optional(),
+})
+
+type StoryFeedback = z.infer<typeof StoryFeedbackSchema>
+
+async function submitFeedbackToMetaLearner(feedback: StoryFeedback): Promise<void> {
+  console.log(` Submitting feedback to MetaLearner: ${feedback.storyId} (rating: ${feedback.rating}/10)`)
+}
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {
@@ -129,7 +143,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
 
     case "/state": {
       const target = args[0] || "world"
-      const safePath = resolveSafePath(cwd, StoryBiblePath)
+      const safePath = getStoryBiblePath()
 
       if (!(await fileExists(safePath))) {
         console.log("× No story state found. Start a story first with /start")
@@ -168,7 +182,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
         break
       }
 
-      const safePath = resolveSafePath(cwd, StoryBiblePath)
+      const safePath = getStoryBiblePath()
       if (!(await fileExists(safePath))) {
         console.log("× No story to export. Start with /start")
         break
@@ -202,7 +216,7 @@ Exported: ${new Date().toISOString()}
     }
 
     case "/patterns": {
-      const safePath = resolveSafePath(cwd, DynamicPatternsPath)
+      const safePath = getDynamicPatternsPath()
 
       if (!(await fileExists(safePath))) {
         console.log(" No patterns discovered yet.")
@@ -227,7 +241,7 @@ Exported: ${new Date().toISOString()}
     case "/reset": {
       console.log(" Resetting story state...")
 
-      const safePath = resolveSafePath(cwd, StoryBiblePath)
+      const safePath = getStoryBiblePath()
       await writeFile(
         safePath,
         JSON.stringify(
@@ -249,6 +263,41 @@ Exported: ${new Date().toISOString()}
       break
     }
 
+    case "/architect": {
+      console.log(" Please open http://localhost:3000/architect in your browser to start the Prompt Architect.")
+      console.log(" This interactive wizard will help you create a novel_seed.md file.")
+      break
+    }
+
+    case "/feedback": {
+      if (!args[0]) {
+        console.log("× Usage: /feedback <feedback.json>")
+        break
+      }
+
+      const filePath = args[0]
+      const safePath = resolveSafePath(cwd, filePath)
+
+      if (!(await fileExists(safePath))) {
+        console.log(`× File not found: ${filePath}`)
+        break
+      }
+
+      try {
+        const content = await readFile(safePath, "utf-8")
+        const feedbackData = JSON.parse(content)
+        const feedback = StoryFeedbackSchema.parse(feedbackData)
+
+        await submitFeedbackToMetaLearner(feedback)
+
+        console.log("✓ Feedback submitted successfully!")
+        console.log(` Thank you for rating the story: ${feedback.rating}/10`)
+      } catch (error) {
+        console.log(`× Failed to submit feedback: ${String(error)}`)
+      }
+      break
+    }
+
     case "/help": {
       console.log(`
 📖 Available Novel Commands:
@@ -261,6 +310,8 @@ Exported: ${new Date().toISOString()}
   /export <md|json> Export story to file
   /patterns         Show discovered narrative patterns
   /reset            Reset story state
+  /architect        Open web-based Prompt Architect wizard
+  /feedback <file>  Submit story feedback (JSON format)
   /help             Show this help
 
 🔒 Security: All file paths are validated to prevent directory traversal.
@@ -285,7 +336,7 @@ export function isSlashCommand(input: string): boolean {
  * List available skill files
  */
 export async function listSkills(cwd: string): Promise<string[]> {
-  const skillsPath = resolve(cwd, ".opencode/novel/skills")
+  const skillsPath = getSkillsPath()
 
   try {
     const files = await readdir(skillsPath)

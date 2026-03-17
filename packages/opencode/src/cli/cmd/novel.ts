@@ -63,6 +63,9 @@ async function handleStart(args: any) {
       if (error instanceof Error) {
         console.error("Stack:", error.stack)
       }
+    } finally {
+      // Clean up database connections to prevent process hanging
+      await engine.dispose()
     }
   })
 }
@@ -72,9 +75,13 @@ async function handleContinue() {
     const engine = await getOrchestrator()
     const state = engine.getState()
     console.log(`Continuing from Chapter ${state.chapterCount}: ${state.currentChapter || "Untitled"}`)
-    const result = await engine.runNovelCycle("Continue the story from the current state.")
-    console.log("\n ✓ Next chapter generated!")
-    console.log("Preview:", result.substring(0, 150) + "...")
+    try {
+      const result = await engine.runNovelCycle("Continue the story from the current state.")
+      console.log("\n ✓ Next chapter generated!")
+      console.log("Preview:", result.substring(0, 150) + "...")
+    } finally {
+      await engine.dispose()
+    }
   })
 }
 
@@ -95,8 +102,12 @@ async function handleEvolve() {
     const patterns = await loadDynamicPatterns()
     const engine = await getOrchestrator()
     const state = engine.getState()
-    await analyzeAndEvolve(state.fullStory || "", patterns)
-    console.log(" ✓ Evolution complete!")
+    try {
+      await analyzeAndEvolve(state.fullStory || "", patterns)
+      console.log(" ✓ Evolution complete!")
+    } finally {
+      await engine.dispose()
+    }
   })
 }
 
@@ -106,22 +117,26 @@ async function handleState(args: any) {
     const engine = await getOrchestrator()
     const state = engine.getState()
 
-    if (target === "world") {
-      console.log(
-        " World State:",
-        JSON.stringify(
-          {
-            chapter: state.currentChapter,
-            chapterCount: state.chapterCount,
-            characters: Object.keys(state.characters || {}),
-            timestamps: state.timestamps,
-          },
-          null,
-          2,
-        ),
-      )
-    } else {
-      console.log(` State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
+    try {
+      if (target === "world") {
+        console.log(
+          " World State:",
+          JSON.stringify(
+            {
+              chapter: state.currentChapter,
+              chapterCount: state.chapterCount,
+              characters: Object.keys(state.characters || {}),
+              timestamps: state.timestamps,
+            },
+            null,
+            2,
+          ),
+        )
+      } else {
+        console.log(` State for ${target}:`, JSON.stringify(state.characters?.[target], null, 2))
+      }
+    } finally {
+      await engine.dispose()
     }
   })
 }
@@ -132,15 +147,19 @@ async function handleExport(args: any) {
     const engine = await getOrchestrator()
     const state = engine.getState()
 
-    if (format === "json") {
-      await writeFile("novel_export.json", JSON.stringify(state, null, 2))
-      console.log(" ✓ Exported to novel_export.json")
-    } else if (format === "md") {
-      const md = `# Novel Export\n\nChapter: ${state.currentChapter}\n\n${state.fullStory || "No content yet."}`
-      await writeFile("novel_export.md", md)
-      console.log(" ✓ Exported to novel_export.md")
-    } else {
-      console.log("PDF export not implemented yet")
+    try {
+      if (format === "json") {
+        await writeFile("novel_export.json", JSON.stringify(state, null, 2))
+        console.log(" ✓ Exported to novel_export.json")
+      } else if (format === "md") {
+        const md = `# Novel Export\n\nChapter: ${state.currentChapter}\n\n${state.fullStory || "No content yet."}`
+        await writeFile("novel_export.md", md)
+        console.log(" ✓ Exported to novel_export.md")
+      } else {
+        console.log("PDF export not implemented yet")
+      }
+    } finally {
+      await engine.dispose()
     }
   })
 }
@@ -162,8 +181,12 @@ async function handlePatterns() {
 async function handleReset() {
   await bootstrap(process.cwd(), async () => {
     const engine = await getOrchestrator()
-    await engine.reset()
-    console.log(" ✓ Story state reset!")
+    try {
+      await engine.reset()
+      console.log(" ✓ Story state reset!")
+    } finally {
+      await engine.dispose()
+    }
   })
 }
 

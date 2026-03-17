@@ -4,6 +4,7 @@ import { TRAUMA_TAGS, SKILL_CATEGORIES, CHARACTER_STATUS } from "./types"
 import { getNovelLanguageModel } from "./model"
 import { createPromptBuilder, type StoryTone } from "./dynamic-prompt"
 import { novelConfigManager } from "./novel-config"
+import type { DeepenedCharacterProfile } from "./character-deepener"
 
 const log = Log.create({ service: "evolution-rules" })
 
@@ -44,12 +45,16 @@ interface TraumaAward {
 }
 
 export interface ChaosEvent {
-  rollImpact: number // 1-6: 影响方向
-  rollMagnitude: number // 1-6: 变化幅度
+  rollImpact: number
+  rollMagnitude: number
   impact: "positive" | "negative" | "neutral"
   magnitude: "static" | "minor" | "major"
-  narrativeDirection: string // LLM 生成的方向描述
-  generatedEvent?: string // LLM 生成的具体事件
+  narrativeDirection: string
+  generatedEvent?: string
+  structuredEvent?: {
+    type: string
+    targets: string[]
+  } | null
 }
 
 const IMPACT_LABELS: Record<number, ChaosEvent["impact"]> = {
@@ -73,6 +78,18 @@ const MAGNITUDE_LABELS: Record<number, ChaosEvent["magnitude"]> = {
 export class EvolutionRulesEngine {
   private static readonly STRESS_DELTA_LARGE = 20
   private static readonly DIFFICULTY_THRESHOLD_HIGH = 7
+  private static impactBias: Record<string, number> = { positive: 1 / 3, negative: 1 / 3, neutral: 1 / 3 }
+
+  static setImpactBias(bias: Record<string, number>): void {
+    const total = Object.values(bias).reduce((sum, val) => sum + val, 0)
+    if (total > 0) {
+      this.impactBias = {}
+      for (const [key, value] of Object.entries(bias)) {
+        this.impactBias[key] = value / total
+      }
+    }
+    log.info("impact_bias_set", { bias: this.impactBias })
+  }
 
   /**
    * 掷双骰子决定混乱事件
@@ -82,10 +99,22 @@ export class EvolutionRulesEngine {
     const rollImpact = Math.floor(Math.random() * 6) + 1
     const rollMagnitude = Math.floor(Math.random() * 6) + 1
 
-    const impact = IMPACT_LABELS[rollImpact]
+    let impact: ChaosEvent["impact"]
+    const rand = Math.random()
+    let cumulative = 0
+    impact = "neutral"
+
+    for (const [key, value] of Object.entries(this.impactBias)) {
+      cumulative += value
+      if (rand <= cumulative && ["positive", "negative", "neutral"].includes(key)) {
+        impact = key as ChaosEvent["impact"]
+        break
+      }
+    }
+
     const magnitude = MAGNITUDE_LABELS[rollMagnitude]
 
-    log.info("chaos_rolled", { rollImpact, rollMagnitude, impact, magnitude })
+    log.info("chaos_rolled", { rollImpact, rollMagnitude, impact, magnitude, biasApplied: true })
 
     return {
       rollImpact,
@@ -162,24 +191,71 @@ export class EvolutionRulesEngine {
 
       chaosEvent.generatedEvent = result.text.trim()
 
+      chaosEvent.structuredEvent = await this.extractStructuredEvent(chaosEvent.generatedEvent, storyContext.characters)
+
       log.info("chaos_event_generated", {
         rollImpact: chaosEvent.rollImpact,
         rollMagnitude: chaosEvent.rollMagnitude,
         impact: chaosEvent.impact,
         magnitude: chaosEvent.magnitude,
         hasGeneratedEvent: !!chaosEvent.generatedEvent,
+        structuredEventType: chaosEvent.structuredEvent?.type,
       })
     } catch (error) {
       log.warn("chaos_event_generation_failed", { error: String(error) })
       chaosEvent.generatedEvent = `${chaosEvent.impact} impact, ${chaosEvent.magnitude} change (LLM failed)`
+      chaosEvent.structuredEvent = null
     }
 
     return chaosEvent
   }
 
+  private static async extractStructuredEvent(
+    eventText: string,
+    characters: string[],
+  ): Promise<{ type: string; targets: string[] } | null> {
+    try {
+      const prompt = `Analyze this story event and extract structured information.
+
+Event: ${eventText.substring(0, 500)}
+
+Available Characters: ${characters.join(", ")}
+
+Extract:
+1. Event type (one word, e.g., "betrayal", "alliance", "discovery", "confrontation", "escape", "revelation")
+2. Target characters (list of character names from the available characters that are directly affected)
+
+Output JSON only:
+{
+  "type": "event type",
+  "targets": ["character1", "character2"]
+}`
+
+      const languageModel = await getNovelLanguageModel()
+      const result = await generateText({
+        model: languageModel,
+        prompt,
+      })
+
+      const match = result.text.match(/\{[\s\S]*\}/)
+      if (match) {
+        const parsed = JSON.parse(match[0])
+        return {
+          type: parsed.type || "unknown",
+          targets: Array.isArray(parsed.targets) ? parsed.targets : [],
+        }
+      }
+    } catch (error) {
+      log.warn("structured_event_extraction_failed", { error: String(error) })
+    }
+
+    return null
+  }
+
   static async checkStateChanges(
     context: EvolutionContext,
     storyTone?: StoryTone,
+    characterProfiles?: Record<string, DeepenedCharacterProfile>,
   ): Promise<{ skills: SkillAward[]; traumas: TraumaAward[] }> {
     const storyText = context.storySegment
 
@@ -195,7 +271,18 @@ export class EvolutionRulesEngine {
         promptBuilder.withTone(storyTone)
       }
 
-      const prompt = promptBuilder.withVariables({ STORY_SEGMENT: storyText }).build()
+      let prompt = promptBuilder.withVariables({ STORY_SEGMENT: storyText }).build()
+
+      if (characterProfiles && Object.keys(characterProfiles).length > 0) {
+        const characterContext = Object.entries(characterProfiles)
+          .map(
+            ([name, profile]) =>
+              `**${name}**: Core Fear: "${profile.psychologicalProfile.coreFear}", Core Desire: "${profile.psychologicalProfile.coreDesire}"`,
+          )
+          .join("\n")
+
+        prompt += `\n\n=== Character Psychological Profiles ===\n${characterContext}\n\nWhen evaluating skill awards and trauma triggers, consider each character's core fear and desire. A character is more likely to gain skills related to their core desire and receive trauma related to their core fear.`
+      }
 
       const languageModel = await getNovelLanguageModel()
 
@@ -233,7 +320,6 @@ export class EvolutionRulesEngine {
         reason: "LLM semantic analysis",
       }))
 
-      // Use config thresholds instead of hard-coded values
       const difficulty = novelConfigManager.getDifficultyPreset()
       const STRESS_THRESHOLD_CRITICAL = difficulty.stressThresholds.critical
       const STRESS_THRESHOLD_HIGH = difficulty.stressThresholds.high
@@ -256,6 +342,7 @@ export class EvolutionRulesEngine {
         log.info("llm_state_evaluation_complete", {
           skills: skillAwards.length,
           traumas: traumaAwards.length,
+          hasCharacterProfiles: !!characterProfiles,
         })
       }
 

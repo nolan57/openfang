@@ -34,6 +34,8 @@ export const FactionSchema = z.object({
   formedChapter: z.number(),
   dissolvedChapter: z.number().optional(),
   relationships: z.record(z.string(), z.enum(["ally", "enemy", "neutral", "tense", "cooperative"])),
+  lifecycleStage: z.enum(["forming", "stable", "fracturing", "dissolving"]),
+  cohesionHistory: z.array(z.number()).optional(),
 })
 
 export type Faction = z.infer<typeof FactionSchema>
@@ -52,6 +54,9 @@ export interface FactionDetectionResult {
   detectedAt: number
   confidence: number
   unalignedCharacters: string[]
+  newlyFormedFactions: string[]
+  dissolvedFactions: string[]
+  stageChangedFactions: Array<{ id: string; from: string; to: string }>
 }
 
 export interface FactionConfig {
@@ -87,6 +92,9 @@ export class FactionDetector {
 
     const factions: Faction[] = []
     const processedCharacters = new Set<string>()
+    const newlyFormedFactions: string[] = []
+    const dissolvedFactions: string[] = []
+    const stageChangedFactions: Array<{ id: string; from: string; to: string }> = []
 
     for (const component of connectedComponents) {
       if (component.length < this.config.minMembersForFaction) continue
@@ -97,6 +105,12 @@ export class FactionDetector {
       if (cohesion < this.config.cohesionThreshold) continue
 
       const faction = this.createFaction(component, relationships, factionType, cohesion, currentChapter)
+
+      const existingFaction = this.factions.get(faction.name)
+      if (!existingFaction) {
+        newlyFormedFactions.push(faction.id)
+      }
+
       factions.push(faction)
 
       for (const char of component) {
@@ -106,11 +120,26 @@ export class FactionDetector {
 
     for (const existingFaction of this.factions.values()) {
       if (!existingFaction.dissolvedChapter) {
-        const stillActive = this.checkFactionStillActive(existingFaction, relationships)
+        const oldStage = existingFaction.lifecycleStage
+        const stillActive = this.checkFactionStillActive(existingFaction, relationships, currentChapter)
+
         if (!stillActive && !existingFaction.dissolvedChapter) {
           existingFaction.dissolvedChapter = currentChapter
+          existingFaction.lifecycleStage = "dissolving"
           this.factions.set(existingFaction.id, existingFaction)
+          dissolvedFactions.push(existingFaction.id)
           log.info("faction_dissolved", { id: existingFaction.id, name: existingFaction.name })
+        } else if (oldStage !== existingFaction.lifecycleStage) {
+          stageChangedFactions.push({
+            id: existingFaction.id,
+            from: oldStage,
+            to: existingFaction.lifecycleStage,
+          })
+          log.info("faction_stage_changed", {
+            id: existingFaction.id,
+            from: oldStage,
+            to: existingFaction.lifecycleStage,
+          })
         }
       }
     }
@@ -123,8 +152,11 @@ export class FactionDetector {
         type: faction.type,
         members: faction.members.length,
         cohesion: faction.cohesion.toFixed(1),
+        lifecycleStage: faction.lifecycleStage,
       })
     }
+
+    this._inferInterFactionRelationships(factions, relationships)
 
     const unalignedCharacters = characterNames.filter((c) => !processedCharacters.has(c))
 
@@ -135,6 +167,9 @@ export class FactionDetector {
       detectedAt: Date.now(),
       confidence: avgCohesion / 100,
       unalignedCharacters,
+      newlyFormedFactions,
+      dissolvedFactions,
+      stageChangedFactions,
     }
   }
 
@@ -290,6 +325,8 @@ export class FactionDetector {
       publicStance: "public",
       formedChapter: chapter,
       relationships: {},
+      lifecycleStage: "forming",
+      cohesionHistory: [cohesion],
     }
   }
 
@@ -337,10 +374,15 @@ export class FactionDetector {
     return `${members[0]}'s ${typeNames[type]}`
   }
 
-  private checkFactionStillActive(faction: Faction, relationships: Record<string, RelationshipData>): boolean {
+  private checkFactionStillActive(
+    faction: Faction,
+    relationships: Record<string, RelationshipData>,
+    currentChapter: number,
+  ): boolean {
     const activeMembers = faction.members.filter((m) => m.role !== "reluctant")
 
     if (activeMembers.length < this.config.minMembersForFaction) {
+      faction.lifecycleStage = "dissolving"
       return false
     }
 
@@ -349,7 +391,101 @@ export class FactionDetector {
       relationships,
     )
 
-    return cohesion >= this.config.cohesionThreshold
+    if (faction.cohesionHistory) {
+      faction.cohesionHistory.push(cohesion)
+      if (faction.cohesionHistory.length > 5) {
+        faction.cohesionHistory.shift()
+      }
+    } else {
+      faction.cohesionHistory = [cohesion]
+    }
+
+    faction.cohesion = cohesion
+
+    const oldStage = faction.lifecycleStage
+
+    if (cohesion < this.config.cohesionThreshold * 0.5) {
+      faction.lifecycleStage = "dissolving"
+    } else if (cohesion < this.config.cohesionThreshold) {
+      faction.lifecycleStage = "fracturing"
+    } else if (cohesion >= this.config.cohesionThreshold * 1.3 && faction.members.length >= 4) {
+      faction.lifecycleStage = "stable"
+    } else if (oldStage === "forming" && cohesion >= this.config.cohesionThreshold) {
+      faction.lifecycleStage = "stable"
+    }
+
+    const ageInChapters = currentChapter - faction.formedChapter
+    if (ageInChapters < 2 && cohesion >= this.config.cohesionThreshold) {
+      faction.lifecycleStage = "forming"
+    }
+
+    return cohesion >= this.config.cohesionThreshold * 0.5
+  }
+
+  private _inferInterFactionRelationships(factions: Faction[], relationships: Record<string, RelationshipData>): void {
+    for (let i = 0; i < factions.length; i++) {
+      for (let j = i + 1; j < factions.length; j++) {
+        const factionA = factions[i]
+        const factionB = factions[j]
+
+        const crossRelations = this._calculateCrossFactionRelations(factionA, factionB, relationships)
+
+        factionA.relationships[factionB.id] = crossRelations.stance
+        factionB.relationships[factionA.id] = crossRelations.stance
+
+        log.debug("inter_faction_relation_inferred", {
+          factionA: factionA.name,
+          factionB: factionB.name,
+          avgTrust: crossRelations.avgTrust.toFixed(1),
+          avgHostility: crossRelations.avgHostility.toFixed(1),
+          stance: crossRelations.stance,
+        })
+      }
+    }
+  }
+
+  private _calculateCrossFactionRelations(
+    factionA: Faction,
+    factionB: Faction,
+    relationships: Record<string, RelationshipData>,
+  ): { avgTrust: number; avgHostility: number; stance: Faction["relationships"][string] } {
+    let totalTrust = 0
+    let totalHostility = 0
+    let pairCount = 0
+
+    for (const memberA of factionA.members) {
+      for (const memberB of factionB.members) {
+        const key = `${memberA.characterName}-${memberB.characterName}`
+        const reverseKey = `${memberB.characterName}-${memberA.characterName}`
+        const rel = relationships[key] || relationships[reverseKey]
+
+        if (rel) {
+          totalTrust += rel.trust
+          totalHostility += rel.hostility
+          pairCount++
+        }
+      }
+    }
+
+    if (pairCount === 0) {
+      return { avgTrust: 0, avgHostility: 0, stance: "neutral" }
+    }
+
+    const avgTrust = totalTrust / pairCount
+    const avgHostility = totalHostility / pairCount
+
+    let stance: Faction["relationships"][string] = "neutral"
+    if (avgTrust >= 60 && avgHostility < 30) {
+      stance = "ally"
+    } else if (avgHostility >= 50) {
+      stance = "enemy"
+    } else if (avgTrust >= 40 && avgHostility < 40) {
+      stance = "cooperative"
+    } else if (avgHostility >= 30 || avgTrust < 30) {
+      stance = "tense"
+    }
+
+    return { avgTrust, avgHostility, stance }
   }
 
   getFaction(id: string): Faction | undefined {

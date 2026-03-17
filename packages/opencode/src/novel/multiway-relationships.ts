@@ -2,8 +2,14 @@ import { z } from "zod"
 import { Log } from "../util/log"
 import { generateText } from "ai"
 import { getNovelLanguageModel } from "./model"
+import type { DeepenedCharacterProfile } from "./character-deepener"
 
 const log = Log.create({ service: "multiway-relationships" })
+
+export interface StabilitySnapshot {
+  chapter: number
+  stability: number
+}
 
 export const GroupTypeSchema = z.enum([
   "triad",
@@ -76,6 +82,14 @@ export const MultiWayRelationshipSchema = z.object({
       impact: z.string(),
     }),
   ),
+  stabilityHistory: z
+    .array(
+      z.object({
+        chapter: z.number(),
+        stability: z.number(),
+      }),
+    )
+    .optional(),
 })
 
 export type GroupType = z.infer<typeof GroupTypeSchema>
@@ -95,11 +109,18 @@ export interface TriadPattern {
 export class MultiWayRelationshipManager {
   private groups: Map<string, MultiWayRelationship> = new Map()
   private characterGroups: Map<string, Set<string>> = new Map()
+  private stabilityHistoryMaxLength = 10
+  private highRiskCallback?: (groupId: string, group: MultiWayRelationship) => void
+
+  setHighRiskCallback(callback: (groupId: string, group: MultiWayRelationship) => void): void {
+    this.highRiskCallback = callback
+  }
 
   async detectTriads(
     characters: Record<string, any>,
     relationships: Record<string, any>,
     currentChapter: number,
+    characterProfiles?: Record<string, DeepenedCharacterProfile>,
   ): Promise<TriadPattern[]> {
     const charNames = Object.keys(characters)
     const triads: TriadPattern[] = []
@@ -108,7 +129,7 @@ export class MultiWayRelationshipManager {
       for (let j = i + 1; j < charNames.length; j++) {
         for (let k = j + 1; k < charNames.length; k++) {
           const triadChars: [string, string, string] = [charNames[i], charNames[j], charNames[k]]
-          const pattern = await this.analyzeTriad(triadChars, relationships)
+          const pattern = await this.analyzeTriad(triadChars, relationships, characterProfiles)
           if (pattern) {
             triads.push(pattern)
           }
@@ -123,6 +144,7 @@ export class MultiWayRelationshipManager {
   private async analyzeTriad(
     characters: [string, string, string],
     relationships: Record<string, any>,
+    characterProfiles?: Record<string, DeepenedCharacterProfile>,
   ): Promise<TriadPattern | null> {
     const [a, b, c] = characters
 
@@ -141,8 +163,30 @@ export class MultiWayRelationshipManager {
       characters,
       pattern,
       balance,
-      description: this.generateTriadDescription(characters, pattern, relAB, relBC, relAC),
+      description: this.generateTriadDescription(characters, pattern, relAB, relBC, relAC, characterProfiles),
     }
+  }
+
+  private _recordStabilitySnapshot(groupId: string, currentChapter: number): void {
+    const group = this.groups.get(groupId)
+    if (!group) return
+
+    if (!group.stabilityHistory) {
+      group.stabilityHistory = []
+    }
+
+    const currentStability = group.dynamics.stability
+
+    group.stabilityHistory.push({
+      chapter: currentChapter,
+      stability: currentStability,
+    })
+
+    if (group.stabilityHistory.length > this.stabilityHistoryMaxLength) {
+      group.stabilityHistory.shift()
+    }
+
+    this.groups.set(groupId, group)
   }
 
   private getRelationshipValue(relationships: Record<string, any>, charA: string, charB: string): number | null {
@@ -152,6 +196,71 @@ export class MultiWayRelationshipManager {
 
     if (!rel) return null
     return typeof rel.trust === "number" ? rel.trust : null
+  }
+
+  private _checkAndReportHighRisk(groupId: string): void {
+    const group = this.groups.get(groupId)
+    if (!group) return
+
+    const { conflictLevel, stability } = group.dynamics
+
+    if (conflictLevel > 80 && stability < 30) {
+      log.warn("high_risk_group_detected", {
+        groupId,
+        groupName: group.name,
+        conflictLevel,
+        stability,
+        type: group.type,
+        memberCount: group.members.length,
+      })
+
+      if (this.highRiskCallback) {
+        try {
+          this.highRiskCallback(groupId, group)
+        } catch (error) {
+          log.error("high_risk_callback_failed", { error: String(error) })
+        }
+      }
+    }
+  }
+
+  calculateGroupStabilityTrend(groupId: string): "stable" | "improving" | "deteriorating" | "volatile" {
+    const group = this.groups.get(groupId)
+    if (!group || !group.stabilityHistory || group.stabilityHistory.length < 2) {
+      return "stable"
+    }
+
+    const history = group.stabilityHistory
+    const recentHistory = history.slice(-5)
+
+    if (recentHistory.length < 2) {
+      return "stable"
+    }
+
+    const stabilities = recentHistory.map((h) => h.stability)
+    const maxStability = Math.max(...stabilities)
+    const minStability = Math.min(...stabilities)
+    const range = maxStability - minStability
+
+    if (range > 25) {
+      return "volatile"
+    }
+
+    const firstHalf = stabilities.slice(0, Math.floor(stabilities.length / 2))
+    const secondHalf = stabilities.slice(Math.floor(stabilities.length / 2))
+
+    const firstAvg = firstHalf.reduce((sum, v) => sum + v, 0) / firstHalf.length
+    const secondAvg = secondHalf.reduce((sum, v) => sum + v, 0) / secondHalf.length
+
+    const change = secondAvg - firstAvg
+
+    if (change > 5) {
+      return "improving"
+    } else if (change < -5) {
+      return "deteriorating"
+    }
+
+    return "stable"
   }
 
   private calculateBalance(ab: number, bc: number, ac: number): number {
@@ -175,6 +284,7 @@ export class MultiWayRelationshipManager {
     ab: number,
     bc: number,
     ac: number,
+    characterProfiles?: Record<string, DeepenedCharacterProfile>,
   ): string {
     const [a, b, c] = characters
     const patterns: Record<string, string> = {
@@ -183,7 +293,45 @@ export class MultiWayRelationshipManager {
       mediated: `${b} mediates between ${a} and ${c} who have unresolved tension.`,
       competitive: `${a}, ${b}, and ${c} are in competition, with only one positive relationship.`,
     }
-    return patterns[pattern] || `Complex relationship between ${a}, ${b}, and ${c}.`
+
+    let baseDescription = patterns[pattern] || `Complex relationship between ${a}, ${b}, and ${c}.`
+
+    if (characterProfiles) {
+      const profileA = characterProfiles[a]
+      const profileB = characterProfiles[b]
+      const profileC = characterProfiles[c]
+
+      if (pattern === "mediated" && profileB) {
+        const attachmentStyle = profileB.psychologicalProfile?.attachmentStyle
+        if (attachmentStyle === "avoidant") {
+          baseDescription += ` As an avoidant attacher, ${b} struggles to effectively mediate the tension between ${a} and ${c}.`
+        } else if (attachmentStyle === "anxious") {
+          baseDescription += ` ${b}'s anxious attachment makes them over-invested in maintaining harmony between ${a} and ${c}.`
+        } else if (attachmentStyle === "secure") {
+          baseDescription += ` ${b}'s secure attachment enables them to navigate the tension between ${a} and ${c} with emotional balance.`
+        }
+      }
+
+      if (pattern === "unstable" && profileA && profileC) {
+        const fearA = profileA.psychologicalProfile?.coreFear
+        const fearC = profileC.psychologicalProfile?.coreFear
+        if (fearA && fearC) {
+          baseDescription += ` The conflict stems from ${a}'s fear of "${fearA}" clashing with ${c}'s fear of "${fearC}".`
+        }
+      }
+
+      if (pattern === "stable" && profileA && profileB && profileC) {
+        const styles = [profileA, profileB, profileC]
+          .map((p) => p.psychologicalProfile?.attachmentStyle)
+          .filter(Boolean)
+        const secureCount = styles.filter((s) => s === "secure").length
+        if (secureCount >= 2) {
+          baseDescription += ` The group's stability is reinforced by multiple securely-attached members.`
+        }
+      }
+    }
+
+    return baseDescription
   }
 
   async createGroup(
@@ -304,6 +452,11 @@ Output JSON:
     member.influence = newRole === "leader" ? 80 : newRole === "second_in_command" ? 60 : 40
 
     this.groups.set(groupId, group)
+    this._recordStabilitySnapshot(
+      groupId,
+      group.history.length > 0 ? group.history[group.history.length - 1].chapter : 0,
+    )
+    this._checkAndReportHighRisk(groupId)
     log.info("member_role_updated", { groupId, characterName, newRole })
     return true
   }
@@ -339,6 +492,8 @@ Output JSON:
     this.characterGroups.get(characterName)!.add(groupId)
 
     this.groups.set(groupId, group)
+    this._recordStabilitySnapshot(groupId, currentChapter)
+    this._checkAndReportHighRisk(groupId)
     log.info("member_added_to_group", { groupId, characterName, role })
     return true
   }
@@ -360,6 +515,8 @@ Output JSON:
     this.characterGroups.get(characterName)?.delete(groupId)
 
     this.groups.set(groupId, group)
+    this._recordStabilitySnapshot(groupId, currentChapter)
+    this._checkAndReportHighRisk(groupId)
     log.info("member_removed_from_group", { groupId, characterName })
     return true
   }
@@ -390,6 +547,11 @@ Output JSON:
     sourceGroup.relationships.push(relationship)
 
     this.groups.set(sourceGroupId, sourceGroup)
+    this._recordStabilitySnapshot(
+      sourceGroupId,
+      sourceGroup.history.length > 0 ? sourceGroup.history[sourceGroup.history.length - 1].chapter : 0,
+    )
+    this._checkAndReportHighRisk(sourceGroupId)
     log.info("group_relationship_added", { sourceGroupId, targetGroupId, type })
     return true
   }

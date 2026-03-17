@@ -46,6 +46,20 @@ export const LifeEventSchema = z.object({
       skills: z.array(z.string()).optional(),
       relationships: z.record(z.string(), z.number()).optional(),
       status: CharacterStatusSchema.optional(),
+      trauma: z
+        .object({
+          name: z.string(),
+          severity: z.number().min(1).max(10),
+          tags: z.array(z.string()).optional(),
+        })
+        .optional(),
+      skillGained: z
+        .object({
+          name: z.string(),
+          category: z.string(),
+          level: z.number().optional(),
+        })
+        .optional(),
     })
     .optional(),
 })

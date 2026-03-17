@@ -68,6 +68,8 @@ describe("NovelObservability", () => {
         thematicRelevance: 6,
       },
       selected: false,
+      events: [],
+      structuredState: {},
     })
 
     const metrics = await observability.collectMetrics(
@@ -122,6 +124,8 @@ describe("NovelObservability", () => {
           thematicRelevance: 1,
         },
         selected: false,
+        events: [],
+        structuredState: {},
       })
     }
 

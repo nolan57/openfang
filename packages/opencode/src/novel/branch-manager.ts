@@ -27,6 +27,16 @@ export const BranchSchema = z.object({
   mergedInto: z.string().optional(),
   pruned: z.boolean().optional(),
   pruneReason: z.string().optional(),
+  events: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.string(),
+        description: z.string(),
+      }),
+    )
+    .default([]),
+  structuredState: z.record(z.string(), z.any()).default({}),
 })
 
 export type Branch = z.infer<typeof BranchSchema>
@@ -43,6 +53,18 @@ export interface BranchMergeResult {
   targetBranchId?: string
   reason?: string
   similarity?: number
+}
+
+export interface LearnedConfigPatch {
+  storyTypeWeights?: {
+    narrativeQuality?: number
+    tensionLevel?: number
+    characterDevelopment?: number
+    plotProgression?: number
+    characterGrowth?: number
+    riskReward?: number
+    thematicRelevance?: number
+  }
 }
 
 const DEFAULT_PRUNING_CONFIG: BranchPruningConfig = {
@@ -86,8 +108,9 @@ export class BranchManager {
     return this.getAllBranches().filter((b) => b.selected)
   }
 
-  calculateBranchScore(branch: Branch): number {
-    const weights = novelConfigManager.getStoryTypeWeights()
+  calculateBranchScore(branch: Branch, overrideWeights?: Partial<LearnedConfigPatch["storyTypeWeights"]>): number {
+    const baseWeights = novelConfigManager.getStoryTypeWeights()
+    const weights = overrideWeights ? { ...baseWeights, ...overrideWeights } : baseWeights
 
     return (
       branch.evaluation.narrativeQuality * weights.narrativeQuality +
@@ -100,7 +123,7 @@ export class BranchManager {
     )
   }
 
-  pruneBranches(currentChapter: number): Branch[] {
+  pruneBranches(currentChapter: number, metaWeights?: Partial<LearnedConfigPatch["storyTypeWeights"]>): Branch[] {
     const allBranches = this.getAllBranches()
     const prunedBranches: Branch[] = []
 
@@ -117,7 +140,7 @@ export class BranchManager {
       })
       .map((b) => ({
         branch: b,
-        score: this.calculateBranchScore(b),
+        score: this.calculateBranchScore(b, metaWeights),
       }))
       .sort((a, b) => a.score - b.score)
 
@@ -233,15 +256,18 @@ export class BranchManager {
     }
   }
 
-  autoMergeSimilarBranches(threshold: number = 0.85): BranchMergeResult[] {
+  autoMergeSimilarBranches(
+    threshold: number = 0.85,
+    metaWeights?: Partial<LearnedConfigPatch["storyTypeWeights"]>,
+  ): BranchMergeResult[] {
     const similarities = this.detectSimilarBranches(threshold)
     const results: BranchMergeResult[] = []
 
     for (const [a, b, similarity] of similarities) {
       if (a.pruned || b.pruned) continue
 
-      const scoreA = this.calculateBranchScore(a)
-      const scoreB = this.calculateBranchScore(b)
+      const scoreA = this.calculateBranchScore(a, metaWeights)
+      const scoreB = this.calculateBranchScore(b, metaWeights)
 
       const [source, target] = scoreA >= scoreB ? [b, a] : [a, b]
 
@@ -288,7 +314,12 @@ export class BranchManager {
     return path
   }
 
-  getStats(): {
+  getEventsByBranchId(branchId: string): Branch["events"] {
+    const branch = this.branches.get(branchId)
+    return branch?.events || []
+  }
+
+  getStats(metaWeights?: Partial<LearnedConfigPatch["storyTypeWeights"]>): {
     total: number
     active: number
     pruned: number
@@ -298,7 +329,7 @@ export class BranchManager {
   } {
     const all = Array.from(this.branches.values())
     const active = all.filter((b) => !b.pruned)
-    const scores = active.map((b) => this.calculateBranchScore(b))
+    const scores = active.map((b) => this.calculateBranchScore(b, metaWeights))
 
     return {
       total: all.length,

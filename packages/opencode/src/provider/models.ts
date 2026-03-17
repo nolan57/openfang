@@ -86,16 +86,53 @@ export namespace ModelsDev {
   }
 
   export const Data = lazy(async () => {
+    log.info("Data_loading_started", { stage: "begin" })
+    
+    // Step 1: Try to read from cache file
+    log.info("Data_trying_cache", { filepath: Flag.OPENCODE_MODELS_PATH ?? filepath })
     const result = await Filesystem.readJson(Flag.OPENCODE_MODELS_PATH ?? filepath).catch(() => {})
-    if (result) return result
+    if (result) {
+      log.info("Data_loaded_from_cache", { stage: "cache_success" })
+      return result
+    }
+    log.info("Data_cache_miss", { stage: "cache_failed" })
+    
+    // Step 2: Try to load bundled snapshot
+    log.info("Data_trying_snapshot", { stage: "snapshot_start" })
     // @ts-ignore
     const snapshot = await import("./models-snapshot")
       .then((m) => m.snapshot as Record<string, unknown>)
       .catch(() => undefined)
-    if (snapshot) return snapshot
-    if (Flag.OPENCODE_DISABLE_MODELS_FETCH) return {}
-    const json = await fetch(`${url()}/api.json`).then((x) => x.text())
-    return JSON.parse(json)
+    if (snapshot) {
+      log.info("Data_loaded_from_snapshot", { stage: "snapshot_success" })
+      return snapshot
+    }
+    log.info("Data_snapshot_miss", { stage: "snapshot_failed" })
+    
+    // Step 3: Check if fetch is disabled
+    if (Flag.OPENCODE_DISABLE_MODELS_FETCH) {
+      log.info("Data_fetch_disabled", { stage: "fetch_disabled" })
+      return {}
+    }
+    
+    // Step 4: Fetch from remote - THIS IS THE POTENTIAL HANG POINT
+    const fetchUrl = `${url()}/api.json`
+    log.info("Data_fetching_remote", { stage: "fetch_start", url: fetchUrl })
+    console.log("[DEBUG] ModelsDev: Starting fetch to", fetchUrl)
+    
+    const fetchStartTime = Date.now()
+    try {
+      const json = await fetch(fetchUrl).then((x) => x.text())
+      const fetchDuration = Date.now() - fetchStartTime
+      log.info("Data_fetch_complete", { stage: "fetch_success", duration_ms: fetchDuration })
+      console.log("[DEBUG] ModelsDev: Fetch completed in", fetchDuration, "ms")
+      return JSON.parse(json)
+    } catch (error) {
+      const fetchDuration = Date.now() - fetchStartTime
+      log.error("Data_fetch_failed", { stage: "fetch_error", duration_ms: fetchDuration, error: String(error) })
+      console.log("[DEBUG] ModelsDev: Fetch failed after", fetchDuration, "ms:", error)
+      throw error
+    }
   })
 
   export async function get() {

@@ -3,18 +3,19 @@ import { Log } from "../util/log"
 import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
+import { getProceduralWorldDbPath } from "./novel-config"
 
 const log = Log.create({ service: "procedural-world" })
 
-function getProjectDirectory(): string {
-  try {
-    return Instance.directory
-  } catch {
-    return resolve(process.cwd())
-  }
-}
+// Lazy-initialized database path
+let WORLD_DB_PATH: string | null = null
 
-const WORLD_DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/procedural-world.db")
+function getDbPath(): string {
+  if (!WORLD_DB_PATH) {
+    WORLD_DB_PATH = getProceduralWorldDbPath()
+  }
+  return WORLD_DB_PATH
+}
 
 export const RegionTypeSchema = z.enum([
   "city",

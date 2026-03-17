@@ -9,7 +9,13 @@ import { CharacterDeepener } from "./character-deepener"
 import { mkdir } from "fs/promises"
 import { Instance } from "../project/instance"
 import { stateAuditor } from "../middleware/state-auditor"
-import { novelConfigManager } from "./novel-config"
+import {
+  novelConfigManager,
+  getStoryBiblePath,
+  getDynamicPatternsPath,
+  getSkillsPath,
+  getSummariesPath,
+} from "./novel-config"
 import {
   createNarrativeSkeleton,
   loadNarrativeSkeleton,
@@ -35,22 +41,6 @@ import { RelationshipInertiaManager, relationshipInertiaManager } from "./relati
 
 const log = Log.create({ service: "novel-orchestrator" })
 
-function getStoryBiblePath() {
-  return join(Instance.directory, ".opencode/novel/state/story_bible.json")
-}
-
-function getDynamicPatternsPath() {
-  return join(Instance.directory, ".opencode/novel/patterns/dynamic-patterns.json")
-}
-
-function getSkillsPath() {
-  return join(Instance.directory, ".opencode/novel/skills")
-}
-
-function getSummariesPath() {
-  return join(Instance.directory, ".opencode/novel/summaries")
-}
-
 interface ChaosResult {
   roll: number
   event: string
@@ -61,20 +51,22 @@ interface ChaosResult {
 interface StoryBranch {
   id: string
   storySegment: string
-  branchPoint: string // 分支点描述
-  choiceMade: string // 选择的行动
-  choiceRationale: string // 选择的原因分析
+  branchPoint: string
+  choiceMade: string
+  choiceRationale: string
   stateAfter: StoryState
   evaluation: {
     narrativeQuality: number
     tensionLevel: number
     characterDevelopment: number
     plotProgression: number
-    characterGrowth: number // 角色成长潜力
-    riskReward: number // 风险/回报比
-    thematicRelevance: number // 主题相关性
+    characterGrowth: number
+    riskReward: number
+    thematicRelevance: number
   }
   selected: boolean
+  events?: Array<{ id: string; type: string; description: string }>
+  structuredState?: Record<string, any>
 }
 
 interface CurrentChapter {
@@ -251,9 +243,20 @@ export class EvolutionOrchestrator {
         memory: "story-memory.db",
         graph: "story-graph.db",
         branches: "branches.db",
+        motif: "motif-tracking/",
       })
     } catch (error) {
-      log.warn("advanced_modules_init_failed", { error: String(error) })
+      log.error("advanced_modules_init_failed", { error: String(error) })
+
+      const initStatus = {
+        storyWorldMemory: (this.storyWorldMemory as any).initialized,
+        storyKnowledgeGraph: (this.storyKnowledgeGraph as any).initialized,
+        branchStorage: (this.branchStorage as any).initialized,
+        motifTracker: (this.motifTracker as any).initialized,
+      }
+      log.error("advanced_modules_init_status", initStatus)
+
+      throw new Error(`Advanced modules initialization failed: ${String(error)}`)
     }
   }
 
@@ -453,6 +456,8 @@ Output JSON array:
         stateAfter: { ...baseState },
         evaluation,
         selected: false,
+        events: [],
+        structuredState: {},
       })
     }
 
@@ -757,14 +762,19 @@ Output JSON:
   }
 
   async runNovelCycle(promptContent: string, useBranches: boolean = false): Promise<string> {
-    log.info("cycle_started", {
+    const cycleStart = Date.now()
+    log.info("novel_cycle_start", {
       chapter: this.storyState.chapterCount + 1,
       useBranches,
+      timestamp: new Date().toISOString(),
     })
     this.log(`\nStarting Chapter ${this.storyState.chapterCount + 1}...`)
 
     // Initialize advanced modules (databases)
+    this.log(`   [DEBUG] Initializing advanced modules...`)
+    const initStart = Date.now()
     await this.initializeAdvancedModules()
+    this.log(`   [DEBUG] Advanced modules initialized in ${Date.now() - initStart}ms`)
 
     await this.ensureNarrativeSkeleton(promptContent)
 
@@ -775,11 +785,14 @@ Output JSON:
     const chaosEvent = EvolutionRulesEngine.rollChaos()
 
     // 动态生成具体事件
+    this.log(`   [DEBUG] Generating chaos event with LLM...`)
+    const chaosStart = Date.now()
     const chaosEventWithDetail = await EvolutionRulesEngine.generateChaosEventWithLLM(chaosEvent, {
       currentStory: promptContent,
       characters: Object.keys(this.storyState.characters || {}),
       recentEvents: this.storyState.world?.events || [],
     })
+    this.log(`   [DEBUG] Chaos event generated in ${Date.now() - chaosStart}ms`)
 
     const chaosResult: ChaosResult = {
       roll: chaosEventWithDetail.rollImpact,
@@ -829,6 +842,8 @@ Output JSON:
             selected: branch === selectedBranch,
             createdAt: Date.now(),
             chapter: this.storyState.chapterCount + 1,
+            events: branch.events || [],
+            structuredState: branch.structuredState || {},
           })
         }
         this.log(`   Stored ${allBranches.length} branches`)
@@ -840,14 +855,20 @@ Output JSON:
       this.storyState = selectedBranch.stateAfter
     } else {
       // Original single-story generation
-      this.log(`   Generating story...`)
+      this.log(`   [DEBUG] Generating story with LLM...`)
+      const storyStart = Date.now()
       storySegment = await this.generateWithLLM(promptContent, elements, chaosResult)
+      this.log(`   [DEBUG] Story generated in ${Date.now() - storyStart}ms`, {
+        length: storySegment.length,
+      })
       this.log(`   Generated ${storySegment.length} chars`)
 
-      this.log(`   Extracting state changes...`)
-      log.info("extracting_state_changes")
+      this.log(`   [DEBUG] Extracting state changes...`)
+      const extractStart = Date.now()
       const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
-      this.log(`   Extracted: ${Object.keys(stateUpdates.characters || {}).length} characters updated`)
+      this.log(`   [DEBUG] State extracted in ${Date.now() - extractStart}ms`, {
+        charactersUpdated: Object.keys(stateUpdates.characters || {}).length,
+      })
 
       this.storyState = this.stateExtractor.applyUpdates(this.storyState, stateUpdates)
       log.info("state_changes_applied", {
@@ -870,6 +891,32 @@ Output JSON:
         }
         this.log(`   Extracted ${Object.keys(mindModels).length} mind models`)
       }
+    }
+
+    // 【新增】如果仍然没有角色，从故事文本中提取
+    if (Object.keys(this.storyState.characters).length === 0) {
+      this.log(`   [DEBUG] No characters found, extracting from story...`)
+      const charExtractStart = Date.now()
+      const extractedCharacters = await this.extractCharactersFromStory(storySegment)
+      this.log(`   [DEBUG] Character extraction completed in ${Date.now() - charExtractStart}ms`, {
+        count: extractedCharacters.length,
+        names: extractedCharacters.slice(0, 5),
+      })
+      for (const charName of extractedCharacters) {
+        if (!this.storyState.characters[charName]) {
+          this.storyState.characters[charName] = {
+            traits: [],
+            stress: 0,
+            status: "active",
+            trauma: [],
+            skills: [],
+            secrets: [],
+            clues: [],
+            notes: "",
+          }
+        }
+      }
+      this.log(`   Extracted ${extractedCharacters.length} characters from story text`)
     }
 
     // Extract title from generated content
@@ -1033,15 +1080,14 @@ Output JSON:
       try {
         this.endGameDetector.updateStoryMetrics({
           totalChapters: this.storyState.chapterCount,
-          resolvedArcs: this.storyState.narrativeSkeleton?.storyLines?.filter(
-            (s: any) => s.status === "completed",
-          ).length || 0,
+          resolvedArcs:
+            this.storyState.narrativeSkeleton?.storyLines?.filter((s: any) => s.status === "completed").length || 0,
           totalArcs: this.storyState.narrativeSkeleton?.storyLines?.length || 1,
           thematicCoverage: 70,
           resolvedConflicts: 0,
           totalConflicts: Object.keys(this.storyState.relationships || {}).length,
         })
-        const endGameReport = this.endGameDetector.checkCompletion()
+        const endGameReport = await this.endGameDetector.checkCompletion()
         if (endGameReport.isComplete) {
           this.log(`   *** Story completion detected! Score: ${endGameReport.completionScore.toFixed(1)}% ***`)
         }
@@ -1078,10 +1124,32 @@ Output JSON:
       }
     }
 
+    this.log(`   [DEBUG] Saving story state...`)
+    const saveStart = Date.now()
     await this.saveState()
+    this.log(`   [DEBUG] Story state saved in ${Date.now() - saveStart}ms`)
+
+    this.log(`   [DEBUG] Saving turn summary...`)
+    const summaryStart = Date.now()
     await this.saveTurnSummary(stateUpdates, chaosResult)
+    this.log(`   [DEBUG] Turn summary saved in ${Date.now() - summaryStart}ms`)
 
     // Generate visual panels using dedicated visual orchestrator
+    // Write debug log to file (guaranteed to work even if console is suppressed)
+    const debugLogPath = "/tmp/novel_visual_debug.log"
+    const timestamp = new Date().toISOString()
+    await import("fs/promises").then(({ appendFile }) =>
+      appendFile(
+        debugLogPath,
+        `[${timestamp}] Chapter ${this.storyState.chapterCount}: Starting visual panels, chars=${Object.keys(this.storyState.characters).length}\n`,
+      ),
+    )
+
+    console.log(`\n[VISUAL PANEL DEBUG] Starting visual panel generation for chapter ${this.storyState.chapterCount}`)
+    console.log(`[VISUAL PANEL DEBUG] Character count: ${Object.keys(this.storyState.characters).length}`)
+    console.log(`[VISUAL PANEL DEBUG] Story segment length: ${storySegment.length}`)
+
+    this.log(`   [DEBUG] Preparing visual panel generation...`)
     const visualInput: VisualGenerationInput = {
       storySegment,
       characters: this.storyState.characters,
@@ -1090,15 +1158,44 @@ Output JSON:
       currentChapterTitle: this.storyState.currentChapter?.title,
     }
 
+    this.log(`   [DEBUG] Character count for visual: ${Object.keys(this.storyState.characters).length}`)
+    this.log(`   [DEBUG] Story segment length: ${storySegment.length}`)
+
+    console.log(`[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...`)
+    const visualStart = Date.now()
     const { panels, savedPath } = await generateAndSaveVisualPanels(visualInput, {
       maxPanels: 4,
       defaultStyle: "realistic",
       verbose: this.verbose,
     })
+    const visualDuration = Date.now() - visualStart
+    console.log(`[VISUAL PANEL DEBUG] Visual panels completed in ${visualDuration}ms`)
+    console.log(`[VISUAL PANEL DEBUG] Panel count: ${panels.length}`)
+    console.log(`[VISUAL PANEL DEBUG] Saved path: ${savedPath}\n`)
+
+    this.log(`   [DEBUG] Visual panels completed in ${visualDuration}ms`, {
+      panelCount: panels.length,
+      savedPath,
+      hasCharacters: Object.keys(this.storyState.characters).length > 0,
+    })
 
     if (panels.length > 0) {
-      this.log(`   Generated ${panels.length} visual panels${savedPath ? ` -> ${savedPath}` : ""}`)
+      this.log(
+        `   Generated ${panels.length} visual panels in ${visualDuration}ms${savedPath ? ` -> ${savedPath}` : ""}`,
+      )
+    } else {
+      this.log(`   [WARN] No visual panels generated (duration: ${visualDuration}ms)`)
     }
+
+    const totalDuration = Date.now() - cycleStart
+    log.info("novel_cycle_completed", {
+      chapter: this.storyState.chapterCount,
+      totalDurationMs: totalDuration,
+      storyLength: storySegment.length,
+      characterCount: Object.keys(this.storyState.characters).length,
+      panelCount: panels?.length || 0,
+    })
+    this.log(`   [DEBUG] Chapter ${this.storyState.chapterCount} completed in ${totalDuration}ms`)
 
     return storySegment
   }
@@ -1301,6 +1398,35 @@ Generate only the title, nothing else:`
     return `第${this.storyState.chapterCount}章`
   }
 
+  /**
+   * Extract character names from story text using LLM
+   */
+  private async extractCharactersFromStory(content: string): Promise<string[]> {
+    try {
+      const prompt = `Analyze this story segment and extract ALL character names (both proper names and role descriptions like "the detective", "the old man", etc):
+
+${content.substring(0, 2000)}
+
+Output JSON array of character names: ["name1", "name2", ...]
+
+If no clear characters are found, return an empty array [].`
+
+      const result = await callLLM({
+        prompt,
+        callType: "character_extraction",
+      })
+
+      const match = result.text.match(/\[[\s\S]*\]/)
+      if (match) {
+        const names = JSON.parse(match[0])
+        return Array.isArray(names) ? names : []
+      }
+    } catch (error) {
+      log.warn("character_extraction_failed", { error: String(error) })
+    }
+    return []
+  }
+
   getState(): StoryState {
     return this.storyState
   }
@@ -1319,6 +1445,24 @@ Generate only the title, nothing else:`
     }
     await this.saveState()
     log.info("state_reset")
+  }
+
+  /**
+   * Dispose all resources (database connections)
+   * Must be called before process exit to prevent hanging
+   */
+  async dispose(): Promise<void> {
+    try {
+      if (this.advancedModulesInitialized) {
+        this.storyWorldMemory.close()
+        this.storyKnowledgeGraph.close()
+        this.branchStorage.close()
+        this.advancedModulesInitialized = false
+        log.info("orchestrator_disposed")
+      }
+    } catch (error) {
+      log.warn("dispose_error", { error: String(error) })
+    }
   }
 
   private async saveTurnSummary(stateUpdates: any, chaosResult: ChaosResult): Promise<void> {

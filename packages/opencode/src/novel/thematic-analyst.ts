@@ -5,19 +5,9 @@ import { generateText } from "ai"
 import { Log } from "../util/log"
 import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
+import { getSummariesPath, getReflectionsPath, getStoryBiblePath } from "./novel-config"
 
 const log = Log.create({ service: "thematic-analyst" })
-
-function getProjectDirectory(): string {
-  try {
-    return Instance.directory
-  } catch {
-    return resolve(process.cwd())
-  }
-}
-
-const SummariesPath = resolve(getProjectDirectory(), ".opencode/novel/summaries")
-const ReflectionsPath = resolve(getProjectDirectory(), ".opencode/novel/reflections")
 
 interface ThematicReflection {
   turnNumber: number
@@ -106,17 +96,18 @@ export async function runThematicReflection(turnNumber: number, theme: string): 
 async function loadTurnSummaries(currentTurn: number): Promise<string[]> {
   const summaries: string[] = []
   const recentTurns = Math.min(10, currentTurn)
+  const summariesPath = getSummariesPath()
 
   try {
-    if (await fileExists(SummariesPath)) {
-      const files = await readdir(SummariesPath)
+    if (await fileExists(summariesPath)) {
+      const files = await readdir(summariesPath)
       const turnFiles = files
         .filter((f) => f.includes("turn_") && f.endsWith(".md"))
         .sort()
         .slice(-recentTurns)
 
       for (const file of turnFiles) {
-        const content = await readFile(join(SummariesPath, file), "utf-8")
+        const content = await readFile(join(summariesPath, file), "utf-8")
         summaries.push(content)
       }
     }
@@ -130,7 +121,7 @@ async function loadTurnSummaries(currentTurn: number): Promise<string[]> {
 
 async function loadFullStory(): Promise<string> {
   try {
-    const storyBiblePath = resolve(getProjectDirectory(), ".opencode/novel/story_bible.json")
+    const storyBiblePath = getStoryBiblePath()
     if (await fileExists(storyBiblePath)) {
       const content = await readFile(storyBiblePath, "utf-8")
       const data = JSON.parse(content)
@@ -336,7 +327,8 @@ function generateWarnings(analysis: ThematicReflection["analysis"]): string[] {
 
 async function saveReflection(reflection: ThematicReflection): Promise<void> {
   try {
-    const path = resolve(ReflectionsPath, `reflection_turn_${reflection.turnNumber}.json`)
+    const reflectionsPath = getReflectionsPath()
+    const path = resolve(reflectionsPath, `reflection_turn_${reflection.turnNumber}.json`)
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, JSON.stringify(reflection, null, 2))
     log.info("reflection_saved", { turn: reflection.turnNumber })
@@ -347,7 +339,8 @@ async function saveReflection(reflection: ThematicReflection): Promise<void> {
 
 async function saveReflectionMarkdown(reflection: ThematicReflection): Promise<void> {
   try {
-    const path = resolve(ReflectionsPath, `reflection_turn_${reflection.turnNumber}.md`)
+    const reflectionsPath = getReflectionsPath()
+    const path = resolve(reflectionsPath, `reflection_turn_${reflection.turnNumber}.md`)
     await mkdir(dirname(path), { recursive: true })
 
     const md = `# Thematic Reflection - Turn ${reflection.turnNumber}
@@ -443,7 +436,8 @@ ${reflection.recommendations.warnings.map((w) => `⚠️ ${w}`).join("\n") || "N
 
 export async function loadPreviousReflection(turnNumber: number): Promise<ThematicReflection | null> {
   try {
-    const path = resolve(ReflectionsPath, `reflection_turn_${turnNumber}.json`)
+    const reflectionsPath = getReflectionsPath()
+    const path = resolve(reflectionsPath, `reflection_turn_${turnNumber}.json`)
     if (await fileExists(path)) {
       const content = await readFile(path, "utf-8")
       return JSON.parse(content)
@@ -456,8 +450,9 @@ export async function loadPreviousReflection(turnNumber: number): Promise<Themat
 
 export async function getLatestReflectionTurn(): Promise<number> {
   try {
-    if (await fileExists(ReflectionsPath)) {
-      const files = await readdir(ReflectionsPath)
+    const reflectionsPath = getReflectionsPath()
+    if (await fileExists(reflectionsPath)) {
+      const files = await readdir(reflectionsPath)
       const reflectionFiles = files.filter((f) => f.startsWith("reflection_turn_") && f.endsWith(".json"))
 
       if (reflectionFiles.length > 0) {

@@ -3,23 +3,16 @@ import { Log } from "../util/log"
 import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
+import { getStoryGraphDbPath } from "./novel-config"
 
 const log = Log.create({ service: "story-knowledge-graph" })
-
-function getProjectDirectory(): string {
-  try {
-    return Instance.directory
-  } catch {
-    return resolve(process.cwd())
-  }
-}
 
 // Lazy-initialized database path
 let GRAPH_DB_PATH: string | null = null
 
 function getDbPath(): string {
   if (!GRAPH_DB_PATH) {
-    GRAPH_DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/story-graph.db")
+    GRAPH_DB_PATH = getStoryGraphDbPath()
   }
   return GRAPH_DB_PATH
 }

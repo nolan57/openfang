@@ -30,6 +30,8 @@ describe("BranchStorage", () => {
     selected: false,
     createdAt: Date.now(),
     chapter,
+    events: [],
+    structuredState: {},
   })
 
   test("initializes database", async () => {

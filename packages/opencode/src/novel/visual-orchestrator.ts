@@ -1,7 +1,7 @@
 import { Log } from "../util/log"
 import { writeFile, mkdir } from "fs/promises"
 import { resolve, join } from "path"
-import { Instance } from "../project/instance"
+import { getPanelsPath } from "./novel-config"
 import { buildPanelSpecWithHybridEngine, initVisualPromptEngineer } from "./visual-prompt-engineer"
 import type { VisualPanelSpec } from "./types"
 
@@ -61,18 +61,47 @@ export async function generateVisualPanels(
   input: VisualGenerationInput,
   options: VisualOrchestratorOptions = {},
 ): Promise<VisualPanelSpec[]> {
+  const panelStart = Date.now()
   const { maxPanels = 4, defaultStyle = "realistic", verbose = false } = options
+
+  log.info("visual_panel_generation_start", {
+    chapterCount: input.chapterCount,
+    characterCount: Object.keys(input.characters).length,
+    storySegmentLength: input.storySegment.length,
+  })
 
   try {
     // Initialize visual config if not already loaded
+    const initStart = Date.now()
     await initVisualPromptEngineer()
+    log.info("visual_prompt_engineer_initialized", {
+      durationMs: Date.now() - initStart,
+    })
 
     // Extract character states for visual generation
+    const extractStart = Date.now()
     const characterStates = extractCharacterStates(input.characters)
+    log.info("character_states_extracted", {
+      count: characterStates.length,
+      durationMs: Date.now() - extractStart,
+    })
 
+    // 【修改】即使没有角色，也生成场景面板
     if (characterStates.length === 0) {
-      log.warn("no_characters_found_for_visual_generation")
-      return []
+      log.warn("no_characters_found_generating_scene_panels", {
+        chapterCount: input.chapterCount,
+        storySegmentLength: input.storySegment.length,
+      })
+
+      // 降级：生成纯场景/环境面板，使用相同的风格配置
+      const sceneStart = Date.now()
+      const scenePanels = await generateSceneOnlyPanels(input, maxPanels, defaultStyle)
+      log.info("scene_only_panels_generated", {
+        count: scenePanels.length,
+        durationMs: Date.now() - sceneStart,
+        totalDurationMs: Date.now() - panelStart,
+      })
+      return scenePanels
     }
 
     // Split story into segments for panels
@@ -86,9 +115,10 @@ export async function generateVisualPanels(
     const panels: VisualPanelSpec[] = []
 
     for (let i = 0; i < panelCount; i++) {
+      const panelGenStart = Date.now()
       const startIdx = i * step
       const endIdx = Math.min(startIdx + step, sentences.length)
-      const panelText = sentences.slice(startIdx, endIdx).join("。")
+      const panelText = sentences.slice(startIdx, endIdx).join(".")
 
       // Get main character for this panel
       const mainChar = characterStates[0]
@@ -123,16 +153,27 @@ export async function generateVisualPanels(
 
       // Use hybrid engine
       const { panel, detectedAction } = await buildPanelSpecWithHybridEngine(context, i)
-      panels.push(panel)
+      const panelDuration = Date.now() - panelGenStart
+      log.info("panel_generated", {
+        index: i + 1,
+        action: detectedAction,
+        durationMs: panelDuration,
+      })
 
-      if (verbose) {
-        log.info("panel_generated", { index: i + 1, action: detectedAction })
-      }
+      panels.push(panel)
     }
+
+    log.info("visual_panels_generated", {
+      count: panels.length,
+      totalDurationMs: Date.now() - panelStart,
+    })
 
     return panels
   } catch (error) {
-    log.error("visual_panel_generation_failed", { error: String(error) })
+    log.error("visual_panel_generation_failed", {
+      error: String(error),
+      durationMs: Date.now() - panelStart,
+    })
     return []
   }
 }
@@ -149,15 +190,19 @@ export async function generateVisualPanels(
  * @returns Path to saved file, or null if failed
  */
 export async function saveVisualPanels(panels: VisualPanelSpec[], chapterCount: number): Promise<string | null> {
+  const saveStart = Date.now()
+
   if (panels.length === 0) {
+    log.warn("no_panels_to_save", { chapterCount, durationMs: Date.now() - saveStart })
     return null
   }
 
+  const fileName = `chapter_${chapterCount.toString().padStart(3, "0")}_panels.json`
+
   try {
-    const panelsDir = join(Instance.directory, ".opencode/novel/panels")
+    const panelsDir = getPanelsPath()
     await mkdir(panelsDir, { recursive: true })
 
-    const fileName = `chapter_${chapterCount.toString().padStart(3, "0")}_panels.json`
     const filePath = resolve(panelsDir, fileName)
 
     await writeFile(
@@ -167,16 +212,30 @@ export async function saveVisualPanels(panels: VisualPanelSpec[], chapterCount: 
           panels,
           chapter: chapterCount,
           generatedAt: new Date().toISOString(),
+          panelCount: panels.length,
+          hasCharacters: panels.some((p) => p.controlNetSignals?.characterRefUrl !== null),
         },
         null,
         2,
       ),
     )
 
-    log.info("visual_panels_saved", { fileName, panelCount: panels.length })
+    const saveDuration = Date.now() - saveStart
+    log.info("visual_panels_saved", {
+      fileName,
+      panelCount: panels.length,
+      path: filePath,
+      chapterCount,
+      durationMs: saveDuration,
+    })
     return filePath
   } catch (error) {
-    log.error("visual_panels_save_failed", { error: String(error) })
+    log.error("visual_panels_save_failed", {
+      error: String(error),
+      chapterCount,
+      fileName,
+      durationMs: Date.now() - saveStart,
+    })
     return null
   }
 }
@@ -199,6 +258,66 @@ function extractCharacterStates(characters: Record<string, any>): VisualCharacte
     injuries: (char.injuries as string) || "",
     emotions: (char.emotions as { type: string; intensity: number }[]) || [],
   }))
+}
+
+/**
+ * Generate scene-only panels when no characters are available.
+ * Uses the same style configuration as character panels.
+ */
+async function generateSceneOnlyPanels(
+  input: VisualGenerationInput,
+  maxPanels: number,
+  defaultStyle: string,
+): Promise<VisualPanelSpec[]> {
+  log.info("generating_scene_only_panels", {
+    chapterCount: input.chapterCount,
+    maxPanels,
+    style: defaultStyle,
+  })
+
+  // Split story into segments
+  const sentences = input.storySegment.split(/[.!? \n]/).filter((s) => s.trim().length > 10)
+  const panelCount = Math.min(sentences.length, maxPanels)
+
+  // Get global style from narrative skeleton (same as character panels)
+  const globalStyle = input.narrativeSkeleton?.tone || defaultStyle
+
+  const panels: VisualPanelSpec[] = []
+
+  for (let i = 0; i < panelCount; i++) {
+    const sentence = sentences[i]
+
+    // Use LLM to generate scene description
+    const panel: VisualPanelSpec = {
+      id: `scene_panel_${input.chapterCount}_${i}`,
+      panelIndex: i,
+      camera: {
+        shot: "wide",
+        angle: "eye-level",
+        movement: "static",
+        depthOfField: "deep",
+      },
+      lighting: "natural",
+      composition: "rule-of-thirds",
+      visualPrompt: `Cinematic scene: ${sentence.substring(0, 200)}`,
+      negativePrompt: "blurry, low quality, distorted, ugly",
+      controlNetSignals: {
+        poseReference: null,
+        depthReference: null,
+        characterRefUrl: null,
+      },
+      styleModifiers: [globalStyle, "cinematic", "high detail", "atmospheric"],
+    }
+
+    panels.push(panel)
+  }
+
+  log.info("scene_only_panels_generated", {
+    count: panels.length,
+    style: globalStyle,
+  })
+
+  return panels
 }
 
 // ============================================================================

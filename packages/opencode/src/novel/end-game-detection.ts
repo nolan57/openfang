@@ -3,6 +3,26 @@ import { Log } from "../util/log"
 
 const log = Log.create({ service: "end-game-detection" })
 
+export interface MetaLearner {
+  getCurrentConfigPatch(): Promise<LearnedConfigPatch>
+}
+
+export interface LearnedConfigPatch {
+  completionWeights?: {
+    major_arc_resolved?: number
+    thematic_saturation?: number
+    character_arcs_complete?: number
+    user_satisfaction?: number
+    chapter_count?: number
+    all_conflicts_resolved?: number
+  }
+  thresholds?: {
+    minCompletionScore?: number
+    userSatisfaction?: number
+    thematicCoverage?: number
+  }
+}
+
 export const CompletionCriterionSchema = z.object({
   id: z.string(),
   type: z.enum([
@@ -36,6 +56,9 @@ export interface EndGameReport {
   completionScore: number
   metCriteria: CompletionCriterion[]
   unmetCriteria: CompletionCriterion[]
+  finalMetrics: {
+    [criterionType in CompletionCriterion["type"]]?: number
+  }
   recommendations: string[]
   epiloguePrompt?: string
   sequelHooks?: string[]
@@ -46,6 +69,9 @@ export interface EndGameConfig {
   requiredCriteria: CompletionCriterion["type"][]
   enableSequelHooks: boolean
   enableEpilogue: boolean
+  criterionWeights: {
+    [criterionType in CompletionCriterion["type"]]?: number
+  }
 }
 
 const DEFAULT_CONFIG: EndGameConfig = {
@@ -53,14 +79,23 @@ const DEFAULT_CONFIG: EndGameConfig = {
   requiredCriteria: ["major_arc_resolved", "character_arcs_complete"],
   enableSequelHooks: true,
   enableEpilogue: true,
+  criterionWeights: {
+    major_arc_resolved: 2,
+    thematic_saturation: 1,
+    character_arcs_complete: 2,
+    user_satisfaction: 1.5,
+    chapter_count: 0.5,
+    all_conflicts_resolved: 1.5,
+  },
 }
 
 export class EndGameDetector {
   private criteria: Map<string, CompletionCriterion> = new Map()
   private config: EndGameConfig
   private storyMetrics: StoryMetricsType
+  private metaLearner?: MetaLearner
 
-  constructor(config: Partial<EndGameConfig> = {}) {
+  constructor(config: Partial<EndGameConfig> = {}, metaLearner?: MetaLearner) {
     this.config = { ...DEFAULT_CONFIG, ...config }
     this.storyMetrics = {
       totalChapters: 0,
@@ -71,6 +106,7 @@ export class EndGameDetector {
       resolvedConflicts: 0,
       totalConflicts: 0,
     }
+    this.metaLearner = metaLearner
   }
 
   addCriterion(criterion: Omit<CompletionCriterion, "id" | "met" | "current">): CompletionCriterion {
@@ -129,29 +165,43 @@ export class EndGameDetector {
     }
   }
 
-  checkCompletion(): EndGameReport {
+  async checkCompletion(): Promise<EndGameReport> {
+    let effectiveConfig = { ...this.config }
+
+    if (this.metaLearner) {
+      const patch = await this.metaLearner.getCurrentConfigPatch()
+      if (patch.completionWeights) {
+        effectiveConfig.criterionWeights = { ...effectiveConfig.criterionWeights, ...patch.completionWeights }
+      }
+      if (patch.thresholds?.minCompletionScore !== undefined) {
+        effectiveConfig.minCompletionScore = patch.thresholds.minCompletionScore
+      }
+    }
+
     const allCriteria = Array.from(this.criteria.values())
     const metCriteria = allCriteria.filter((c) => c.met)
     const unmetCriteria = allCriteria.filter((c) => !c.met)
 
-    // Calculate completion score
+    const finalMetrics: { [criterionType in CompletionCriterion["type"]]?: number } = {}
+    for (const criterion of allCriteria) {
+      finalMetrics[criterion.type] = criterion.current
+    }
+
     let totalWeight = 0
     let weightedScore = 0
 
     for (const criterion of allCriteria) {
-      const weight = this.config.requiredCriteria.includes(criterion.type) ? 2 : 1
+      const weight = effectiveConfig.criterionWeights[criterion.type] || 1
       totalWeight += weight
       weightedScore += weight * ((criterion.current / criterion.threshold) * 100)
     }
 
     const completionScore = totalWeight > 0 ? weightedScore / totalWeight : 0
 
-    // Check if all required criteria are met
-    const requiredMet = this.config.requiredCriteria.every((type) => metCriteria.some((c) => c.type === type))
+    const requiredMet = effectiveConfig.requiredCriteria.every((type) => metCriteria.some((c) => c.type === type))
 
-    const isComplete = completionScore >= this.config.minCompletionScore && requiredMet
+    const isComplete = completionScore >= effectiveConfig.minCompletionScore && requiredMet
 
-    // Generate recommendations
     const recommendations: string[] = []
 
     if (!isComplete) {
@@ -161,13 +211,11 @@ export class EndGameDetector {
       }
     }
 
-    // Generate epilogue prompt if complete
     let epiloguePrompt: string | undefined
     if (isComplete && this.config.enableEpilogue) {
       epiloguePrompt = this.generateEpiloguePrompt()
     }
 
-    // Generate sequel hooks if enabled
     const sequelHooks: string[] = []
     if (isComplete && this.config.enableSequelHooks) {
       sequelHooks.push(...this.generateSequelHooks())
@@ -178,6 +226,7 @@ export class EndGameDetector {
       completionScore,
       metCriteria,
       unmetCriteria,
+      finalMetrics,
       recommendations,
       epiloguePrompt,
       sequelHooks,
@@ -309,6 +358,15 @@ Focus: Character resolution over new conflicts`
     log.info("end_game_detector_imported", { criterionCount: data.criteria.length })
   }
 
+  getMetaLearner(): MetaLearner | undefined {
+    return this.metaLearner
+  }
+
+  setMetaLearner(metaLearner: MetaLearner): void {
+    this.metaLearner = metaLearner
+    log.info("meta_learner_set_for_end_game_detector")
+  }
+
   clear(): void {
     this.criteria.clear()
     this.storyMetrics = {
@@ -325,3 +383,7 @@ Focus: Character resolution over new conflicts`
 }
 
 export const endGameDetector = new EndGameDetector()
+
+export function createEndGameDetector(config?: Partial<EndGameConfig>, metaLearner?: MetaLearner): EndGameDetector {
+  return new EndGameDetector(config, metaLearner)
+}

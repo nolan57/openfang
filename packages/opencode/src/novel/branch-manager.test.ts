@@ -26,6 +26,8 @@ describe("BranchManager", () => {
     },
     selected: false,
     chapter,
+    events: [],
+    structuredState: {},
   })
 
   test("addBranch stores branch", () => {

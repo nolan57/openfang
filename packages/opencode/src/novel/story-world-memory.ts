@@ -4,23 +4,16 @@ import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
 import type { CharacterState } from "../types/novel-state"
+import { getStoryMemoryDbPath } from "./novel-config"
 
 const log = Log.create({ service: "story-world-memory" })
-
-function getProjectDirectory(): string {
-  try {
-    return Instance.directory
-  } catch {
-    return resolve(process.cwd())
-  }
-}
 
 // Lazy-initialized database path
 let MEMORY_DB_PATH: string | null = null
 
 function getDbPath(): string {
   if (!MEMORY_DB_PATH) {
-    MEMORY_DB_PATH = resolve(getProjectDirectory(), ".opencode/novel/data/story-memory.db")
+    MEMORY_DB_PATH = getStoryMemoryDbPath()
   }
   return MEMORY_DB_PATH
 }

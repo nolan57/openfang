@@ -188,23 +188,30 @@ describe("EndGameDetector", () => {
     expect(updated2?.met).toBe(true)
   })
 
-  test("checkCompletion returns report", () => {
+  test("checkCompletion returns report", async () => {
+    const detector = new EndGameDetector({
+      minCompletionScore: 0,
+      requiredCriteria: [],
+      enableSequelHooks: false,
+      enableEpilogue: false,
+    })
+
     detector.addCriterion({
-      type: "major_arc_resolved",
-      description: "Main arc resolved",
+      type: "chapter_count",
+      description: "Test",
       threshold: 100,
     })
 
     detector.updateCriterion(Array.from(detector["criteria"].keys())[0], 50)
 
-    const report = detector.checkCompletion()
+    const report = await detector.checkCompletion()
 
     expect(report.isComplete).toBeDefined()
     expect(report.completionScore).toBeDefined()
     expect(Array.isArray(report.recommendations)).toBe(true)
   })
 
-  test("generateSequelHooks returns hooks", () => {
+  test("generateSequelHooks returns hooks", async () => {
     const detector2 = new EndGameDetector({
       minCompletionScore: 0,
       requiredCriteria: [],
@@ -219,7 +226,7 @@ describe("EndGameDetector", () => {
     })
     detector2.updateCriterion(Array.from(detector2["criteria"].keys())[0], 100)
 
-    const report = detector2.checkCompletion()
+    const report = await detector2.checkCompletion()
 
     expect(report.sequelHooks).toBeDefined()
     expect(report.sequelHooks?.length).toBeGreaterThan(0)

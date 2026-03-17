@@ -6,6 +6,7 @@ import { generateText } from "ai"
 import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
 import { memoize } from "./performance"
+import { getPatternsDirPath } from "./novel-config"
 
 const log = Log.create({ service: "pattern-miner-enhanced" })
 
@@ -123,19 +124,47 @@ export type PlotTemplate = z.infer<typeof PlotTemplateSchema>
 export type Motif = z.infer<typeof MotifSchema>
 export type EnhancedPattern = z.infer<typeof EnhancedPatternSchema>
 
-function getProjectDirectory(): string {
-  try {
-    return Instance.directory
-  } catch {
-    return resolve(process.cwd())
+// Lazy-initialized paths
+let PatternsPath: string | null = null
+let EnhancedPatternsPath: string | null = null
+let ArchetypesPath: string | null = null
+let PlotTemplatesPath: string | null = null
+let MotifsPath: string | null = null
+
+function getPatternsPath(): string {
+  if (!PatternsPath) {
+    PatternsPath = getPatternsDirPath()
   }
+  return PatternsPath
 }
 
-const PatternsPath = resolve(getProjectDirectory(), ".opencode/novel/patterns")
-const EnhancedPatternsPath = resolve(PatternsPath, "enhanced-patterns.json")
-const ArchetypesPath = resolve(PatternsPath, "archetypes.json")
-const PlotTemplatesPath = resolve(PatternsPath, "plot-templates.json")
-const MotifsPath = resolve(PatternsPath, "motifs.json")
+function getEnhancedPatternsPath(): string {
+  if (!EnhancedPatternsPath) {
+    EnhancedPatternsPath = resolve(getPatternsPath(), "enhanced-patterns.json")
+  }
+  return EnhancedPatternsPath
+}
+
+function getArchetypesPath(): string {
+  if (!ArchetypesPath) {
+    ArchetypesPath = resolve(getPatternsPath(), "archetypes.json")
+  }
+  return ArchetypesPath
+}
+
+function getPlotTemplatesPath(): string {
+  if (!PlotTemplatesPath) {
+    PlotTemplatesPath = resolve(getPatternsPath(), "plot-templates.json")
+  }
+  return PlotTemplatesPath
+}
+
+function getMotifsPath(): string {
+  if (!MotifsPath) {
+    MotifsPath = resolve(getPatternsPath(), "motifs.json")
+  }
+  return MotifsPath
+}
 
 async function fileExists(path: string): Promise<boolean> {
   try {
@@ -147,7 +176,7 @@ async function fileExists(path: string): Promise<boolean> {
 }
 
 async function ensurePatternsDir(): Promise<void> {
-  await mkdir(PatternsPath, { recursive: true })
+  await mkdir(getPatternsPath(), { recursive: true })
 }
 
 export interface PatternDecayConfig {
@@ -183,32 +212,32 @@ export class EnhancedPatternMiner {
 
   private async loadPatterns(): Promise<void> {
     try {
-      if (await fileExists(EnhancedPatternsPath)) {
-        const content = await readFile(EnhancedPatternsPath, "utf-8")
+      if (await fileExists(getEnhancedPatternsPath())) {
+        const content = await readFile(getEnhancedPatternsPath(), "utf-8")
         const data = JSON.parse(content)
         for (const pattern of data.patterns || []) {
           this.patterns.set(pattern.id, pattern)
         }
       }
 
-      if (await fileExists(ArchetypesPath)) {
-        const content = await readFile(ArchetypesPath, "utf-8")
+      if (await fileExists(getArchetypesPath())) {
+        const content = await readFile(getArchetypesPath(), "utf-8")
         const data = JSON.parse(content)
         for (const archetype of data.archetypes || []) {
           this.archetypes.set(archetype.id, archetype)
         }
       }
 
-      if (await fileExists(PlotTemplatesPath)) {
-        const content = await readFile(PlotTemplatesPath, "utf-8")
+      if (await fileExists(getPlotTemplatesPath())) {
+        const content = await readFile(getPlotTemplatesPath(), "utf-8")
         const data = JSON.parse(content)
         for (const template of data.templates || []) {
           this.plotTemplates.set(template.id, template)
         }
       }
 
-      if (await fileExists(MotifsPath)) {
-        const content = await readFile(MotifsPath, "utf-8")
+      if (await fileExists(getMotifsPath())) {
+        const content = await readFile(getMotifsPath(), "utf-8")
         const data = JSON.parse(content)
         for (const motif of data.motifs || []) {
           this.motifs.set(motif.id, motif)
@@ -234,25 +263,25 @@ export class EnhancedPatternMiner {
       lastUpdated: Date.now(),
       version: "2.0",
     }
-    await writeFile(EnhancedPatternsPath, JSON.stringify(patternsData, null, 2))
+    await writeFile(getEnhancedPatternsPath(), JSON.stringify(patternsData, null, 2))
 
     const archetypesData = {
       archetypes: Array.from(this.archetypes.values()),
       lastUpdated: Date.now(),
     }
-    await writeFile(ArchetypesPath, JSON.stringify(archetypesData, null, 2))
+    await writeFile(getArchetypesPath(), JSON.stringify(archetypesData, null, 2))
 
     const templatesData = {
       templates: Array.from(this.plotTemplates.values()),
       lastUpdated: Date.now(),
     }
-    await writeFile(PlotTemplatesPath, JSON.stringify(templatesData, null, 2))
+    await writeFile(getPlotTemplatesPath(), JSON.stringify(templatesData, null, 2))
 
     const motifsData = {
       motifs: Array.from(this.motifs.values()),
       lastUpdated: Date.now(),
     }
-    await writeFile(MotifsPath, JSON.stringify(motifsData, null, 2))
+    await writeFile(getMotifsPath(), JSON.stringify(motifsData, null, 2))
 
     log.info("patterns_saved", {
       patterns: this.patterns.size,

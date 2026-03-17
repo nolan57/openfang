@@ -4,6 +4,10 @@ import type { PromptStyle } from "./novel-config"
 
 const log = Log.create({ service: "dynamic-prompt" })
 
+export interface MetaLearner {
+  getSuggestedPromptStyle(): Partial<PromptStyle>
+}
+
 /**
  * 故事基调配置
  */
@@ -34,6 +38,7 @@ export class DynamicPromptBuilder {
   private tone?: StoryTone
   private style: PromptStyle
   private customVariables: Record<string, string> = {}
+  private metaLearner?: MetaLearner
 
   constructor(
     baseTemplate: string,
@@ -43,9 +48,11 @@ export class DynamicPromptBuilder {
       structureStrictness: 0.5,
       allowDeviation: true,
     },
+    metaLearner?: MetaLearner,
   ) {
     this.baseTemplate = baseTemplate
     this.style = style
+    this.metaLearner = metaLearner
   }
 
   /**
@@ -168,19 +175,21 @@ export class DynamicPromptBuilder {
   private substituteVariables(template: string): string {
     let result = template
 
-    // 替换内置变量
-    const builtInVars = {
+    const builtInVars: Record<string, string> = {
       TONE_INSTRUCTIONS: this.generateToneInstructions(),
       STYLE_INSTRUCTIONS: this.generateStyleInstructions(),
+      SKILL_DICTIONARY: this.customVariables.SKILL_DICTIONARY || "",
+      TRAUMA_DICTIONARY: this.customVariables.TRAUMA_DICTIONARY || "",
     }
 
     for (const [key, value] of Object.entries(builtInVars)) {
       result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value)
     }
 
-    // 替换自定义变量
     for (const [key, value] of Object.entries(this.customVariables)) {
-      result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value)
+      if (!builtInVars[key]) {
+        result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value)
+      }
     }
 
     return result
@@ -190,6 +199,11 @@ export class DynamicPromptBuilder {
    * 构建最终提示词
    */
   build(): string {
+    if (this.metaLearner) {
+      const suggestedStyle = this.metaLearner.getSuggestedPromptStyle()
+      this.style = { ...this.style, ...suggestedStyle }
+    }
+
     const prompt = this.substituteVariables(this.baseTemplate)
     log.debug("prompt_built", {
       templateLength: this.baseTemplate.length,
@@ -366,6 +380,79 @@ Output Format (JSON):
 
 Output only JSON, no other text.`,
     variables: ["BRANCH_COUNT", "CURRENT_STATE", "CHARACTERS", "PLOT_THREADS"],
+  },
+
+  psychologicalDeepening: {
+    id: "psychologicalDeepening",
+    baseTemplate: `You are a character psychology expert. Your task is to analyze the character based on their current state data using psychological frameworks.
+
+{{TONE_INSTRUCTIONS}}
+{{STYLE_INSTRUCTIONS}}
+
+=== Character Data ===
+{{CHARACTER_STATE}}
+
+{{SKILL_DICTIONARY}}
+{{TRAUMA_DICTIONARY}}
+
+=== Analysis Requirements ===
+Use the following psychological frameworks for analysis:
+
+1. **Big Five Personality** - Infer from traits, skills, behavior
+2. **Attachment Theory** - Infer from relationships and trauma
+3. **Trauma Psychology** - Infer psychological impact from trauma and stress
+4. **Maslow's Hierarchy** - Infer core desires from goals
+5. **Defense Mechanisms** - Infer common defense patterns from behavior
+
+=== Output Format (strict JSON) ===
+{
+  "psychologicalProfile": {
+    "bigFiveTraits": {
+      "openness": 1-10,
+      "conscientiousness": 1-10,
+      "extraversion": 1-10,
+      "agreeableness": 1-10,
+      "neuroticism": 1-10
+    },
+    "attachmentStyle": "secure|anxious|avoidant|disorganized",
+    "coreFear": "One sentence describing character's deepest fear",
+    "coreDesire": "One sentence describing character's core desire",
+    "defenseMechanisms": ["mechanism1", "mechanism2"],
+    "copingStrategies": ["strategy1", "strategy2"]
+  },
+  "characterArc": {
+    "currentPhase": "denial|resistance|exploration|integration|mastery",
+    "arcDirection": "growth|decline|complex|stagnation",
+    "potentialBreakthrough": "Character's potential breakthrough point",
+    "potentialBreakdown": "Character's potential breakdown point"
+  },
+  "relationshipDynamics": {
+    "otherCharacter": {
+      "dynamicType": "ally|rival|mentor|protégé|enemy|unknown",
+      "powerBalance": "dominant|submissive|equal|shifting",
+      "tension": "cooperating|conflicting|neutral|betrayal_risk"
+    }
+  },
+  "narrativeSuggestions": {
+    "internalConflict": "Character's core internal conflict",
+    "externalConflict": "Character's external conflict",
+    "growthOpportunities": ["growth opportunity 1", "growth opportunity 2"],
+    "sceneTriggers": ["scene that triggers specific response 1", "scene 2"]
+  },
+  "suggestedEnhancements": {
+    "newTraits": ["suggested new trait 1"],
+    "newGoals": ["suggested new goal 1"],
+    "backstoryFragments": ["suggested backstory fragment 1"],
+    "dialogueTraits": ["suggested dialogue style 1"]
+  }
+}
+
+Note:
+- Output JSON only, no other text
+- All numbers must be 1-10
+- If insufficient data, use "insufficient_data" with reasonable defaults
+- Use the World Knowledge Dictionary to understand skill/trauma meanings`,
+    variables: ["CHARACTER_STATE", "SKILL_DICTIONARY", "TRAUMA_DICTIONARY"],
   },
 }
 

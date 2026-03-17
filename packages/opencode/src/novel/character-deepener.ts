@@ -1,6 +1,7 @@
 import { Log } from "../util/log"
 import { generateText } from "ai"
 import { getNovelLanguageModel } from "./model"
+import type { CharacterLifecycle } from "./character-lifecycle"
 
 const log = Log.create({ service: "character-deepener" })
 
@@ -442,6 +443,113 @@ ${profilesText}
       suggestedEnhancements: { newTraits: [], newGoals: [], backstoryFragments: [], dialogueTraits: [] },
     }
   }
+
+  private static adaptFromLifecycle(lifecycle: CharacterLifecycle): CharacterStateInput {
+    const trauma: CharacterStateInput["trauma"] = []
+    const skills: CharacterStateInput["skills"] = []
+    const secrets: string[] = []
+    const goals: CharacterStateInput["goals"] = []
+
+    for (const event of lifecycle.lifeEvents) {
+      if (event.impact?.trauma) {
+        trauma.push({
+          name: event.impact.trauma.name,
+          severity: event.impact.trauma.severity,
+          tags: event.impact.trauma.tags,
+          description: event.description,
+        })
+      }
+
+      if (event.impact?.skillGained) {
+        skills.push({
+          name: event.impact.skillGained.name,
+          category: event.impact.skillGained.category,
+          level: event.impact.skillGained.level,
+        })
+      }
+
+      if (event.type === "trauma" && !event.impact?.trauma) {
+        trauma.push({
+          name: `Trauma_${event.id}`,
+          description: event.description,
+          tags: [event.type],
+        })
+      }
+
+      if (["career_change", "coming_of_age", "transformation"].includes(event.type)) {
+        goals.push({
+          type: event.type,
+          description: event.description,
+          status: "active",
+          progress: 0,
+        })
+      }
+
+      if (["marriage", "parenthood"].includes(event.type)) {
+        secrets.push(`Character experienced ${event.type}: ${event.description}`)
+      }
+    }
+
+    const statusMap: Record<string, string> = {
+      active: "active",
+      inactive: "inactive",
+      missing: "missing",
+      imprisoned: "imprisoned",
+      transformed: "transformed",
+      dead: "deceased",
+      ascended: "ascended",
+      reincarnated: "reincarnated",
+    }
+
+    return {
+      name: lifecycle.characterId,
+      status: statusMap[lifecycle.status] || lifecycle.status,
+      stress: 0,
+      traits: [],
+      skills,
+      trauma,
+      secrets,
+      clues: [],
+      goals,
+      notes: `Life Stage: ${lifecycle.lifeStage}, Age: ${lifecycle.currentAge.toFixed(0)}, Events: ${lifecycle.lifeEvents.length}`,
+      relationships: {},
+    }
+  }
+
+  async deepenCharacterFromLifecycle(lifecycle: CharacterLifecycle): Promise<DeepenedCharacterProfile> {
+    log.info("deepening_character_from_lifecycle", {
+      characterId: lifecycle.characterId,
+      lifeStage: lifecycle.lifeStage,
+      eventsCount: lifecycle.lifeEvents.length,
+    })
+
+    const characterInput = CharacterDeepener.adaptFromLifecycle(lifecycle)
+
+    const profile = await this.deepenCharacter(characterInput)
+
+    log.info("character_deepened_from_lifecycle", {
+      characterId: lifecycle.characterId,
+      attachmentStyle: profile.psychologicalProfile.attachmentStyle,
+      arcDirection: profile.characterArc.arcDirection,
+    })
+
+    return profile
+  }
+}
+
+export interface PersistablePsychologicalProfile {
+  coreFear: string
+  coreDesire: string
+  attachmentStyle: "secure" | "anxious" | "avoidant" | "disorganized"
+  bigFiveTraits: {
+    openness: number
+    conscientiousness: number
+    extraversion: number
+    agreeableness: number
+    neuroticism: number
+  }
+  defenseMechanisms: string[]
+  copingStrategies: string[]
 }
 
 export const characterDeepener = new CharacterDeepener()
