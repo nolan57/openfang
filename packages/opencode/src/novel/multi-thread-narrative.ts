@@ -3,6 +3,23 @@ import { Log } from "../util/log"
 
 const log = Log.create({ service: "multi-thread-narrative" })
 
+/**
+ * Multi-Thread Narrative Executor
+ *
+ * Enhanced integration with orchestrator:
+ * - Supports progress callbacks for real-time status updates
+ * - Integrates with observability for performance tracking
+ * - Provides structured execution context for better debugging
+ *
+ * Usage with orchestrator:
+ * ```typescript
+ * const executor = new MultiThreadNarrativeExecutor()
+ * executor.setProgressCallback((progress) => {
+ *   observability.recordThreadProgress(progress)
+ * })
+ * ```
+ */
+
 export const NarrativeThreadSchema = z.object({
   id: z.string(),
   name: z.string(),

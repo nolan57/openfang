@@ -1,3 +1,14 @@
+/**
+ * @deprecated This module is deprecated and will be removed in a future version.
+ * Please use pattern-miner-enhanced.ts instead, which provides:
+ * - Generic repository pattern for type safety
+ * - Robust JSON parsing with Markdown support
+ * - Immutable update patterns
+ * - Startup calibration to prevent instant decay
+ * - Zod validation for all data operations
+ *
+ * @see {@link pattern-miner-enhanced.ts} - The enhanced pattern miner
+ */
 import { z } from "zod"
 import { readFile, writeFile, access } from "fs/promises"
 import { resolve, dirname } from "path"
@@ -11,6 +22,13 @@ import { Instance } from "../project/instance"
 import { getDynamicPatternsPath, getSkillsPath } from "./novel-config"
 
 const log = Log.create({ service: "pattern-miner" })
+
+// Emit deprecation warning on module load
+log.warn("deprecated_module_loaded", {
+  module: "pattern-miner.ts",
+  replacement: "pattern-miner-enhanced.ts",
+  message: "This module is deprecated. Please migrate to pattern-miner-enhanced.ts",
+})
 
 // Structured Pattern Types
 const CharacterTraitPatternSchema = z.object({

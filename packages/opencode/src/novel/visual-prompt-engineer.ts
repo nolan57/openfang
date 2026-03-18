@@ -25,6 +25,14 @@ import {
 } from "./visual-translator"
 import type { VisualGenerationContext, LLMPromptEngineeringResult, VisualPanelSpec, CameraSpec } from "./types"
 
+/**
+ * Extended visual generation context with narrative and psychological information.
+ */
+export interface ExtendedVisualGenerationContext extends VisualGenerationContext {
+  globalTheme?: string
+  characterPsychologicalProfiles?: Record<string, { coreFear?: string; attachmentStyle?: string }>
+}
+
 const log = Log.create({ service: "visual-prompt-engineer" })
 
 // ============================================================================
@@ -130,7 +138,7 @@ function buildPromptEngineerSystemPrompt(): string {
 /**
  * Builds the user prompt for LLM prompt engineering.
  */
-function buildPromptEngineerUserPrompt(context: VisualGenerationContext): string {
+function buildPromptEngineerUserPrompt(context: VisualGenerationContext | ExtendedVisualGenerationContext): string {
   const cfg = getConfig()
 
   // Build continuity context if previous panels exist
@@ -139,6 +147,25 @@ function buildPromptEngineerUserPrompt(context: VisualGenerationContext): string
     continuityContext = `\nPREVIOUS PANELS (for continuity):
 ${context.previousPanels.map((p, i) => `Panel ${i + 1}: ${p.visualPrompt?.slice(0, 100)}...`).join("\n")}
 `
+  }
+
+  // Build psychological context if available
+  let psychologicalContext = ""
+  if ("characterPsychologicalProfiles" in context && context.characterPsychologicalProfiles) {
+    const charProfile = context.characterPsychologicalProfiles[context.character.name]
+    if (charProfile) {
+      psychologicalContext = `\nCharacter Psychology:
+- Core Fear: ${charProfile.coreFear || "Unknown"}
+- Attachment Style: ${charProfile.attachmentStyle || "Unknown"}
+Incorporate these psychological traits subtly into body language and expression.`
+    }
+  }
+
+  // Build theme context if available
+  let themeContext = ""
+  if ("globalTheme" in context && context.globalTheme) {
+    themeContext = `\nGlobal Theme: ${context.globalTheme}
+Ensure visual composition, lighting, and atmosphere reflect this thematic element.`
   }
 
   return `Context:
@@ -151,6 +178,8 @@ Character State: ${JSON.stringify({
   })}
 Camera: ${JSON.stringify(context.camera)}
 Global Style: ${context.globalStyle || "realistic"}
+${themeContext}
+${psychologicalContext}
 ${continuityContext}
 Task:
 Generate a refined visual prompt and negative prompt.
@@ -234,7 +263,9 @@ async function callLLMForPromptEngineering(
  * Generates visual prompts using the hardcoded fallback logic.
  * All parameters are loaded from configuration.
  */
-function generateHardcodedPrompt(context: VisualGenerationContext): LLMPromptEngineeringResult {
+function generateHardcodedPrompt(
+  context: VisualGenerationContext | ExtendedVisualGenerationContext,
+): LLMPromptEngineeringResult {
   const cfg = getConfig()
   const { beat, character, camera, globalStyle } = context
 
@@ -242,7 +273,15 @@ function generateHardcodedPrompt(context: VisualGenerationContext): LLMPromptEng
   const elements: string[] = []
 
   // Priority 1: Subject & Action (characters)
-  const emotionData = character.emotionalState ? translateEmotionToVisuals(character.emotionalState, 0.5) : null
+  // Get psychological profile if available
+  const psychProfile =
+    "characterPsychologicalProfiles" in context && context.characterPsychologicalProfiles
+      ? context.characterPsychologicalProfiles[character.name]
+      : undefined
+
+  const emotionData = character.emotionalState
+    ? translateEmotionToVisuals(character.emotionalState, 0.5, psychProfile)
+    : null
 
   if (character.visualDescription) {
     elements.push(`(${character.name}: ${character.visualDescription})`)
@@ -441,7 +480,12 @@ export async function buildPanelSpecWithHybridEngine(
   const characterRefUrl = generateStableCharacterRefUrl(context.character.name, characterSnapshot)
 
   // Determine camera based on detected action
-  const actionCameraData = translateActionToCamera(detectedAction, context.beat.description)
+  const globalTheme = "globalTheme" in context ? context.globalTheme : undefined
+  const actionCameraData = translateActionToCamera(
+    detectedAction,
+    context.beat.description,
+    globalTheme as string | undefined,
+  )
 
   // Build camera spec
   const camera: CameraSpec = {

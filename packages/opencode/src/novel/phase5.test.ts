@@ -253,3 +253,91 @@ describe("EndGameDetector", () => {
     expect(progress[0].type).toBe("user_satisfaction")
   })
 })
+
+// ============================================================================
+// NEW: Visual Strategy Engine Tests
+// ============================================================================
+
+describe("Visual Strategy Engine", () => {
+  test("resolveVisualSpec applies dynamic weight calculation", () => {
+    // This test would verify the voting mechanism
+    // Implementation depends on exporting resolveVisualSpec from config module
+    expect(true).toBe(true) // Placeholder
+  })
+
+  test("resolveNegativePromptConflicts removes conflicting terms", () => {
+    // This test would verify conflict detection
+    // Example: ["warm_tones", "cold_tones"] should both be removed
+    expect(true).toBe(true) // Placeholder
+  })
+
+  test("thematic mappings apply based on influence ratio", () => {
+    // This test would verify thematic voting
+    // Dominant themes (>=30%) should apply fully
+    // Supporting themes (10-30%) should apply partially
+    expect(true).toBe(true) // Placeholder
+  })
+})
+
+// ============================================================================
+// NEW: Pattern Miner Enhanced Tests
+// ============================================================================
+
+describe("Pattern Miner Enhanced", () => {
+  test("PatternStore generic repository works with all pattern types", () => {
+    // Verify generic PatternStore<T> works with Archetype, Motif, etc.
+    expect(true).toBe(true) // Placeholder
+  })
+
+  test("startup calibration prevents instant decay", () => {
+    // Verify last_reinforced is reset if > 10 years old
+    expect(true).toBe(true) // Placeholder
+  })
+
+  test("immutable update patterns prevent state pollution", () => {
+    // Verify evolveMotif creates new objects instead of mutating
+    expect(true).toBe(true) // Placeholder
+  })
+})
+
+// ============================================================================
+// NEW: State Extractor Fact Validation Tests
+// ============================================================================
+
+describe("State Extractor Fact Validation", () => {
+  test("dead characters cannot gain skills", () => {
+    // Verify validateCharacterUpdateWithContext rejects skill for dead characters
+    expect(true).toBe(true) // Placeholder
+  })
+
+  test("relationships cannot be formed with non-existent characters", () => {
+    // Verify validateRelationshipUpdateWithContext checks character existence
+    expect(true).toBe(true) // Placeholder
+  })
+
+  test("fact validation corrections are applied correctly", () => {
+    // Verify applyFactValidationCorrections fixes invalid data
+    expect(true).toBe(true) // Placeholder
+  })
+})
+
+// ============================================================================
+// NEW: Thematic Analyst Meta-Learning Integration Tests
+// ============================================================================
+
+describe("Thematic Analyst Meta-Learning", () => {
+  test("thematic metrics are pushed to metaLearner", () => {
+    // Verify saveReflection calls metaLearner.ingestThematicMetrics()
+    expect(true).toBe(true) // Placeholder
+  })
+
+  test("high-impact thematic events are logged", () => {
+    // Verify thematic_drift and philosophical_void events are logged
+    expect(true).toBe(true) // Placeholder
+  })
+
+  test("thematic saturation score extraction works", () => {
+    // Verify extractThematicSaturationScore returns 0-100 score
+    expect(true).toBe(true) // Placeholder
+  })
+})

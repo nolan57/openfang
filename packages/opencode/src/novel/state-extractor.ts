@@ -19,6 +19,48 @@ import { getNovelLanguageModel } from "./model"
 
 const log = Log.create({ service: "state-extractor" })
 
+// Fact validator interface for external validation service
+interface FactValidationReport {
+  isValid: boolean
+  flags: Array<{
+    type: string
+    description: string
+    severity: "low" | "medium" | "high"
+  }>
+  corrections: Array<{
+    field: string
+    originalValue: any
+    correctedValue: any
+    reason: string
+  }>
+}
+
+interface FactValidator {
+  validateExtractedState(updates: any, currentState: any): Promise<FactValidationReport>
+}
+
+// Extend global scope for optional fact validator
+declare global {
+  var factValidator: FactValidator | undefined
+}
+
+interface KeyEvent {
+  description: string
+  type:
+    | "character_death"
+    | "skill_acquired"
+    | "trauma_inflicted"
+    | "betrayal"
+    | "alliance_formed"
+    | "revelation"
+    | "conflict_resolved"
+    | "relationship_shift"
+    | "goal_completed"
+    | "world_event"
+  characters?: string[]
+  impact: "low" | "medium" | "high"
+}
+
 interface CharacterUpdate {
   traits?: string[]
   stress?: number
@@ -34,6 +76,8 @@ interface CharacterUpdate {
     tags: string[]
     severity: number
     source_event: string
+    triggerContext?: string
+    internalReaction?: string
   }
   newSkill?: {
     name: string
@@ -42,6 +86,8 @@ interface CharacterUpdate {
     description: string
     source_event: string
     difficulty: number
+    learningContext?: string
+    applicationExample?: string
   }
   secrets?: string[]
   clues?: string[]
@@ -132,7 +178,7 @@ interface TurnEvaluation {
   challenge_difficulty: number
   stress_events: { character: string; intensity: number; cause: string }[]
   relationship_changes: { pair: string; delta: number; cause: string }[]
-  key_events: string[]
+  key_events: KeyEvent[]
 }
 
 export class StateExtractor {
@@ -214,13 +260,33 @@ RELATIONSHIP EVALUATION:
 - Track trust changes based on cooperation/betrayal
 - Range: -50 to +50 per event
 
+KEY EVENTS CLASSIFICATION:
+For each key event, assign ONE of these types:
+- character_death: A character dies or is presumed dead
+- skill_acquired: A character learns a new skill
+- trauma_inflicted: A character suffers psychological trauma
+- betrayal: A character betrays another
+- alliance_formed: Characters form an alliance
+- revelation: Important information is revealed
+- conflict_resolved: A major conflict is resolved
+- relationship_shift: A significant relationship change
+- goal_completed: A character achieves their goal
+- world_event: A major world-changing event
+
 Output JSON only:
 {
   "outcome_type": "SUCCESS" | "COMPLICATION" | "FAILURE" | "NEUTRAL",
   "challenge_difficulty": 1-10,
   "stress_events": [{"character": "Name", "intensity": 1-10, "cause": "event"}],
   "relationship_changes": [{"pair": "Char1-Char2", "delta": -50 to 50, "cause": "event"}],
-  "key_events": ["event1", "event2"]
+  "key_events": [
+    {
+      "description": "What happened",
+      "type": "character_death|skill_acquired|trauma_inflicted|betrayal|alliance_formed|revelation|conflict_resolved|relationship_shift|goal_completed|world_event",
+      "characters": ["Character1", "Character2"],
+      "impact": "low|medium|high"
+    }
+  ]
 }`
 
     const evalResult = await generateText({
@@ -444,7 +510,7 @@ Each field should be 1-3 concise sentences.`
           correctionsApplied++
         } else {
           update.newSkill.difficulty = challenge_difficulty
-          update.newSkill.source_event = evaluation.key_events[0] || "Unknown challenge"
+          update.newSkill.source_event = evaluation.key_events[0]?.description || "Unknown challenge"
         }
       }
 
@@ -473,6 +539,8 @@ Each field should be 1-3 concise sentences.`
           tags: this.selectTraumaTags(relatedStressEvent?.cause || ""),
           severity: Math.min(10, Math.floor((relatedStressEvent?.intensity || 5) / 2) + 1),
           source_event: relatedStressEvent?.cause || "Cumulative stress",
+          triggerContext: relatedStressEvent?.cause || "High stress situation",
+          internalReaction: "Character experienced overwhelming psychological distress",
         }
         correctionsApplied++
       }
@@ -522,6 +590,30 @@ Each field should be 1-3 concise sentences.`
       }
     }
 
+    // NEW: Perform comprehensive fact validation if factValidator is available
+    if (typeof globalThis.factValidator !== "undefined") {
+      try {
+        const validationReport = await globalThis.factValidator.validateExtractedState(validated, currentState)
+        if (!validationReport.isValid) {
+          // Add validation flags to audit flags
+          for (const flag of validationReport.flags) {
+            auditFlags.push({
+              type: flag.type,
+              description: flag.description,
+              corrected: false,
+              severity: flag.severity,
+            })
+          }
+
+          // Apply corrections from validation report
+          validated = this.applyFactValidationCorrections(validated, validationReport)
+        }
+      } catch (validationError) {
+        log.warn("fact_validation_failed", { error: String(validationError) })
+        // Gracefully degrade - continue without fact validation
+      }
+    }
+
     if (!validated.evolution_summary) {
       const summary = this.generateEvolutionSummary(updates, currentState, auditFlags)
       validated.evolution_summary = summary as any
@@ -548,6 +640,10 @@ Each field should be 1-3 concise sentences.`
       ).length
     }
 
+    // Regenerate summary with evaluation data
+    const newSummary = this.generateEvolutionSummary(updates, currentState, auditFlags, evaluation)
+    validated.evolution_summary = { ...newSummary, auditFlags: auditFlags } as any
+
     log.info("validation_complete", {
       auditFlags: auditFlags.length,
       correctionsApplied,
@@ -555,6 +651,44 @@ Each field should be 1-3 concise sentences.`
     })
 
     return validated
+  }
+
+  private applyFactValidationCorrections(updates: any, validationReport: FactValidationReport): any {
+    const corrected = { ...updates }
+
+    for (const correction of validationReport.corrections) {
+      try {
+        const fieldPath = correction.field.split(".")
+        let obj: any = corrected
+
+        // Navigate to the field's parent object
+        for (let i = 0; i < fieldPath.length - 1; i++) {
+          obj = obj[fieldPath[i]]
+          if (!obj) break
+        }
+
+        // Apply correction if we found the field
+        if (obj && fieldPath[fieldPath.length - 1] in obj) {
+          const fieldName = fieldPath[fieldPath.length - 1]
+          const originalValue = obj[fieldName]
+          obj[fieldName] = correction.correctedValue
+
+          log.info("fact_validation_correction_applied", {
+            field: correction.field,
+            original: originalValue,
+            corrected: correction.correctedValue,
+            reason: correction.reason,
+          })
+        }
+      } catch (error) {
+        log.warn("correction_application_failed", {
+          field: correction.field,
+          error: String(error),
+        })
+      }
+    }
+
+    return corrected
   }
 
   private generateTraumaName(character: string, cause: string): string {
@@ -589,7 +723,12 @@ Each field should be 1-3 concise sentences.`
     return tags.length > 0 ? tags : [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR]
   }
 
-  private generateEvolutionSummary(updates: any, currentState: any, auditFlags: any[]): EvolutionSummary {
+  private generateEvolutionSummary(
+    updates: any,
+    currentState: any,
+    auditFlags: any[],
+    evaluation?: TurnEvaluation,
+  ): EvolutionSummary {
     const chars = updates.characters || {}
     const rels = updates.relationships || {}
 
@@ -619,6 +758,15 @@ Each field should be 1-3 concise sentences.`
     if (newTraumas > 0) highlights.push(`${newTraumas} new trauma(s) recorded`)
     if (newSkills > 0) highlights.push(`${newSkills} new skill(s) unlocked`)
     if (stressChanges.some((s) => s.delta > 20)) highlights.push("Severe stress experienced")
+
+    // Include typed key events in highlights
+    if (evaluation?.key_events && evaluation.key_events.length > 0) {
+      for (const event of evaluation.key_events) {
+        if (event.impact === "high") {
+          highlights.push(`[HIGH IMPACT] ${event.type}: ${event.description}`)
+        }
+      }
+    }
 
     return {
       timestamp: Date.now(),

@@ -157,11 +157,24 @@ export class StoryWorldMemory {
 
     log.info("memory_stored", { id, level: entry.level, chapter: entry.chapter })
 
-    return {
+    const storedEntry: MemoryEntry = {
       ...entry,
       id,
       createdAt,
     }
+
+    // NEW: Trigger knowledge graph update for scene/chapter memories
+    if (entry.level === "scene" || entry.level === "chapter") {
+      queueMicrotask(async () => {
+        try {
+          await (globalThis as any).storyKnowledgeGraph?.ingestFromMemoryEntry(storedEntry)
+        } catch (e) {
+          log.warn("knowledge_graph_ingest_failed", { error: String(e) })
+        }
+      })
+    }
+
+    return storedEntry
   }
 
   async storeChapterSummary(
@@ -173,7 +186,7 @@ export class StoryWorldMemory {
     themes: string[],
     parentArcId?: string,
   ): Promise<MemoryEntry> {
-    return this.storeMemory({
+    const entry = await this.storeMemory({
       level: "chapter",
       content: summary,
       chapter,
@@ -185,6 +198,17 @@ export class StoryWorldMemory {
       parent_id: parentArcId || null,
       metadata: { type: "chapter_summary" },
     })
+
+    // NEW: Notify thematic analyst for integration (if global instance exists)
+    if ((globalThis as any).thematicAnalyst) {
+      try {
+        await (globalThis as any).thematicAnalyst.onChapterSummaryStored(entry)
+      } catch (error) {
+        log.warn("thematic_analyst_notification_failed", { error: String(error) })
+      }
+    }
+
+    return entry
   }
 
   async storeSceneSummary(
@@ -269,17 +293,30 @@ export class StoryWorldMemory {
     return rows.map((r) => this.rowToMemory(r))
   }
 
-  async getMemoriesByChapter(chapter: number, level?: MemoryLevel): Promise<MemoryEntry[]> {
+  async getMemoriesByChapter(chapter: number, level?: MemoryLevel, asOfEndOfChapter?: boolean): Promise<MemoryEntry[]> {
     if (!this.initialized) await this.initialize()
 
-    const sql = level
-      ? `SELECT * FROM memory_entries WHERE chapter = ? AND level = ? ORDER BY created_at DESC`
-      : `SELECT * FROM memory_entries WHERE chapter = ? ORDER BY level DESC, created_at DESC`
+    if (asOfEndOfChapter) {
+      // Get all memories up to and including this chapter
+      const sql = level
+        ? `SELECT * FROM memory_entries WHERE chapter <= ? AND level = ? ORDER BY chapter DESC, created_at DESC`
+        : `SELECT * FROM memory_entries WHERE chapter <= ? ORDER BY chapter DESC, created_at DESC`
 
-    const stmt = this.db.prepare(sql)
-    const rows = level ? stmt.all(chapter, level) : stmt.all(chapter)
+      const stmt = this.db.prepare(sql)
+      const rows = level ? stmt.all(chapter, level) : stmt.all(chapter)
 
-    return rows.map((r: any) => this.rowToMemory(r))
+      return rows.map((r: any) => this.rowToMemory(r))
+    } else {
+      // Original behavior: get memories for exact chapter
+      const sql = level
+        ? `SELECT * FROM memory_entries WHERE chapter = ? AND level = ? ORDER BY created_at DESC`
+        : `SELECT * FROM memory_entries WHERE chapter = ? ORDER BY level DESC, created_at DESC`
+
+      const stmt = this.db.prepare(sql)
+      const rows = level ? stmt.all(chapter, level) : stmt.all(chapter)
+
+      return rows.map((r: any) => this.rowToMemory(r))
+    }
   }
 
   async getMemoriesByCharacter(characterName: string, limit?: number): Promise<MemoryEntry[]> {

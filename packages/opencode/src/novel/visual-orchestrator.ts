@@ -111,6 +111,7 @@ export async function generateVisualPanels(
 
     // Get global style from narrative skeleton
     const globalStyle = input.narrativeSkeleton?.tone || defaultStyle
+    const globalTheme = input.narrativeSkeleton?.tone
 
     const panels: VisualPanelSpec[] = []
 
@@ -123,7 +124,20 @@ export async function generateVisualPanels(
       // Get main character for this panel
       const mainChar = characterStates[0]
 
-      // Build context for hybrid engine
+      // Build psychological profiles for all characters
+      const characterPsychologicalProfiles: Record<string, { coreFear?: string; attachmentStyle?: string }> = {}
+      for (const char of characterStates) {
+        // Note: In a full implementation, this would come from character-deepener
+        // For now, we extract from character state if available
+        if ((char as any).psychologicalProfile) {
+          characterPsychologicalProfiles[char.name] = {
+            coreFear: (char as any).psychologicalProfile.coreFear,
+            attachmentStyle: (char as any).psychologicalProfile.attachmentStyle,
+          }
+        }
+      }
+
+      // Build context for hybrid engine with enhanced narrative information
       const context = {
         beat: {
           description: panelText,
@@ -148,6 +162,9 @@ export async function generateVisualPanels(
           depthOfField: "shallow" as const,
         },
         globalStyle,
+        globalTheme,
+        characterPsychologicalProfiles:
+          Object.keys(characterPsychologicalProfiles).length > 0 ? characterPsychologicalProfiles : undefined,
         previousPanels: panels.slice(-3), // Last 3 panels for continuity
       }
 

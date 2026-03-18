@@ -68,13 +68,13 @@ function categorizePromptElement(element: string): number {
   const weights = cfg.prompt_engineering.priority_weights
 
   // Check each priority category
-  if (keywords.subject_action.some(kw => lower.includes(kw)) || lower.startsWith("(")) {
+  if (keywords.subject_action.some((kw) => lower.includes(kw)) || lower.startsWith("(")) {
     return weights.subject_action
   }
-  if (keywords.camera_lighting.some(kw => lower.includes(kw))) {
+  if (keywords.camera_lighting.some((kw) => lower.includes(kw))) {
     return weights.camera_lighting
   }
-  if (keywords.style_atmosphere.some(kw => lower.includes(kw))) {
+  if (keywords.style_atmosphere.some((kw) => lower.includes(kw))) {
     return weights.style_atmosphere
   }
 
@@ -87,7 +87,7 @@ function categorizePromptElement(element: string): number {
  */
 function estimateTokens(text: string): number {
   const cfg = getConfig()
-  const words = text.split(/\s+/).filter(w => w.length > 0)
+  const words = text.split(/\s+/).filter((w) => w.length > 0)
   return Math.ceil(words.length * cfg.prompt_engineering.token_estimation_factor)
 }
 
@@ -99,15 +99,12 @@ function estimateTokens(text: string): number {
  * @param maxTokens - Maximum allowed tokens (defaults to config value)
  * @returns Truncated and prioritized prompt string
  */
-export function prioritizeAndTruncatePrompt(
-  elements: string[],
-  maxTokens?: number
-): string {
+export function prioritizeAndTruncatePrompt(elements: string[], maxTokens?: number): string {
   const cfg = getConfig()
   const limit = maxTokens ?? cfg.prompt_engineering.max_token_limit
 
   // Tag each element with its priority
-  const tagged = elements.map(el => ({
+  const tagged = elements.map((el) => ({
     element: el,
     priority: categorizePromptElement(el),
     tokens: estimateTokens(el),
@@ -167,6 +164,14 @@ export interface CharacterStateSnapshot {
 }
 
 /**
+ * Psychological profile for character-aware visual translation.
+ */
+export interface PsychologicalProfile {
+  coreFear?: string
+  attachmentStyle?: string
+}
+
+/**
  * Generates a deterministic hash using the DJB2 algorithm.
  * Initial value is loaded from configuration.
  */
@@ -183,10 +188,7 @@ function djb2Hash(str: string): string {
  * Generates a deterministic visual hash for character consistency.
  * Hash version is loaded from configuration.
  */
-export function generateDeterministicVisualHash(
-  characterId: string,
-  stateSnapshot: CharacterStateSnapshot,
-): string {
+export function generateDeterministicVisualHash(characterId: string, stateSnapshot: CharacterStateSnapshot): string {
   const cfg = getConfig()
 
   // Create a canonical string representation
@@ -205,10 +207,7 @@ export function generateDeterministicVisualHash(
 /**
  * Generates a stable character reference URL based on deterministic hash.
  */
-export function generateStableCharacterRefUrl(
-  characterId: string,
-  stateSnapshot: CharacterStateSnapshot,
-): string {
+export function generateStableCharacterRefUrl(characterId: string, stateSnapshot: CharacterStateSnapshot): string {
   const hash = generateDeterministicVisualHash(characterId, stateSnapshot)
   return `mock://chars/${hash}/ref.png`
 }
@@ -220,10 +219,16 @@ export function generateStableCharacterRefUrl(
 /**
  * Translates emotion to visual descriptions.
  * Emotion mappings are loaded from configuration.
+ *
+ * @param emotion - The emotion to translate
+ * @param intensity - Emotion intensity (0-1)
+ * @param psychologicalProfile - Optional psychological profile for character-aware translation
+ * @returns Visual descriptors for expression, body language, and facial features
  */
 export function translateEmotionToVisuals(
   emotion: string,
   intensity: number = 0.5,
+  psychologicalProfile?: PsychologicalProfile,
 ): {
   expression: string
   bodyLanguage: string
@@ -242,10 +247,50 @@ export function translateEmotionToVisuals(
   const intensityMultiplier = Math.min(Math.max(intensity, 0), 1)
   const boosted = intensityMultiplier > 0.7
 
+  let expression = boosted ? mapping.expression : mapping.expression.split(", ").slice(0, 2).join(", ")
+  let bodyLanguage = boosted ? mapping.bodyLanguage : mapping.bodyLanguage.split(", ").slice(0, 2).join(", ")
+  let facialFeatures = boosted ? mapping.facialFeatures : mapping.facialFeatures.split(", ").slice(0, 2).join(", ")
+
+  // Modify based on psychological profile for character-aware translation
+  if (psychologicalProfile) {
+    const { attachmentStyle, coreFear } = psychologicalProfile
+
+    // Avoidant attachment: add distance/closure even in positive emotions
+    if (attachmentStyle === "avoidant") {
+      if (emotion === "joy" || emotion === "happy") {
+        bodyLanguage = "smiling but with closed-off posture, arms crossed, maintaining distance"
+      } else if (emotion === "love" || emotion === "affection") {
+        expression = "gentle smile with hesitant eyes, guarded expression"
+        bodyLanguage = "leaning slightly away, protective posture"
+      }
+    }
+
+    // Anxious attachment: add neediness/clinginess
+    if (attachmentStyle === "anxious") {
+      if (emotion === "joy" || emotion === "happy") {
+        bodyLanguage = "eager posture, leaning in, seeking validation through eye contact"
+      } else if (emotion === "sadness" || emotion === "fear") {
+        bodyLanguage = "clinging posture, seeking proximity, worried expression"
+      }
+    }
+
+    // Core fear influence: add subtle tension related to core fear
+    if (coreFear) {
+      const fearLower = coreFear.toLowerCase()
+      if (fearLower.includes("betray") || fearLower.includes("trust")) {
+        facialFeatures += ", subtle wariness in eyes, guarded expression"
+      } else if (fearLower.includes("abandon") || fearLower.includes("lonely")) {
+        bodyLanguage += ", seeking connection, watchful gaze"
+      } else if (fearLower.includes("fail") || fearLower.includes("incompetent")) {
+        bodyLanguage += ", tense shoulders, self-conscious posture"
+      }
+    }
+  }
+
   return {
-    expression: boosted ? mapping.expression : mapping.expression.split(", ").slice(0, 2).join(", "),
-    bodyLanguage: boosted ? mapping.bodyLanguage : mapping.bodyLanguage.split(", ").slice(0, 2).join(", "),
-    facialFeatures: boosted ? mapping.facialFeatures : mapping.facialFeatures.split(", ").slice(0, 2).join(", "),
+    expression,
+    bodyLanguage,
+    facialFeatures,
   }
 }
 
@@ -256,10 +301,16 @@ export function translateEmotionToVisuals(
 /**
  * Translates action to camera settings.
  * Action mappings are loaded from configuration.
+ *
+ * @param action - The action to translate
+ * @param context - Contextual information about the scene
+ * @param currentTheme - Optional current story theme for thematic visual adjustments
+ * @returns Camera settings, lighting, and composition
  */
 export function translateActionToCamera(
   action: string,
   context: string = "",
+  currentTheme?: string,
 ): {
   camera: Partial<CameraSpec>
   lighting: string
@@ -274,9 +325,7 @@ export function translateActionToCamera(
   if (!mapping) {
     // Try keyword matching
     const actionKeys = Object.keys(cfg.actions)
-    const keywordMatch = actionKeys.find(
-      key => normalizedAction.includes(key) || key.includes(normalizedAction)
-    )
+    const keywordMatch = actionKeys.find((key) => normalizedAction.includes(key) || key.includes(normalizedAction))
     if (keywordMatch) {
       mapping = cfg.actions[keywordMatch]
     }
@@ -303,10 +352,42 @@ export function translateActionToCamera(
     depthOfField: mapping.camera.depthOfField as "shallow" | "deep" | "none" | undefined,
   }
 
+  let lighting = mapping.lighting
+  let composition = mapping.composition
+
+  // Apply theme-based adjustments for generic actions
+  if (currentTheme && (normalizedAction === "conversation" || normalizedAction === "emotional")) {
+    const themeLower = currentTheme.toLowerCase()
+
+    // Betrayal theme: add dramatic lighting even for conversations
+    if (themeLower.includes("betray") || themeLower.includes("deceit")) {
+      lighting = "chiaroscuro, high contrast lighting, dramatic shadows"
+      composition = "asymmetric composition, character isolation"
+    }
+
+    // Redemption theme: warmer, more hopeful lighting
+    if (themeLower.includes("redempt") || themeLower.includes("forgive")) {
+      lighting = "warm golden hour lighting, soft glow"
+      composition = "balanced composition, open framing"
+    }
+
+    // Mystery/thriller theme: darker, more suspenseful
+    if (themeLower.includes("myster") || themeLower.includes("thrill")) {
+      lighting = "low-key lighting, deep shadows, motivated light sources"
+      composition = "dutch angle, tight framing"
+    }
+
+    // Romance theme: softer, more intimate
+    if (themeLower.includes("romance") || themeLower.includes("love")) {
+      lighting = "soft diffused lighting, warm tones"
+      composition = "close two-shot, intimate framing"
+    }
+  }
+
   return {
     camera,
-    lighting: mapping.lighting,
-    composition: mapping.composition,
+    lighting,
+    composition,
   }
 }
 
@@ -593,12 +674,12 @@ export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec {
   const bodyLanguage = emotionData?.bodyLanguage || "standing"
 
   // Generate deterministic character references
-  const characterRefs = characters.map(c =>
+  const characterRefs = characters.map((c) =>
     generateStableCharacterRefUrl(c.name, {
       outfitDetails: c.outfit,
       injuryDetails: c.injuries,
       emotionalState: c.emotions?.[0]?.type || beat.emotion,
-    })
+    }),
   )
 
   // Build camera spec
@@ -612,7 +693,7 @@ export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec {
   // Build prioritized visual prompt
   const visualPrompt = buildVisualPrompt(
     {
-      characters: characters.map(c => ({
+      characters: characters.map((c) => ({
         name: c.name,
         description: c.visualDescription || `character ${c.name}`,
         expression,
@@ -625,7 +706,7 @@ export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec {
       atmosphericEffects: atmosEffects,
       styleModifiers: styleMods,
     },
-    cfg.prompt_engineering.max_token_limit
+    cfg.prompt_engineering.max_token_limit,
   )
 
   // Build dynamic negative prompt
@@ -683,7 +764,7 @@ export function enrichBeatWithVisuals(beat: LiteraryBeat, characterStates: Chara
   return {
     originalText: beat.text,
     visualSpec,
-    charactersOnScreen: characterStates.map(c => c.name),
+    charactersOnScreen: characterStates.map((c) => c.name),
     sceneDescription: visualSpec.visualPrompt,
   }
 }
@@ -700,7 +781,7 @@ function detectActionFromConfig(text: string): string {
   const textLower = text.toLowerCase()
 
   for (const [action, keywords] of Object.entries(cfg.action_keywords)) {
-    if (keywords.some(kw => textLower.includes(kw.toLowerCase()))) {
+    if (keywords.some((kw) => textLower.includes(kw.toLowerCase()))) {
       return action
     }
   }
@@ -724,7 +805,9 @@ export function translateStoryToPanels(
 
   // Use config for sentence splitting
   const splitPattern = new RegExp(cfg.panel_generation.sentence_split_pattern)
-  const sentences = storyText.split(splitPattern).filter(s => s.trim().length >= cfg.panel_generation.min_sentence_length)
+  const sentences = storyText
+    .split(splitPattern)
+    .filter((s) => s.trim().length >= cfg.panel_generation.min_sentence_length)
 
   const panelCount = options.panelCount ?? Math.min(sentences.length, cfg.panel_generation.default_count)
   const clampedCount = Math.max(cfg.panel_generation.min_count, Math.min(panelCount, cfg.panel_generation.max_count))

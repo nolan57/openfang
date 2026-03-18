@@ -4,6 +4,7 @@ import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
 import { getStoryGraphDbPath } from "./novel-config"
+import type { MemoryEntry } from "./story-world-memory"
 
 const log = Log.create({ service: "story-knowledge-graph" })
 
@@ -35,6 +36,7 @@ export const EdgeTypeSchema = z.enum([
   "visits",
   "influenced_by",
   "believes_in",
+  "kills",
 ])
 
 export const GraphNodeSchema = z.object({
@@ -232,6 +234,16 @@ export class StoryKnowledgeGraph {
       edge.metadata ? JSON.stringify(edge.metadata) : null,
     )
 
+    // Record high-impact world events
+    if (edge.type === "kills" || edge.type === "destroyed") {
+      log.info("high_impact_world_event", {
+        type: edge.type,
+        source: edge.source,
+        target: edge.target,
+        chapter: edge.chapter,
+      })
+    }
+
     log.info("edge_added", { id, source: edge.source, target: edge.target, type: edge.type })
     return { ...edge, id }
   }
@@ -380,6 +392,186 @@ export class StoryKnowledgeGraph {
     }
 
     return { allies, opponents, members }
+  }
+
+  /**
+   * Check if a character was active at a specific chapter
+   * Returns true if character was alive/active at end of target chapter
+   */
+  async wasCharacterActiveAtChapter(characterId: string, targetChapter: number): Promise<boolean> {
+    if (!this.initialized) await this.initialize()
+
+    const node = await this.getNode(characterId)
+    if (!node || node.type !== "character") return false
+
+    // Character was never active after target chapter
+    if (node.lastAppearance && node.lastAppearance < targetChapter) {
+      return false
+    }
+
+    // Check if character was killed/deactivated before or at target chapter
+    const killEdges = await this.getEdgesForNode(characterId, "kills")
+    for (const edge of killEdges) {
+      if (edge.target === characterId && edge.chapter <= targetChapter) {
+        return false
+      }
+      if (edge.source === characterId && edge.chapter <= targetChapter && edge.type === "kills") {
+        // Character committed killing but might still be alive
+        break
+      }
+    }
+
+    // Check for destroyed/inactive status set before target chapter
+    const destroyEdges = await this.getEdgesForNode(characterId, "destroyed")
+    for (const edge of destroyEdges) {
+      if (edge.target === characterId && edge.chapter <= targetChapter) {
+        return false
+      }
+    }
+
+    // If status was explicitly set to inactive/dead before target chapter
+    if (
+      (node.status === "inactive" || node.status === "destroyed") &&
+      node.lastAppearance &&
+      node.lastAppearance <= targetChapter
+    ) {
+      return false
+    }
+
+    return true
+  }
+
+  /**
+   * Get the status of a location at a specific chapter
+   */
+  async getLocationStatusAtChapter(
+    locationId: string,
+    targetChapter: number,
+  ): Promise<"active" | "destroyed" | "unknown"> {
+    if (!this.initialized) await this.initialize()
+
+    const node = await this.getNode(locationId)
+    if (!node || node.type !== "location") return "unknown"
+
+    // Check if location was destroyed before or at target chapter
+    const destroyEdges = await this.getEdgesForNode(locationId, "destroyed")
+    for (const edge of destroyEdges) {
+      if (edge.target === locationId && edge.chapter <= targetChapter) {
+        return "destroyed"
+      }
+    }
+
+    // Check node status
+    if (node.status === "destroyed" && node.lastAppearance && node.lastAppearance <= targetChapter) {
+      return "destroyed"
+    }
+
+    return "active"
+  }
+
+  /**
+   * Ingest knowledge from a memory entry
+   * Extracts entities and relationships from memory content
+   *
+   * Enhanced integration with motif-tracker:
+   * - Automatically creates nodes for motifs mentioned in memory
+   * - Links motifs to characters and locations
+   */
+  async ingestFromMemoryEntry(memory: MemoryEntry): Promise<void> {
+    if (!this.initialized) await this.initialize()
+
+    try {
+      // Extract characters as nodes
+      for (const charName of memory.characters) {
+        const existingChar = await this.findNodeByName("character", charName)
+        if (!existingChar) {
+          await this.addCharacter(charName, memory.chapter, {
+            firstMemoryId: memory.id,
+            significance: memory.significance,
+          })
+        } else {
+          // Update last appearance
+          await this.updateNodeStatus(existingChar.id, existingChar.status, memory.chapter)
+        }
+      }
+
+      // Extract locations as nodes
+      for (const locName of memory.locations) {
+        const existingLoc = await this.findNodeByName("location", locName)
+        if (!existingLoc) {
+          await this.addLocation(locName, memory.chapter)
+        }
+      }
+
+      // Extract events as nodes
+      for (const eventName of memory.events) {
+        const existingEvent = await this.findNodeByName("event", eventName)
+        if (!existingEvent) {
+          await this.addEvent(eventName, memory.chapter)
+        }
+      }
+
+      // NEW: Extract and link motifs (integration with motif-tracker)
+      for (const theme of memory.themes) {
+        // Check if theme is a known motif
+        const motifNode = await this.findNodeByName("concept", `motif_${theme}`)
+        if (!motifNode) {
+          await this.addNode({
+            type: "concept",
+            name: `motif_${theme}`,
+            description: `Thematic motif: ${theme}`,
+            firstAppearance: memory.chapter,
+            status: "active",
+            metadata: {
+              isMotif: true,
+              theme,
+              significance: memory.significance,
+            },
+          })
+        }
+
+        // Link motif to characters involved
+        for (const charName of memory.characters) {
+          const charNode = await this.findNodeByName("character", charName)
+          if (charNode) {
+            await this.addEdge({
+              source: charNode.id,
+              target: (await this.findNodeByName("concept", `motif_${theme}`))!.id,
+              type: "influenced_by",
+              strength: memory.significance * 10,
+              chapter: memory.chapter,
+              metadata: {
+                memoryId: memory.id,
+                context: "thematic_association",
+              },
+            })
+          }
+        }
+      }
+
+      // Create character-location edges for this chapter
+      const charNodes = await Promise.all(memory.characters.map((c) => this.findNodeByName("character", c)))
+      const locNodes = await Promise.all(memory.locations.map((l) => this.findNodeByName("location", l)))
+
+      for (const charNode of charNodes) {
+        if (!charNode) continue
+        for (const locNode of locNodes) {
+          if (!locNode) continue
+          // Check if edge already exists for this chapter
+          const existingEdges = await this.getEdgesForNode(charNode.id)
+          const hasEdge = existingEdges.some(
+            (e) => e.target === locNode.id && e.type === "located_at" && e.chapter === memory.chapter,
+          )
+          if (!hasEdge) {
+            await this.connectCharacterToLocation(charNode.id, locNode.id, memory.chapter)
+          }
+        }
+      }
+
+      log.info("memory_ingested", { memoryId: memory.id, chapter: memory.chapter, level: memory.level })
+    } catch (error) {
+      log.warn("memory_ingestion_failed", { memoryId: memory.id, error: String(error) })
+    }
   }
 
   async detectInconsistency(characterId: string): Promise<
