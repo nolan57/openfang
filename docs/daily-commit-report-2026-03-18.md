@@ -1466,3 +1466,320 @@ $ bun typecheck
 
 _Report generated on 2026-03-18_
 _Novel Engine: Fact-Aware & Psychology-Driven ✅_
+
+---
+
+### Commit 2: Dynamic Visual Strategy Engine Enhancement (`def789abc`)
+
+Enhanced visual configuration system with voting mechanism and conflict resolution.
+
+**Files Modified:** 3
+**Lines Added:** +187
+**Lines Removed:** -43
+**Net Change:** +144 lines
+
+---
+
+#### 1. visual-config.json (Configuration Definition)
+
+**Version:** `1.0.0` → `2.0.0`
+
+**New Fields:**
+
+**`strategy_layers.overrides[]`** - 4 pre-defined strategy override rules:
+- **High Tension Override**: Handheld camera + high contrast when tension > 0.8
+- **Chaos Motif Enhancement**: Smoke, dust, surreal effects for chaos motifs
+- **Isolation Theme**: Empty space composition for isolation motifs
+- **Light vs Dark Theme**: Chiaroscuro lighting for moral conflict motifs
+
+**`thematic_mappings`** - 5 thematic visual mappings:
+```json
+{
+  "light_vs_dark": {
+    "color_scheme": ["#ffffff", "#000000"],
+    "lighting_style": "chiaroscuro",
+    "priority_weight": 5
+  },
+  "isolation": {
+    "composition": "rule_of_thirds_empty_space",
+    "color_temperature": "cold",
+    "depth_of_field": "deep"
+  },
+  "chaos": {
+    "composition": "dynamic_imbalance",
+    "color_scheme": ["#ff0000", "#000000", "#ffff00"],
+    "atmospheric_effects": ["smoke", "dust"]
+  },
+  "hope": {
+    "color_temperature": "warm",
+    "lighting_style": "golden_hour",
+    "composition": "upward_angle"
+  },
+  "transformation": {
+    "style": ["surreal", "metamorphosis"],
+    "atmospheric_effects": ["sparkles", "ethereal_glow"]
+  }
+}
+```
+
+**`negative_prompts.conflict_groups`** - 5 conflict groups for automatic resolution:
+```json
+{
+  "conflict_groups": [
+    ["warm_tones", "cold_tones", "warm", "cold", "cool"],
+    ["bright", "dark", "low_key", "high_key"],
+    ["realistic", "abstract", "surreal", "photorealistic"],
+    ["centered", "off_center", "symmetrical", "asymmetric"],
+    ["sharp_focus", "soft_focus", "blurry", "deep_focus"]
+  ]
+}
+```
+
+---
+
+#### 2. config-loader.ts (Logic Core)
+
+**New Type Definitions:**
+
+```typescript
+// Zod Schemas for strategy layers
+StrategyOverrideConditionSchema
+StrategyOverrideEffectsSchema
+StrategyOverrideSchema
+ThematicMappingSchema
+StrategyLayersSchema
+ThematicMappingsSchema
+
+// TypeScript Types
+VisualContext {
+  tensionLevel: number
+  activeMotifs: string[]
+  currentEmotion?: string
+  currentAction?: string
+}
+
+ResolvedVisualSpec {
+  camera?: CameraSpec & Record<string, unknown>
+  lighting?: string | Record<string, unknown>
+  composition?: string
+  atmosphere?: string[]
+  negative_prompts?: string[]
+  style?: string[]
+  // ... more visual properties
+}
+
+VotingState {
+  thematicVotes: Map<string, number>
+  appliedMappings: Set<string>
+  totalWeight: number
+}
+```
+
+**New Core Functions:**
+
+**`calculateDynamicWeight(mapping, context, activeMotifCount): number`**
+- Base weight from config (default: 1)
+- Bonus for multiple motif matches (+0.5 per additional motif)
+- Bonus for high tension scenes (+1.0 when tension > 0.7)
+- Capped at 10
+
+**`applyThematicMappingWithVoting(mapping, motifName, votingState): void`**
+- Implements voting mechanism for thematic mappings
+- Each motif casts votes proportional to its weight
+
+**`resolveNegativePromptConflicts(negativePrompts, conflictGroups): string[]`**
+- Detects conflicting terms in negative prompts
+- Removes ALL conflicting terms if multiple from same group detected
+- Uses default conflict groups or config-defined groups
+
+**`resolveVisualSpec(context: VisualContext): ResolvedVisualSpec`**
+
+Enhanced execution flow (5 steps):
+1. **Base Layer**: Read base configuration (emotion/action mappings)
+2. **Override Layer**: Apply strategy_layers.overrides based on conditions
+3. **Merge**: Deep merge effects into base configuration
+4. **Thematic Voting**: NEW - Apply thematic mappings with voting mechanism
+   - Calculate dynamic weight for each matching motif
+   - Cast votes and track total weight
+   - Sort motifs by weight descending
+   - Apply dominant themes (influence >= 30%) at full strength
+   - Apply supporting themes (influence 10-30%) partially
+   - Skip minor themes (influence < 10%)
+5. **Conflict Resolution**: NEW - Resolve negative prompt conflicts
+
+**Implementation Details:**
+
+```typescript
+// Voting mechanism example
+// Scenario: chaos (weight=5) + transformation (weight=3) + tension=0.85
+// chaos: weight = 5 + 0 (single) + 1.0 (high tension) = 6.0
+// transformation: weight = 3 + 0 (single) + 1.0 (high tension) = 4.0
+// totalWeight = 10.0
+// chaos influence = 6.0 / 10.0 = 60% (dominant)
+// transformation influence = 4.0 / 10.0 = 40% (supporting)
+```
+
+**Logging Enhancements:**
+
+```typescript
+log.debug("thematic_mapping_voted", {
+  motif: "chaos",
+  dynamicWeight: 6.0,
+  baseWeight: 5,
+  tensionBonus: 1.0,
+})
+
+log.info("applying_thematic_mapping", {
+  motif: "chaos",
+  weight: 6.0,
+  influenceRatio: "0.60",
+  totalWeight: 10.0,
+})
+
+log.warn("negative_prompt_conflict_detected", {
+  group: ["warm_tones", "cold_tones", ...],
+  presentTerms: ["warm_tones", "cold_tones"],
+  action: "removing_all_conflicting_terms",
+})
+
+log.info("visual_spec_resolved", {
+  context: { tension: "0.85", motifs: 2, emotion: "fear", action: "chase" },
+  appliedMappings: 2,
+  totalThematicWeight: "10.0",
+  finalNegativePrompts: 12,
+})
+```
+
+---
+
+#### 3. index.ts (API Aggregation)
+
+**Simplified Public API:**
+
+```typescript
+export {
+  // Core config loading (use sparingly)
+  loadVisualConfig,
+  getVisualConfig,
+  clearConfigCache,
+  reloadVisualConfig,
+  
+  // ✅ CORE VISUAL RESOLVER (business layer's main interface)
+  resolveVisualSpec,
+  
+  // Types
+  type VisualConfig,
+  type VisualContext,
+  type ResolvedVisualSpec,
+  type StrategyOverride,
+  type ThematicMapping,
+} from "./config-loader"
+
+// DEPRECATED: Internal use only (not exported)
+// - getEmotionVisual
+// - getActionMapping
+// - getLightingPreset
+// - getStyleModifiers
+// - isComplexEmotion
+// - isComplexAction
+```
+
+**Documentation Comments:**
+- Added clear guidance that `resolveVisualSpec()` is the ONLY interface business logic should use
+- Marked low-level functions as internal implementation details
+
+---
+
+### Architecture Impact
+
+#### Before
+- **Thematic Mappings**: Hard-coded `if (weight >= 3)` threshold
+- **Multiple Motifs**: Independent application, potential conflicts
+- **Negative Prompts**: Simple array concat + deduplication
+- **Conflict Detection**: None
+
+#### After
+- **Thematic Mappings**: Dynamic weight calculation with voting mechanism
+- **Multiple Motifs**: Proportional influence based on vote ratio
+- **Negative Prompts**: Automatic conflict detection and resolution
+- **Conflict Detection**: 5 predefined conflict groups with auto-removal
+
+---
+
+### Usage Example
+
+```typescript
+import { resolveVisualSpec, type VisualContext } from './novel/config'
+
+const context: VisualContext = {
+  tensionLevel: 0.85,  // High tension
+  activeMotifs: ['chaos', 'transformation'],
+  currentEmotion: 'fear',
+  currentAction: 'chase'
+}
+
+const visualSpec = resolveVisualSpec(context)
+// Returns:
+// {
+//   camera: { 
+//     shot: 'medium-wide', 
+//     movement: 'handheld', 
+//     shake_intensity: 'high' 
+//   },
+//   lighting: 'high_contrast',
+//   negative_prompts: ['text', 'watermark', ...], // conflicts removed
+//   atmospheric_effects: ['smoke', 'dust', 'volumetric_light'],
+//   style: ['surreal', 'distorted_perspective'],
+//   // ...
+// }
+```
+
+---
+
+### Testing Status
+
+**Type Check:**
+```bash
+$ bun typecheck
+✅ All files pass type checking
+```
+
+**Files Modified:** 3
+**Lines Changed:** +187 / -43
+**Net Change:** +144 lines
+
+---
+
+## Daily Summary
+
+### Total Changes for 2026-03-18
+
+| Metric | Commit 1 | Commit 2 | Total |
+|--------|----------|----------|-------|
+| **Files Modified** | 7 | 3 | 10 |
+| **Lines Added** | ~1,847 | +187 | ~2,034 |
+| **Lines Removed** | ~1,203 | -43 | ~1,246 |
+| **Net Change** | +644 | +144 | +788 lines |
+
+### Key Achievements
+
+1. ✅ **State Extractor**: Fact-aware validation with external validator integration
+2. ✅ **Thematic Analyst**: Meta-learning metrics push and high-impact event logging
+3. ✅ **Validation**: Upgraded to fact consistency checker with world state awareness
+4. ✅ **Visual Subsystem**: Psychology-aware and theme-aware visual generation
+5. ✅ **Pattern Miner**: Generic repository pattern with robust JSON parsing
+6. ✅ **Visual Strategy Engine**: Dynamic voting mechanism and conflict resolution
+
+---
+
+### Next Steps
+
+1. **Integration Testing**: Verify dynamic visual strategy with actual story generation
+2. **Performance Profiling**: Measure impact of voting mechanism on generation speed
+3. **Conflict Group Tuning**: Adjust conflict groups based on generation results
+4. **Documentation**: Update API docs for `resolveVisualSpec()` usage
+
+---
+
+_Report updated on 2026-03-18 22:30 UTC_
+_Visual Strategy Engine: Dynamic & Conflict-Aware ✅_
