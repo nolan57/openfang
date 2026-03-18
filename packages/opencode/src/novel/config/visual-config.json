@@ -1,10 +1,94 @@
 {
   "$schema": "./visual-config.schema.json",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "metadata": {
-    "description": "Visual Orchestration Engine Configuration",
-    "lastUpdated": "2026-03-09",
+    "description": "Visual Orchestration Engine Configuration - Dynamic Strategy Edition",
+    "lastUpdated": "2026-03-18",
     "author": "Visual Orchestration Architect"
+  },
+
+  "strategy_layers": {
+    "overrides": [
+      {
+        "name": "High Tension Override",
+        "description": "当故事张力过高时，强制应用手持摄影和高对比度",
+        "condition": {
+          "story_tension": { "min": 0.8 }
+        },
+        "effects": {
+          "camera": {
+            "movement": "handheld",
+            "shake_intensity": "high"
+          },
+          "lighting": {
+            "style": "high_contrast",
+            "flicker": true
+          },
+          "negative_prompts_add": ["static_shot", "calm_atmosphere", "smooth_lighting"]
+        }
+      },
+      {
+        "name": "Chaos Motif Enhancement",
+        "description": "当检测到混沌母题时，增加氛围效果",
+        "condition": {
+          "active_motifs": ["chaos", "metamorphosis", "supernatural"]
+        },
+        "effects": {
+          "atmospheric_effects": ["smoke", "dust", "volumetric_light"],
+          "style": ["surreal", "distorted_perspective"]
+        }
+      },
+      {
+        "name": "Isolation Theme",
+        "description": "当检测到孤立主题时，应用空旷构图",
+        "condition": {
+          "active_motifs": ["isolation", "loneliness", "abandonment"]
+        },
+        "effects": {
+          "composition": "rule_of_thirds_empty_space",
+          "color_temperature": "cold",
+          "depth_of_field": "deep"
+        }
+      },
+      {
+        "name": "Light vs Dark Theme",
+        "description": "当检测到光明与黑暗对抗主题时，应用明暗对比",
+        "condition": {
+          "active_motifs": ["light_vs_dark", "good_vs_evil", "moral_conflict"]
+        },
+        "effects": {
+          "lighting": "chiaroscuro",
+          "color_scheme": ["#ffffff", "#000000"]
+        }
+      }
+    ]
+  },
+
+  "thematic_mappings": {
+    "light_vs_dark": {
+      "color_scheme": ["#ffffff", "#000000"],
+      "lighting_style": "chiaroscuro",
+      "priority_weight": 5
+    },
+    "isolation": {
+      "composition": "rule_of_thirds_empty_space",
+      "color_temperature": "cold",
+      "depth_of_field": "deep"
+    },
+    "chaos": {
+      "composition": "dynamic_imbalance",
+      "color_scheme": ["#ff0000", "#000000", "#ffff00"],
+      "atmospheric_effects": ["smoke", "dust"]
+    },
+    "hope": {
+      "color_temperature": "warm",
+      "lighting_style": "golden_hour",
+      "composition": "upward_angle"
+    },
+    "transformation": {
+      "style": ["surreal", "metamorphosis"],
+      "atmospheric_effects": ["sparkles", "ethereal_glow"]
+    }
   },
 
   "strategy": {
@@ -43,11 +127,7 @@
         "surreal",
         "abstract"
       ],
-      "complex_style_patterns": [
-        "\\w+\\s*\\+\\s*\\w+",
-        "blend|fusion|mixed|hybrid",
-        "traditional\\s+\\w+\\s+with\\s+"
-      ],
+      "complex_style_patterns": ["\\w+\\s*\\+\\s*\\w+", "blend|fusion|mixed|hybrid", "traditional\\s+\\w+\\s+with\\s+"],
       "description_length_threshold": 150,
       "use_llm_for_continuity": true,
       "min_previous_panels_for_continuity": 1
@@ -64,17 +144,9 @@
       "background": 4
     },
     "priority_keywords": {
-      "subject_action": [
-        "character", "expression", "body", "pose", "action",
-        "standing", "sitting", "moving"
-      ],
-      "camera_lighting": [
-        "shot", "camera", "angle", "lighting", "light",
-        "focus", "depth"
-      ],
-      "style_atmosphere": [
-        "style", "atmosphere", "effect", "mood", "tone", "quality"
-      ],
+      "subject_action": ["character", "expression", "body", "pose", "action", "standing", "sitting", "moving"],
+      "camera_lighting": ["shot", "camera", "angle", "lighting", "light", "focus", "depth"],
+      "style_atmosphere": ["style", "atmosphere", "effect", "mood", "tone", "quality"],
       "background": []
     },
     "quality_suffix": "high quality, detailed, 8k, professional photography"
@@ -217,10 +289,50 @@
   },
 
   "action_keywords": {
-    "fight": ["fight", "battle", "attack", "combat", "punch", "kick", "strike", "slash", "shoot", "战斗", "打", "攻击", "格斗", "搏斗"],
+    "fight": [
+      "fight",
+      "battle",
+      "attack",
+      "combat",
+      "punch",
+      "kick",
+      "strike",
+      "slash",
+      "shoot",
+      "战斗",
+      "打",
+      "攻击",
+      "格斗",
+      "搏斗"
+    ],
     "chase": ["chase", "run", "pursue", "escape", "flee", "sprint", "跑", "追", "逃", "追逐"],
-    "conversation": ["talk", "speak", "ask", "answer", "discuss", "dialogue", "chat", "说", "问", "回答", "对话", "谈话"],
-    "monologue": ["think", "reflect", "consider", "ponder", "contemplate", "inner", "想", "内心", "思考", "沉思", "反思"],
+    "conversation": [
+      "talk",
+      "speak",
+      "ask",
+      "answer",
+      "discuss",
+      "dialogue",
+      "chat",
+      "说",
+      "问",
+      "回答",
+      "对话",
+      "谈话"
+    ],
+    "monologue": [
+      "think",
+      "reflect",
+      "consider",
+      "ponder",
+      "contemplate",
+      "inner",
+      "想",
+      "内心",
+      "思考",
+      "沉思",
+      "反思"
+    ],
     "revelation": ["discover", "reveal", "uncover", "realize", "find", "truth", "发现", "揭示", "真相", "意识到"],
     "romantic": ["love", "kiss", "embrace", "hold", "affection", "tender", "爱", "吻", "拥抱", "温柔"],
     "tension": ["fear", "nervous", "scared", "threaten", "danger", "suspense", "害怕", "恐惧", "紧张", "威胁"],
@@ -285,6 +397,21 @@
       "wide": ["blurry background", "distorted perspective", "floating objects", "low resolution"],
       "extreme-wide": ["tiny subjects", "unrecognizable figures", "flat composition"]
     },
+    "movement_specific": {
+      "handheld": ["motion sickness", "unstable frame", "random blur"],
+      "static": ["lifeless", "stiff", "unnatural stillness"],
+      "track": ["motion blur artifact", "speed lines"],
+      "dolly": ["distorted edges", "stretching"],
+      "steadicam": ["floating hands", "unstable horizon"]
+    },
+    "conflict_groups": [
+      ["warm_tones", "cold_tones", "warm", "cold", "cool"],
+      ["bright", "dark", "low_key", "high_key"],
+      ["realistic", "abstract", "surreal", "photorealistic"],
+      ["centered", "off_center", "symmetrical", "asymmetric"],
+      ["sharp_focus", "soft_focus", "blurry", "deep_focus"]
+    ]
+  },
     "movement_specific": {
       "handheld": ["motion sickness", "unstable frame", "random blur"],
       "static": ["lifeless", "stiff", "unnatural stillness"],
