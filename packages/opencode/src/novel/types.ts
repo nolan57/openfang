@@ -345,6 +345,61 @@ export interface EnrichedBeat {
 }
 
 // ============================================================================
+// Learning Bridge Types
+// ============================================================================
+
+export interface LearningBridgeConfig {
+  enabled: boolean
+  vector: {
+    enabled: boolean
+    fallbackToLocal: boolean
+    modelId?: string
+  }
+  knowledge: {
+    enabled: boolean
+    syncNodes: boolean
+    syncEdges: boolean
+    linkToCode: boolean
+  }
+  memory: {
+    enabled: boolean
+    qualityFilter: boolean
+    minQualityScore: number
+    deduplication: boolean
+  }
+  improvement: {
+    enabled: boolean
+    autoSuggest: boolean
+    requireReview: boolean
+  }
+}
+
+export const DEFAULT_LEARNING_BRIDGE_CONFIG: LearningBridgeConfig = {
+  enabled: true,
+  vector: {
+    enabled: true,
+    fallbackToLocal: true,
+  },
+  knowledge: {
+    enabled: true,
+    syncNodes: false,
+    syncEdges: false,
+    linkToCode: false,
+  },
+  memory: {
+    enabled: true,
+    qualityFilter: false,
+    minQualityScore: 0.5,
+    deduplication: false,
+  },
+  improvement: {
+    enabled: false,
+    autoSuggest: false,
+    requireReview: true,
+  },
+}
+
+// ============================================================================
 // LLM-based Visual Prompt Engineering Types
 // ============================================================================
 
