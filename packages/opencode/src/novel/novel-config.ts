@@ -133,6 +133,41 @@ export const PromptStyleSchema = z.object({
 export type PromptStyle = z.infer<typeof PromptStyleSchema>
 
 /**
+ * 自定义创伤标签配置
+ */
+export const CustomTraumaTagsSchema = z.record(z.string(), z.string())
+
+export type CustomTraumaTags = z.infer<typeof CustomTraumaTagsSchema>
+
+/**
+ * 自定义技能类别配置
+ */
+export const CustomSkillCategoriesSchema = z.record(z.string(), z.string())
+
+export type CustomSkillCategories = z.infer<typeof CustomSkillCategoriesSchema>
+
+/**
+ * 自定义目标类型配置
+ */
+export const CustomGoalTypesSchema = z.record(z.string(), z.string())
+
+export type CustomGoalTypes = z.infer<typeof CustomGoalTypesSchema>
+
+/**
+ * 自定义情绪类型配置
+ */
+export const CustomEmotionTypesSchema = z.record(z.string(), z.string())
+
+export type CustomEmotionTypes = z.infer<typeof CustomEmotionTypesSchema>
+
+/**
+ * 自定义角色状态配置
+ */
+export const CustomCharacterStatusSchema = z.record(z.string(), z.string())
+
+export type CustomCharacterStatus = z.infer<typeof CustomCharacterStatusSchema>
+
+/**
  * 完整的新小说配置
  */
 export const NovelEngineConfigSchema = z.object({
@@ -141,6 +176,13 @@ export const NovelEngineConfigSchema = z.object({
   promptStyle: PromptStyleSchema,
   customWeights: StoryTypeWeightsSchema.optional(),
   customDifficulty: DifficultyPresetSchema.optional(),
+  // 新增可配置项
+  thematicReflectionInterval: z.number().min(1).max(20).optional(),
+  customTraumaTags: CustomTraumaTagsSchema.optional(),
+  customSkillCategories: CustomSkillCategoriesSchema.optional(),
+  customGoalTypes: CustomGoalTypesSchema.optional(),
+  customEmotionTypes: CustomEmotionTypesSchema.optional(),
+  customCharacterStatus: CustomCharacterStatusSchema.optional(),
 })
 
 export type NovelEngineConfig = z.infer<typeof NovelEngineConfigSchema>
@@ -333,6 +375,48 @@ export class NovelConfigManager {
    */
   getPromptStyle(): PromptStyle {
     return this.config.promptStyle
+  }
+
+  /**
+   * 获取主题反思间隔
+   */
+  getThematicReflectionInterval(): number {
+    return this.config.thematicReflectionInterval ?? 5
+  }
+
+  /**
+   * 获取自定义创伤标签
+   */
+  getCustomTraumaTags(): CustomTraumaTags | undefined {
+    return this.config.customTraumaTags
+  }
+
+  /**
+   * 获取自定义技能类别
+   */
+  getCustomSkillCategories(): CustomSkillCategories | undefined {
+    return this.config.customSkillCategories
+  }
+
+  /**
+   * 获取自定义目标类型
+   */
+  getCustomGoalTypes(): CustomGoalTypes | undefined {
+    return this.config.customGoalTypes
+  }
+
+  /**
+   * 获取自定义情绪类型
+   */
+  getCustomEmotionTypes(): CustomEmotionTypes | undefined {
+    return this.config.customEmotionTypes
+  }
+
+  /**
+   * 获取自定义角色状态
+   */
+  getCustomCharacterStatus(): CustomCharacterStatus | undefined {
+    return this.config.customCharacterStatus
   }
 
   /**

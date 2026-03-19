@@ -1,7 +1,7 @@
 import { Log } from "../util/log"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
-import { TRAUMA_TAGS, SKILL_CATEGORIES, CHARACTER_STATUS, EMOTION_TYPES, GOAL_TYPES, SALIENCE_LEVELS } from "./types"
+import { getTraumaTags, getSkillCategories, getCharacterStatus, getEmotionTypes, getGoalTypes, SALIENCE_LEVELS } from "./types"
 import type {
   OutcomeType,
   CharacterState,
@@ -698,29 +698,30 @@ Each field should be 1-3 concise sentences.`
   }
 
   private selectTraumaTags(cause: string): string[] {
+    const traumaTags = getTraumaTags()
     const tags: string[] = []
     const causeLower = cause.toLowerCase()
 
     if (causeLower.includes("interrogat") || causeLower.includes("torture")) {
-      tags.push(TRAUMA_TAGS.PSYCHOLOGICAL_FEAR, TRAUMA_TAGS.ISOLATION)
+      tags.push(traumaTags.PSYCHOLOGICAL_FEAR, traumaTags.ISOLATION)
     }
     if (causeLower.includes("combat") || causeLower.includes("injur")) {
-      tags.push(TRAUMA_TAGS.PHYSICAL_INJURY, TRAUMA_TAGS.PHYSICAL_PAIN)
+      tags.push(traumaTags.PHYSICAL_INJURY, traumaTags.PHYSICAL_PAIN)
     }
     if (causeLower.includes("betray") || causeLower.includes("trust")) {
-      tags.push(TRAUMA_TAGS.PSYCHOLOGICAL_BETRAYAL)
+      tags.push(traumaTags.PSYCHOLOGICAL_BETRAYAL)
     }
     if (causeLower.includes("death") || causeLower.includes("loss")) {
-      tags.push(TRAUMA_TAGS.PSYCHOLOGICAL_LOSS)
+      tags.push(traumaTags.PSYCHOLOGICAL_LOSS)
     }
     if (causeLower.includes("visual") || causeLower.includes("gore")) {
-      tags.push(TRAUMA_TAGS.VISUAL, TRAUMA_TAGS.FLASHBACK)
+      tags.push(traumaTags.VISUAL, traumaTags.FLASHBACK)
     }
     if (causeLower.includes("nightmare") || causeLower.includes("sleep")) {
-      tags.push(TRAUMA_TAGS.NIGHTMARE)
+      tags.push(traumaTags.NIGHTMARE)
     }
 
-    return tags.length > 0 ? tags : [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR]
+    return tags.length > 0 ? tags : [traumaTags.PSYCHOLOGICAL_FEAR]
   }
 
   private generateEvolutionSummary(
@@ -798,7 +799,7 @@ Each field should be 1-3 concise sentences.`
       for (const [charName, charUpdate] of Object.entries(updates.characters)) {
         if (!newState.characters[charName]) {
           newState.characters[charName] = {
-            status: CHARACTER_STATUS.ACTIVE,
+            status: getCharacterStatus().ACTIVE,
             stress: 0,
             emotions: { valence: 0, arousal: 50, dominant: "neutral" },
             traits: [],

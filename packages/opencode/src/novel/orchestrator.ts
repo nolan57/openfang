@@ -38,6 +38,7 @@ import { CharacterLifecycleManager, characterLifecycleManager } from "./characte
 import { EndGameDetector, endGameDetector } from "./end-game-detection"
 import { FactionDetector, factionDetector } from "./faction-detector"
 import { RelationshipInertiaManager, relationshipInertiaManager } from "./relationship-inertia"
+import { initializeCustomTypes } from "./types"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
@@ -165,8 +166,6 @@ export async function loadTraumaDefinitions(): Promise<Record<string, string>> {
   return definitions
 }
 
-const THEMATIC_REFLECTION_INTERVAL = 5
-
 export interface OrchestratorConfig {
   branchOptions?: number
   verbose?: boolean
@@ -219,11 +218,6 @@ export class EvolutionOrchestrator {
     this.relationshipInertiaManager = relationshipInertiaManager
     this.branchOptions = config.branchOptions || 3
     this.verbose = config.verbose || false
-
-    // Load novel config on initialization
-    novelConfigManager.load().catch((err) => {
-      log.warn("novel_config_load_failed_in_orchestrator", { error: String(err) })
-    })
   }
 
   /**
@@ -233,6 +227,16 @@ export class EvolutionOrchestrator {
     if (this.advancedModulesInitialized) return
 
     try {
+      // Load config and initialize custom types
+      await novelConfigManager.load()
+      initializeCustomTypes({
+        customTraumaTags: novelConfigManager.getCustomTraumaTags(),
+        customSkillCategories: novelConfigManager.getCustomSkillCategories(),
+        customGoalTypes: novelConfigManager.getCustomGoalTypes(),
+        customEmotionTypes: novelConfigManager.getCustomEmotionTypes(),
+        customCharacterStatus: novelConfigManager.getCustomCharacterStatus(),
+      })
+
       await this.storyWorldMemory.initialize()
       await this.storyKnowledgeGraph.initialize()
       await this.branchStorage.initialize()
@@ -1113,7 +1117,8 @@ Output JSON:
     // === END ADVANCED MODULES INTEGRATION ===
 
     const currentTurn = this.storyState.turnCount || 0
-    if (currentTurn > 0 && currentTurn % THEMATIC_REFLECTION_INTERVAL === 0) {
+    const reflectionInterval = novelConfigManager.getThematicReflectionInterval()
+    if (currentTurn > 0 && currentTurn % reflectionInterval === 0) {
       this.log(`   Running thematic reflection (turn ${currentTurn})...`)
       try {
         const theme = this.storyState.narrativeSkeleton?.theme || "Story themes"

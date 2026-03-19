@@ -2,11 +2,15 @@ import { Log } from "../util/log"
 
 const log = Log.create({ service: "novel-types" })
 
+// ============================================================================
+// Default Constants (can be extended via configuration)
+// ============================================================================
+
 /**
- * Standardized tags for trauma classification
+ * Default standardized tags for trauma classification
  * Based on psychological research and interactive fiction best practices
  */
-export const TRAUMA_TAGS = {
+export const DEFAULT_TRAUMA_TAGS = {
   // Visual trauma
   VISUAL: "PTSD_Visual",
   NIGHTMARE: "PTSD_Nightmare",
@@ -34,9 +38,9 @@ export const TRAUMA_TAGS = {
 } as const
 
 /**
- * Standardized skill categories
+ * Default standardized skill categories
  */
-export const SKILL_CATEGORIES = {
+export const DEFAULT_SKILL_CATEGORIES = {
   // Mental skills
   ANALYSIS: "Mental_Analysis",
   DEDUCTION: "Mental_Deduction",
@@ -66,9 +70,9 @@ export const SKILL_CATEGORIES = {
 } as const
 
 /**
- * Character status constants
+ * Default character status constants
  */
-export const CHARACTER_STATUS = {
+export const DEFAULT_CHARACTER_STATUS = {
   ACTIVE: "active",
   INJURED: "injured",
   STRESSED: "stressed",
@@ -142,6 +146,138 @@ export const SALIENCE_LEVELS = {
   LOW: 0.3, // Minor event, likely to fade
   TRIVIAL: 0.1, // Background detail, quickly forgotten
 } as const
+
+// ============================================================================
+// Backward Compatibility Aliases (use DEFAULT_* internally)
+// ============================================================================
+
+/**
+ * @deprecated Use getTraumaTags() for configurable values, or DEFAULT_TRAUMA_TAGS for defaults
+ */
+export const TRAUMA_TAGS = DEFAULT_TRAUMA_TAGS
+
+/**
+ * @deprecated Use getSkillCategories() for configurable values, or DEFAULT_SKILL_CATEGORIES for defaults
+ */
+export const SKILL_CATEGORIES = DEFAULT_SKILL_CATEGORIES
+
+/**
+ * @deprecated Use getCharacterStatus() for configurable values, or DEFAULT_CHARACTER_STATUS for defaults
+ */
+export const CHARACTER_STATUS = DEFAULT_CHARACTER_STATUS
+
+// ============================================================================
+// Configurable Type Getters
+// ============================================================================
+
+/**
+ * Runtime configuration for custom types
+ */
+interface CustomTypeConfig {
+  customTraumaTags?: Record<string, string>
+  customSkillCategories?: Record<string, string>
+  customGoalTypes?: Record<string, string>
+  customEmotionTypes?: Record<string, string>
+  customCharacterStatus?: Record<string, string>
+}
+
+let runtimeConfig: CustomTypeConfig = {}
+
+/**
+ * Initialize custom types from configuration
+ */
+export function initializeCustomTypes(config: CustomTypeConfig): void {
+  runtimeConfig = config
+  log.info("custom_types_initialized", {
+    traumaTags: Object.keys(config.customTraumaTags || {}).length,
+    skillCategories: Object.keys(config.customSkillCategories || {}).length,
+    goalTypes: Object.keys(config.customGoalTypes || {}).length,
+    emotionTypes: Object.keys(config.customEmotionTypes || {}).length,
+    characterStatus: Object.keys(config.customCharacterStatus || {}).length,
+  })
+}
+
+/**
+ * Get merged trauma tags (default + custom)
+ */
+export function getTraumaTags(): Record<string, string> {
+  return {
+    ...DEFAULT_TRAUMA_TAGS,
+    ...runtimeConfig.customTraumaTags,
+  }
+}
+
+/**
+ * Get merged skill categories (default + custom)
+ */
+export function getSkillCategories(): Record<string, string> {
+  return {
+    ...DEFAULT_SKILL_CATEGORIES,
+    ...runtimeConfig.customSkillCategories,
+  }
+}
+
+/**
+ * Get merged goal types (default + custom)
+ */
+export function getGoalTypes(): Record<string, string> {
+  const defaults: Record<string, string> = {
+    SURVIVAL: "survival",
+    INVESTIGATION: "investigation",
+    REVENGE: "revenge",
+    PROTECTION: "protection",
+    ESCAPE: "escape",
+    DISCOVERY: "discovery",
+    REDEMPTION: "redemption",
+    POWER: "power",
+    LOVE: "love",
+    JUSTICE: "justice",
+  }
+  return {
+    ...defaults,
+    ...runtimeConfig.customGoalTypes,
+  }
+}
+
+/**
+ * Get merged emotion types (default + custom)
+ */
+export function getEmotionTypes(): Record<string, string> {
+  const defaults: Record<string, string> = {
+    JOY: "joy",
+    HOPE: "hope",
+    PRIDE: "pride",
+    GRATITUDE: "gratitude",
+    LOVE: "love",
+    ANGER: "anger",
+    FEAR: "fear",
+    SADNESS: "sadness",
+    GUILT: "guilt",
+    SHAME: "shame",
+    ENVY: "envy",
+    HATE: "hate",
+    SURPRISE: "surprise",
+    CONFUSION: "confusion",
+  }
+  return {
+    ...defaults,
+    ...runtimeConfig.customEmotionTypes,
+  }
+}
+
+/**
+ * Get merged character status (default + custom)
+ */
+export function getCharacterStatus(): Record<string, string> {
+  return {
+    ...DEFAULT_CHARACTER_STATUS,
+    ...runtimeConfig.customCharacterStatus,
+  }
+}
+
+// ============================================================================
+// Visual Types
+// ============================================================================
 
 export type CameraShot =
   | "extreme-close-up"
@@ -273,7 +409,7 @@ export interface VisualGenerationMetadata {
 }
 
 log.info("novel_types_loaded", {
-  traumaTags: Object.keys(TRAUMA_TAGS).length,
-  skillCategories: Object.keys(SKILL_CATEGORIES).length,
+  traumaTags: Object.keys(DEFAULT_TRAUMA_TAGS).length,
+  skillCategories: Object.keys(DEFAULT_SKILL_CATEGORIES).length,
   emotionTypes: Object.keys(EMOTION_TYPES).length,
 })

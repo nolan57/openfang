@@ -1,6 +1,6 @@
 import { Log } from "../util/log"
 import { generateText } from "ai"
-import { TRAUMA_TAGS, SKILL_CATEGORIES, CHARACTER_STATUS } from "./types"
+import { getTraumaTags, getSkillCategories, getCharacterStatus } from "./types"
 import { getNovelLanguageModel } from "./model"
 import { createPromptBuilder, type StoryTone } from "./dynamic-prompt"
 import { novelConfigManager } from "./novel-config"
@@ -330,7 +330,7 @@ Output JSON only:
             characterName: charName,
             trauma: {
               description: `Cumulative stress exceeded critical threshold (${char.stress}/100), psychological breakdown`,
-              tags: [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR, TRAUMA_TAGS.PSYCHOLOGICAL_GUILT],
+              tags: [getTraumaTags().PSYCHOLOGICAL_FEAR, getTraumaTags().PSYCHOLOGICAL_GUILT],
               severity: 8,
             },
             reason: `Stress level reached ${char.stress}`,
@@ -363,7 +363,7 @@ Output JSON only:
 
     if (character.stress >= STRESS_THRESHOLD_CRITICAL) {
       result.breakdown = true
-      character.status = CHARACTER_STATUS.STRESSED
+      character.status = getCharacterStatus().STRESSED
       log.warn("character_breakdown", { stress: character.stress })
     } else if (character.stress >= STRESS_THRESHOLD_HIGH) {
       result.stressed = true
@@ -446,46 +446,48 @@ Output JSON only:
   }
 
   private static normalizeSkillCategory(category: string | undefined): string {
-    if (!category) return SKILL_CATEGORIES.ANALYSIS
+    const skillCategories = getSkillCategories()
+    if (!category) return skillCategories.ANALYSIS
 
     const normalized = category.toLowerCase().replace(/[^a-z]/g, "")
     const categoryMap: Record<string, string> = {
-      combat: SKILL_CATEGORIES.COMBAT,
-      physical: SKILL_CATEGORIES.COMBAT,
-      fighting: SKILL_CATEGORIES.COMBAT,
-      social: SKILL_CATEGORIES.PERSUASION,
-      persuasion: SKILL_CATEGORIES.PERSUASION,
-      deception: SKILL_CATEGORIES.DECEPTION,
-      mental: SKILL_CATEGORIES.ANALYSIS,
-      analysis: SKILL_CATEGORIES.ANALYSIS,
-      deduction: SKILL_CATEGORIES.DEDUCTION,
-      intuition: SKILL_CATEGORIES.INTUITION,
-      technical: SKILL_CATEGORIES.HACKING,
-      hacking: SKILL_CATEGORIES.HACKING,
-      encryption: SKILL_CATEGORIES.ENCRYPTION,
-      stealth: SKILL_CATEGORIES.STEALTH,
-      escape: SKILL_CATEGORIES.ESCAPE,
-      interrogation: SKILL_CATEGORIES.INTERROGATION,
-      pain: SKILL_CATEGORIES.PAIN_TOLERANCE,
-      fear: SKILL_CATEGORIES.FEAR_RESIST,
+      combat: skillCategories.COMBAT,
+      physical: skillCategories.COMBAT,
+      fighting: skillCategories.COMBAT,
+      social: skillCategories.PERSUASION,
+      persuasion: skillCategories.PERSUASION,
+      deception: skillCategories.DECEPTION,
+      mental: skillCategories.ANALYSIS,
+      analysis: skillCategories.ANALYSIS,
+      deduction: skillCategories.DEDUUTION,
+      intuition: skillCategories.INTUITION,
+      technical: skillCategories.HACKING,
+      hacking: skillCategories.HACKING,
+      encryption: skillCategories.ENCRYPTION,
+      stealth: skillCategories.STEALTH,
+      escape: skillCategories.ESCAPE,
+      interrogation: skillCategories.INTERROGATION,
+      pain: skillCategories.PAIN_TOLERANCE,
+      fear: skillCategories.FEAR_RESIST,
     }
 
-    return categoryMap[normalized] || SKILL_CATEGORIES.ANALYSIS
+    return categoryMap[normalized] || skillCategories.ANALYSIS
   }
 
   private static calculateTraumaSeverityFromTags(tags: string[]): number {
+    const traumaTags = getTraumaTags()
     const severityMap: Record<string, number> = {
-      [TRAUMA_TAGS.PHYSICAL_INJURY]: 7,
-      [TRAUMA_TAGS.NEURAL]: 9,
-      [TRAUMA_TAGS.PSYCHOLOGICAL_FEAR]: 5,
-      [TRAUMA_TAGS.PSYCHOLOGICAL_BETRAYAL]: 6,
-      [TRAUMA_TAGS.PSYCHOLOGICAL_GUILT]: 5,
-      [TRAUMA_TAGS.PSYCHOLOGICAL_LOSS]: 7,
-      [TRAUMA_TAGS.ISOLATION]: 4,
-      [TRAUMA_TAGS.PERSECUTION]: 6,
-      [TRAUMA_TAGS.VISUAL]: 4,
-      [TRAUMA_TAGS.NIGHTMARE]: 5,
-      [TRAUMA_TAGS.FLASHBACK]: 6,
+      [traumaTags.PHYSICAL_INJURY]: 7,
+      [traumaTags.NEURAL]: 9,
+      [traumaTags.PSYCHOLOGICAL_FEAR]: 5,
+      [traumaTags.PSYCHOLOGICAL_BETRAYAL]: 6,
+      [traumaTags.PSYCHOLOGICAL_GUILT]: 5,
+      [traumaTags.PSYCHOLOGICAL_LOSS]: 7,
+      [traumaTags.ISOLATION]: 4,
+      [traumaTags.PERSECUTION]: 6,
+      [traumaTags.VISUAL]: 4,
+      [traumaTags.NIGHTMARE]: 5,
+      [traumaTags.FLASHBACK]: 6,
     }
 
     if (tags.length === 0) return 3
