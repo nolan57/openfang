@@ -385,8 +385,17 @@
 
   "negative_prompts": {
     "base": [
-      "text", "watermark", "signature", "deformed", "blurry", "ugly",
-      "bad anatomy", "bad hands", "missing fingers", "extra limbs", "mutated"
+      "text",
+      "watermark",
+      "signature",
+      "deformed",
+      "blurry",
+      "ugly",
+      "bad anatomy",
+      "bad hands",
+      "missing fingers",
+      "extra limbs",
+      "mutated"
     ],
     "quality_suffix": "low quality, worst quality",
     "shot_specific": {
@@ -411,14 +420,6 @@
       ["centered", "off_center", "symmetrical", "asymmetric"],
       ["sharp_focus", "soft_focus", "blurry", "deep_focus"]
     ]
-  },
-    "movement_specific": {
-      "handheld": ["motion sickness", "unstable frame", "random blur"],
-      "static": ["lifeless", "stiff", "unnatural stillness"],
-      "track": ["motion blur artifact", "speed lines"],
-      "dolly": ["distorted edges", "stretching"],
-      "steadicam": ["floating hands", "unstable horizon"]
-    }
   },
 
   "color_palettes": {
