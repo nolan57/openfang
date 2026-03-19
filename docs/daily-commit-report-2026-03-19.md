@@ -8,13 +8,13 @@ This report summarizes all changes made on March 19, 2026.
 
 | Metric         | Count      |
 | -------------- | ---------- |
-| Total Commits  | 2          |
+| Total Commits  | 3          |
 | Files Modified | 6          |
 | Files Created  | 4          |
 | Files Deleted  | 0          |
-| Lines Added    | ~750       |
-| Lines Removed  | ~40        |
-| Net Change     | +710 lines |
+| Lines Added    | ~800       |
+| Lines Removed  | ~45        |
+| Net Change     | +755 lines |
 
 ---
 
@@ -24,6 +24,7 @@ This report summarizes all changes made on March 19, 2026.
 | --- | ----------- | ------------------------------------------------------------------- |
 | 1   | `feat-novel-config` | Externalize hardcoded constants for novel engine configurability |
 | 2   | `feat-layered-config` | Implement layered config loading with prompt embedding and LLM inference |
+| 3   | `feat-skeleton-config` | Derive narrative skeleton from engine config (storyType + difficulty) |
 
 ---
 
@@ -160,19 +161,6 @@ export async function loadLayeredConfig(options: {
 }): Promise<NovelConfigManager>
 ```
 
-**YAML Front Matter Parsing:**
-
-```typescript
-// Simple YAML-like parsing for front matter
-function parseYamlValue(value: string): any {
-  // Handles: boolean, number, quoted string, plain string
-}
-
-function validatePartialConfig(
-  partial: Record<string, any>
-): Partial<NovelEngineConfig> | null
-```
-
 ---
 
 #### 2. Command Parser Updates (`command-parser.ts` - +30 lines)
@@ -189,31 +177,6 @@ function validatePartialConfig(
 | `--config=<path>` | Explicit config file path |
 | `--infer` | Enable LLM config inference |
 
-**Implementation:**
-
-```typescript
-// Parse arguments
-for (const arg of args) {
-  if (arg.startsWith("--config=")) {
-    configPath = arg.slice("--config=".length)
-  } else if (arg === "--infer") {
-    enableInference = true
-  } else if (!arg.startsWith("--")) {
-    filePath = arg
-  }
-}
-
-// Use layered config loading
-const configManager = await loadLayeredConfig({
-  explicitConfigPath: configPath ? resolveSafePath(cwd, configPath) : undefined,
-  promptContent: filePath ? promptContent : undefined,
-  enableInference,
-})
-
-// Pass config to orchestrator
-const orchestrator = new EvolutionOrchestrator({ configManager })
-```
-
 ---
 
 #### 3. Orchestrator Updates (`orchestrator.ts` - +10 lines)
@@ -226,110 +189,101 @@ export interface OrchestratorConfig {
   verbose?: boolean
   configManager?: NovelConfigManager  // NEW
 }
+```
 
-export class EvolutionOrchestrator {
-  private configManager: NovelConfigManager  // NEW
+---
 
-  constructor(config: OrchestratorConfig = {}) {
-    this.configManager = config.configManager || novelConfigManager
+### Commit 3: Config-Driven Narrative Skeleton Generation
+
+This commit enhances `createNarrativeSkeleton` to derive `metaLearnerContext` from engine configuration, ensuring skeleton structure matches story type and difficulty.
+
+---
+
+#### 1. New Method: `deriveMetaLearnerContext()` (`orchestrator.ts` - +35 lines)
+
+**Maps configuration to skeleton preferences:**
+
+```typescript
+private deriveMetaLearnerContext(): {
+  preferredThreadCount?: number
+  pacingPreference?: "fast" | "slow" | "balanced"
+} {
+  const config = this.configManager.getConfig()
+  const storyType = config.storyType
+  const difficulty = config.difficulty
+
+  // Map storyType to thread count and pacing
+  const storyTypeConfig = {
+    action: { threads: 5, pacing: "fast" },
+    character: { threads: 3, pacing: "slow" },
+    theme: { threads: 4, pacing: "balanced" },
+    balanced: { threads: 4, pacing: "balanced" },
+    custom: { threads: 4, pacing: "balanced" },
   }
 
-  private async initializeAdvancedModules(): Promise<void> {
-    // Use instance configManager instead of singleton
-    if (!this.configManager.getConfigSource || 
-        this.configManager.getConfigSource() === "default") {
-      await this.configManager.load()
-    }
-    initializeCustomTypes({
-      customTraumaTags: this.configManager.getCustomTraumaTags(),
-      // ... other config fields
-    })
-  }
+  // Adjust thread count based on difficulty
+  // easy: -1 thread, hard/nightmare: +1 thread
+  ...
 }
 ```
 
 ---
 
-#### 4. Story Prompt Template Update (`story_prompt_template.md` - +60 lines)
+#### 2. StoryType to Skeleton Mapping
 
-**Added YAML front matter documentation:**
-
-```yaml
----
-title: The Devotion of Suspect X
-author: Your Name
-config:
-  difficulty: normal
-  storyType: character
-  thematicReflectionInterval: 3
-  promptStyle:
-    verbosity: detailed
-    creativity: 0.5
-  customTraumaTags:
-    GUILT: Psychological_Guilt
-  customEmotionTypes:
-    DEVOTION: Devotion
----
-
-[Story content starts here...]
-```
-
-**Config fields table:**
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `difficulty` | string | easy, normal, hard, nightmare |
-| `storyType` | string | action, character, theme, balanced, custom |
-| `thematicReflectionInterval` | number | Theme analysis frequency (1-20) |
-| `promptStyle.verbosity` | string | concise, balanced, detailed |
-| `promptStyle.creativity` | number | 0-1, LLM creativity level |
-| `customTraumaTags` | object | Story-specific trauma types |
-| `customSkillCategories` | object | Custom skill categories |
-| `customGoalTypes` | object | Custom goal types |
-| `customEmotionTypes` | object | Custom emotion types |
-| `customCharacterStatus` | object | Custom character statuses |
+| storyType | Base Threads | Pacing | Description |
+|-----------|-------------|--------|-------------|
+| `action` | 5 | fast | Multiple plot threads, rapid progression |
+| `character` | 3 | slow | Deep character focus, fewer threads |
+| `theme` | 4 | balanced | Thematic exploration with structure |
+| `balanced` | 4 | balanced | Default balanced approach |
+| `custom` | 4 | balanced | User-defined weights |
 
 ---
 
-#### 5. Suspect X Example Update (`novel2.md` - +60 lines)
+#### 3. Difficulty Adjustment
 
-**Added complete YAML front matter:**
+| difficulty | Thread Adjustment | Effect |
+|------------|-------------------|--------|
+| `easy` | -1 thread (min 2) | Simpler structure |
+| `normal` | No change | Base configuration |
+| `hard` | +1 thread (max 6) | More complex structure |
+| `nightmare` | +1 thread (max 6) | Maximum complexity |
 
-```yaml
 ---
-title: 嫌疑人X的献身 (The Devotion of Suspect X)
-author: Higashino Keigo
-config:
-  difficulty: normal
-  storyType: character
-  thematicReflectionInterval: 3
-  customTraumaTags:
-    GUILT: Psychological_Guilt
-    SACRIFICE: Psychological_Sacrifice
-    ISOLATION_SELF: Psychological_Self_Isolation
-    # ... more tags
-  customSkillCategories:
-    MATHEMATICAL_GENIUS: Mental_Mathematical_Genius
-    DEDUCTION: Mental_Deduction
-    # ... more skills
-  customEmotionTypes:
-    DEVOTION: Devotion
-    NUMBNESS: Emotional Numbness
-    # ... more emotions
----
+
+#### 4. Updated `ensureNarrativeSkeleton()`
+
+```typescript
+// Before
+const skeleton = await createNarrativeSkeleton(theme, tone, initialPrompt)
+
+// After
+const metaLearnerContext = this.deriveMetaLearnerContext()
+this.log(`   Skeleton config: ${metaLearnerContext.preferredThreadCount} threads, ${metaLearnerContext.pacingPreference} pacing`)
+const skeleton = await createNarrativeSkeleton(theme, tone, initialPrompt, metaLearnerContext)
 ```
 
 ---
 
-#### 6. Config Template Update (`config/novel-config-template.json`)
+#### 5. Example: Suspect X Configuration Impact
 
-**Added priority comment:**
-
+**Config:**
 ```json
 {
-  "$comment": "Config Loading Priority: 1) --config flag, 2) default file, 3) prompt embedded, 4) LLM inference, 5) embedded defaults"
+  "storyType": "character",
+  "difficulty": "normal"
 }
 ```
+
+**Generated Skeleton:**
+- 3 story lines (石神线, 汤川线, 靖子线)
+- Slow pacing for deep psychological exploration
+- Focus on character transformation beats
+
+**Without this optimization:**
+- Could generate 5 action-oriented threads
+- Mismatched pacing for psychological thriller
 
 ---
 
@@ -373,7 +327,7 @@ config:
 | ---- | ----------- | ------------- |
 | `novel-config.ts` | +335 | 0 |
 | `types.ts` | +120 | -10 |
-| `orchestrator.ts` | +25 | -5 |
+| `orchestrator.ts` | +60 | -5 |
 | `evolution-rules.ts` | +10 | -5 |
 | `state-extractor.ts` | +10 | -5 |
 | `command-parser.ts` | +30 | -10 |

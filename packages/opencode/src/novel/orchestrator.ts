@@ -309,8 +309,13 @@ export class EvolutionOrchestrator {
         this.log(`   Creating new narrative skeleton...`)
         const theme = this.extractThemeFromPrompt(initialPrompt)
         const tone = this.extractToneFromPrompt(initialPrompt)
+        const metaLearnerContext = this.deriveMetaLearnerContext()
 
-        const skeleton = await createNarrativeSkeleton(theme, tone, initialPrompt)
+        this.log(
+          `   Skeleton config: ${metaLearnerContext.preferredThreadCount} threads, ${metaLearnerContext.pacingPreference} pacing`,
+        )
+
+        const skeleton = await createNarrativeSkeleton(theme, tone, initialPrompt, metaLearnerContext)
         this.storyState.narrativeSkeleton = skeleton
         this.log(
           `   Created skeleton with ${skeleton.storyLines.length} story lines, ${Object.keys(skeleton.thematicMotifs).length} motifs`,
@@ -331,6 +336,43 @@ export class EvolutionOrchestrator {
     const match = prompt.match(/tone[:：]\s*([^,\n.]+)/i)
     if (match) return match[1].trim()
     return "epic narrative"
+  }
+
+  /**
+   * Derive metaLearnerContext from engine configuration
+   * Maps storyType and difficulty to skeleton generation preferences
+   */
+  private deriveMetaLearnerContext(): {
+    preferredThreadCount?: number
+    pacingPreference?: "fast" | "slow" | "balanced"
+  } {
+    const config = this.configManager.getConfig()
+    const storyType = config.storyType
+    const difficulty = config.difficulty
+
+    // Map storyType to thread count and pacing
+    const storyTypeConfig: Record<string, { threads: number; pacing: "fast" | "slow" | "balanced" }> = {
+      action: { threads: 5, pacing: "fast" },
+      character: { threads: 3, pacing: "slow" },
+      theme: { threads: 4, pacing: "balanced" },
+      balanced: { threads: 4, pacing: "balanced" },
+      custom: { threads: 4, pacing: "balanced" },
+    }
+
+    const typeConfig = storyTypeConfig[storyType] || storyTypeConfig.balanced
+
+    // Adjust thread count based on difficulty
+    let threadCount = typeConfig.threads
+    if (difficulty === "easy") {
+      threadCount = Math.max(2, threadCount - 1) // Fewer threads, simpler structure
+    } else if (difficulty === "hard" || difficulty === "nightmare") {
+      threadCount = Math.min(6, threadCount + 1) // More threads, complex structure
+    }
+
+    return {
+      preferredThreadCount: threadCount,
+      pacingPreference: typeConfig.pacing,
+    }
   }
 
   /**
