@@ -241,9 +241,22 @@ function getConfigPath(): string {
     return resolve(envPath)
   }
 
-  // Default path relative to this module
-  const moduleDir = dirname(fileURLToPath(import.meta.url))
-  return resolve(moduleDir, "visual-config.json")
+  // Try to get module directory from import.meta.url
+  let moduleDir: string
+  try {
+    const url = import.meta.url
+    if (url && !url.startsWith("file://")) {
+      throw new Error("Invalid URL")
+    }
+    moduleDir = dirname(fileURLToPath(url))
+  } catch {
+    // Fallback: use process.cwd() + relative path
+    moduleDir = resolve(process.cwd(), "src", "novel", "config")
+  }
+
+  // Verify the file exists, otherwise use fallback
+  const configPath = resolve(moduleDir, "visual-config.json")
+  return configPath
 }
 
 /**

@@ -12,7 +12,17 @@ const log = Log.create({ service: "novel-config" })
  * Uses the directory where this module is located + "/config"
  */
 export function getDefaultConfigDir(): string {
-  const moduleDir = dirname(fileURLToPath(import.meta.url))
+  let moduleDir: string
+  try {
+    const url = import.meta.url
+    if (url && !url.startsWith("file://")) {
+      throw new Error("Invalid URL")
+    }
+    moduleDir = dirname(fileURLToPath(url))
+  } catch {
+    // Fallback: use process.cwd() + relative path
+    moduleDir = resolve(process.cwd(), "src", "novel")
+  }
   return join(moduleDir, "config")
 }
 
