@@ -7,6 +7,8 @@ interface PluginRecoveryState {
   restartCount: number
   lastRestartTime: number
   backoffUntil: number
+  exhausted: boolean
+  lastError?: string
 }
 
 const state = new Map<string, PluginRecoveryState>()
@@ -18,6 +20,7 @@ const defaultConfig = {
 
 let timer: Timer | null = null
 let config = defaultConfig
+let pluginList: Array<{ name: string; restart?: () => Promise<{ success: boolean; error?: string }> }> = []
 
 export namespace PluginRecovery {
   export async function start(
@@ -25,13 +28,19 @@ export namespace PluginRecovery {
   ) {
     if (timer) return
 
+    pluginList = plugins
+    log.info("starting-plugin-recovery", {
+      totalPlugins: plugins.length,
+      plugins: plugins.map((p) => ({ name: p.name, hasRestart: !!p.restart })),
+    })
+
     timer = setInterval(async () => {
       for (const plugin of plugins) {
         await checkAndRecover(plugin)
       }
     }, config.interval)
 
-    log.info("started", { interval: config.interval })
+    log.info("started", { interval: config.interval, pluginCount: plugins.length })
   }
 
   export async function stop() {
@@ -46,15 +55,27 @@ export namespace PluginRecovery {
     const now = Date.now()
     const s = state.get(pluginName)
 
+    if (s?.exhausted) {
+      return { success: false, error: "plugin exhausted, max restarts reached" }
+    }
+
     if (s && s.restartCount >= config.maxPerHour) {
-      log.warn("max-restarts-reached", { plugin: pluginName, count: s.restartCount })
+      log.warn("max-restarts-reached", {
+        plugin: pluginName,
+        count: s.restartCount,
+        lastError: s.lastError,
+        pluginList: pluginList.map((p) => p.name),
+      })
+      state.set(pluginName, { ...s, exhausted: true })
       return { success: false, error: "max restarts per hour reached" }
     }
 
     if (s && s.backoffUntil > now) {
-      log.info("in-backoff", { plugin: pluginName, until: s.backoffUntil - now })
+      log.debug("in-backoff", { plugin: pluginName, until: s.backoffUntil - now })
       return { success: false, error: "in backoff period" }
     }
+
+    log.info("attempting-restart", { plugin: pluginName })
 
     const result = await restartFn()
 
@@ -64,15 +85,27 @@ export namespace PluginRecovery {
         restartCount: s ? s.restartCount + 1 : 1,
         lastRestartTime: now,
         backoffUntil: 0,
+        exhausted: false,
       })
       log.info("restart-success", { plugin: pluginName })
     } else {
+      const newCount = s ? s.restartCount + 1 : 1
       const backoff = Math.min(config.maxBackoff, (s?.restartCount ?? 0) * 60000)
       state.set(pluginName, {
-        ...(s ?? { lastCheck: now, restartCount: 0, lastRestartTime: 0 }),
+        lastCheck: now,
+        restartCount: newCount,
+        lastRestartTime: now,
         backoffUntil: now + backoff,
+        exhausted: newCount >= config.maxPerHour,
+        lastError: result.error,
       })
-      log.error("restart-failed", { plugin: pluginName, error: result.error })
+      log.error("restart-failed", {
+        plugin: pluginName,
+        error: result.error,
+        restartCount: newCount,
+        maxPerHour: config.maxPerHour,
+        exhausted: newCount >= config.maxPerHour,
+      })
     }
 
     return result
@@ -86,12 +119,19 @@ export namespace PluginRecovery {
     name: string
     restart?: () => Promise<{ success: boolean; error?: string }>
   }) {
-    if (!plugin.restart) return
+    if (!plugin.restart) {
+      log.debug("skipping-plugin-no-restart", { plugin: plugin.name })
+      return
+    }
 
     const s = state.get(plugin.name)
-    const now = Date.now()
 
-    if (s?.backoffUntil && s.backoffUntil > now) {
+    if (s?.exhausted) {
+      log.debug("skipping-exhausted-plugin", { plugin: plugin.name })
+      return
+    }
+
+    if (s?.backoffUntil && s.backoffUntil > Date.now()) {
       return
     }
 
