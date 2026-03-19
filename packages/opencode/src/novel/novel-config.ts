@@ -306,13 +306,49 @@ function getConfigPath(): string {
 export class NovelConfigManager {
   private config: NovelEngineConfig
   private loaded: boolean = false
+  private configSource: string = "default" // Track where config came from
 
   constructor(config?: Partial<NovelEngineConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config }
   }
 
   /**
-   * 从文件加载配置
+   * Get the source of the current config
+   */
+  getConfigSource(): string {
+    return this.configSource
+  }
+
+  /**
+   * Load config from a specific path (highest priority)
+   */
+  async loadFromPath(configPath: string): Promise<NovelEngineConfig> {
+    try {
+      const content = await readFile(configPath, "utf-8")
+      const parsed = JSON.parse(content)
+
+      this.config = NovelEngineConfigSchema.parse({
+        ...DEFAULT_CONFIG,
+        ...parsed,
+      })
+
+      this.loaded = true
+      this.configSource = `explicit:${configPath}`
+      log.info("novel_config_loaded_from_path", {
+        path: configPath,
+        difficulty: this.config.difficulty,
+        storyType: this.config.storyType,
+      })
+
+      return this.config
+    } catch (error) {
+      log.warn("novel_config_load_from_path_failed", { path: configPath, error: String(error) })
+      throw error
+    }
+  }
+
+  /**
+   * 从默认文件加载配置
    */
   async load(): Promise<NovelEngineConfig> {
     try {
@@ -326,6 +362,7 @@ export class NovelConfigManager {
       })
 
       this.loaded = true
+      this.configSource = "default_file"
       log.info("novel_config_loaded", {
         difficulty: this.config.difficulty,
         storyType: this.config.storyType,
@@ -335,8 +372,59 @@ export class NovelConfigManager {
     } catch (error) {
       log.debug("novel_config_load_failed_using_default", { error: String(error) })
       this.loaded = true
+      this.configSource = "embedded_default"
       return this.config
     }
+  }
+
+  /**
+   * Merge overlay config on top of current config
+   * Used for embedding config from story prompt
+   */
+  mergeConfig(overlay: Partial<NovelEngineConfig>): NovelEngineConfig {
+    this.config = {
+      ...this.config,
+      ...overlay,
+      // Deep merge nested objects
+      promptStyle: { ...this.config.promptStyle, ...overlay.promptStyle },
+      customDifficulty: overlay.customDifficulty
+        ? { ...this.config.customDifficulty, ...overlay.customDifficulty }
+        : this.config.customDifficulty,
+      customWeights: overlay.customWeights
+        ? { ...this.config.customWeights, ...overlay.customWeights }
+        : this.config.customWeights,
+      // Merge custom type arrays
+      customTraumaTags: {
+        ...this.config.customTraumaTags,
+        ...overlay.customTraumaTags,
+      },
+      customSkillCategories: {
+        ...this.config.customSkillCategories,
+        ...overlay.customSkillCategories,
+      },
+      customGoalTypes: {
+        ...this.config.customGoalTypes,
+        ...overlay.customGoalTypes,
+      },
+      customEmotionTypes: {
+        ...this.config.customEmotionTypes,
+        ...overlay.customEmotionTypes,
+      },
+      customCharacterStatus: {
+        ...this.config.customCharacterStatus,
+        ...overlay.customCharacterStatus,
+      },
+    }
+    this.configSource = this.configSource === "default_file" ? "default_file+prompt" : "prompt_embedded"
+    log.info("novel_config_merged", { source: this.configSource })
+    return this.config
+  }
+
+  /**
+   * Get current config (useful for inspection)
+   */
+  getConfig(): NovelEngineConfig {
+    return this.config
   }
 
   /**
@@ -477,6 +565,307 @@ export class NovelConfigManager {
       return false
     }
   }
+}
+
+/**
+ * Extract config from story prompt YAML front matter
+ * 
+ * Front matter format:
+ * ---
+ * title: Story Title
+ * config:
+ *   difficulty: normal
+ *   storyType: character
+ *   thematicReflectionInterval: 3
+ *   customTraumaTags:
+ *     GUILT: Psychological_Guilt
+ * ---
+ * 
+ * Returns { config, promptContent } where promptContent is the story prompt without front matter
+ */
+export function extractConfigFromPrompt(content: string): {
+  config: Partial<NovelEngineConfig> | null
+  promptContent: string
+  metadata: Record<string, any>
+} {
+  const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n?/
+  const match = content.match(frontMatterRegex)
+
+  if (!match) {
+    return { config: null, promptContent: content, metadata: {} }
+  }
+
+  const frontMatter = match[1]
+  const promptContent = content.slice(match[0].length)
+
+  try {
+    // Simple YAML-like parsing for front matter
+    const metadata: Record<string, any> = {}
+    const lines = frontMatter.split("\n")
+    let currentKey = ""
+    let currentObj: Record<string, any> | null = null
+    let inConfig = false
+
+    for (const line of lines) {
+      const trimmed = line.trimEnd()
+      if (!trimmed || trimmed.startsWith("#")) continue
+
+      // Check for nested object start (e.g., "config:")
+      const nestedMatch = trimmed.match(/^(\w+):\s*$/)
+      if (nestedMatch) {
+        currentKey = nestedMatch[1]
+        if (currentKey === "config") {
+          inConfig = true
+          metadata.config = {}
+          currentObj = metadata.config
+        } else {
+          inConfig = false
+          currentObj = null
+        }
+        continue
+      }
+
+      // Check for key-value pair at root level
+      const kvMatch = trimmed.match(/^(\w+):\s*(.*)$/)
+      if (kvMatch && !inConfig) {
+        const [, key, value] = kvMatch
+        metadata[key] = parseYamlValue(value)
+        continue
+      }
+
+      // Check for nested key-value pair (indented)
+      const nestedKvMatch = trimmed.match(/^\s+(\w+):\s*(.*)$/)
+      if (nestedKvMatch && inConfig && currentObj) {
+        const [, key, value] = nestedKvMatch
+        if (value === "") {
+          // This is a nested object start (e.g., "customTraumaTags:")
+          currentObj[key] = {}
+          currentObj = currentObj[key] as Record<string, any>
+        } else {
+          currentObj[key] = parseYamlValue(value)
+        }
+        continue
+      }
+
+      // Check for deeply nested key-value (e.g., inside customTraumaTags)
+      const deepKvMatch = trimmed.match(/^\s{2,}(\w+):\s*(.*)$/)
+      if (deepKvMatch && currentObj) {
+        const [, key, value] = deepKvMatch
+        currentObj[key] = parseYamlValue(value)
+      }
+    }
+
+    const config = metadata.config ? validatePartialConfig(metadata.config) : null
+
+    log.info("config_extracted_from_prompt", {
+      hasConfig: !!config,
+      metadataKeys: Object.keys(metadata).filter((k) => k !== "config"),
+    })
+
+    return { config, promptContent, metadata }
+  } catch (error) {
+    log.warn("front_matter_parse_failed", { error: String(error) })
+    return { config: null, promptContent: content, metadata: {} }
+  }
+}
+
+/**
+ * Parse a YAML value string to appropriate type
+ */
+function parseYamlValue(value: string): any {
+  if (!value) return null
+
+  const trimmed = value.trim()
+
+  // Boolean
+  if (trimmed === "true") return true
+  if (trimmed === "false") return false
+
+  // Number
+  if (/^-?\d+$/.test(trimmed)) return parseInt(trimmed, 10)
+  if (/^-?\d+\.\d+$/.test(trimmed)) return parseFloat(trimmed)
+
+  // Quoted string - remove quotes
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1)
+  }
+
+  // Plain string
+  return trimmed
+}
+
+/**
+ * Validate partial config from front matter
+ */
+function validatePartialConfig(partial: Record<string, any>): Partial<NovelEngineConfig> | null {
+  try {
+    // Only validate the fields that are present
+    const result: Partial<NovelEngineConfig> = {}
+
+    if (partial.difficulty && ["easy", "normal", "hard", "nightmare"].includes(partial.difficulty)) {
+      result.difficulty = partial.difficulty
+    }
+
+    if (partial.storyType && ["action", "character", "theme", "balanced", "custom"].includes(partial.storyType)) {
+      result.storyType = partial.storyType
+    }
+
+    if (typeof partial.thematicReflectionInterval === "number") {
+      result.thematicReflectionInterval = Math.max(1, Math.min(20, partial.thematicReflectionInterval))
+    }
+
+    // Copy custom type configurations
+    if (partial.customTraumaTags && typeof partial.customTraumaTags === "object") {
+      result.customTraumaTags = partial.customTraumaTags
+    }
+    if (partial.customSkillCategories && typeof partial.customSkillCategories === "object") {
+      result.customSkillCategories = partial.customSkillCategories
+    }
+    if (partial.customGoalTypes && typeof partial.customGoalTypes === "object") {
+      result.customGoalTypes = partial.customGoalTypes
+    }
+    if (partial.customEmotionTypes && typeof partial.customEmotionTypes === "object") {
+      result.customEmotionTypes = partial.customEmotionTypes
+    }
+    if (partial.customCharacterStatus && typeof partial.customCharacterStatus === "object") {
+      result.customCharacterStatus = partial.customCharacterStatus
+    }
+
+    // Copy prompt style if present
+    if (partial.promptStyle && typeof partial.promptStyle === "object") {
+      result.promptStyle = {
+        verbosity: partial.promptStyle.verbosity || "balanced",
+        creativity: typeof partial.promptStyle.creativity === "number" ? partial.promptStyle.creativity : 0.7,
+        structureStrictness:
+          typeof partial.promptStyle.structureStrictness === "number" ? partial.promptStyle.structureStrictness : 0.5,
+        allowDeviation: partial.promptStyle.allowDeviation !== false,
+      }
+    }
+
+    return Object.keys(result).length > 0 ? result : null
+  } catch (error) {
+    log.warn("partial_config_validation_failed", { error: String(error) })
+    return null
+  }
+}
+
+/**
+ * Infer config from story prompt using LLM
+ * This is called when no explicit config is provided
+ */
+export async function inferConfigFromPrompt(promptContent: string): Promise<Partial<NovelEngineConfig>> {
+  const { getNovelLanguageModel } = await import("./model")
+  const { generateText } = await import("ai")
+
+  try {
+    const model = getNovelLanguageModel()
+
+    const result = await generateText({
+      model,
+      prompt: `Analyze this story prompt and suggest optimal novel engine configuration.
+
+Story Prompt:
+${promptContent.slice(0, 3000)}${promptContent.length > 3000 ? "..." : ""}
+
+Based on the story content, suggest configuration values. Consider:
+- Story genre and tone → difficulty setting
+- Character focus vs plot focus → storyType
+- Psychological depth → thematicReflectionInterval
+- Story-specific themes → custom trauma tags, emotions, etc.
+
+Output JSON only, no explanation:
+{
+  "difficulty": "easy|normal|hard|nightmare",
+  "storyType": "action|character|theme|balanced|custom",
+  "thematicReflectionInterval": 3-10,
+  "customTraumaTags": { "KEY": "Description" },
+  "customEmotionTypes": { "KEY": "EmotionName" },
+  "reasoning": "Brief explanation of choices"
+}`,
+      maxTokens: 500,
+    })
+
+    const text = result.text.trim()
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+
+    if (!jsonMatch) {
+      log.warn("llm_config_inference_no_json", { text: text.slice(0, 100) })
+      return {}
+    }
+
+    const parsed = JSON.parse(jsonMatch[0])
+    const config = validatePartialConfig(parsed)
+
+    log.info("llm_config_inferred", {
+      config,
+      reasoning: parsed.reasoning,
+    })
+
+    return config || {}
+  } catch (error) {
+    log.warn("llm_config_inference_failed", { error: String(error) })
+    return {}
+  }
+}
+
+/**
+ * Layered config loading with priority:
+ * 1. Explicit config path (--config)
+ * 2. Default config file
+ * 3. Story prompt embedded config
+ * 4. LLM inference
+ * 5. Embedded defaults
+ */
+export async function loadLayeredConfig(options: {
+  explicitConfigPath?: string
+  promptContent?: string
+  enableInference?: boolean
+}): Promise<NovelConfigManager> {
+  const manager = new NovelConfigManager()
+
+  // 1. Try explicit config path
+  if (options.explicitConfigPath) {
+    try {
+      await manager.loadFromPath(options.explicitConfigPath)
+      // If explicit config loaded, still check for embedded config to merge
+      if (options.promptContent) {
+        const { config: embeddedConfig } = extractConfigFromPrompt(options.promptContent)
+        if (embeddedConfig) {
+          manager.mergeConfig(embeddedConfig)
+        }
+      }
+      return manager
+    } catch (error) {
+      log.warn("explicit_config_load_failed_falling_back", {
+        path: options.explicitConfigPath,
+        error: String(error),
+      })
+    }
+  }
+
+  // 2. Try default config file
+  await manager.load()
+
+  // 3. Check for embedded config in prompt
+  if (options.promptContent) {
+    const { config: embeddedConfig } = extractConfigFromPrompt(options.promptContent)
+    if (embeddedConfig) {
+      manager.mergeConfig(embeddedConfig)
+      return manager
+    }
+  }
+
+  // 4. Try LLM inference if enabled and no config found
+  if (options.enableInference && options.promptContent && manager.getConfigSource() === "embedded_default") {
+    const inferredConfig = await inferConfigFromPrompt(options.promptContent)
+    if (Object.keys(inferredConfig).length > 0) {
+      manager.mergeConfig(inferredConfig)
+      log.info("config_inferred_from_prompt", { config: inferredConfig })
+    }
+  }
+
+  // 5. Embedded defaults are already set via constructor
+  return manager
 }
 
 export const novelConfigManager = new NovelConfigManager()

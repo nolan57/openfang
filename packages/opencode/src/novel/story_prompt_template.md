@@ -4,6 +4,54 @@
 
 ---
 
+## YAML Front Matter (Optional Configuration)
+
+You can embed engine configuration at the beginning of your story prompt using YAML front matter:
+
+```
+---
+title: The Devotion of Suspect X
+author: Your Name
+config:
+  difficulty: normal
+  storyType: character
+  thematicReflectionInterval: 3
+  promptStyle:
+    verbosity: detailed
+    creativity: 0.5
+    structureStrictness: 0.85
+    allowDeviation: false
+  customTraumaTags:
+    GUILT: Psychological_Guilt
+    SACRIFICE: Psychological_Sacrifice
+    ISOLATION_SELF: Psychological_Self_Isolation
+  customEmotionTypes:
+    DEVOTION: Devotion
+    NUMBNESS: Emotional Numbness
+    INTERNAL_CONFLICT: Internal Conflict
+---
+
+[Your story content starts here...]
+```
+
+### Config Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `difficulty` | string | easy, normal, hard, nightmare |
+| `storyType` | string | action, character, theme, balanced, custom |
+| `thematicReflectionInterval` | number | How often to analyze themes (1-20 turns) |
+| `promptStyle.verbosity` | string | concise, balanced, detailed |
+| `promptStyle.creativity` | number | 0-1, LLM creativity level |
+| `promptStyle.structureStrictness` | number | 0-1, how strictly to follow structure |
+| `customTraumaTags` | object | Custom trauma types for this story |
+| `customSkillCategories` | object | Custom skill categories |
+| `customGoalTypes` | object | Custom goal types |
+| `customEmotionTypes` | object | Custom emotion types |
+| `customCharacterStatus` | object | Custom character statuses |
+
+---
+
 ## Story Metadata
 
 **Theme:** [Core theme - e.g., power and betrayal, love and sacrifice, growth and redemption]

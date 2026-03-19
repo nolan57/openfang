@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$comment": "Novel Engine Configuration Template",
+  "$comment": "Novel Engine Configuration Template - Config Loading Priority: 1) --config flag, 2) default file, 3) prompt embedded, 4) LLM inference, 5) embedded defaults",
 
   "difficulty": "normal",
 

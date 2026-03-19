@@ -3,7 +3,7 @@ import { readFile, writeFile, readdir, stat } from "fs/promises"
 import { resolve } from "path"
 import { EvolutionOrchestrator, analyzeAndEvolve, loadDynamicPatterns } from "./orchestrator"
 import { Instance } from "../project/instance"
-import { getStoryBiblePath, getDynamicPatternsPath, getSkillsPath } from "./novel-config"
+import { getStoryBiblePath, getDynamicPatternsPath, getSkillsPath, loadLayeredConfig, extractConfigFromPrompt } from "./novel-config"
 import { z } from "zod"
 
 const StoryFeedbackSchema = z.object({
@@ -50,18 +50,61 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
 
   switch (cmd) {
     case "/start": {
-      const filePath = args[0]
+      // Parse arguments: /start [prompt-file] [--config=<config-file>] [--infer]
+      let filePath: string | undefined
+      let configPath: string | undefined
+      let enableInference = false
+
+      for (const arg of args) {
+        if (arg.startsWith("--config=")) {
+          configPath = arg.slice("--config=".length)
+        } else if (arg === "--infer") {
+          enableInference = true
+        } else if (!arg.startsWith("--")) {
+          filePath = arg
+        }
+      }
+
       let promptContent = "Starting new creative session..."
+      let promptMetadata: Record<string, any> = {}
 
       if (filePath) {
         const safePath = resolveSafePath(cwd, filePath)
-        promptContent = await readFile(safePath, "utf-8")
-        console.log(` Loaded initial setup from: ${filePath}`)
+        const rawContent = await readFile(safePath, "utf-8")
+        
+        // Extract any embedded config from front matter
+        const extracted = extractConfigFromPrompt(rawContent)
+        promptContent = extracted.promptContent
+        promptMetadata = extracted.metadata
+        
+        console.log(` Loaded prompt from: ${filePath}`)
+        if (extracted.config) {
+          console.log(` Found embedded config in prompt`)
+        }
+        if (promptMetadata.title) {
+          console.log(` Story: ${promptMetadata.title}`)
+        }
       } else {
         console.log(" Starting new session (no prompt file)")
       }
 
-      const orchestrator = new EvolutionOrchestrator()
+      if (configPath) {
+        console.log(` Using config: ${configPath}`)
+      }
+      if (enableInference) {
+        console.log(` LLM config inference: enabled`)
+      }
+
+      // Use layered config loading
+      const configManager = await loadLayeredConfig({
+        explicitConfigPath: configPath ? resolveSafePath(cwd, configPath) : undefined,
+        promptContent: filePath ? promptContent : undefined,
+        enableInference,
+      })
+
+      console.log(` Config source: ${configManager.getConfigSource()}`)
+
+      const orchestrator = new EvolutionOrchestrator({ configManager })
       await orchestrator.loadState()
 
       const result = await orchestrator.runNovelCycle(promptContent)
@@ -302,7 +345,12 @@ Exported: ${new Date().toISOString()}
       console.log(`
 📖 Available Novel Commands:
 
-  /start [file]     Start new story (optional: prompt file path)
+  /start [file] [--config=<path>] [--infer]
+                    Start new story
+                    - file: optional prompt file path
+                    - --config=<path>: explicit config file
+                    - --infer: enable LLM config inference
+                    
   /continue         Continue from last saved story
   /inject <file>    Inject context file into memory
   /evolve           Force pattern analysis and skill generation
@@ -313,6 +361,8 @@ Exported: ${new Date().toISOString()}
   /architect        Open web-based Prompt Architect wizard
   /feedback <file>  Submit story feedback (JSON format)
   /help             Show this help
+
+📋 Config Priority: --config > default file > prompt embedded > LLM infer > defaults
 
 🔒 Security: All file paths are validated to prevent directory traversal.
 `)

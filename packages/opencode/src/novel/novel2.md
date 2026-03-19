@@ -1,3 +1,61 @@
+---
+title: 嫌疑人X的献身 (The Devotion of Suspect X)
+author: Higashino Keigo
+config:
+  difficulty: normal
+  storyType: character
+  thematicReflectionInterval: 3
+  promptStyle:
+    verbosity: detailed
+    creativity: 0.5
+    structureStrictness: 0.85
+    allowDeviation: false
+  customTraumaTags:
+    GUILT: Psychological_Guilt
+    SACRIFICE: Psychological_Sacrifice
+    ISOLATION_SELF: Psychological_Self_Isolation
+    DEVOTION_BROKEN: Psychological_Devotion_Crisis
+    LOGICAL_BREAKDOWN: Psychological_Logic_Collapse
+    IDENTITY_LOSS: Psychological_Identity_Dissolution
+    SOCIAL_MASK: Psychological_Facade_Stress
+    PERSECUTION_INTERNAL: Psychological_Internal_Persecution
+  customSkillCategories:
+    MATHEMATICAL_GENIUS: Mental_Mathematical_Genius
+    DEDUCTION: Mental_Deduction
+    PATTERN_RECOGNITION: Mental_Pattern_Recognition
+    STEALTH: Physical_Stealth
+    DECEPTION: Social_Deception
+    PATIENCE: Mental_Patience
+    OBSERVATION: Mental_Observation
+    EMOTIONAL_SUPPRESSION: Mental_Emotional_Control
+  customGoalTypes:
+    PROTECT_LOVED_ONE: Protect loved one at any cost
+    HIDE_TRUTH: Conceal the truth from discovery
+    SOLVE_MYSTERY: Unravel the mystery
+    ATONE: Seek redemption for past actions
+    UNDERSTAND_HUMANITY: Comprehend human nature
+    PROVE_DEVOTION: Demonstrate ultimate sacrifice
+    ESCAPE_JUSTICE: Evade legal consequences
+  customEmotionTypes:
+    GUILT: Guilt
+    DEVOTION: Devotion
+    RESOLVE: Resolve
+    DESPERATION: Desperation
+    NUMBNESS: Emotional Numbness
+    CALCULATED_DETACHMENT: Calculated Detachment
+    HIDDEN_LOVE: Hidden Love
+    INTERNAL_CONFLICT: Internal Conflict
+  customCharacterStatus:
+    DEVOTED: devoted
+    HUNTED: hunted
+    CONFLICTED: conflicted
+    RESOLVED: resolved
+    DESPERATE: desperate
+    NUMB: emotionally_numb
+    CALCULATING: calculating
+    SACRIFICIAL: sacrificial
+---
+
 # 逻辑的献祭
 
 [LANGUAGE: Chinese]

@@ -15,6 +15,7 @@ import {
   getDynamicPatternsPath,
   getSkillsPath,
   getSummariesPath,
+  NovelConfigManager,
 } from "./novel-config"
 import {
   createNarrativeSkeleton,
@@ -169,6 +170,7 @@ export async function loadTraumaDefinitions(): Promise<Record<string, string>> {
 export interface OrchestratorConfig {
   branchOptions?: number
   verbose?: boolean
+  configManager?: NovelConfigManager
 }
 
 export class EvolutionOrchestrator {
@@ -190,6 +192,7 @@ export class EvolutionOrchestrator {
   private branchOptions: number = 3
   private verbose: boolean = false
   private advancedModulesInitialized: boolean = false
+  private configManager: NovelConfigManager
 
   constructor(config: OrchestratorConfig = {}) {
     this.storyState = {
@@ -218,6 +221,7 @@ export class EvolutionOrchestrator {
     this.relationshipInertiaManager = relationshipInertiaManager
     this.branchOptions = config.branchOptions || 3
     this.verbose = config.verbose || false
+    this.configManager = config.configManager || novelConfigManager
   }
 
   /**
@@ -227,14 +231,16 @@ export class EvolutionOrchestrator {
     if (this.advancedModulesInitialized) return
 
     try {
-      // Load config and initialize custom types
-      await novelConfigManager.load()
+      // Load config and initialize custom types (use passed configManager or singleton)
+      if (!this.configManager.getConfigSource || this.configManager.getConfigSource() === "default") {
+        await this.configManager.load()
+      }
       initializeCustomTypes({
-        customTraumaTags: novelConfigManager.getCustomTraumaTags(),
-        customSkillCategories: novelConfigManager.getCustomSkillCategories(),
-        customGoalTypes: novelConfigManager.getCustomGoalTypes(),
-        customEmotionTypes: novelConfigManager.getCustomEmotionTypes(),
-        customCharacterStatus: novelConfigManager.getCustomCharacterStatus(),
+        customTraumaTags: this.configManager.getCustomTraumaTags(),
+        customSkillCategories: this.configManager.getCustomSkillCategories(),
+        customGoalTypes: this.configManager.getCustomGoalTypes(),
+        customEmotionTypes: this.configManager.getCustomEmotionTypes(),
+        customCharacterStatus: this.configManager.getCustomCharacterStatus(),
       })
 
       await this.storyWorldMemory.initialize()
@@ -1117,7 +1123,7 @@ Output JSON:
     // === END ADVANCED MODULES INTEGRATION ===
 
     const currentTurn = this.storyState.turnCount || 0
-    const reflectionInterval = novelConfigManager.getThematicReflectionInterval()
+    const reflectionInterval = this.configManager.getThematicReflectionInterval()
     if (currentTurn > 0 && currentTurn % reflectionInterval === 0) {
       this.log(`   Running thematic reflection (turn ${currentTurn})...`)
       try {
