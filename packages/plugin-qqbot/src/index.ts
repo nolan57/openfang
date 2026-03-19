@@ -137,7 +137,15 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
 
     "plugin.restart": async () => {
       try {
+        publishPluginLog("message", "Restarting QQ Bot gateway...")
+
+        const wasConnected = gateway.isConnected()
+        const reconnectAttempts = gateway.getReconnectAttempts()
+        publishPluginLog("message", `Current state: connected=${wasConnected}, reconnectAttempts=${reconnectAttempts}`)
+
         await gateway.stop()
+        publishPluginLog("message", "Gateway stopped successfully")
+
         gateway = new QQBotGateway({
           account,
           directory: input.directory,
@@ -145,10 +153,29 @@ const plugin: Plugin = async (input: PluginInput): Promise<Hooks> => {
           client: input.client,
           onStatus,
         })
+        publishPluginLog("message", "New gateway created, starting...")
+
         await gateway.start()
+        publishPluginLog("status", "Restart completed successfully")
         return { success: true }
       } catch (error) {
-        return { success: false, error: String(error) }
+        const errorMsg = error instanceof Error ? error.message : String(error)
+        const errorStack = error instanceof Error ? error.stack : undefined
+
+        publishPluginLog("error", `Restart failed: ${errorMsg}`)
+        publishLog(input.client, input.directory, PLUGIN_NAME, "error", `Restart error details: ${errorMsg}`)
+
+        if (errorStack) {
+          publishLog(
+            input.client,
+            input.directory,
+            PLUGIN_NAME,
+            "error",
+            `Stack: ${errorStack.split("\n").slice(0, 3).join("\n")}`,
+          )
+        }
+
+        return { success: false, error: errorMsg }
       }
     },
   }

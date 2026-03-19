@@ -10,6 +10,8 @@ import {
   loadLayeredConfig,
   extractConfigFromPrompt,
 } from "./novel-config"
+import { Plugin } from "../plugin"
+import { PluginRecovery } from "../plugin/recovery"
 import { z } from "zod"
 
 const StoryFeedbackSchema = z.object({
@@ -362,6 +364,119 @@ Exported: ${new Date().toISOString()}
       break
     }
 
+    case "/plugin": {
+      const action = args[0] as string
+      const pluginName = args[1] as string
+
+      if (!action) {
+        console.log(`
+🔌 Plugin Management
+
+Usage:
+  /plugin list                    List all plugins and their status
+  /plugin status [name]           Show status of a specific plugin
+  /plugin restart [name]          Restart a specific plugin
+  /plugin start [name]            Start a stopped plugin
+  /plugin stop [name]             Stop a running plugin
+`)
+        break
+      }
+
+      if (action === "list" || action === "ls") {
+        console.log("\n🔌 Plugin List:")
+        try {
+          const hooks = await Plugin.list()
+          for (let i = 0; i < hooks.length; i++) {
+            const hook = hooks[i]
+            const status = hook["plugin.status"]
+            if (status) {
+              try {
+                const info = await status()
+                console.log(`  ${i}. ${info.status} - reconnectAttempts: ${info.metadata?.reconnectAttempts || 0}`)
+              } catch {
+                console.log(`  ${i}. unknown`)
+              }
+            } else {
+              console.log(`  ${i}. (no status hook)`)
+            }
+          }
+        } catch (error) {
+          console.log(`× Failed to list plugins: ${String(error)}`)
+        }
+        break
+      }
+
+      if (action === "status") {
+        if (!pluginName) {
+          console.log("× Usage: /plugin status [name]")
+          break
+        }
+        try {
+          const hooks = await Plugin.list()
+          const hook = hooks.find((h, i) => {
+            const name = `plugin-${i}`
+            return name === pluginName || i.toString() === pluginName
+          })
+          if (!hook) {
+            console.log(`× Plugin not found: ${pluginName}`)
+            break
+          }
+          const status = hook["plugin.status"]
+          if (status) {
+            const info = await status()
+            console.log(`\n🔌 Plugin: ${pluginName}`)
+            console.log(`   Status: ${info.status}`)
+            console.log(`   Metadata: ${JSON.stringify(info.metadata)}`)
+          } else {
+            console.log(`× Plugin does not support status: ${pluginName}`)
+          }
+        } catch (error) {
+          console.log(`× Failed to get status: ${String(error)}`)
+        }
+        break
+      }
+
+      if (action === "restart") {
+        if (!pluginName) {
+          console.log("× Usage: /plugin restart [name]")
+          break
+        }
+        console.log(` Restarting plugin: ${pluginName}...`)
+        try {
+          const hooks = await Plugin.list()
+          const hookIndex = parseInt(pluginName) || hooks.findIndex((h, i) => `plugin-${i}` === pluginName)
+          if (hookIndex < 0 || hookIndex >= hooks.length) {
+            console.log(`× Plugin not found: ${pluginName}`)
+            break
+          }
+          const hook = hooks[hookIndex]
+          const restart = hook["plugin.restart"]
+          if (!restart) {
+            console.log(`× Plugin does not support restart: ${pluginName}`)
+            break
+          }
+          const result = await restart()
+          if (result.success) {
+            console.log(`✓ Plugin ${pluginName} restarted successfully`)
+          } else {
+            console.log(`× Failed to restart plugin: ${result.error}`)
+          }
+        } catch (error) {
+          console.log(`× Failed to restart plugin: ${String(error)}`)
+        }
+        break
+      }
+
+      if (action === "start" || action === "stop") {
+        console.log(`× Start/Stop not implemented - use /plugin restart instead`)
+        break
+      }
+
+      console.log(`× Unknown action: ${action}`)
+      console.log(`   Use /plugin list to see available plugins`)
+      break
+    }
+
     case "/help": {
       console.log(`
 📖 Available Novel Commands:
@@ -384,6 +499,11 @@ Exported: ${new Date().toISOString()}
   /reset            Reset story state
   /architect        Open web-based Prompt Architect wizard
   /feedback <file>  Submit story feedback (JSON format)
+  /plugin [action] [name]
+                    Plugin management:
+                    - /plugin list: Show all plugins status
+                    - /plugin status [name]: Show specific plugin status
+                    - /plugin restart [name]: Restart a plugin
   /help             Show this help
 
 📋 Config Priority: --config > default file > prompt embedded > LLM infer > defaults
