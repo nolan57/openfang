@@ -3,7 +3,13 @@ import { readFile, writeFile, readdir, stat } from "fs/promises"
 import { resolve } from "path"
 import { EvolutionOrchestrator, analyzeAndEvolve, loadDynamicPatterns } from "./orchestrator"
 import { Instance } from "../project/instance"
-import { getStoryBiblePath, getDynamicPatternsPath, getSkillsPath, loadLayeredConfig, extractConfigFromPrompt } from "./novel-config"
+import {
+  getStoryBiblePath,
+  getDynamicPatternsPath,
+  getSkillsPath,
+  loadLayeredConfig,
+  extractConfigFromPrompt,
+} from "./novel-config"
 import { z } from "zod"
 
 const StoryFeedbackSchema = z.object({
@@ -50,16 +56,21 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
 
   switch (cmd) {
     case "/start": {
-      // Parse arguments: /start [prompt-file] [--config=<config-file>] [--infer]
+      // Parse arguments: /start [prompt-file] [--config=<config-file>] [--infer] [--visual-panels]
       let filePath: string | undefined
       let configPath: string | undefined
       let enableInference = false
+      let visualPanelsEnabled = true
 
       for (const arg of args) {
         if (arg.startsWith("--config=")) {
           configPath = arg.slice("--config=".length)
         } else if (arg === "--infer") {
           enableInference = true
+        } else if (arg === "--visual-panels") {
+          visualPanelsEnabled = true
+        } else if (arg === "--no-visual-panels") {
+          visualPanelsEnabled = false
         } else if (!arg.startsWith("--")) {
           filePath = arg
         }
@@ -71,12 +82,12 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       if (filePath) {
         const safePath = resolveSafePath(cwd, filePath)
         const rawContent = await readFile(safePath, "utf-8")
-        
+
         // Extract any embedded config from front matter
         const extracted = extractConfigFromPrompt(rawContent)
         promptContent = extracted.promptContent
         promptMetadata = extracted.metadata
-        
+
         console.log(` Loaded prompt from: ${filePath}`)
         if (extracted.config) {
           console.log(` Found embedded config in prompt`)
@@ -94,6 +105,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       if (enableInference) {
         console.log(` LLM config inference: enabled`)
       }
+      console.log(` Visual panels: ${visualPanelsEnabled ? "enabled" : "disabled"}`)
 
       // Use layered config loading
       const configManager = await loadLayeredConfig({
@@ -104,7 +116,7 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
 
       console.log(` Config source: ${configManager.getConfigSource()}`)
 
-      const orchestrator = new EvolutionOrchestrator({ configManager })
+      const orchestrator = new EvolutionOrchestrator({ configManager, visualPanelsEnabled })
       await orchestrator.loadState()
 
       const result = await orchestrator.runNovelCycle(promptContent)
@@ -117,7 +129,16 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
     case "/continue": {
       console.log(" Continuing story...")
 
-      const orchestrator = new EvolutionOrchestrator()
+      let visualPanelsEnabled = true
+      for (const arg of args) {
+        if (arg === "--visual-panels") {
+          visualPanelsEnabled = true
+        } else if (arg === "--no-visual-panels") {
+          visualPanelsEnabled = false
+        }
+      }
+
+      const orchestrator = new EvolutionOrchestrator({ visualPanelsEnabled })
       await orchestrator.loadState()
 
       const state = orchestrator.getState()
@@ -345,13 +366,16 @@ Exported: ${new Date().toISOString()}
       console.log(`
 📖 Available Novel Commands:
 
-  /start [file] [--config=<path>] [--infer]
+  /start [file] [--config=<path>] [--infer] [--visual-panels|--no-visual-panels]
                     Start new story
                     - file: optional prompt file path
                     - --config=<path>: explicit config file
                     - --infer: enable LLM config inference
+                    - --visual-panels: enable visual panel generation (default)
+                    - --no-visual-panels: disable visual panel generation
                     
-  /continue         Continue from last saved story
+  /continue [--visual-panels|--no-visual-panels]
+                    Continue from last saved story
   /inject <file>    Inject context file into memory
   /evolve           Force pattern analysis and skill generation
   /state [target]   Show world state or character state

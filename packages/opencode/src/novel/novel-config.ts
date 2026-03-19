@@ -2,9 +2,19 @@ import { z } from "zod"
 import { Log } from "../util/log"
 import { mkdir, writeFile, readFile } from "fs/promises"
 import { resolve, dirname, join } from "path"
+import { fileURLToPath } from "url"
 import { Instance } from "../project/instance"
 
 const log = Log.create({ service: "novel-config" })
+
+/**
+ * Get the default config directory (source code config directory).
+ * Uses the directory where this module is located + "/config"
+ */
+export function getDefaultConfigDir(): string {
+  const moduleDir = dirname(fileURLToPath(import.meta.url))
+  return join(moduleDir, "config")
+}
 
 /**
  * Get the novel data directory - always uses git root (.opencode/novel/)
@@ -55,7 +65,7 @@ export function getNarrativeSkeletonPath(): string {
 }
 
 export function getNovelConfigPath(): string {
-  return join(getNovelDataDir(), "config", "novel-config.json")
+  return join(getDefaultConfigDir(), "novel-config.json")
 }
 
 export function getStoryMemoryDbPath(): string {
@@ -569,7 +579,7 @@ export class NovelConfigManager {
 
 /**
  * Extract config from story prompt YAML front matter
- * 
+ *
  * Front matter format:
  * ---
  * title: Story Title
@@ -580,7 +590,7 @@ export class NovelConfigManager {
  *   customTraumaTags:
  *     GUILT: Psychological_Guilt
  * ---
- * 
+ *
  * Returns { config, promptContent } where promptContent is the story prompt without front matter
  */
 export function extractConfigFromPrompt(content: string): {

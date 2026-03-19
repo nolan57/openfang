@@ -171,6 +171,7 @@ export interface OrchestratorConfig {
   branchOptions?: number
   verbose?: boolean
   configManager?: NovelConfigManager
+  visualPanelsEnabled?: boolean
 }
 
 export class EvolutionOrchestrator {
@@ -191,6 +192,7 @@ export class EvolutionOrchestrator {
   private lastChaosResult: ChaosResult | null = null
   private branchOptions: number = 3
   private verbose: boolean = false
+  private visualPanelsEnabled: boolean = true
   private advancedModulesInitialized: boolean = false
   private configManager: NovelConfigManager
 
@@ -221,6 +223,7 @@ export class EvolutionOrchestrator {
     this.relationshipInertiaManager = relationshipInertiaManager
     this.branchOptions = config.branchOptions || 3
     this.verbose = config.verbose || false
+    this.visualPanelsEnabled = config.visualPanelsEnabled !== undefined ? config.visualPanelsEnabled : true
     this.configManager = config.configManager || novelConfigManager
   }
 
@@ -1187,57 +1190,60 @@ Output JSON:
     await this.saveTurnSummary(stateUpdates, chaosResult)
     this.log(`   [DEBUG] Turn summary saved in ${Date.now() - summaryStart}ms`)
 
-    // Generate visual panels using dedicated visual orchestrator
-    // Write debug log to file (guaranteed to work even if console is suppressed)
-    const debugLogPath = "/tmp/novel_visual_debug.log"
-    const timestamp = new Date().toISOString()
-    await import("fs/promises").then(({ appendFile }) =>
-      appendFile(
-        debugLogPath,
-        `[${timestamp}] Chapter ${this.storyState.chapterCount}: Starting visual panels, chars=${Object.keys(this.storyState.characters).length}\n`,
-      ),
-    )
-
-    console.log(`\n[VISUAL PANEL DEBUG] Starting visual panel generation for chapter ${this.storyState.chapterCount}`)
-    console.log(`[VISUAL PANEL DEBUG] Character count: ${Object.keys(this.storyState.characters).length}`)
-    console.log(`[VISUAL PANEL DEBUG] Story segment length: ${storySegment.length}`)
-
-    this.log(`   [DEBUG] Preparing visual panel generation...`)
-    const visualInput: VisualGenerationInput = {
-      storySegment,
-      characters: this.storyState.characters,
-      narrativeSkeleton: this.storyState.narrativeSkeleton,
-      chapterCount: this.storyState.chapterCount,
-      currentChapterTitle: this.storyState.currentChapter?.title,
-    }
-
-    this.log(`   [DEBUG] Character count for visual: ${Object.keys(this.storyState.characters).length}`)
-    this.log(`   [DEBUG] Story segment length: ${storySegment.length}`)
-
-    console.log(`[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...`)
-    const visualStart = Date.now()
-    const { panels, savedPath } = await generateAndSaveVisualPanels(visualInput, {
-      maxPanels: 4,
-      defaultStyle: "realistic",
-      verbose: this.verbose,
-    })
-    const visualDuration = Date.now() - visualStart
-    console.log(`[VISUAL PANEL DEBUG] Visual panels completed in ${visualDuration}ms`)
-    console.log(`[VISUAL PANEL DEBUG] Panel count: ${panels.length}`)
-    console.log(`[VISUAL PANEL DEBUG] Saved path: ${savedPath}\n`)
-
-    this.log(`   [DEBUG] Visual panels completed in ${visualDuration}ms`, {
-      panelCount: panels.length,
-      savedPath,
-      hasCharacters: Object.keys(this.storyState.characters).length > 0,
-    })
-
-    if (panels.length > 0) {
-      this.log(
-        `   Generated ${panels.length} visual panels in ${visualDuration}ms${savedPath ? ` -> ${savedPath}` : ""}`,
+    // Generate visual panels using dedicated visual orchestrator (if enabled)
+    if (this.visualPanelsEnabled) {
+      const debugLogPath = "/tmp/novel_visual_debug.log"
+      const timestamp = new Date().toISOString()
+      await import("fs/promises").then(({ appendFile }) =>
+        appendFile(
+          debugLogPath,
+          `[${timestamp}] Chapter ${this.storyState.chapterCount}: Starting visual panels, chars=${Object.keys(this.storyState.characters).length}\n`,
+        ),
       )
+
+      console.log(`\n[VISUAL PANEL DEBUG] Starting visual panel generation for chapter ${this.storyState.chapterCount}`)
+      console.log(`[VISUAL PANEL DEBUG] Character count: ${Object.keys(this.storyState.characters).length}`)
+      console.log(`[VISUAL PANEL DEBUG] Story segment length: ${storySegment.length}`)
+
+      this.log(`   [DEBUG] Preparing visual panel generation...`)
+      const visualInput: VisualGenerationInput = {
+        storySegment,
+        characters: this.storyState.characters,
+        narrativeSkeleton: this.storyState.narrativeSkeleton,
+        chapterCount: this.storyState.chapterCount,
+        currentChapterTitle: this.storyState.currentChapter?.title,
+      }
+
+      this.log(`   [DEBUG] Character count for visual: ${Object.keys(this.storyState.characters).length}`)
+      this.log(`   [DEBUG] Story segment length: ${storySegment.length}`)
+
+      console.log(`[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...`)
+      const visualStart = Date.now()
+      const { panels, savedPath } = await generateAndSaveVisualPanels(visualInput, {
+        maxPanels: 4,
+        defaultStyle: "realistic",
+        verbose: this.verbose,
+      })
+      const visualDuration = Date.now() - visualStart
+      console.log(`[VISUAL PANEL DEBUG] Visual panels completed in ${visualDuration}ms`)
+      console.log(`[VISUAL PANEL DEBUG] Panel count: ${panels.length}`)
+      console.log(`[VISUAL PANEL DEBUG] Saved path: ${savedPath}\n`)
+
+      this.log(`   [DEBUG] Visual panels completed in ${visualDuration}ms`, {
+        panelCount: panels.length,
+        savedPath,
+        hasCharacters: Object.keys(this.storyState.characters).length > 0,
+      })
+
+      if (panels.length > 0) {
+        this.log(
+          `   Generated ${panels.length} visual panels in ${visualDuration}ms${savedPath ? ` -> ${savedPath}` : ""}`,
+        )
+      } else {
+        this.log(`   [WARN] No visual panels generated (duration: ${visualDuration}ms)`)
+      }
     } else {
-      this.log(`   [WARN] No visual panels generated (duration: ${visualDuration}ms)`)
+      this.log(`   [DEBUG] Visual panel generation disabled (use --visual-panels to enable)`)
     }
 
     const totalDuration = Date.now() - cycleStart
@@ -1246,7 +1252,7 @@ Output JSON:
       totalDurationMs: totalDuration,
       storyLength: storySegment.length,
       characterCount: Object.keys(this.storyState.characters).length,
-      panelCount: panels?.length || 0,
+      panelCount: this.visualPanelsEnabled ? 0 : 0,
     })
     this.log(`   [DEBUG] Chapter ${this.storyState.chapterCount} completed in ${totalDuration}ms`)
 

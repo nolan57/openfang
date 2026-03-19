@@ -30,13 +30,13 @@
 
   "customWeights": {
     "$comment": "Weights optimized for character-driven psychological thriller",
-    "narrativeQuality": 0.20,
-    "tensionLevel": 0.20,
+    "narrativeQuality": 0.2,
+    "tensionLevel": 0.2,
     "characterDevelopment": 0.25,
-    "plotProgression": 0.10,
-    "characterGrowth": 0.10,
+    "plotProgression": 0.1,
+    "characterGrowth": 0.1,
     "riskReward": 0.05,
-    "thematicRelevance": 0.10
+    "thematicRelevance": 0.1
   },
 
   "thematicReflectionInterval": 3,

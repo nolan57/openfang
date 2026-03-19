@@ -972,3 +972,148 @@ _Author: AI Agent_
 _Review Status: Ready for integration_
 
 (End of file - total 900 lines)
+
+---
+
+# Daily Commit Report - 2026-03-19-3 (Novel Engine CLI & Config Updates)
+
+## Summary
+
+This report documents the novel engine CLI improvements, configuration path unification, and visual panel flag addition.
+
+---
+
+## Changes Overview
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| CLI | `src/cli/cmd/novel.ts` | Added `--config`, `--visual-panels`, `--no-visual-panels`, `--infer` flags |
+| Config | `src/novel/novel-config.ts` | Added `getDefaultConfigDir()` for unified config paths |
+| Orchestrator | `src/novel/orchestrator.ts` | Added `visualPanelsEnabled` config option |
+| Config Files | `src/novel/config/` | Updated `novel-config.json`, created `visual-config.schema.json` |
+| Removed | `novel-config.json` | Removed duplicate `visualGeneration` config |
+
+---
+
+## Detailed Changes
+
+### 1. CLI Flags Added (`src/cli/cmd/novel.ts`)
+
+#### novel start
+```bash
+opencode novel start [prompt] \
+  --config <path>         # Path to novel config file
+  --visual-panels          # Enable visual panel generation (default)
+  --no-visual-panels       # Disable visual panel generation
+  --infer                  # Enable LLM config inference
+  -l, --loops <n>         # Number of self-evolution loops
+```
+
+#### novel continue
+```bash
+opencode novel continue \
+  --visual-panels          # Enable visual panel generation (default)
+  --no-visual-panels       # Disable visual panel generation
+```
+
+#### Example Usage
+```bash
+# Start with explicit config
+opencode novel start novel2.md --config ./my-config.json
+
+# Start without visual panels (faster)
+opencode novel start novel2.md --no-visual-panels
+
+# Continue with visual panels disabled
+opencode novel continue --no-visual-panels
+```
+
+---
+
+### 2. Unified Config Path (`src/novel/novel-config.ts`)
+
+**New function added:**
+```typescript
+export function getDefaultConfigDir(): string {
+  const moduleDir = dirname(fileURLToPath(import.meta.url))
+  return join(moduleDir, "config")
+}
+```
+
+**Config files location:**
+```
+src/novel/config/
+├── config-loader.ts
+├── index.ts
+├── novel-config-template.json
+├── novel-config.json
+├── visual-config.json
+└── visual-config.schema.json  (new)
+```
+
+---
+
+### 3. Visual Panel Control (`src/novel/orchestrator.ts`)
+
+**Conditional panel generation:**
+```typescript
+if (this.visualPanelsEnabled) {
+  const { panels, savedPath } = await generateAndSaveVisualPanels(...)
+} else {
+  this.log(`   [DEBUG] Visual panel generation disabled (use --visual-panels to enable)`)
+}
+```
+
+---
+
+### 4. Visual Config Schema (`src/novel/config/visual-config.schema.json`)
+
+Created JSON Schema for visual-config.json validation covering:
+- emotions, actions, lighting_presets, styles
+- llm configuration, panel_generation, hash
+
+---
+
+### 5. Config Cleanup
+
+**Removed duplicate `visualGeneration` from `novel-config.json`**
+
+Rationale: Visual configuration is managed in `visual-config.json`. The `--visual-panels` flag controls generation.
+
+---
+
+## Files Modified/Created
+
+| File | Status | Description |
+|------|--------|-------------|
+| `src/cli/cmd/novel.ts` | Modified | Added CLI flags |
+| `src/novel/novel-config.ts` | Modified | Added `getDefaultConfigDir()` |
+| `src/novel/orchestrator.ts` | Modified | Added `visualPanelsEnabled` |
+| `src/novel/command-parser.ts` | Modified | Updated help text |
+| `src/novel/config/novel-config.json` | Modified | Removed duplicate |
+| `src/novel/config/visual-config.schema.json` | Created | JSON Schema |
+| `docs/daily-commit-report-2026-03-19-2.md` | Modified | This report |
+
+---
+
+## Verification Commands
+
+```bash
+# Check novel start help
+bun run src/index.ts novel start --help
+
+# Check novel continue help
+bun run src/index.ts novel continue --help
+
+# Run with visual panels disabled
+bun run src/index.ts novel start novel2.md --no-visual-panels
+
+# Type check
+bun typecheck
+```
+
+---
+
+_Report generated on March 19, 2026 (Update 3)_  
+_Author: AI Agent_  
+_Review Status: Ready for commit_

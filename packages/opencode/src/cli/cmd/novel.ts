@@ -4,13 +4,17 @@ import { readFile, writeFile } from "fs/promises"
 import { resolve } from "path"
 import { Skill } from "@/skill/skill"
 import { bootstrap } from "../bootstrap"
+import { loadLayeredConfig, extractConfigFromPrompt } from "@/novel/novel-config"
 import process from "process"
 
 let orchestrator: EvolutionOrchestrator | null = null
+let orchestratorArgs: any = null
 
-async function getOrchestrator(): Promise<EvolutionOrchestrator> {
-  if (!orchestrator) {
-    orchestrator = new EvolutionOrchestrator()
+async function getOrchestrator(args?: any): Promise<EvolutionOrchestrator> {
+  if (!orchestrator || orchestratorArgs !== args) {
+    const visualPanelsEnabled = args?.visualPanels !== false
+    orchestrator = new EvolutionOrchestrator({ visualPanelsEnabled })
+    orchestratorArgs = args
     await orchestrator.loadState()
   }
   return orchestrator
@@ -33,16 +37,39 @@ async function handleStart(args: any) {
       if (await fileExists(path)) {
         promptContent = await readFile(path, "utf-8")
         console.log(` Loaded prompt from: ${args.prompt}`)
+
+        // Extract config from prompt front matter
+        const { config: embeddedConfig, promptContent: extractedPrompt } = extractConfigFromPrompt(promptContent)
+        if (embeddedConfig) {
+          console.log(` Found embedded config in prompt`)
+        }
+        promptContent = extractedPrompt
       } else {
         console.error(`× Prompt file not found: ${path}`)
         return
       }
     }
 
+    // Load layered config
+    const configManager = await loadLayeredConfig({
+      explicitConfigPath: args.config,
+      promptContent,
+      enableInference: args.infer,
+    })
+    console.log(` Config source: ${configManager.getConfigSource()}`)
+
     const loops = (args.loops as number) || 1
+    const visualPanelsEnabled = !args.noVisualPanels && args.visualPanels !== false
+    console.log(` Visual panels: ${visualPanelsEnabled ? "enabled" : "disabled"}`)
     console.log(` Running ${loops} self-evolution loop(s)...\n`)
 
-    const engine = await getOrchestrator()
+    // Create engine with visual panels setting
+    orchestrator = new EvolutionOrchestrator({
+      configManager,
+      visualPanelsEnabled,
+    })
+    orchestratorArgs = args
+    await orchestrator.loadState()
 
     try {
       for (let i = 0; i < loops; i++) {
@@ -50,7 +77,7 @@ async function handleStart(args: any) {
           console.log(`\n--- Loop ${i + 1}/${loops} ---`)
           await analyzeAndEvolve(promptContent, await loadDynamicPatterns())
         }
-        const result = await engine.runNovelCycle(promptContent)
+        const result = await orchestrator.runNovelCycle(promptContent)
         console.log(`\n ✓ Loop ${i + 1} complete!`)
         console.log("Preview:", result.substring(0, 150) + "...")
       }
@@ -65,22 +92,28 @@ async function handleStart(args: any) {
       }
     } finally {
       // Clean up database connections to prevent process hanging
-      await engine.dispose()
+      await orchestrator.dispose()
     }
   })
 }
 
-async function handleContinue() {
+async function handleContinue(args?: any) {
   await bootstrap(process.cwd(), async () => {
-    const engine = await getOrchestrator()
-    const state = engine.getState()
+    const visualPanelsEnabled = !args?.noVisualPanels && args?.visualPanels !== false
+    console.log(` Visual panels: ${visualPanelsEnabled ? "enabled" : "disabled"}`)
+
+    orchestrator = new EvolutionOrchestrator({ visualPanelsEnabled })
+    orchestratorArgs = args
+    await orchestrator.loadState()
+
+    const state = orchestrator.getState()
     console.log(`Continuing from Chapter ${state.chapterCount}: ${state.currentChapter || "Untitled"}`)
     try {
-      const result = await engine.runNovelCycle("Continue the story from the current state.")
+      const result = await orchestrator.runNovelCycle("Continue the story from the current state.")
       console.log("\n ✓ Next chapter generated!")
       console.log("Preview:", result.substring(0, 150) + "...")
     } finally {
-      await engine.dispose()
+      await orchestrator.dispose()
     }
   })
 }
@@ -209,10 +242,43 @@ export const NovelCommand: CommandModule = {
               default: 1,
               alias: "l",
               describe: "Number of self-evolution loops to run",
+            })
+            .option("config", {
+              type: "string",
+              describe: "Path to novel config file",
+            })
+            .option("visual-panels", {
+              type: "boolean",
+              default: true,
+              describe: "Enable visual panel generation",
+            })
+            .option("no-visual-panels", {
+              type: "boolean",
+              describe: "Disable visual panel generation",
+            })
+            .option("infer", {
+              type: "boolean",
+              default: false,
+              describe: "Enable LLM config inference",
             }),
         handleStart,
       )
-      .command("continue", "Resume the self-evolving loop from last saved state", handleContinue)
+      .command(
+        "continue",
+        "Resume the self-evolving loop from last saved state",
+        (yargs) =>
+          yargs
+            .option("visual-panels", {
+              type: "boolean",
+              default: true,
+              describe: "Enable visual panel generation",
+            })
+            .option("no-visual-panels", {
+              type: "boolean",
+              describe: "Disable visual panel generation",
+            }),
+        handleContinue,
+      )
       .command(
         "inject <file>",
         "Inject additional context into current memory",
