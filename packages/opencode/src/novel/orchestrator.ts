@@ -40,6 +40,12 @@ import { EndGameDetector, endGameDetector } from "./end-game-detection"
 import { FactionDetector, factionDetector } from "./faction-detector"
 import { RelationshipInertiaManager, relationshipInertiaManager } from "./relationship-inertia"
 import { initializeCustomTypes } from "./types"
+import {
+  NovelLearningBridgeManager,
+  type LearningBridgeConfig,
+  DEFAULT_LEARNING_BRIDGE_CONFIG,
+  type ImprovementSuggestion,
+} from "./novel-learning-bridge"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
@@ -172,6 +178,7 @@ export interface OrchestratorConfig {
   verbose?: boolean
   configManager?: NovelConfigManager
   visualPanelsEnabled?: boolean
+  learningBridgeConfig?: Partial<LearningBridgeConfig>
 }
 
 export class EvolutionOrchestrator {
@@ -189,6 +196,8 @@ export class EvolutionOrchestrator {
   private endGameDetector: EndGameDetector
   private factionDetector: FactionDetector
   private relationshipInertiaManager: RelationshipInertiaManager
+  private learningBridgeManager: NovelLearningBridgeManager
+  private learningBridgeInitialized: boolean = false
   private lastChaosResult: ChaosResult | null = null
   private branchOptions: number = 3
   private verbose: boolean = false
@@ -225,6 +234,7 @@ export class EvolutionOrchestrator {
     this.verbose = config.verbose || false
     this.visualPanelsEnabled = config.visualPanelsEnabled !== undefined ? config.visualPanelsEnabled : true
     this.configManager = config.configManager || novelConfigManager
+    this.learningBridgeManager = new NovelLearningBridgeManager(config.learningBridgeConfig)
   }
 
   /**
@@ -251,12 +261,16 @@ export class EvolutionOrchestrator {
       await this.branchStorage.initialize()
       await this.motifTracker.initialize()
 
+      // Initialize Learning Bridge for Phase 3 reverse improvement
+      await this.initializeLearningBridge()
+
       this.advancedModulesInitialized = true
       this.log("Advanced modules initialized", {
         memory: "story-memory.db",
         graph: "story-graph.db",
         branches: "branches.db",
         motif: "motif-tracking/",
+        learningBridge: this.learningBridgeInitialized,
       })
     } catch (error) {
       log.error("advanced_modules_init_failed", { error: String(error) })
@@ -298,6 +312,97 @@ export class EvolutionOrchestrator {
   private log(message: string, ...args: any[]): void {
     if (this.verbose) {
       console.log(message, ...args)
+    }
+  }
+
+  /**
+   * Initialize Learning Bridge for reverse improvement system (Phase 3)
+   */
+  private async initializeLearningBridge(): Promise<void> {
+    if (this.learningBridgeInitialized) return
+
+    try {
+      await this.learningBridgeManager.initialize()
+      this.learningBridgeInitialized = true
+      log.info("learning_bridge_initialized", {
+        vectorBridge: this.learningBridgeManager.getVectorBridge() ? "enabled" : "disabled",
+        knowledgeBridge: this.learningBridgeManager.getKnowledgeBridge() ? "enabled" : "disabled",
+        memoryBridge: this.learningBridgeManager.getMemoryBridge() ? "enabled" : "disabled",
+        improvementApi: this.learningBridgeManager.getImprovementApi() ? "enabled" : "disabled",
+      })
+    } catch (error) {
+      log.warn("learning_bridge_init_failed", { error: String(error) })
+      this.learningBridgeInitialized = false
+    }
+  }
+
+  /**
+   * Analyze novel code and generate improvement suggestions using learning module
+   */
+  async analyzeAndSuggestImprovements(modulePath?: string): Promise<ImprovementSuggestion[]> {
+    await this.initializeLearningBridge()
+
+    if (!this.learningBridgeInitialized) {
+      log.warn("learning_bridge_not_available")
+      return []
+    }
+
+    try {
+      const targetPath = modulePath || this.getNovelSourcePath()
+      log.info("analyzing_novel_improvements", { path: targetPath })
+
+      const suggestions = await this.learningBridgeManager.getImprovementApi().analyzeAndSuggest(targetPath)
+
+      log.info("improvement_suggestions_generated", {
+        count: suggestions.length,
+        highConfidence: suggestions.filter((s) => s.confidence > 0.7).length,
+      })
+
+      return suggestions
+    } catch (error) {
+      log.error("improvement_analysis_failed", { error: String(error) })
+      return []
+    }
+  }
+
+  /**
+   * Apply an improvement suggestion
+   */
+  async applyImprovement(suggestion: ImprovementSuggestion, dryRun: boolean = true): Promise<boolean> {
+    if (!this.learningBridgeInitialized) {
+      console.log("× Learning bridge not initialized")
+      return false
+    }
+
+    try {
+      if (dryRun) {
+        console.log(`\n📝 Dry run - Would apply: ${suggestion.description}`)
+        console.log(`   File: ${suggestion.targetFile}${suggestion.targetLine ? `:${suggestion.targetLine}` : ""}`)
+        console.log(`   Type: ${suggestion.type}`)
+        console.log(`   Confidence: ${(suggestion.confidence * 100).toFixed(0)}%`)
+        return true
+      }
+
+      const result = await this.learningBridgeManager.getImprovementApi().applySuggestion(suggestion, false)
+      if (result) {
+        console.log(`✓ Applied improvement: ${suggestion.description}`)
+      }
+      return result
+    } catch (error) {
+      log.error("apply_improvement_failed", { error: String(error) })
+      return false
+    }
+  }
+
+  /**
+   * Get the path to novel source files for analysis
+   */
+  private getNovelSourcePath(): string {
+    try {
+      const instanceDir = Instance.worktree
+      return join(instanceDir, "packages", "opencode", "src", "novel")
+    } catch {
+      return join(process.cwd(), "src", "novel")
     }
   }
 

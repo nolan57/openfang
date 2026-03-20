@@ -477,6 +477,60 @@ Usage:
       break
     }
 
+    case "/improve-novel": {
+      const dryRun = !args.includes("--apply")
+      const modulePath = args.find((a) => a.startsWith("--path="))?.replace("--path=", "")
+      const limitStr = args.find((a) => a.startsWith("--limit="))
+      const limit = limitStr ? parseInt(limitStr.replace("--limit=", "")) : 10
+
+      console.log("\n🔍 Analyzing novel code for improvements...")
+
+      try {
+        const engine = new EvolutionOrchestrator()
+        await engine.loadState()
+
+        const suggestions = await engine.analyzeAndSuggestImprovements(modulePath)
+
+        if (suggestions.length === 0) {
+          console.log("✓ No improvement suggestions found")
+          break
+        }
+
+        console.log(`\n📊 Found ${suggestions.length} improvement suggestions:`)
+        console.log("─".repeat(70))
+
+        const sortedSuggestions = suggestions.sort((a, b) => b.confidence - a.confidence).slice(0, limit)
+
+        for (let i = 0; i < sortedSuggestions.length; i++) {
+          const s = sortedSuggestions[i]
+          const confidence = (s.confidence * 100).toFixed(0)
+          const confidenceIcon = s.confidence > 0.7 ? "🟢" : s.confidence > 0.5 ? "🟡" : "🔴"
+
+          console.log(`\n${i + 1}. ${confidenceIcon} [${confidence}%] ${s.type.toUpperCase()}`)
+          console.log(`   ${s.description}`)
+          console.log(`   📁 ${s.targetFile}${s.targetLine ? `:${s.targetLine}` : ""}`)
+        }
+
+        console.log("\n" + "─".repeat(70))
+        console.log(`\n💡 Use --apply to apply suggestions, --limit=N to limit results`)
+
+        if (dryRun) {
+          console.log(`\n📝 Dry run mode: suggestions not applied`)
+        } else {
+          console.log(`\n🔧 Applying high-confidence suggestions (confidence > 70%)...`)
+          let applied = 0
+          for (const s of sortedSuggestions.filter((x) => x.confidence > 0.7)) {
+            const result = await engine.applyImprovement(s, false)
+            if (result) applied++
+          }
+          console.log(`✓ Applied ${applied} improvements`)
+        }
+      } catch (error) {
+        console.log(`× Failed to analyze improvements: ${String(error)}`)
+      }
+      break
+    }
+
     case "/help": {
       console.log(`
 📖 Available Novel Commands:
@@ -504,6 +558,11 @@ Usage:
                     - /plugin list: Show all plugins status
                     - /plugin status [name]: Show specific plugin status
                     - /plugin restart [name]: Restart a plugin
+  /improve-novel [--apply] [--path=<module>] [--limit=N]
+                    Analyze novel code for improvements using learning module:
+                    - --apply: Apply high-confidence suggestions
+                    - --path=<module>: Analyze specific module
+                    - --limit=N: Limit to N suggestions (default: 10)
   /help             Show this help
 
 📋 Config Priority: --config > default file > prompt embedded > LLM infer > defaults
