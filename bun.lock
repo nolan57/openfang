@@ -190,6 +190,12 @@
         "@opencode-ai/plugin": ">=1.0.0",
       },
     },
+    "packages/script": {
+      "name": "@opencode-ai/script",
+      "devDependencies": {
+        "@types/bun": "catalog:",
+      },
+    },
     "packages/util": {
       "name": "@opencode-ai/util",
       "version": "1.2.10",
@@ -678,6 +684,8 @@
     "@opencode-ai/plugin": ["@opencode-ai/plugin@workspace:packages/plugin"],
 
     "@opencode-ai/plugin-qqbot": ["@opencode-ai/plugin-qqbot@workspace:packages/plugin-qqbot"],
+
+    "@opencode-ai/script": ["@opencode-ai/script@workspace:packages/script"],
 
     "@opencode-ai/util": ["@opencode-ai/util@workspace:packages/util"],
 
