@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { EnhancedPatternMiner } from "./pattern-miner-enhanced"
+import { EnhancedPatternMiner } from "../pattern-miner-enhanced"
 
 describe("EnhancedPatternMiner", () => {
   let miner: EnhancedPatternMiner

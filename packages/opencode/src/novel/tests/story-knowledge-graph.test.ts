@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { StoryKnowledgeGraph } from "./story-knowledge-graph"
+import { StoryKnowledgeGraph } from "../story-knowledge-graph"
 
 describe("StoryKnowledgeGraph", () => {
   let graph: StoryKnowledgeGraph

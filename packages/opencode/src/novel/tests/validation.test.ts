@@ -11,7 +11,7 @@ import {
   RetryConfig,
   createCorrelationId,
   createCorrelationContext,
-} from "./validation"
+} from "../validation"
 
 describe("validation", () => {
   describe("validateRawStateUpdate", () => {

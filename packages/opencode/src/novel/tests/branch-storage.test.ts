@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { BranchStorage } from "./branch-storage"
-import type { Branch } from "./branch-manager"
+import { BranchStorage } from "../branch-storage"
+import type { Branch } from "../branch-manager"
 
 describe("BranchStorage", () => {
   let storage: BranchStorage

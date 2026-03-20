@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { MultiWayRelationshipManager } from "./multiway-relationships"
+import { MultiWayRelationshipManager } from "../multiway-relationships"
 
 describe("MultiWayRelationshipManager", () => {
   let manager: MultiWayRelationshipManager

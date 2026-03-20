@@ -4842,6 +4842,7 @@
     "status": "draft"
   },
   {
+    "id": "3fcaaa0d-9c21-4911-9384-abda84b5ac25",
     "name": "auto-bash-task",
     "description": "Auto-generated skill for 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作",
     "content": "# 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbo\n\n## Description\n\nAuto-generated skill for: 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with todowrite operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-20\n",
@@ -4853,8 +4854,39 @@
       "userslpcwdocumentsopencodepackagesopencodescripts"
     ],
     "sessionID": "ses_2f45b3b22ffeWpIvbs93406TOa",
-    "id": "3fcaaa0d-9c21-4911-9384-abda84b5ac25",
     "createdAt": 1774018028941,
+    "status": "draft"
+  },
+  {
+    "id": "c2f3e7f9-4c70-40b9-87e2-663fc2a2612a",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作",
+    "content": "# 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbo\n\n## Description\n\nAuto-generated skill for: 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts push local to remote sdk真的可以删除吗？或许我们应该恢复和保留sdk 继续恢复sdk\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with todowrite operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-20\n",
+    "triggerPatterns": [
+      "deploypluginqqbotnovelsscripthscriptssrc",
+      "userslpcwdocumentsopencodescript",
+      "userslpcwdocumentsopencodescripts",
+      "userslpcwdocumentsopencodepackagesopencodescript",
+      "userslpcwdocumentsopencodepackagesopencodescripts"
+    ],
+    "sessionID": "ses_2f45b3b22ffeWpIvbs93406TOa",
+    "createdAt": 1774019415966,
+    "status": "draft"
+  },
+  {
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作",
+    "content": "# 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbo\n\n## Description\n\nAuto-generated skill for: 在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts push local to remote sdk真的可以删除吗？或许我们应该恢复和保留sdk 继续恢复sdk 确认 novel模块的类型错误 需不需要修复\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with todowrite operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-20\n",
+    "triggerPatterns": [
+      "deploypluginqqbotnovelsscripthscriptssrc",
+      "userslpcwdocumentsopencodescript",
+      "userslpcwdocumentsopencodescripts",
+      "userslpcwdocumentsopencodepackagesopencodescript",
+      "userslpcwdocumentsopencodepackagesopencodescripts"
+    ],
+    "sessionID": "ses_2f45b3b22ffeWpIvbs93406TOa",
+    "id": "d7d11158-6aff-4115-9bb4-94fd6017f219",
+    "createdAt": 1774019562543,
     "status": "draft"
   }
 ]

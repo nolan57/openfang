@@ -441,13 +441,6 @@ export class NovelConfigManager {
   }
 
   /**
-   * Get current config (useful for inspection)
-   */
-  getConfig(): NovelEngineConfig {
-    return this.config
-  }
-
-  /**
    * 保存配置到文件
    */
   async save(): Promise<void> {
@@ -778,7 +771,7 @@ export async function inferConfigFromPrompt(promptContent: string): Promise<Part
   const { generateText } = await import("ai")
 
   try {
-    const model = getNovelLanguageModel()
+    const model = await getNovelLanguageModel()
 
     const result = await generateText({
       model,
@@ -802,7 +795,6 @@ Output JSON only, no explanation:
   "customEmotionTypes": { "KEY": "EmotionName" },
   "reasoning": "Brief explanation of choices"
 }`,
-      maxTokens: 500,
     })
 
     const text = result.text.trim()

@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1774017887846,
-    "usageCount": 284,
+    "lastUsedAt": 1774019437529,
+    "usageCount": 285,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -143,8 +143,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1774018537093,
-    "usageCount": 255,
+    "lastUsedAt": 1774019752948,
+    "usageCount": 256,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1774019144054,
-    "usageCount": 304,
+    "lastUsedAt": 1774019967032,
+    "usageCount": 306,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -218,8 +218,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1774019143870,
-    "usageCount": 193,
+    "lastUsedAt": 1774019753196,
+    "usageCount": 195,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -8514,6 +8514,96 @@
     ],
     "createdAt": 1774018008401,
     "lastUsedAt": 1774018008401,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "6b47114e-2f8e-41c3-a4af-d9ebf8650059",
+    "key": "core-module-verification",
+    "value": "Verify dependencies like SDKs before deletion during refactoring to avoid breaking core functionality.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts push local to remote sdk真的可以删除吗？或许我们应该恢复和保留sdk 继续恢复sdk",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774019426869,
+    "lastUsedAt": 1774019426869,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "3b1bc986-f03b-446e-beb0-65917d53822b",
+    "key": "duplicate-directory-merging",
+    "value": "Merge duplicate script directories into a single path to streamline project structure and maintenance.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts push local to remote sdk真的可以删除吗？或许我们应该恢复和保留sdk 继续恢复sdk",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774019427374,
+    "lastUsedAt": 1774019427374,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "3be22a9c-5778-4ab1-bf0b-b55534214e45",
+    "key": "preservation-constraints",
+    "value": "Define explicit preservation rules for key directories before cleanup to prevent accidental loss of essential features.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts push local to remote sdk真的可以删除吗？或许我们应该恢复和保留sdk 继续恢复sdk",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774019427580,
+    "lastUsedAt": 1774019427580,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "149aae1d-04b0-40b3-a13c-6b14a3ad00fc",
+    "key": "refactoring-scope",
+    "value": "Clearly define protected directories and files before simplification to prevent accidental loss of critical components like deploy or plugins.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts push local to remote sdk真的可以删除吗？或许我们应该恢复和保留sdk 继续恢复sdk 确认 novel模块的类型错误 需不需要修复",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774019569972,
+    "lastUsedAt": 1774019569972,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b92595bf-cf50-4927-a0bb-65d5acfe2b15",
+    "key": "core-dependency-check",
+    "value": "Verify usage of core modules like SDKs before removal to avoid breaking functionality, and restore them if essential.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts push local to remote sdk真的可以删除吗？或许我们应该恢复和保留sdk 继续恢复sdk 确认 novel模块的类型错误 需不需要修复",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774019570379,
+    "lastUsedAt": 1774019570379,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "fdf39de6-e6b2-4287-861c-c7707ac25c9e",
+    "key": "script-consolidation",
+    "value": "Merge fragmented script directories into a unified structure to reduce redundancy and simplify maintenance during project slimming.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts push local to remote sdk真的可以删除吗？或许我们应该恢复和保留sdk 继续恢复sdk 确认 novel模块的类型错误 需不需要修复",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774019570610,
+    "lastUsedAt": 1774019570610,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,

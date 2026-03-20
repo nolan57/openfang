@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { FactionDetector, type RelationshipData } from "./faction-detector"
+import { FactionDetector, type RelationshipData } from "../faction-detector"
 
 describe("FactionDetector", () => {
   let detector: FactionDetector

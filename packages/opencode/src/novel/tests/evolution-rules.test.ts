@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { EvolutionRulesEngine } from "./evolution-rules"
+import { EvolutionRulesEngine } from "../evolution-rules"
 
 describe("EvolutionRulesEngine", () => {
   test("rollChaos returns valid result", () => {

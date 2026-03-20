@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { callLLM, callLLMJson, callLLMBatch } from "./llm-wrapper"
-import { RetryConfig } from "./validation"
+import { callLLM, callLLMJson, callLLMBatch } from "../llm-wrapper"
+import { RetryConfig } from "../validation"
 
 describe("LLM Wrapper", () => {
   describe("callLLM", () => {

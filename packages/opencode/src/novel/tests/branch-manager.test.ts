@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { BranchManager, type Branch } from "./branch-manager"
+import { BranchManager, type Branch } from "../branch-manager"
 
 describe("BranchManager", () => {
   let manager: BranchManager

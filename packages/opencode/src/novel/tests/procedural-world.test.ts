@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { ProceduralWorldGenerator } from "./procedural-world"
+import { ProceduralWorldGenerator } from "../procedural-world"
 
 describe("ProceduralWorldGenerator", () => {
   let generator: ProceduralWorldGenerator

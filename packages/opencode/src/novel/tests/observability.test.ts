@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { NovelObservability } from "./observability"
-import { BranchManager } from "./branch-manager"
-import { EnhancedPatternMiner } from "./pattern-miner-enhanced"
-import { MotifTracker } from "./motif-tracker"
-import { StoryKnowledgeGraph } from "./story-knowledge-graph"
+import { NovelObservability } from "../observability"
+import { BranchManager } from "../branch-manager"
+import { EnhancedPatternMiner } from "../pattern-miner-enhanced"
+import { MotifTracker } from "../motif-tracker"
+import { StoryKnowledgeGraph } from "../story-knowledge-graph"
 
 describe("NovelObservability", () => {
   let observability: NovelObservability

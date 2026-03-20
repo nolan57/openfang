@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { RelationshipInertiaManager } from "./relationship-inertia"
+import { RelationshipInertiaManager } from "../relationship-inertia"
 
 describe("RelationshipInertiaManager", () => {
   let manager: RelationshipInertiaManager

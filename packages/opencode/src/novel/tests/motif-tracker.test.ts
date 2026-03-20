@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { MotifTracker } from "./motif-tracker"
-import type { MotifEvolution, MotifCharacterCorrelation } from "./motif-tracker"
+import { MotifTracker } from "../motif-tracker"
+import type { MotifEvolution, MotifCharacterCorrelation } from "../motif-tracker"
 
 describe("MotifTracker", () => {
   let tracker: MotifTracker

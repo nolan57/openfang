@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { StoryWorldMemory } from "./story-world-memory"
+import { StoryWorldMemory } from "../story-world-memory"
 
 describe("StoryWorldMemory", () => {
   let memory: StoryWorldMemory
