@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1773572644415,
-    "usageCount": 282,
+    "lastUsedAt": 1774017887846,
+    "usageCount": 284,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -68,8 +68,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1773561321907,
-    "usageCount": 213,
+    "lastUsedAt": 1774018056436,
+    "usageCount": 217,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -143,8 +143,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1773567127951,
-    "usageCount": 251,
+    "lastUsedAt": 1774017568619,
+    "usageCount": 254,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1773571279205,
-    "usageCount": 300,
+    "lastUsedAt": 1774017940099,
+    "usageCount": 303,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -218,8 +218,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1773571834295,
-    "usageCount": 190,
+    "lastUsedAt": 1773953172806,
+    "usageCount": 192,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -8289,6 +8289,231 @@
     ],
     "createdAt": 1773571162022,
     "lastUsedAt": 1773571162022,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "5aaa5d3b-de09-4706-a191-c6dbcc7f1bf6",
+    "key": "config-path-organization",
+    "value": "Store default config files in a 'config' subdirectory relative to the source code location for better organization and portability.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. Check if --visual-panels and --config is supported or needs to be added 默认加载的配置中文件该存放在哪里？ 1、修改所有默认配置文件的存放路径统一为代码文件所在目录的config的子目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 1、修改novel引擎的所有默认配置文件的存放路径统一为代码文件所在目录的config的子目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 1、修改novel引擎的所有默认配置文件的存放路径统一为  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/config-loader.ts 所在目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 visual-config.json 默认加载的路径也是 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/config-loader.ts 所在的目录中吗 visual-config.schema.json 不存在，需要在默认配置文件目录中补上 运行 novel start -h时，没看到--config等flag？ 需要在 novel-config.json 中设置 [Paste\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 需要在 novel-config.json 中设置中如下配置吗？  ：  [Pasted ~6 lin\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 请确认，如果已经有了 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json , 还需要在 [Pasted ~6 linnovel-config.json 中设置中如下配置吗？  ：  [Pasted ~6 lin\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 删除 更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-19-2.md ， 并推送到远程仓库，包括修改的或新增的md文件和json配置文件 添加了--visual-panels的flag，还是没有生成panels，根据下面的logs，应该是加载配置文件的路径错误了   ：   [Pasted ~12 lines] [VISUAL PANEL DEBUG] Starting visual panel generation for chapter 1\n[VISUAL PANEL DEBUG] Character count: 4\n[VISUAL PANEL DEBUG] Story segment length: 620\n[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...\nINFO  2026-03-19T15:04:46 +3ms service=visual-orchestrator chapterCount=1 characterCount=4 storySegmentLength=620 visual_panel_generation_start\nINFO  2026-03-19T15:04:46 +0ms service=visual-config-loader path=/$bunfs/root/src/visual-config.json loading_visual_config\nERROR 2026-03-19T15:04:46 +1ms service=visual-config-loader error=Error: ENOENT: no such file or directory, open '/$bunfs/root/src/visual-config.json' path=/$bunfs/root/src/visual-config.json visual_config_load_failed\nERROR 2026-03-19T15:04:46 +0ms service=visual-orchestrator error=Error: ENOENT: no such file or directory, open '/$bunfs/root/src/visual-config.json' durationMs=2 visual_panel_generation_failed\nWARN  2026-03-19T15:04:46 +0ms service=visual-orchestrator chapterCount=1 durationMs=0 no_panels_to_save\n[VISUAL PANEL DEBUG] Visual panels completed in 3ms\n[VISUAL PANEL DEBUG] Panel count: 0\n[VISUAL PANEL DEBUG] Saved path: null [VISUAL PANEL DEBUG] Starting visual panel generation for chapter 3\n[VISUAL PANEL DEBUG] Character count: 5\n[VISUAL PANEL DEBUG] Story segment length: 597\n[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...\nINFO  2026-03-19T16:38:44 +1ms service=visual-orchestrator chapterCount=3 characterCount=5 storySegmentLength=597 visual_panel_generation_start\nINFO  2026-03-19T16:38:44 +0ms service=visual-config-loader path=/Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json loading_visual_config\nERROR 2026-03-19T16:38:44 +1ms service=visual-config-loader error=SyntaxError: JSON Parse error: Unable to parse JSON string path=/Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json visual_config_load_failed\nERROR 2026-03-19T16:38:44 +0ms service=visual-orchestrator error=SyntaxError: JSON Parse error: Unable to parse JSON string durationMs=1 visual_panel_generation_failed\nWARN  2026-03-19T16:38:44 +0ms service=visual-orchestrator chapterCount=3 durationMs=0 no_panels_to_save\n[VISUAL PANEL DEBUG] Visual panels completed in 1ms\n[VISUAL PANEL DEBUG] Panel count: 0\n[VISUAL PANEL DEBUG] Saved path: null  continue fix the issue 从logs，发现另一个可疑异常，就是执行 bun run --conditions=browser ./src/index.ts novel start /Users/lpcw/Documents/opencode/novels/novel2.md --loops 3 --print-logs --visual-panels 后，总是反复出现下面的信息，请确认是不是异常或是不是需要优化  ：  [Pasted ~7 lines]  DEBUG 2026-03-19T20:34:11 +0ms service=novel-model attempting_provider_defaultModel\nDEBUG 2026-03-19T20:34:11 +1ms service=novel-model model=bailian-coding-plan/qwen3.5-plus provider_defaultModel_success\nDEBUG 2026-03-19T20:34:11 +0ms service=novel-model model=bailian-coding-plan/qwen3.5-plus validating_model\nINFO  2026-03-19T20:34:11 +0ms service=novel-model model=bailian-coding-plan/qwen3.5-plus using_configured_model\nWARN  2026-03-19T20:34:38 +27021ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached\nWARN  2026-03-19T20:35:08 +30000ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached\nWARN  2026-03-19T20:35:38 +30001ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached 需要确认的是，哪个插件导致这个反复的警告以及什么原因 plugin-4 具体指向哪个代码？ 给plugin-qqbot添加代码，来输出具体是哪个原因导致反复警告，同时，在会话添加一个/指令，来查询所有plugin的状态和再启动/停止特定plugin 还是反复出现下面的信息：[Pasted ~13 DEBUG 2026-03-19T22:43:06 +30000ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=index skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=superpowers skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-3 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-4 skipping-exhausted-plugin\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-5 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +30000ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=index skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=superpowers skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-3 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-4 skipping-exhausted-plugin\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-5 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:44:06 +30001ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart",
+    "sessionIDs": [
+      "ses_2fa462d75ffeQK1BJs9M3mR11A"
+    ],
+    "createdAt": 1773960454051,
+    "lastUsedAt": 1773960454051,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f16a0a7a-73e1-400a-b27c-961798921ef5",
+    "key": "cli-flag-implementation",
+    "value": "When adding new CLI flags like --visual-panels, ensure proper integration with the existing CLI argument parsing system and document the flag's purpose.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. Check if --visual-panels and --config is supported or needs to be added 默认加载的配置中文件该存放在哪里？ 1、修改所有默认配置文件的存放路径统一为代码文件所在目录的config的子目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 1、修改novel引擎的所有默认配置文件的存放路径统一为代码文件所在目录的config的子目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 1、修改novel引擎的所有默认配置文件的存放路径统一为  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/config-loader.ts 所在目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 visual-config.json 默认加载的路径也是 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/config-loader.ts 所在的目录中吗 visual-config.schema.json 不存在，需要在默认配置文件目录中补上 运行 novel start -h时，没看到--config等flag？ 需要在 novel-config.json 中设置 [Paste\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 需要在 novel-config.json 中设置中如下配置吗？  ：  [Pasted ~6 lin\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 请确认，如果已经有了 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json , 还需要在 [Pasted ~6 linnovel-config.json 中设置中如下配置吗？  ：  [Pasted ~6 lin\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 删除 更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-19-2.md ， 并推送到远程仓库，包括修改的或新增的md文件和json配置文件 添加了--visual-panels的flag，还是没有生成panels，根据下面的logs，应该是加载配置文件的路径错误了   ：   [Pasted ~12 lines] [VISUAL PANEL DEBUG] Starting visual panel generation for chapter 1\n[VISUAL PANEL DEBUG] Character count: 4\n[VISUAL PANEL DEBUG] Story segment length: 620\n[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...\nINFO  2026-03-19T15:04:46 +3ms service=visual-orchestrator chapterCount=1 characterCount=4 storySegmentLength=620 visual_panel_generation_start\nINFO  2026-03-19T15:04:46 +0ms service=visual-config-loader path=/$bunfs/root/src/visual-config.json loading_visual_config\nERROR 2026-03-19T15:04:46 +1ms service=visual-config-loader error=Error: ENOENT: no such file or directory, open '/$bunfs/root/src/visual-config.json' path=/$bunfs/root/src/visual-config.json visual_config_load_failed\nERROR 2026-03-19T15:04:46 +0ms service=visual-orchestrator error=Error: ENOENT: no such file or directory, open '/$bunfs/root/src/visual-config.json' durationMs=2 visual_panel_generation_failed\nWARN  2026-03-19T15:04:46 +0ms service=visual-orchestrator chapterCount=1 durationMs=0 no_panels_to_save\n[VISUAL PANEL DEBUG] Visual panels completed in 3ms\n[VISUAL PANEL DEBUG] Panel count: 0\n[VISUAL PANEL DEBUG] Saved path: null [VISUAL PANEL DEBUG] Starting visual panel generation for chapter 3\n[VISUAL PANEL DEBUG] Character count: 5\n[VISUAL PANEL DEBUG] Story segment length: 597\n[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...\nINFO  2026-03-19T16:38:44 +1ms service=visual-orchestrator chapterCount=3 characterCount=5 storySegmentLength=597 visual_panel_generation_start\nINFO  2026-03-19T16:38:44 +0ms service=visual-config-loader path=/Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json loading_visual_config\nERROR 2026-03-19T16:38:44 +1ms service=visual-config-loader error=SyntaxError: JSON Parse error: Unable to parse JSON string path=/Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json visual_config_load_failed\nERROR 2026-03-19T16:38:44 +0ms service=visual-orchestrator error=SyntaxError: JSON Parse error: Unable to parse JSON string durationMs=1 visual_panel_generation_failed\nWARN  2026-03-19T16:38:44 +0ms service=visual-orchestrator chapterCount=3 durationMs=0 no_panels_to_save\n[VISUAL PANEL DEBUG] Visual panels completed in 1ms\n[VISUAL PANEL DEBUG] Panel count: 0\n[VISUAL PANEL DEBUG] Saved path: null  continue fix the issue 从logs，发现另一个可疑异常，就是执行 bun run --conditions=browser ./src/index.ts novel start /Users/lpcw/Documents/opencode/novels/novel2.md --loops 3 --print-logs --visual-panels 后，总是反复出现下面的信息，请确认是不是异常或是不是需要优化  ：  [Pasted ~7 lines]  DEBUG 2026-03-19T20:34:11 +0ms service=novel-model attempting_provider_defaultModel\nDEBUG 2026-03-19T20:34:11 +1ms service=novel-model model=bailian-coding-plan/qwen3.5-plus provider_defaultModel_success\nDEBUG 2026-03-19T20:34:11 +0ms service=novel-model model=bailian-coding-plan/qwen3.5-plus validating_model\nINFO  2026-03-19T20:34:11 +0ms service=novel-model model=bailian-coding-plan/qwen3.5-plus using_configured_model\nWARN  2026-03-19T20:34:38 +27021ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached\nWARN  2026-03-19T20:35:08 +30000ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached\nWARN  2026-03-19T20:35:38 +30001ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached 需要确认的是，哪个插件导致这个反复的警告以及什么原因 plugin-4 具体指向哪个代码？ 给plugin-qqbot添加代码，来输出具体是哪个原因导致反复警告，同时，在会话添加一个/指令，来查询所有plugin的状态和再启动/停止特定plugin 还是反复出现下面的信息：[Pasted ~13 DEBUG 2026-03-19T22:43:06 +30000ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=index skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=superpowers skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-3 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-4 skipping-exhausted-plugin\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-5 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +30000ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=index skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=superpowers skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-3 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-4 skipping-exhausted-plugin\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-5 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:44:06 +30001ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart",
+    "sessionIDs": [
+      "ses_2fa462d75ffeQK1BJs9M3mR11A"
+    ],
+    "createdAt": 1773960454358,
+    "lastUsedAt": 1773960454358,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "7b298d26-6ba9-4b1e-8f0a-cb71b8e9da22",
+    "key": "verify-config-usage",
+    "value": "Before modifying config files, always confirm how they are loaded and used by searching for their import/require paths throughout the codebase.",
+    "context": "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed. Check if --visual-panels and --config is supported or needs to be added 默认加载的配置中文件该存放在哪里？ 1、修改所有默认配置文件的存放路径统一为代码文件所在目录的config的子目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 1、修改novel引擎的所有默认配置文件的存放路径统一为代码文件所在目录的config的子目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 1、修改novel引擎的所有默认配置文件的存放路径统一为  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/config-loader.ts 所在目录中。另外 ，确认  /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json 的作用和如何被使用的；2、添加 --visual-panels CLI 标志以控制是否生成面板 visual-config.json 默认加载的路径也是 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/config-loader.ts 所在的目录中吗 visual-config.schema.json 不存在，需要在默认配置文件目录中补上 运行 novel start -h时，没看到--config等flag？ 需要在 novel-config.json 中设置 [Paste\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 需要在 novel-config.json 中设置中如下配置吗？  ：  [Pasted ~6 lin\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 请确认，如果已经有了 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json , 还需要在 [Pasted ~6 linnovel-config.json 中设置中如下配置吗？  ：  [Pasted ~6 lin\"visualGeneration\": {\n\t\t\"enabled\": true,\n\t\t\"maxPanelsPerChapter\": 4,\n\t\t\"style\": \"realistic\",\n\t\t\"autoSave\": true\n\t}, 删除 更新 /Users/lpcw/Documents/opencode/docs/daily-commit-report-2026-03-19-2.md ， 并推送到远程仓库，包括修改的或新增的md文件和json配置文件 添加了--visual-panels的flag，还是没有生成panels，根据下面的logs，应该是加载配置文件的路径错误了   ：   [Pasted ~12 lines] [VISUAL PANEL DEBUG] Starting visual panel generation for chapter 1\n[VISUAL PANEL DEBUG] Character count: 4\n[VISUAL PANEL DEBUG] Story segment length: 620\n[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...\nINFO  2026-03-19T15:04:46 +3ms service=visual-orchestrator chapterCount=1 characterCount=4 storySegmentLength=620 visual_panel_generation_start\nINFO  2026-03-19T15:04:46 +0ms service=visual-config-loader path=/$bunfs/root/src/visual-config.json loading_visual_config\nERROR 2026-03-19T15:04:46 +1ms service=visual-config-loader error=Error: ENOENT: no such file or directory, open '/$bunfs/root/src/visual-config.json' path=/$bunfs/root/src/visual-config.json visual_config_load_failed\nERROR 2026-03-19T15:04:46 +0ms service=visual-orchestrator error=Error: ENOENT: no such file or directory, open '/$bunfs/root/src/visual-config.json' durationMs=2 visual_panel_generation_failed\nWARN  2026-03-19T15:04:46 +0ms service=visual-orchestrator chapterCount=1 durationMs=0 no_panels_to_save\n[VISUAL PANEL DEBUG] Visual panels completed in 3ms\n[VISUAL PANEL DEBUG] Panel count: 0\n[VISUAL PANEL DEBUG] Saved path: null [VISUAL PANEL DEBUG] Starting visual panel generation for chapter 3\n[VISUAL PANEL DEBUG] Character count: 5\n[VISUAL PANEL DEBUG] Story segment length: 597\n[VISUAL PANEL DEBUG] Calling generateAndSaveVisualPanels...\nINFO  2026-03-19T16:38:44 +1ms service=visual-orchestrator chapterCount=3 characterCount=5 storySegmentLength=597 visual_panel_generation_start\nINFO  2026-03-19T16:38:44 +0ms service=visual-config-loader path=/Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json loading_visual_config\nERROR 2026-03-19T16:38:44 +1ms service=visual-config-loader error=SyntaxError: JSON Parse error: Unable to parse JSON string path=/Users/lpcw/Documents/opencode/packages/opencode/src/novel/config/visual-config.json visual_config_load_failed\nERROR 2026-03-19T16:38:44 +0ms service=visual-orchestrator error=SyntaxError: JSON Parse error: Unable to parse JSON string durationMs=1 visual_panel_generation_failed\nWARN  2026-03-19T16:38:44 +0ms service=visual-orchestrator chapterCount=3 durationMs=0 no_panels_to_save\n[VISUAL PANEL DEBUG] Visual panels completed in 1ms\n[VISUAL PANEL DEBUG] Panel count: 0\n[VISUAL PANEL DEBUG] Saved path: null  continue fix the issue 从logs，发现另一个可疑异常，就是执行 bun run --conditions=browser ./src/index.ts novel start /Users/lpcw/Documents/opencode/novels/novel2.md --loops 3 --print-logs --visual-panels 后，总是反复出现下面的信息，请确认是不是异常或是不是需要优化  ：  [Pasted ~7 lines]  DEBUG 2026-03-19T20:34:11 +0ms service=novel-model attempting_provider_defaultModel\nDEBUG 2026-03-19T20:34:11 +1ms service=novel-model model=bailian-coding-plan/qwen3.5-plus provider_defaultModel_success\nDEBUG 2026-03-19T20:34:11 +0ms service=novel-model model=bailian-coding-plan/qwen3.5-plus validating_model\nINFO  2026-03-19T20:34:11 +0ms service=novel-model model=bailian-coding-plan/qwen3.5-plus using_configured_model\nWARN  2026-03-19T20:34:38 +27021ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached\nWARN  2026-03-19T20:35:08 +30000ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached\nWARN  2026-03-19T20:35:38 +30001ms service=plugin-recovery plugin=plugin-4 count=10 max-restarts-reached 需要确认的是，哪个插件导致这个反复的警告以及什么原因 plugin-4 具体指向哪个代码？ 给plugin-qqbot添加代码，来输出具体是哪个原因导致反复警告，同时，在会话添加一个/指令，来查询所有plugin的状态和再启动/停止特定plugin 还是反复出现下面的信息：[Pasted ~13 DEBUG 2026-03-19T22:43:06 +30000ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=index skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=superpowers skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-3 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-4 skipping-exhausted-plugin\nDEBUG 2026-03-19T22:43:06 +0ms service=plugin-recovery plugin=plugin-5 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +30000ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=index skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=superpowers skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-3 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-4 skipping-exhausted-plugin\nDEBUG 2026-03-19T22:43:36 +0ms service=plugin-recovery plugin=plugin-5 skipping-plugin-no-restart\nDEBUG 2026-03-19T22:44:06 +30001ms service=plugin-recovery plugin=opencode-anthropic-auth skipping-plugin-no-restart",
+    "sessionIDs": [
+      "ses_2fa462d75ffeQK1BJs9M3mR11A"
+    ],
+    "createdAt": 1773960454744,
+    "lastUsedAt": 1773960454744,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f65c7547-d94c-4d0c-9a32-927519c879a9",
+    "key": "dependency-audit",
+    "value": "Analyze dependency trees to identify and remove libraries unrelated to core TUI and functionality.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774016938337,
+    "lastUsedAt": 1774016938337,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "768cbe6d-87e1-4376-b99b-f2abd1c5834f",
+    "key": "essential-file-identification",
+    "value": "Categorize files by runtime necessity to safely remove docs, tests, and dev configurations.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774016939451,
+    "lastUsedAt": 1774016939451,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "41f15ec9-44dc-40b1-806d-1fbf5add589e",
+    "key": "incremental-validation",
+    "value": "Test core features after each cleanup step to ensure simplification does not introduce regressions.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774016940671,
+    "lastUsedAt": 1774016940671,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "007e8750-a362-45fe-9701-adfdf8163fe5",
+    "key": "whitelist-critical-paths",
+    "value": "Explicitly define directories to preserve, such as deploy or plugins, before executing bulk deletions to avoid breaking essential workflows.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774017813324,
+    "lastUsedAt": 1774017813324,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "19f82424-698f-46bd-afc8-0e294a2a92a0",
+    "key": "validate-core-functionality",
+    "value": "After removing source directories, immediately test key features like TUI to ensure entry points and dependencies remain intact.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774017845980,
+    "lastUsedAt": 1774017845980,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "d304e038-8ed2-4a9d-a681-b77b81d38a5b",
+    "key": "structured-cleanup-plan",
+    "value": "Break down refactoring tasks into sequential steps using a todo list to ensure no constraints are overlooked during cleanup.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774017846216,
+    "lastUsedAt": 1774017846216,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a9d8f984-b004-4a3a-90e6-1b5a0a11e47e",
+    "key": "preservation-constraints",
+    "value": "在删除核心源码目录前，明确定义需保留的关键目录白名单（如部署配置和插件），防止意外丢失重要数据。",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774017983358,
+    "lastUsedAt": 1774017983358,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a5d42efe-8c2e-4588-b210-9fe8d8eeda44",
+    "key": "script-merging",
+    "value": "合并脚本目录时，需解决文件名冲突并更新所有内部路径引用，确保工具仍可正常执行。",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774017983620,
+    "lastUsedAt": 1774017983620,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "043be8a3-bc14-4531-9738-51319855acca",
+    "key": "functionality-verification",
+    "value": "结构变更后优先验证 TUI 和核心功能，确保精简操作不会影响项目的可用性。",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774017983881,
+    "lastUsedAt": 1774017983881,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "3bb99bf5-4baf-42e5-833a-35a081eef2c2",
+    "key": "script-directory-consolidation",
+    "value": "Merge duplicate script directories into a single canonical location to reduce maintenance overhead and path confusion.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774018007946,
+    "lastUsedAt": 1774018007946,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "3fbb7a43-dea2-446e-89dd-07c5c2bdb689",
+    "key": "refactoring-safety-constraints",
+    "value": "Explicitly define a preservation list for critical modules before deleting root-level source folders to prevent accidental loss.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774018008170,
+    "lastUsedAt": 1774018008170,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "de772057-977c-4ab3-91c6-db2ab688c540",
+    "key": "core-functionality-verification",
+    "value": "Verify core functionality like TUI immediately after structural changes to ensure simplification did not break dependencies.",
+    "context": "在只保留tui和功能的前提，给出尽可能精简项目的方案 不要删除 deploy、plugin-qqbot、novels，所有的scripth或scripts，删除根目录下的src，其他按建议执行精简操作 合并 /Users/lpcw/Documents/opencode/script\n/Users/lpcw/Documents/opencode/scripts 合并 /Users/lpcw/Documents/opencode/packages/opencode/script\n/Users/lpcw/Documents/opencode/packages/opencode/scripts",
+    "sessionIDs": [
+      "ses_2f45b3b22ffeWpIvbs93406TOa"
+    ],
+    "createdAt": 1774018008401,
+    "lastUsedAt": 1774018008401,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,
