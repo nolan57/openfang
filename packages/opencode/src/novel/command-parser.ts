@@ -1,6 +1,6 @@
 import path from "path"
 import { readFile, writeFile, readdir, stat } from "fs/promises"
-import { resolve } from "path"
+import { resolve, join } from "path"
 import { EvolutionOrchestrator, analyzeAndEvolve, loadDynamicPatterns } from "./orchestrator"
 import { Instance } from "../project/instance"
 import {
@@ -46,6 +46,63 @@ export function resolveSafePath(cwd: string, userInput: string): string {
     throw new Error(" Security Error: Access outside project directory denied.")
   }
   return resolved
+}
+
+/**
+ * Analyze module for improvements using the Learning Bridge
+ */
+async function analyzeModuleForImprovements(moduleName: string, moduleDir: string, args: string[]): Promise<void> {
+  const dryRun = !args.includes("--apply")
+  const modulePath = args.find((a) => a.startsWith("--path="))?.replace("--path=", "")
+  const limitStr = args.find((a) => a.startsWith("--limit="))
+  const limit = limitStr ? parseInt(limitStr.replace("--limit=", "")) : 10
+
+  console.log(`\n🔍 Analyzing ${moduleName} for improvements...`)
+
+  try {
+    const engine = new EvolutionOrchestrator()
+    await engine.loadState()
+
+    const targetPath = modulePath || join(process.cwd(), moduleDir)
+    const suggestions = await engine.analyzeAndSuggestImprovements(targetPath)
+
+    if (suggestions.length === 0) {
+      console.log(`✓ No improvement suggestions found for ${moduleName}`)
+      return
+    }
+
+    console.log(`\n📊 ${moduleName} improvement suggestions (${suggestions.length}):`)
+    console.log("─".repeat(70))
+
+    const sortedSuggestions = suggestions.sort((a, b) => b.confidence - a.confidence).slice(0, limit)
+
+    for (let i = 0; i < sortedSuggestions.length; i++) {
+      const s = sortedSuggestions[i]
+      const confidence = (s.confidence * 100).toFixed(0)
+      const confidenceIcon = s.confidence > 0.7 ? "🟢" : s.confidence > 0.5 ? "🟡" : "🔴"
+
+      console.log(`\n${i + 1}. ${confidenceIcon} [${confidence}%] ${s.type.toUpperCase()}`)
+      console.log(`   ${s.description}`)
+      console.log(`   📁 ${s.targetFile}${s.targetLine ? `:${s.targetLine}` : ""}`)
+    }
+
+    console.log("\n" + "─".repeat(70))
+    console.log(`\n💡 Use --apply to apply suggestions`)
+
+    if (dryRun) {
+      console.log(`\n📝 Dry run mode: suggestions not applied`)
+    } else {
+      console.log(`\n🔧 Applying high-confidence suggestions (confidence > 70%)...`)
+      let applied = 0
+      for (const s of sortedSuggestions.filter((x) => x.confidence > 0.7)) {
+        const result = await engine.applyImprovement(s, false)
+        if (result) applied++
+      }
+      console.log(`✓ Applied ${applied} improvements`)
+    }
+  } catch (error) {
+    console.log(`× Failed to analyze ${moduleName}: ${String(error)}`)
+  }
 }
 
 /**
@@ -531,6 +588,37 @@ Usage:
       break
     }
 
+    case "/improve-memory": {
+      await analyzeModuleForImprovements("memory", "src/memory", args)
+      break
+    }
+
+    case "/improve-evolution": {
+      await analyzeModuleForImprovements("evolution", "src/evolution", args)
+      break
+    }
+
+    case "/improve": {
+      console.log(`
+🔧 Module Improvement Commands:
+
+  /improve-novel      Analyze and improve novel module
+  /improve-memory     Analyze and improve memory module
+  /improve-evolution  Analyze and improve evolution module
+
+Options (apply to all):
+  --apply    Apply high-confidence suggestions (>70%)
+  --path=<module>  Analyze specific module path
+  --limit=N  Limit to N suggestions (default: 10)
+
+Examples:
+  /improve-novel --limit=5
+  /improve-memory --apply
+  /improve-evolution --path=src/memory/code-analyzer.ts
+`)
+      break
+    }
+
     case "/help": {
       console.log(`
 📖 Available Novel Commands:
@@ -558,11 +646,20 @@ Usage:
                     - /plugin list: Show all plugins status
                     - /plugin status [name]: Show specific plugin status
                     - /plugin restart [name]: Restart a plugin
+
+🔧 Module Improvement (Learning Bridge Phase 3):
   /improve-novel [--apply] [--path=<module>] [--limit=N]
-                    Analyze novel code for improvements using learning module:
-                    - --apply: Apply high-confidence suggestions
-                    - --path=<module>: Analyze specific module
-                    - --limit=N: Limit to N suggestions (default: 10)
+                    Analyze novel module for improvements
+  /improve-memory [--apply] [--path=<module>] [--limit=N]
+                    Analyze memory module for improvements
+  /improve-evolution [--apply] [--path=<module>] [--limit=N]
+                    Analyze evolution module for improvements
+  /improve          Show all improvement commands
+
+Options:
+  --apply    Apply high-confidence suggestions (>70%)
+  --limit=N  Limit to N suggestions (default: 10)
+
   /help             Show this help
 
 📋 Config Priority: --config > default file > prompt embedded > LLM infer > defaults
