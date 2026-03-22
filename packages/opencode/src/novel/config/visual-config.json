@@ -460,8 +460,82 @@
     "default_count": 4,
     "min_count": 1,
     "max_count": 12,
+    "llm_driven": {
+      "enabled": true,
+      "fallback_on_error": true,
+      "timeout_ms": 30000,
+      "temperature": 0.7,
+      "complexity_thresholds": {
+        "min_sentences_for_multi_panel": 3,
+        "action_scene_bonus": 2,
+        "emotional_scene_bonus": 1,
+        "dialogue_scene_reduction": -1
+      },
+      "scene_complexity_patterns": {
+        "action": ["fight", "chase", "battle", "attack", "combat", "run", "escape", "动作", "战斗", "追逐"],
+        "emotional": [
+          "cry",
+          "tears",
+          "heart",
+          "feeling",
+          "love",
+          "hate",
+          "fear",
+          "hope",
+          "哭",
+          "爱",
+          "恨",
+          "害怕",
+          "希望"
+        ],
+        "dialogue": ["said", "asked", "replied", "whispered", "shouted", "说", "问", "回答", "低语", "喊道"],
+        "transformation": ["transform", "change", "become", "shift", "metamorphosis", "变化", "转变", "变成"]
+      }
+    },
     "sentence_split_pattern": "[。！？\\n]",
     "min_sentence_length": 10
+  },
+
+  "continuity": {
+    "llm_analysis": {
+      "enabled": true,
+      "temperature": 0.3,
+      "focus_areas": ["time_continuity", "location_continuity", "outfit_change_triggers", "narrative_logic"],
+      "outfit_change_triggers": {
+        "high_confidence": [
+          "换上",
+          "穿上",
+          "changed into",
+          "put on",
+          "回家",
+          "到家后",
+          "went home",
+          "arrived home",
+          "洗澡",
+          "shower",
+          "洗漱",
+          "bath",
+          "睡觉",
+          "went to bed",
+          "第二天",
+          "woke up",
+          "起床",
+          "宴会",
+          "ceremony",
+          "formal event"
+        ],
+        "low_confidence": ["突然", "suddenly", "immediately", "同时", "meanwhile", "at the same time"]
+      }
+    },
+    "prompt_enhancement": {
+      "consistency_keywords": [
+        "SAME OUTFIT AS PREVIOUS",
+        "MAINTAIN VISUAL CONSISTENCY",
+        "DO NOT CHANGE",
+        "EXACT SAME OUTFIT"
+      ],
+      "max_previous_panels": 3
+    }
   },
 
   "hash": {

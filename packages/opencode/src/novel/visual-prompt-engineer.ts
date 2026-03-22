@@ -149,6 +149,17 @@ ${context.previousPanels.map((p, i) => `Panel ${i + 1}: ${p.visualPrompt?.slice(
 `
   }
 
+  // 【NEW】Enhanced continuity instruction from continuity analyzer
+  let continuityInstruction = ""
+  if ("continuity" in context && context.continuity) {
+    const continuityData = context.continuity as { analysis: any; instruction: string }
+    continuityInstruction = `\n\n${continuityData.instruction}`
+
+    if (continuityData.analysis.llmJudgement.shouldMaintainOutfit) {
+      continuityInstruction += `\nIMPORTANT: Character outfit MUST remain exactly the same. Use this outfit description: ${continuityData.analysis.llmJudgement.outfitDescription}`
+    }
+  }
+
   // Build psychological context if available
   let psychologicalContext = ""
   if ("characterPsychologicalProfiles" in context && context.characterPsychologicalProfiles) {
@@ -181,11 +192,13 @@ Global Style: ${context.globalStyle || "realistic"}
 ${themeContext}
 ${psychologicalContext}
 ${continuityContext}
+${continuityInstruction}
 Task:
 Generate a refined visual prompt and negative prompt.
 - If the scene is standard, keep it simple.
 - If complex, be creative but precise.
 - Consider the camera shot for specific negative prompts.
+- ${continuityInstruction.includes("MAINTAIN") ? "CRITICAL: Maintain outfit consistency with previous panels." : "Outfit may have changed based on context."}
 - Max tokens for visual prompt: ${cfg.prompt_engineering.max_token_limit}
 
 OUTPUT JSON ONLY:

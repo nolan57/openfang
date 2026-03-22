@@ -1450,6 +1450,21 @@ If a field is not mentioned, use empty string or empty array.`
         ? `IMPORTANT: Write all story content, dialogue, and narration in ${specifiedLanguage}. This is a strict requirement.`
         : "Write in the same language as the prompt"
 
+      // Load chapter length configuration
+      const chapterLengthConfig = {
+        mode: "dynamic" as const,
+        minWords: 800,
+        maxWords: 3000,
+        minChineseChars: 1000,
+        maxChineseChars: 5000,
+        qualityOverQuantity: true,
+      }
+
+      const lengthInstruction =
+        chapterLengthConfig.mode === "dynamic"
+          ? "Determine the appropriate length based on the scene complexity, emotional depth, and narrative importance. Let the story flow naturally - some chapters may be short and punchy, others may be longer and more detailed. Quality over quantity."
+          : `Aim for ${chapterLengthConfig.minWords}-${chapterLengthConfig.maxWords} words (or ${chapterLengthConfig.minChineseChars}-${chapterLengthConfig.maxChineseChars} Chinese characters).`
+
       const systemPrompt = `You are a creative story writer. Continue or start a story based on the given prompt and context.
 
 Rules:
@@ -1458,9 +1473,10 @@ Rules:
 - If continuing, pick up from where the story left off
 - Maintain consistency with established characters and plot
 - Create engaging, descriptive narrative
-- Chapter length: 300-500 words (or 500-800 Chinese characters)
+- Chapter length: ${lengthInstruction}
 - INCORPORATE the chaos event naturally into the narrative
-- ALIGN with the narrative skeleton and thematic motifs provided`
+- ALIGN with the narrative skeleton and thematic motifs provided
+- Prioritize: character development, emotional resonance, plot progression, and immersive descriptions`
 
       const userPrompt = `Story Context (previous chapters):
 ${previousStory.substring(-2000)}

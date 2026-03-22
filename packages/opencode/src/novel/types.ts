@@ -335,6 +335,57 @@ export interface VisualPanelSpec {
   promptVersion?: string
   /** Hash strategy used for character references (e.g., "deterministic") */
   hashStrategy?: string
+
+  // ============================================================================
+  // CONTINUITY METADATA (for maintaining character consistency across panels)
+  // ============================================================================
+  /** Character information for continuity tracking */
+  character?: {
+    name: string
+    emotionalState?: string
+    outfitDetails?: string
+    injuryDetails?: string
+  }
+
+  /** Beat/context information for continuity tracking */
+  beat?: {
+    location?: string
+    timeOfDay?: string
+    description?: string
+  }
+
+  /** Continuity metadata from LLM analysis */
+  continuity?: {
+    /** Continuity analysis result */
+    analysis: {
+      timeContext: {
+        isContinuousWithPrevious: boolean
+        timePassed: string
+        sleepOccurred: boolean
+        explicitTimeMarkers: string[]
+      }
+      locationContext: {
+        isSameLocation: boolean
+        locationDescription: string
+        locationType: string
+        explicitLocationMarkers: string[]
+      }
+      narrativeContext: {
+        outfitChangeMentioned: boolean
+        outfitChangeDescription: string | null
+        significantEvents: string[]
+        characterState: string
+      }
+      llmJudgement: {
+        shouldMaintainOutfit: boolean
+        confidence: number
+        reasoning: string
+        outfitDescription: string
+      }
+    }
+    /** Instruction for prompt engineering */
+    instruction: string
+  }
 }
 
 export interface EnrichedBeat {

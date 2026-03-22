@@ -63,20 +63,20 @@ export const DEFAULT_LEARNING_BRIDGE_CONFIG: LearningBridgeConfig = {
   },
   knowledge: {
     enabled: true,
-    syncNodes: false,
-    syncEdges: false,
-    linkToCode: false,
+    syncNodes: true,
+    syncEdges: true,
+    linkToCode: true,
   },
   memory: {
     enabled: true,
-    qualityFilter: false,
+    qualityFilter: true,
     minQualityScore: 0.5,
-    deduplication: false,
+    deduplication: true,
   },
   improvement: {
-    enabled: false,
-    autoSuggest: false,
-    requireReview: true,
+    enabled: true,
+    autoSuggest: true,
+    requireReview: false,
   },
 }
 

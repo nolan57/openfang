@@ -3,6 +3,9 @@ import { writeFile, mkdir } from "fs/promises"
 import { resolve, join } from "path"
 import { getPanelsPath } from "./novel-config"
 import { buildPanelSpecWithHybridEngine, initVisualPromptEngineer } from "./visual-prompt-engineer"
+import { generateText } from "ai"
+import { getNovelLanguageModel } from "./model"
+import { ContinuityAnalyzer } from "./continuity-analyzer"
 import type { VisualPanelSpec } from "./types"
 
 const log = Log.create({ service: "visual-orchestrator" })
@@ -43,6 +46,21 @@ export interface VisualOrchestratorOptions {
   maxPanels?: number
   defaultStyle?: string
   verbose?: boolean
+}
+
+/**
+ * LLM-driven panel planning result
+ */
+interface PanelPlan {
+  panelCount: number
+  segments: Array<{
+    startIndex: number
+    endIndex: number
+    description: string
+    keyMoment: string
+    emotions: string[]
+    characters: string[]
+  }>
 }
 
 // ============================================================================
@@ -104,25 +122,50 @@ export async function generateVisualPanels(
       return scenePanels
     }
 
-    // Split story into segments for panels
-    const sentences = input.storySegment.split(/[。！？\n]/).filter((s) => s.trim().length > 10)
-    const panelCount = Math.min(sentences.length, maxPanels)
-    const step = Math.max(1, Math.floor(sentences.length / panelCount))
+    // Split story into segments using LLM-driven planning
+    const planStart = Date.now()
+    const plan = await planPanelSegments(input.storySegment, maxPanels)
+    const panelCount = plan.segments.length
+
+    log.info("panel_segments_planned", {
+      plannedPanels: panelCount,
+      durationMs: Date.now() - planStart,
+    })
 
     // Get global style from narrative skeleton
     const globalStyle = input.narrativeSkeleton?.tone || defaultStyle
     const globalTheme = input.narrativeSkeleton?.tone
 
+    // Initialize continuity analyzer
+    const continuityAnalyzer = new ContinuityAnalyzer()
     const panels: VisualPanelSpec[] = []
 
     for (let i = 0; i < panelCount; i++) {
       const panelGenStart = Date.now()
-      const startIdx = i * step
-      const endIdx = Math.min(startIdx + step, sentences.length)
-      const panelText = sentences.slice(startIdx, endIdx).join(".")
+      const segment = plan.segments[i]
+      const panelText = segment.description
 
       // Get main character for this panel
       const mainChar = characterStates[0]
+
+      // 【NEW】Analyze continuity with previous panels
+      const continuityStart = Date.now()
+      const continuity = await continuityAnalyzer.analyze(panelText, {
+        previousSegment: i > 0 ? plan.segments[i - 1].description : null,
+        previousPanels: panels.slice(-3),
+        chapterContext: {
+          chapterCount: input.chapterCount,
+          totalPanelsGenerated: panels.length,
+        },
+      })
+      const continuityDuration = Date.now() - continuityStart
+
+      log.info("continuity_analyzed", {
+        panelIndex: i,
+        shouldMaintainOutfit: continuity.llmJudgement.shouldMaintainOutfit,
+        confidence: Math.round(continuity.llmJudgement.confidence * 100),
+        durationMs: continuityDuration,
+      })
 
       // Build psychological profiles for all characters
       const characterPsychologicalProfiles: Record<string, { coreFear?: string; attachmentStyle?: string }> = {}
@@ -136,6 +179,12 @@ export async function generateVisualPanels(
           }
         }
       }
+
+      // 【MODIFIED】Use outfit from continuity analysis if maintaining
+      const outfitDetails =
+        continuity.llmJudgement.shouldMaintainOutfit && panels.length > 0
+          ? panels[panels.length - 1].character?.outfitDetails || mainChar.outfit
+          : continuity.llmJudgement.outfitDescription || mainChar.outfit
 
       // Build context for hybrid engine with enhanced narrative information
       const context = {
@@ -151,7 +200,7 @@ export async function generateVisualPanels(
           name: mainChar.name,
           emotionalState: mainChar.emotions?.[0]?.type,
           currentAction: undefined, // Will be detected by LLM or fallback
-          outfitDetails: mainChar.outfit,
+          outfitDetails,
           injuryDetails: mainChar.injuries,
           visualDescription: mainChar.visualDescription,
         },
@@ -166,15 +215,27 @@ export async function generateVisualPanels(
         characterPsychologicalProfiles:
           Object.keys(characterPsychologicalProfiles).length > 0 ? characterPsychologicalProfiles : undefined,
         previousPanels: panels.slice(-3), // Last 3 panels for continuity
+        // 【NEW】Continuity context
+        continuity: {
+          analysis: continuity,
+          instruction: continuityAnalyzer.extractInstruction(continuity),
+        },
       }
 
       // Use hybrid engine
       const { panel, detectedAction } = await buildPanelSpecWithHybridEngine(context, i)
       const panelDuration = Date.now() - panelGenStart
+
+      // 【NEW】Embed continuity metadata in panel
+      panel.character = context.character
+      panel.beat = context.beat
+      panel.continuity = context.continuity
+
       log.info("panel_generated", {
         index: i + 1,
         action: detectedAction,
         durationMs: panelDuration,
+        outfitMaintained: continuity.llmJudgement.shouldMaintainOutfit,
       })
 
       panels.push(panel)
@@ -260,6 +321,189 @@ export async function saveVisualPanels(panels: VisualPanelSpec[], chapterCount: 
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
+
+/**
+ * LLM-driven panel segment planning.
+ * Analyzes the complete story segment to determine optimal panel count and content.
+ */
+export async function planPanelSegments(storySegment: string, maxPanels: number): Promise<PanelPlan> {
+  try {
+    const languageModel = await getNovelLanguageModel()
+
+    const result = await generateText({
+      model: languageModel,
+      system: `You are an expert visual director for comic generation.
+Your task is to analyze a story segment and plan optimal visual panels.
+
+Rules:
+1. Determine the ideal number of panels (1-${maxPanels}) based on scene complexity
+2. Identify key visual moments, emotional turning points, and action beats
+3. Each panel should represent a distinct visual moment
+4. Consider pacing: action scenes may need more panels, quiet moments fewer
+5. Ensure character continuity across panels
+
+Output JSON format only:
+{
+  "panelCount": number,
+  "segments": [
+    {
+      "startIndex": number,
+      "endIndex": number,
+      "description": "string - the text segment for this panel",
+      "keyMoment": "string - what visual moment this captures",
+      "emotions": ["emotion1", "emotion2"],
+      "characters": ["char1", "char2"]
+    }
+  ]
+}`,
+      prompt: `Analyze this story segment and plan visual panels (max ${maxPanels}):
+
+${storySegment}
+
+Return JSON with panelCount and segments array.`,
+    })
+
+    const text = result.text.trim()
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+
+    if (!jsonMatch) {
+      log.warn("llm_panel_plan_no_json", { response: text.slice(0, 200) })
+      return fallbackPanelPlan(storySegment, maxPanels)
+    }
+
+    const plan: PanelPlan = JSON.parse(jsonMatch[0])
+
+    // Validate plan
+    if (!plan.panelCount || !Array.isArray(plan.segments) || plan.segments.length === 0) {
+      log.warn("llm_panel_plan_invalid", { plan })
+      return fallbackPanelPlan(storySegment, maxPanels)
+    }
+
+    // Ensure panelCount matches segments length
+    plan.panelCount = plan.segments.length
+
+    log.info("llm_panel_plan_success", {
+      panelCount: plan.panelCount,
+      segments: plan.segments.length,
+    })
+
+    return plan
+  } catch (error) {
+    log.error("llm_panel_plan_failed", { error: String(error) })
+    return fallbackPanelPlan(storySegment, maxPanels)
+  }
+}
+
+/**
+ * Fallback panel planning using sentence-based splitting.
+ * Used when LLM fails or returns invalid results.
+ */
+async function fallbackPanelPlan(storySegment: string, maxPanels: number): Promise<PanelPlan> {
+  const sentences = storySegment.split(/[.!? \n]/).filter((s) => s.trim().length > 10)
+
+  // If no sentences meet length requirement, use whole text as single segment
+  if (sentences.length === 0) {
+    const trimmedText = storySegment.trim()
+    if (trimmedText.length > 0) {
+      // Use LLM to analyze the single segment
+      const analysis = await analyzeSegmentWithLLM(trimmedText)
+      return {
+        panelCount: 1,
+        segments: [analysis],
+      }
+    }
+
+    // Empty text
+    return {
+      panelCount: 0,
+      segments: [],
+    }
+  }
+
+  const panelCount = Math.min(sentences.length, maxPanels)
+  const step = Math.max(1, Math.floor(sentences.length / panelCount))
+
+  const segments: PanelPlan["segments"] = []
+
+  for (let i = 0; i < panelCount; i++) {
+    const startIdx = i * step
+    const endIdx = Math.min(startIdx + step, sentences.length)
+    const text = sentences.slice(startIdx, endIdx).join(".")
+
+    // 【REMOVED】Hardcoded character extraction
+    // 【REMOVED】Hardcoded emotion detection
+
+    // Use LLM to analyze segment
+    const analysis = await analyzeSegmentWithLLM(text)
+
+    segments.push(analysis)
+  }
+
+  return {
+    panelCount: segments.length,
+    segments,
+  }
+}
+
+/**
+ * Analyzes a story segment using LLM to extract characters, emotions, and key moments.
+ * Replaces hardcoded keyword matching with LLM understanding.
+ */
+async function analyzeSegmentWithLLM(text: string): Promise<PanelPlan["segments"][number]> {
+  try {
+    const languageModel = await getNovelLanguageModel()
+
+    const result = await generateText({
+      model: languageModel,
+      system: `You are a literary analyst. Extract key information from story segments.
+
+Tasks:
+1. Identify character names (people mentioned in the text)
+2. Detect emotions (what emotions are expressed or implied)
+3. Summarize the key visual moment
+
+Output JSON format only:
+{
+  "characters": ["name1", "name2"],
+  "emotions": ["emotion1", "emotion2"],
+  "keyMoment": "Brief description of the key visual moment"
+}
+
+Guidelines:
+- Characters: Extract names of people (ignore pronouns like "he", "she")
+- Emotions: Both explicit (angry, sad) and implied (tense, hopeful)
+- Key moment: What would you see in a comic panel of this scene?`,
+      prompt: `Analyze this story segment:\n\n${text.substring(0, 500)}`,
+    })
+
+    const jsonText = result.text.trim()
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
+
+    if (jsonMatch) {
+      const analysis = JSON.parse(jsonMatch[0])
+      return {
+        startIndex: 0,
+        endIndex: 1,
+        description: text,
+        keyMoment: analysis.keyMoment || "Scene moment",
+        emotions: Array.isArray(analysis.emotions) ? analysis.emotions : [],
+        characters: Array.isArray(analysis.characters) ? analysis.characters : [],
+      }
+    }
+  } catch (error) {
+    log.warn("segment_llm_analysis_failed", { error: String(error) })
+  }
+
+  // Fallback to basic extraction
+  return {
+    startIndex: 0,
+    endIndex: 1,
+    description: text,
+    keyMoment: "Scene moment",
+    emotions: [],
+    characters: [],
+  }
+}
 
 /**
  * Extracts character states from the story state for visual generation.

@@ -331,8 +331,72 @@
         "default_count": { "type": "number" },
         "min_count": { "type": "number" },
         "max_count": { "type": "number" },
+        "llm_driven": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "fallback_on_error": { "type": "boolean" },
+            "timeout_ms": { "type": "number" },
+            "temperature": { "type": "number" },
+            "complexity_thresholds": {
+              "type": "object",
+              "properties": {
+                "min_sentences_for_multi_panel": { "type": "number" },
+                "action_scene_bonus": { "type": "number" },
+                "emotional_scene_bonus": { "type": "number" },
+                "dialogue_scene_reduction": { "type": "number" }
+              }
+            },
+            "scene_complexity_patterns": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
         "sentence_split_pattern": { "type": "string" },
         "min_sentence_length": { "type": "number" }
+      }
+    },
+    "continuity": {
+      "type": "object",
+      "properties": {
+        "llm_analysis": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "temperature": { "type": "number" },
+            "focus_areas": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "outfit_change_triggers": {
+              "type": "object",
+              "properties": {
+                "high_confidence": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "low_confidence": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "prompt_enhancement": {
+          "type": "object",
+          "properties": {
+            "consistency_keywords": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "max_previous_panels": { "type": "number" }
+          }
+        }
       }
     },
     "hash": {
