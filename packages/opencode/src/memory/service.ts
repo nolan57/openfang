@@ -15,12 +15,9 @@ import { TuiEvent } from "../cli/cmd/tui/event"
 import { readFile } from "fs/promises"
 import { resolve } from "path"
 import { Instance } from "../project/instance"
-import {
-  saveMemory,
-  getMemories,
-  incrementMemoryUsage,
-} from "../evolution/store"
+import { saveMemory, getMemories, incrementMemoryUsage } from "../evolution/store"
 import type { MemoryEntry } from "../evolution/types"
+import { MemoryLearningBridge, DEFAULT_MEMORY_BRIDGE_CONFIG } from "../adapt/memory-learning-bridge"
 
 const log = Log.create({ service: "memory" })
 
@@ -283,9 +280,7 @@ class SessionMemoryService {
   async loadSession(sessionId: string): Promise<SessionData | null> {
     await this.init()
 
-    const session = Database.use((db) =>
-      db.select().from(session_memory).where(eq(session_memory.id, sessionId)).get(),
-    )
+    const session = Database.use((db) => db.select().from(session_memory).where(eq(session_memory.id, sessionId)).get())
 
     if (!session) return null
 
@@ -338,10 +333,7 @@ class SessionMemoryService {
    * @param message - The message to add
    * @throws {SessionNotFoundError} if session doesn't exist
    */
-  async addMessage(
-    sessionId: string,
-    message: { role: string; content: string; agentId?: string },
-  ): Promise<void> {
+  async addMessage(sessionId: string, message: { role: string; content: string; agentId?: string }): Promise<void> {
     await this.init()
 
     // Verify session exists
@@ -559,7 +551,7 @@ class SessionMemoryService {
     )
 
     log.info("session_ended", { sessionId })
-    
+
     // Trigger knowledge graph indexing on session end
     try {
       const { triggerSessionEndIndex } = await import("../learning/knowledge-index-manager")
@@ -975,9 +967,7 @@ class ProjectMemoryService {
     for (const change of changes) {
       if (change.type === "delete") {
         // Remove from project_memory
-        Database.use((db) =>
-          db.delete(project_memory).where(eq(project_memory.file_path, change.file)),
-        )
+        Database.use((db) => db.delete(project_memory).where(eq(project_memory.file_path, change.file)))
         // Remove relations
         Database.use((db) =>
           db
@@ -1091,9 +1081,7 @@ class ProjectMemoryService {
       await this.init()
     }
 
-    const result = Database.use((db) =>
-      db.select().from(project_memory).where(eq(project_memory.id, id)).get(),
-    )
+    const result = Database.use((db) => db.select().from(project_memory).where(eq(project_memory.id, id)).get())
 
     if (!result) return null
 
@@ -1173,11 +1161,39 @@ export class MemoryService {
   private project: ProjectMemoryService
   private initialized = false
   private initPromise: Promise<void> | null = null
+  private bridge: MemoryLearningBridge | null = null
+  private bridgeInitialized = false
 
   constructor() {
     this.session = new SessionMemoryService()
     this.evolution = new EvolutionMemoryService()
     this.project = new ProjectMemoryService()
+  }
+
+  /**
+   * Initialize the memory learning bridge
+   */
+  private async initBridge(): Promise<void> {
+    if (this.bridgeInitialized) return
+
+    try {
+      this.bridge = new MemoryLearningBridge(undefined, undefined, undefined, {
+        ...DEFAULT_MEMORY_BRIDGE_CONFIG,
+        enabled: true,
+        syncToKnowledgeGraph: true,
+        useVectorSearch: true,
+        deduplication: true,
+        crossMemoryLinking: true,
+      })
+      await this.bridge.initialize()
+      this.bridgeInitialized = true
+      log.info("memory_learning_bridge_initialized")
+    } catch (error) {
+      log.warn("memory_learning_bridge_init_failed", { error: String(error) })
+      // Continue without bridge - graceful degradation
+      this.bridge = null
+      this.bridgeInitialized = true
+    }
   }
 
   /**
@@ -1202,7 +1218,12 @@ export class MemoryService {
    */
   private async doInit(): Promise<void> {
     try {
-      await Promise.all([this.session.init(), this.evolution.init(), this.project.init()])
+      await Promise.all([
+        this.session.init(),
+        this.evolution.init(),
+        this.project.init(),
+        this.initBridge(), // Initialize memory learning bridge
+      ])
       this.initialized = true
       log.info("memory_service_initialized")
     } catch (error) {
@@ -1235,6 +1256,8 @@ export class MemoryService {
     // Validate required parameters based on memory type
     this.validateAddParams(params)
 
+    let results: AddMemoryResult[]
+
     switch (params.memoryType) {
       case "session": {
         const sessionId = params.metadata?.sessionId as string
@@ -1251,12 +1274,14 @@ export class MemoryService {
           agentId: params.metadata?.agentId as string | undefined,
         })
 
-        return [{ id: sessionId, type: "session" }]
+        results = [{ id: sessionId, type: "session" }]
+        break
       }
 
       case "evolution": {
         const result = await this.evolution.addSkill(params)
-        return [result]
+        results = [result]
+        break
       }
 
       case "project": {
@@ -1273,7 +1298,8 @@ export class MemoryService {
           metadata: params.metadata,
         })
 
-        return [{ id, type: "project" }]
+        results = [{ id, type: "project" }]
+        break
       }
 
       default:
@@ -1281,6 +1307,46 @@ export class MemoryService {
           type: params.memoryType as string,
           supportedTypes: ["session", "evolution", "project"],
         })
+    }
+
+    // Sync to learning bridge if initialized
+    if (this.bridge && results.length > 0) {
+      await this.syncToBridge(params, results[0])
+    }
+
+    return results
+  }
+
+  /**
+   * Sync memory to learning bridge
+   */
+  private async syncToBridge(params: AddMemoryParams, result: AddMemoryResult): Promise<void> {
+    if (!this.bridge) return
+
+    try {
+      const memoryData = {
+        id: result.id,
+        type: result.type,
+        content: params.content,
+        metadata: params.metadata,
+        createdAt: Date.now(),
+      }
+
+      switch (result.type) {
+        case "session":
+          await this.bridge.syncSessionMemory(result.id, memoryData)
+          break
+        case "evolution":
+          await this.bridge.syncEvolutionMemory(result.id, memoryData)
+          break
+        case "project":
+          await this.bridge.storeMemory(result.id, params.content, params.metadata ?? {})
+          break
+      }
+
+      log.debug("memory_synced_to_bridge", { id: result.id, type: result.type })
+    } catch (error) {
+      log.warn("memory_bridge_sync_failed", { id: result.id, error: String(error) })
     }
   }
 
@@ -1505,7 +1571,10 @@ export class MemoryService {
 
     if (allMemories.length === 0) return []
 
-    const taskWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 2)
+    const taskWords = query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2)
 
     // Vector search
     let vectorResults: Array<{ key: string; value: string; score: number }> = []
@@ -1767,10 +1836,22 @@ export class MemoryService {
       MemoryService.memoryPatterns = config.patterns
     } catch {
       MemoryService.memoryPatterns = [
-        { keywords: ["typescript", "tsconfig", "type annotation"], key: "typescript-tips", value: "Use explicit type annotations" },
+        {
+          keywords: ["typescript", "tsconfig", "type annotation"],
+          key: "typescript-tips",
+          value: "Use explicit type annotations",
+        },
         { keywords: ["test", "testing", "jest", "vitest"], key: "testing-approach", value: "Write tests first (TDD)" },
-        { keywords: ["refactor", "clean", "improve"], key: "refactoring-guidance", value: "Make small, incremental changes" },
-        { keywords: ["error", "bug", "fix", "issue"], key: "debugging-tips", value: "Start with minimal reproduction case" },
+        {
+          keywords: ["refactor", "clean", "improve"],
+          key: "refactoring-guidance",
+          value: "Make small, incremental changes",
+        },
+        {
+          keywords: ["error", "bug", "fix", "issue"],
+          key: "debugging-tips",
+          value: "Start with minimal reproduction case",
+        },
       ]
     }
     return MemoryService.memoryPatterns

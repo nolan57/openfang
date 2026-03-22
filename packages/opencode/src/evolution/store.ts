@@ -7,6 +7,7 @@ import { encrypt, decrypt, isEncryptionAvailable } from "../util/encryption"
 import { Provider } from "../provider/provider"
 import { generateText } from "ai"
 import { Instance } from "../project/instance"
+import { EvolutionLearningBridge, DEFAULT_EVOLUTION_BRIDGE_CONFIG } from "../adapt/evolution-learning-bridge"
 
 const log = Log.create({ service: "evolution.store" })
 
@@ -14,6 +15,47 @@ const EVOLUTION_DIR = ".opencode/evolution"
 const PROMPTS_FILE = "prompts.json"
 const SKILLS_FILE = "skills.json"
 const MEMORIES_PREFIX = "memories"
+
+// Evolution learning bridge instance
+let evolutionBridge: EvolutionLearningBridge | null = null
+let bridgeInitialized = false
+
+/**
+ * Initialize evolution learning bridge
+ */
+async function initBridge(): Promise<EvolutionLearningBridge | null> {
+  if (bridgeInitialized) return evolutionBridge
+
+  try {
+    evolutionBridge = new EvolutionLearningBridge(undefined, undefined, undefined, {
+      ...DEFAULT_EVOLUTION_BRIDGE_CONFIG,
+      enabled: true,
+      syncToKnowledgeGraph: true,
+      useVectorSearch: true,
+      trackEvolutionHistory: true,
+      autoIndexSkills: true,
+    })
+    await evolutionBridge.initialize()
+    bridgeInitialized = true
+    log.info("evolution_learning_bridge_initialized")
+    return evolutionBridge
+  } catch (error) {
+    log.warn("evolution_learning_bridge_init_failed", { error: String(error) })
+    evolutionBridge = null
+    bridgeInitialized = true
+    return null
+  }
+}
+
+/**
+ * Get evolution learning bridge (lazy initialization)
+ */
+async function getBridge(): Promise<EvolutionLearningBridge | null> {
+  if (!bridgeInitialized) {
+    await initBridge()
+  }
+  return evolutionBridge
+}
 
 function getEvolutionDir(projectDir: string): string {
   return resolve(projectDir, EVOLUTION_DIR)
@@ -114,6 +156,18 @@ export async function saveSkillEvolution(
   }
   skills.push(newSkill)
   await writeJsonFile(`${dir}/${SKILLS_FILE}`, skills)
+
+  // Sync to learning bridge
+  const bridge = await getBridge()
+  if (bridge) {
+    try {
+      await bridge.syncSkill(newSkill)
+      log.debug("skill_synced_to_bridge", { skillId: newSkill.id })
+    } catch (error) {
+      log.warn("skill_bridge_sync_failed", { skillId: newSkill.id, error: String(error) })
+    }
+  }
+
   return newSkill
 }
 
@@ -171,14 +225,13 @@ export async function saveMemory(
         })
         throw new Error(
           "Failed to encrypt sensitive memory. " +
-          "Set MEMORY_ENCRYPTION_KEY environment variable with: " +
-          "openssl rand -base64 32"
+            "Set MEMORY_ENCRYPTION_KEY environment variable with: " +
+            "openssl rand -base64 32",
         )
       }
     } else {
       throw new Error(
-        "Sensitive memory storage requires MEMORY_ENCRYPTION_KEY. " +
-        "Generate a key with: openssl rand -base64 32"
+        "Sensitive memory storage requires MEMORY_ENCRYPTION_KEY. " + "Generate a key with: openssl rand -base64 32",
       )
     }
   }
@@ -198,6 +251,18 @@ export async function saveMemory(
 
   memories.push(newMemory)
   await writeJsonFile(`${dir}/${currentFile}`, memories)
+
+  // Sync to learning bridge
+  const bridge = await getBridge()
+  if (bridge) {
+    try {
+      await bridge.syncMemory(newMemory)
+      log.debug("memory_synced_to_bridge", { memoryId: newMemory.id })
+    } catch (error) {
+      log.warn("memory_bridge_sync_failed", { memoryId: newMemory.id, error: String(error) })
+    }
+  }
+
   return newMemory
 }
 
@@ -297,7 +362,8 @@ export async function getMemoryStats(projectDir: string): Promise<{
   // Find potential compressions (keys with multiple memories)
   const potentialCompressions: Array<{ key: string; count: number; memoryIds: string[] }> = []
   for (const [key, count] of keyGroups) {
-    if (count >= 3) { // Threshold for compression
+    if (count >= 3) {
+      // Threshold for compression
       potentialCompressions.push({
         key,
         count,
@@ -377,9 +443,7 @@ export async function summarizeSimilarMemories(
 
   // Get the actual memories
   const memories = await getMemories(projectDir)
-  const toCompress = memories.filter(
-    (m) => potential.memoryIds.includes(m.id) && !m.archived && !m.sensitive,
-  )
+  const toCompress = memories.filter((m) => potential.memoryIds.includes(m.id) && !m.archived && !m.sensitive)
 
   if (toCompress.length < threshold) {
     log.info("insufficient_memories_to_compress", { key, available: toCompress.length })
@@ -387,9 +451,7 @@ export async function summarizeSimilarMemories(
   }
 
   // Prepare content for LLM
-  const memoriesContent = toCompress
-    .map((m, i) => `${i + 1}. [${m.key}]: ${m.value}`)
-    .join("\n")
+  const memoriesContent = toCompress.map((m, i) => `${i + 1}. [${m.key}]: ${m.value}`).join("\n")
 
   try {
     // Get LLM
