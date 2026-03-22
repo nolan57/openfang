@@ -1,0 +1,23 @@
+{
+  "id": "ev-2026-0304-003",
+  "type": "code_change",
+  "status": "completed",
+  "title": "Enhanced Context Engineering",
+  "description": "Improve context management following best practices from coleam00/context-engineering-intro. Better context chunking, retrieval, and compression for improved AI accuracy.",
+  "priority": "P1",
+  "source": "GitHub research: coleam00/context-engineering-intro",
+  "changes": {
+    "files": [
+      "packages/opencode/src/context/manager.ts",
+      "packages/opencode/src/context/chunker.ts",
+      "packages/opencode/src/context/retriever.ts",
+      "packages/opencode/src/context/index.ts"
+    ],
+    "diff_summary": "Added context engineering with chunking, retrieval, and compression"
+  },
+  "commands": [],
+  "notes": "Created context module with manager, chunker, and retriever implementations",
+  "research_links": ["https://github.com/coleam00/context-engineering-intro"],
+  "created_at": 1777939200000,
+  "updated_at": 1777939200000
+}
