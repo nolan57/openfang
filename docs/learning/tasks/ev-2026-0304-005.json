@@ -1,0 +1,35 @@
+{
+  "id": "ev-2026-0304-005",
+  "type": "code_change",
+  "status": "failed",
+  "title": "Multi-Agent Orchestration Enhancement",
+  "description": "Extend beyond ZeroClaw to support multi-agent coordination patterns. Reference: nextlevelbuilder/goclaw, yohey-w/multi-agent-shogun for agent delegation and orchestration.",
+  "priority": "P2",
+  "source": "GitHub research: nextlevelbuilder/goclaw, yohey-w/multi-agent-shogun",
+  "changes": {
+    "files": [
+      "packages/opencode/src/agents/coordinator.ts",
+      "packages/opencode/src/agents/delegator.ts",
+      "packages/opencode/src/agents/registry.ts"
+    ],
+    "diff_summary": "Add multi-agent orchestration capabilities"
+  },
+  "commands": [
+    "git add -A",
+    "git commit -m 'feat(agents): add multi-agent orchestration'",
+    "bun run build"
+  ],
+  "rollback_commands": [
+    "git reset --hard HEAD~1",
+    "bun run build"
+  ],
+  "research_links": [
+    "https://github.com/nextlevelbuilder/goclaw",
+    "https://github.com/yohey-w/multi-agent-shogun"
+  ],
+  "created_at": 1777939200000,
+  "updated_at": 1773092898966,
+  "executed_at": 1773092896961,
+  "completed_at": 1773092898966,
+  "error": "instance: No context found for instance"
+}

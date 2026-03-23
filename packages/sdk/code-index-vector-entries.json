@@ -1,0 +1,104 @@
+{
+  "format_version": "1.0",
+  "package": "sdk",
+  "vector_entries": [
+    {
+      "node_id": "file_server",
+      "entity_title": "server.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "server.ts: Function args. Exports: ServerOptions, TuiOptions, createOpencodeTui",
+      "metadata": {
+        "file": "server.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/sdk/js/src/server.ts",
+        "exports": [
+          "ServerOptions",
+          "TuiOptions",
+          "createOpencodeTui"
+        ],
+        "purpose": "Function args",
+        "lineCount": 124
+      }
+    },
+    {
+      "node_id": "mod_sdk",
+      "entity_title": "index.ts",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "index.ts: Function server. Exports: ",
+      "metadata": {
+        "file": "index.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/sdk/js/src/index.ts",
+        "exports": [],
+        "purpose": "Function server",
+        "lineCount": 22
+      }
+    },
+    {
+      "node_id": "file_client",
+      "entity_title": "client.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "client.ts: Class OpencodeClient. Exports: OpencodeClient, createOpencodeClient",
+      "metadata": {
+        "file": "client.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/sdk/js/src/client.ts",
+        "exports": [
+          "OpencodeClient",
+          "createOpencodeClient"
+        ],
+        "purpose": "Class OpencodeClient",
+        "lineCount": 105
+      }
+    },
+    {
+      "node_id": "file_v2_server",
+      "entity_title": "v2/server.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "v2/server.ts: Function args. Exports: ServerOptions, TuiOptions, createOpencodeTui",
+      "metadata": {
+        "file": "v2/server.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/sdk/js/src/v2/server.ts",
+        "exports": [
+          "ServerOptions",
+          "TuiOptions",
+          "createOpencodeTui"
+        ],
+        "purpose": "Function args",
+        "lineCount": 124
+      }
+    },
+    {
+      "node_id": "file_v2_index",
+      "entity_title": "v2/index.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "v2/index.ts: Function server. Exports: ",
+      "metadata": {
+        "file": "v2/index.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/sdk/js/src/v2/index.ts",
+        "exports": [],
+        "purpose": "Function server",
+        "lineCount": 22
+      }
+    },
+    {
+      "node_id": "file_v2_client",
+      "entity_title": "v2/client.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "v2/client.ts: Class OpencodeClient. Exports: OpencodeClient, createOpencodeClient",
+      "metadata": {
+        "file": "v2/client.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/sdk/js/src/v2/client.ts",
+        "exports": [
+          "OpencodeClient",
+          "createOpencodeClient"
+        ],
+        "purpose": "Class OpencodeClient",
+        "lineCount": 107
+      }
+    }
+  ]
+}

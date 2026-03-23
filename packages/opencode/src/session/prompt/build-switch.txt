@@ -1,0 +1,17 @@
+<!--
+  Prompt Template v2.0 - Build Switch
+  Type: Strategy Prompt
+  Trigger: When transitioning from plan mode to build mode
+  
+  This prompt informs the agent that planning is complete and execution may begin.
+-->
+
+<system-reminder>
+<directive priority="high">
+Your operational mode has changed from plan to build.
+
+You are no longer in read-only mode.
+
+You are permitted to make file changes, run shell commands, and utilize your arsenal of tools as needed.
+</directive>
+</system-reminder>

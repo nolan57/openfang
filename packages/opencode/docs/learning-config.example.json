@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "learning": {
+    "enabled": true,
+    "schedule": {
+      "cron": "0 10 * * 1,3,5",
+      "idle_check": true,
+      "idle_threshold_minutes": 30
+    },
+    "sources": ["search", "arxiv", "github"],
+    "topics": ["AI agent systems", "code generation", "large language models", "software development automation"],
+    "max_items_per_run": 10,
+    "note_output_dir": "docs/learning/notes"
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-03-06T00:00:00Z",
+  "package": "plugin-qqbot",
+  "description": "QQ Bot Plugin for OpenCode - integrates QQ messaging with AI assistant",
+  "modules": [
+    {
+      "name": "plugin",
+      "path": "src/index.ts",
+      "description": "Plugin entry point",
+      "purpose": "Main plugin that integrates QQ messaging with OpenCode. Handles C2C, group, and channel messages. Provides status and restart hooks.",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Plugin entry point - exports default plugin, QQBotPlugin",
+          "exports": ["plugin", "QQBotPlugin"],
+          "type": "plugin"
+        }
+      ]
+    },
+    {
+      "name": "gateway",
+      "path": "src/gateway.ts",
+      "description": "WebSocket gateway",
+      "purpose": "QQ Bot WebSocket connection manager. Handles authentication, intents, message events, session management, streaming responses, reconnection",
+      "key_files": [
+        {
+          "file": "gateway.ts",
+          "purpose": "QQBotGateway class - WebSocket connection, message handling, session management, streaming",
+          "exports": ["QQBotGateway"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "api",
+      "path": "src/api.ts",
+      "description": "QQ Bot API client",
+      "purpose": "HTTP API functions for QQ Bot: token, gateway, messages, media upload",
+      "key_files": [
+        {
+          "file": "api.ts",
+          "purpose": "API functions - getAccessToken, sendMessage, uploadMedia",
+          "exports": [
+            "getAccessToken",
+            "getGatewayUrl",
+            "sendC2CMessage",
+            "sendGroupMessage",
+            "sendChannelMessage",
+            "MediaFileType"
+          ],
+          "type": "api"
+        }
+      ]
+    },
+    {
+      "name": "outbound",
+      "path": "src/outbound.ts",
+      "description": "Outbound message handling",
+      "purpose": "Processes outgoing messages with <qqimg> tag support, rate limiting, image processing",
+      "key_files": [
+        {
+          "file": "outbound.ts",
+          "purpose": "sendText function - handles text and image messages with rate limiting",
+          "exports": ["sendText"],
+          "type": "outbound"
+        }
+      ]
+    },
+    {
+      "name": "config",
+      "path": "src/config.ts",
+      "description": "Configuration management",
+      "purpose": "Loads and validates plugin configuration from environment variables",
+      "key_files": [
+        {
+          "file": "config.ts",
+          "purpose": "Config loader - loadConfig, validateConfig",
+          "exports": ["loadConfig", "validateConfig"],
+          "type": "config"
+        }
+      ]
+    },
+    {
+      "name": "types",
+      "path": "src/types.ts",
+      "description": "TypeScript type definitions",
+      "purpose": "Type definitions for plugin configuration, messages, gateway options",
+      "key_files": [
+        {
+          "file": "types.ts",
+          "purpose": "Interfaces - QQBotPluginConfig, MessageContext, PluginState, GatewayOptions",
+          "exports": [
+            "QQBotPluginConfig",
+            "MessageContext",
+            "PluginState",
+            "GatewayOptions",
+            "SessionInfo",
+            "Attachment"
+          ],
+          "type": "types"
+        }
+      ]
+    }
+  ],
+  "key_concepts": [
+    {
+      "concept": "WebSocket Gateway",
+      "description": "QQ Bot uses WebSocket to connect to QQ's API gateway for real-time event receiving"
+    },
+    {
+      "concept": "Session Management",
+      "description": "Each user/group/channel can have an associated OpenCode session for conversation continuity"
+    },
+    {
+      "concept": "Message Streaming",
+      "description": "AI responses streamed to QQ with chunked sending and abort capability"
+    },
+    {
+      "concept": "Rate Limiting",
+      "description": "Maximum 4 replies per hour per recipient to prevent spam"
+    },
+    {
+      "concept": "Media Handling",
+      "description": "Supports image upload via QQ Bot API for inline images in responses"
+    },
+    {
+      "concept": "Intent System",
+      "description": "QQ Bot uses intents to subscribe to specific event types (guilds, members, group messages, C2C messages)"
+    },
+    {
+      "concept": "Policy-based Access Control",
+      "description": "Supports pairing, allowlist, open, disabled policies for DM and group messages"
+    }
+  ],
+  "configuration": {
+    "environment_variables": [
+      "QQBOT_ENABLED",
+      "QQBOT_APP_ID",
+      "QQBOT_CLIENT_SECRET",
+      "QQBOT_DEFAULT_AGENT",
+      "QQBOT_MARKDOWN_SUPPORT",
+      "QQBOT_DM_POLICY",
+      "QQBOT_GROUP_POLICY",
+      "QQBOT_ALLOW_FROM",
+      "QQBOT_STREAMING_DELAY_MS",
+      "QQBOT_STREAMING_MIN_CHUNK",
+      "QQBOT_RESPONSE_MODE",
+      "QQBOT_MAX_RECONNECT_ATTEMPTS",
+      "QQBOT_MAX_CHUNK_SIZE"
+    ]
+  }
+}

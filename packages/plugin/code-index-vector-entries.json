@@ -1,0 +1,85 @@
+{
+  "format_version": "1.0",
+  "package": "plugin",
+  "vector_entries": [
+    {
+      "node_id": "mod_plugin",
+      "entity_title": "index.ts",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "index.ts: Module file. Exports: PluginStatusType, PluginLogType, StatusReporter, ProviderContext, PluginInput, Plugin, AuthHook, AuthOuathResult, Hooks",
+      "metadata": {
+        "file": "index.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/plugin/src/index.ts",
+        "exports": [
+          "PluginStatusType",
+          "PluginLogType",
+          "StatusReporter",
+          "ProviderContext",
+          "PluginInput",
+          "Plugin",
+          "AuthHook",
+          "AuthOuathResult",
+          "Hooks"
+        ],
+        "purpose": "Module file",
+        "lineCount": 273
+      }
+    },
+    {
+      "node_id": "file_shell",
+      "entity_title": "shell.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "shell.ts: Perform bash-like brace expansion on the given pattern. @param pattern - Brace pattern to expand / braces(pattern: string): string[]. Exports: ShellFunction, ShellExpression, BunShell, BunShellPromise, BunShellOutput, BunShellError",
+      "metadata": {
+        "file": "shell.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/plugin/src/shell.ts",
+        "exports": [
+          "ShellFunction",
+          "ShellExpression",
+          "BunShell",
+          "BunShellPromise",
+          "BunShellOutput",
+          "BunShellError"
+        ],
+        "purpose": "Perform bash-like brace expansion on the given pattern. @param pattern - Brace pattern to expand / braces(pattern: string): string[]",
+        "lineCount": 137
+      }
+    },
+    {
+      "node_id": "file_example",
+      "entity_title": "example.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "example.ts: Module file. Exports: ExamplePlugin",
+      "metadata": {
+        "file": "example.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/plugin/src/example.ts",
+        "exports": [
+          "ExamplePlugin"
+        ],
+        "purpose": "Module file",
+        "lineCount": 19
+      }
+    },
+    {
+      "node_id": "file_tool",
+      "entity_title": "tool.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "tool.ts: Current project directory for this session. Prefer this over process.cwd() when resolving relative paths. / directory: string. Exports: ToolContext, tool, ToolDefinition",
+      "metadata": {
+        "file": "tool.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/plugin/src/tool.ts",
+        "exports": [
+          "ToolContext",
+          "tool",
+          "ToolDefinition"
+        ],
+        "purpose": "Current project directory for this session. Prefer this over process.cwd() when resolving relative paths. / directory: string",
+        "lineCount": 39
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "format_version": "1.0",
+  "package": "function",
+  "vector_entries": [
+    {
+      "node_id": "file_api",
+      "entity_title": "api.ts",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "api.ts: Class SyncServer. Exports: SyncServer, new",
+      "metadata": {
+        "file": "api.ts",
+        "fullPath": "/Users/lpcw/Documents/opencode/packages/function/src/api.ts",
+        "exports": [
+          "SyncServer",
+          "new"
+        ],
+        "purpose": "Class SyncServer",
+        "lineCount": 402
+      }
+    }
+  ]
+}

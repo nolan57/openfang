@@ -1,0 +1,13 @@
+{
+  "apiVersion": 1,
+  "providers": [
+    {
+      "name": "OpenCode Observability",
+      "folder": "OpenCode",
+      "type": "file",
+      "options": {
+        "path": "/etc/grafana/provisioning/dashboards"
+      }
+    }
+  ]
+}

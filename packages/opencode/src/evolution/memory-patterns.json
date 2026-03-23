@@ -1,0 +1,54 @@
+{
+  "patterns": [
+    {
+      "keywords": ["typescript", "tsconfig", "type annotation", "类型", "类型注解", "类型推断"],
+      "key": "typescript-tips",
+      "value": "Use explicit type annotations for better clarity"
+    },
+    {
+      "keywords": ["test", "testing", "jest", "vitest", "测试", "单元测试", "集成测试", "TDD"],
+      "key": "testing-approach",
+      "value": "Write tests first (TDD) for better design"
+    },
+    {
+      "keywords": ["refactor", "clean", "improve", "重构", "优化", "代码质量"],
+      "key": "refactoring-guidance",
+      "value": "Make small, incremental changes"
+    },
+    {
+      "keywords": ["error", "bug", "fix", "issue", "错误", "bug", "修复", "问题", "调试"],
+      "key": "debugging-tips",
+      "value": "Start with minimal reproduction case"
+    },
+    {
+      "keywords": ["security", "安全", "漏洞", "xss", "sql injection", "注入"],
+      "key": "security-best-practices",
+      "value": "Validate and sanitize all user inputs"
+    },
+    {
+      "keywords": ["performance", "性能", "优化", "慢", "优化", "缓存"],
+      "key": "performance-tips",
+      "value": "Profile before optimizing, focus on bottlenecks"
+    },
+    {
+      "keywords": ["api", "rest", "endpoint", "接口", "API", "请求"],
+      "key": "api-design",
+      "value": "Design APIs with clear contracts and version them"
+    },
+    {
+      "keywords": ["database", "sql", "query", "数据库", "查询", "索引"],
+      "key": "database-tips",
+      "value": "Use indexes and avoid N+1 queries"
+    },
+    {
+      "keywords": ["git", "commit", "branch", "版本控制", "提交", "分支"],
+      "key": "git-workflow",
+      "value": "Make small, focused commits with clear messages"
+    },
+    {
+      "keywords": ["docker", "container", "镜像", "容器", "部署"],
+      "key": "container-best-practices",
+      "value": "Keep images small and use multi-stage builds"
+    }
+  ]
+}

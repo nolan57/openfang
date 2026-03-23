@@ -1,0 +1,60 @@
+---
+kind: sources
+name: sqlite-db
+type: sqlite
+database: ${SQLITE_DATABASE}
+
+---
+kind: tools
+name: execute_sql
+type: sqlite-execute-sql
+source: sqlite-db
+description: Execute SQL on SQLite database
+
+---
+kind: tools
+name: list_tables
+type: sqlite-sql
+source: sqlite-db
+description: List tables in SQLite database
+statement: SELECT name FROM sqlite_master WHERE type='table';
+
+---
+kind: tools
+name: query_knowledge_nodes
+type: sqlite-sql
+source: sqlite-db
+description: Query knowledge nodes from database
+statement: SELECT id, type, entity_type, title, content FROM knowledge_node LIMIT 20;
+
+---
+kind: tools
+name: query_vector_memory
+type: sqlite-sql
+source: sqlite-db
+description: Query vector memories from database
+statement: SELECT id, node_type, entity_title, vector_type, dimensions FROM vector_memory LIMIT 20;
+
+---
+kind: tools
+name: query_learning_runs
+type: sqlite-sql
+source: sqlite-db
+description: Query learning runs from database
+statement: SELECT id, trigger, status, items_collected, notes_created, time_created FROM learning_run ORDER BY time_created DESC LIMIT 10;
+
+---
+kind: tools
+name: query_negative_memory
+type: sqlite-sql
+source: sqlite-db
+description: Query negative memories (failures) from database
+statement: SELECT id, failure_type, description, severity, times_encountered FROM negative_memory LIMIT 20;
+
+---
+kind: tools
+name: query_archive_snapshots
+type: sqlite-sql
+source: sqlite-db
+description: Query archive snapshots from database
+statement: SELECT id, snapshot_type, description, is_golden, time_created FROM archive_snapshot ORDER BY time_created DESC LIMIT 10;

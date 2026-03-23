@@ -1,0 +1,790 @@
+{
+  "version": "1.1",
+  "generated_at": "2026-03-06T12:00:00Z",
+  "package": "opencode",
+  "description": "AI coding assistant with self-evolution capabilities",
+  "modules": [
+    {
+      "name": "agent",
+      "path": "src/agent",
+      "description": "Agent configurations and generation",
+      "purpose": "Defines different AI agent types with permissions, temperature, and custom prompts",
+      "key_files": [
+        {
+          "file": "agent.ts",
+          "purpose": "Core agent definitions - build, plan, explore, general agents",
+          "exports": [
+            "Agent",
+            "generate",
+            "agents",
+            "build",
+            "plan",
+            "explore",
+            "general",
+            "compaction",
+            "title",
+            "summary"
+          ],
+          "type": "core"
+        }
+      ],
+      "sub_modules": []
+    },
+    {
+      "name": "auth",
+      "path": "src/auth",
+      "description": "Authentication system",
+      "purpose": "OAuth, API key, and well-known auth methods",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Authentication types and token management",
+          "exports": ["Auth", "Oauth", "Api", "WellKnown"],
+          "type": "auth"
+        }
+      ]
+    },
+    {
+      "name": "bus",
+      "path": "src/bus",
+      "description": "Event bus system",
+      "purpose": "Pub/sub event system for inter-component communication",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Event bus with subscriptions and publishing",
+          "exports": ["Bus", "BusEvent", "GlobalBus"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "cli",
+      "path": "src/cli",
+      "description": "Command-line interface and TUI",
+      "purpose": "All CLI commands, TUI interface, and UI utilities",
+      "key_files": [
+        {
+          "file": "ui.ts",
+          "purpose": "CLI output formatting and logo",
+          "exports": ["UI", "logo"],
+          "type": "util"
+        },
+        {
+          "file": "cmd/run.ts",
+          "purpose": "Main run command - message handling, session management, tool rendering",
+          "exports": ["RunCommand"],
+          "type": "command"
+        },
+        {
+          "file": "cmd/tui/app.tsx",
+          "purpose": "Terminal UI built with SolidJS + OpenTUI",
+          "exports": ["App", "Home", "Session"],
+          "type": "ui"
+        }
+      ]
+    },
+    {
+      "name": "config",
+      "path": "src/config",
+      "description": "Configuration management system",
+      "purpose": "Hierarchical config loading from multiple sources with merge logic",
+      "key_files": [
+        {
+          "file": "config.ts",
+          "purpose": "Config loading from remote, global, project, .opencode directory with precedence",
+          "exports": ["Config", "load", "loadFile"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "evolution",
+      "path": "src/evolution",
+      "description": "Prompt, skill, and memory evolution",
+      "purpose": "Tracks and improves prompts, skills, and memories through usage over time",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Evolution store, types, and management",
+          "exports": ["EvolutionStore", "PromptEvolution", "SkillEvolution", "MemoryEntry"],
+          "type": "core"
+        },
+        {
+          "file": "memory.ts",
+          "purpose": "Memory evolution system with LLM extraction",
+          "exports": ["MemoryEvolution"],
+          "type": "learning"
+        }
+      ]
+    },
+    {
+      "name": "file",
+      "path": "src/file",
+      "description": "File system operations",
+      "purpose": "File watching, search, ignore patterns, and time utilities",
+      "key_files": [
+        {
+          "file": "watcher.ts",
+          "purpose": "File system watching with chokidar",
+          "exports": ["Watcher", "watch"],
+          "type": "util"
+        },
+        {
+          "file": "ripgrep.ts",
+          "purpose": "Code search integration",
+          "exports": ["ripgrep", "Ripgrep"],
+          "type": "util"
+        },
+        {
+          "file": "ignore.ts",
+          "purpose": ".gitignore pattern handling",
+          "exports": ["Ignore"],
+          "type": "util"
+        }
+      ]
+    },
+    {
+      "name": "global",
+      "path": "src/global",
+      "description": "Global path configuration",
+      "purpose": "XDG-based directory paths for data, cache, config, state",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Global path namespace - data, bin, log, cache, config, state",
+          "exports": ["Global", "Path"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "id",
+      "path": "src/id",
+      "description": "ID generation utilities",
+      "purpose": "Unique ID generation for entities",
+      "key_files": [
+        {
+          "file": "id.ts",
+          "purpose": "ID generation and parsing",
+          "exports": ["id", "parse", "is"],
+          "type": "util"
+        }
+      ]
+    },
+    {
+      "name": "ide",
+      "path": "src/ide",
+      "description": "IDE integration",
+      "purpose": "VSCode, Cursor, Windsurf extension installation",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "IDE detection and extension installation",
+          "exports": ["Ide", "install", "ide", "alreadyInstalled"],
+          "type": "tool"
+        }
+      ]
+    },
+    {
+      "name": "installation",
+      "path": "src/installation",
+      "description": "Installation and version management",
+      "purpose": "Version detection, local vs deployed mode, upgrade handling",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Installation info, VERSION constant, isLocal, isInstalled",
+          "exports": ["Installation", "VERSION", "isLocal", "isInstalled"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "learning",
+      "path": "src/learning",
+      "description": "Self-improvement and knowledge management",
+      "purpose": "AI self-evolution through collection, analysis, installation of improvements",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Main learning system - scheduler, collector, analyzer, installer",
+          "exports": ["LearningScheduler", "Collector", "Analyzer", "Installer", "KnowledgeStore"],
+          "type": "core"
+        },
+        {
+          "file": "vector-store.ts",
+          "purpose": "Vector embedding storage using sqlite-vec for semantic search",
+          "exports": ["VectorStore", "VectorEntry", "SearchResult", "VectorType"],
+          "type": "storage"
+        },
+        {
+          "file": "hierarchical-memory.ts",
+          "purpose": "Module-level code memory organization with LLM summaries",
+          "exports": ["HierarchicalMemory", "ModuleSummary", "ProjectOverview"],
+          "type": "learning"
+        },
+        {
+          "file": "knowledge-graph.ts",
+          "purpose": "Knowledge graph with nodes and edges",
+          "exports": ["knowledge_nodes", "knowledge_edges", "KnowledgeGraph"],
+          "type": "storage"
+        },
+        {
+          "file": "negative.ts",
+          "purpose": "Negative memory - tracks failures to avoid repeated mistakes",
+          "exports": ["NegativeMemory"],
+          "type": "learning"
+        },
+        {
+          "file": "archive.ts",
+          "purpose": "Learning snapshots and rollback",
+          "exports": ["Archive"],
+          "type": "learning"
+        },
+        {
+          "file": "self-refactor.ts",
+          "purpose": "Self-improving code refactoring using LLM",
+          "exports": ["SelfRefactor"],
+          "type": "learning"
+        }
+      ],
+      "sub_modules": [
+        "scheduler",
+        "collector",
+        "analyzer",
+        "installer",
+        "critic",
+        "benchmark",
+        "architect",
+        "researcher",
+        "reporter",
+        "suggester"
+      ]
+    },
+    {
+      "name": "lsp",
+      "path": "src/lsp",
+      "description": "Language Server Protocol integration",
+      "purpose": "LSP client and server management for 20+ languages",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "LSP server management for multiple languages",
+          "exports": ["Language", "getLanguageServer"],
+          "type": "tool"
+        },
+        {
+          "file": "server.ts",
+          "purpose": "LSP server installation and configuration for all supported languages",
+          "type": "tool"
+        }
+      ]
+    },
+    {
+      "name": "mcp",
+      "path": "src/mcp",
+      "description": "Model Context Protocol integration",
+      "purpose": "MCP server discovery, authentication, and tool integration",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "MCP client, server discovery, OAuth",
+          "exports": ["MCPClient", "discoverServers"],
+          "type": "tool"
+        },
+        {
+          "file": "auth.ts",
+          "purpose": "MCP OAuth provider and token management",
+          "type": "auth"
+        }
+      ]
+    },
+    {
+      "name": "permission",
+      "path": "src/permission",
+      "description": "Permission system",
+      "purpose": "Tool permission rules - allow/ask/deny per operation",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Permission checking and rules",
+          "exports": ["Permission", "check"],
+          "type": "core"
+        },
+        {
+          "file": "next.ts",
+          "purpose": "Next-gen permission system with fine-grained rules",
+          "exports": ["PermissionNext", "Ruleset"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "plugin",
+      "path": "src/plugin",
+      "description": "Plugin system",
+      "purpose": "Dynamic plugin loading, hooks, and lifecycle management",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Plugin loader with hooks system",
+          "exports": ["Plugin", "trigger", "list", "init"],
+          "type": "core"
+        }
+      ],
+      "sub_modules": ["codex", "copilot", "webhook-registry", "recovery"]
+    },
+    {
+      "name": "project",
+      "path": "src/project",
+      "description": "Project management",
+      "purpose": "Project entity, instance management, VCS integration",
+      "key_files": [
+        {
+          "file": "project.ts",
+          "purpose": "Project entity with ID, worktree, VCS, name, icon",
+          "exports": ["Project"],
+          "type": "core"
+        },
+        {
+          "file": "instance.ts",
+          "purpose": "Current project instance singleton with context management",
+          "exports": ["Instance"],
+          "type": "core"
+        },
+        {
+          "file": "vcs.ts",
+          "purpose": "Version control system integration",
+          "exports": ["VCS"],
+          "type": "util"
+        },
+        {
+          "file": "bootstrap.ts",
+          "purpose": "Project initialization",
+          "exports": ["bootstrap"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "provider",
+      "path": "src/provider",
+      "description": "AI provider abstraction",
+      "purpose": "Multi-provider AI support - Anthropic, OpenAI, Google, Azure, Bedrock, etc.",
+      "key_files": [
+        {
+          "file": "provider.ts",
+          "purpose": "Main provider system - 20+ AI providers with dynamic SDK loading",
+          "exports": ["Provider", "getModel", "defaultModel", "getSmallModel"],
+          "type": "core"
+        },
+        {
+          "file": "models.ts",
+          "purpose": "Model definitions and pricing",
+          "exports": ["models", "ModelInfo"],
+          "type": "data"
+        },
+        {
+          "file": "auth.ts",
+          "purpose": "Provider API key management",
+          "exports": ["Auth"],
+          "type": "auth"
+        }
+      ],
+      "sub_modules": ["sdk"]
+    },
+    {
+      "name": "pty",
+      "path": "src/pty",
+      "description": "Pseudo-terminal handling",
+      "purpose": "Terminal PTY management for interactive shell sessions",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "PTY creation and management",
+          "exports": ["Pty"],
+          "type": "util"
+        }
+      ]
+    },
+    {
+      "name": "question",
+      "path": "src/question",
+      "description": "Question/Answer tool system",
+      "purpose": "Interactive question prompts for user input",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Question tool - ask, reply, reject operations",
+          "exports": ["Question", "ask", "reply", "reject", "Option", "Info"],
+          "type": "tool"
+        }
+      ]
+    },
+    {
+      "name": "scheduler",
+      "path": "src/scheduler",
+      "description": "Task scheduling",
+      "purpose": "Background task scheduling and queue management",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Scheduler for background tasks",
+          "exports": ["Scheduler", "schedule"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "server",
+      "path": "src/server",
+      "description": "HTTP API server",
+      "purpose": "REST API server with Hono framework, auth, CORS, SSE events",
+      "key_files": [
+        {
+          "file": "server.ts",
+          "purpose": "Main server - routes for project, session, permission, provider, config, pty, mcp, tui",
+          "exports": ["createServer", "app"],
+          "type": "server"
+        }
+      ]
+    },
+    {
+      "name": "session",
+      "path": "src/session",
+      "description": "Conversation session management",
+      "purpose": "Message storage, session tree, prompt building, tool resolution",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Session entity - create, fork, message storage with parts",
+          "exports": ["Session", "createSession", "forkSession"],
+          "type": "core"
+        },
+        {
+          "file": "prompt.ts",
+          "purpose": "AI chat loop - message creation, main loop, tool resolution, context management",
+          "exports": ["createUserMessage", "loop", "resolveTools"],
+          "type": "core"
+        },
+        {
+          "file": "system.ts",
+          "purpose": "System prompt construction",
+          "exports": ["systemPrompt", "buildSystemPrompt"],
+          "type": "util"
+        },
+        {
+          "file": "summary.ts",
+          "purpose": "Session summary generation",
+          "exports": ["Summary"],
+          "type": "util"
+        }
+      ]
+    },
+    {
+      "name": "shell",
+      "path": "src/shell",
+      "description": "Shell command execution",
+      "purpose": "Bun subprocess management with output streaming",
+      "key_files": [
+        {
+          "file": "shell.ts",
+          "purpose": "Shell command execution with Bun $",
+          "exports": ["Shell", "$", "run"],
+          "type": "tool"
+        }
+      ]
+    },
+    {
+      "name": "skill",
+      "path": "src/skill",
+      "description": "Skill system - reusable prompt templates",
+      "purpose": "Skill discovery from multiple directories, SKILL.md format parsing",
+      "key_files": [
+        {
+          "file": "skill.ts",
+          "purpose": "Skill definition and execution",
+          "exports": ["Skill", "execute"],
+          "type": "tool"
+        },
+        {
+          "file": "discovery.ts",
+          "purpose": "Skill discovery from .claude/skills, .opencode/skills, remote URLs",
+          "exports": ["discoverSkills", "SkillDiscovery"],
+          "type": "tool"
+        }
+      ]
+    },
+    {
+      "name": "snapshot",
+      "path": "src/snapshot",
+      "description": "Git-based file versioning",
+      "purpose": "Project snapshots enabling file restoration and diff tracking",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Snapshot management - track, restore, revert, diff",
+          "exports": ["Snapshot", "track", "restore", "revert", "diff"],
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "name": "storage",
+      "path": "src/storage",
+      "description": "Data persistence layer",
+      "purpose": "SQLite database with Drizzle ORM, migrations, vector search support",
+      "key_files": [
+        {
+          "file": "db.ts",
+          "purpose": "Database initialization with migrations and sqlite-vec extension",
+          "exports": ["Database", "Client", "raw", "use"],
+          "type": "storage"
+        },
+        {
+          "file": "schema.ts",
+          "purpose": "Database schema definitions",
+          "exports": ["Timestamps"],
+          "type": "storage"
+        },
+        {
+          "file": "storage.ts",
+          "purpose": "Generic key-value storage",
+          "exports": ["Storage"],
+          "type": "storage"
+        }
+      ]
+    },
+    {
+      "name": "tool",
+      "path": "src/tool",
+      "description": "Tool definition and registry",
+      "purpose": "Tool definitions with Zod schemas, registry for built-in and MCP tools",
+      "key_files": [
+        {
+          "file": "tool.ts",
+          "purpose": "Tool.define() factory for tool creation with parameter validation",
+          "exports": ["Tool", "define"],
+          "type": "core"
+        },
+        {
+          "file": "registry.ts",
+          "purpose": "Tool registry - loads built-in, MCP, plugin, ZeroClaw tools",
+          "exports": ["ToolRegistry", "registry"],
+          "type": "core"
+        },
+        {
+          "file": "truncation.ts",
+          "purpose": "Output truncation for long tool results",
+          "exports": ["Truncation", "truncate"],
+          "type": "util"
+        }
+      ],
+      "sub_modules": [
+        "bash",
+        "read",
+        "write",
+        "edit",
+        "glob",
+        "grep",
+        "webfetch",
+        "websearch",
+        "codesearch",
+        "task",
+        "skill",
+        "todowrite",
+        "memory",
+        "plan",
+        "question"
+      ]
+    },
+    {
+      "name": "util",
+      "path": "src/util",
+      "description": "Utility functions",
+      "purpose": "Logging, filesystem, git, glob, queue, lock, timeout, archive, format",
+      "key_files": [
+        {
+          "file": "log.ts",
+          "purpose": "Structured logging with file output",
+          "exports": ["Log"],
+          "type": "util"
+        },
+        {
+          "file": "filesystem.ts",
+          "purpose": "File operations - read, write, exists, copy, mkdir",
+          "exports": ["Filesystem"],
+          "type": "util"
+        },
+        {
+          "file": "git.ts",
+          "purpose": "Git operations - status, diff, branch, commit",
+          "exports": ["Git"],
+          "type": "util"
+        },
+        {
+          "file": "glob.ts",
+          "purpose": "Glob pattern matching",
+          "exports": ["glob"],
+          "type": "util"
+        },
+        {
+          "file": "queue.ts",
+          "purpose": "Work queue for parallel execution",
+          "exports": ["Queue"],
+          "type": "util"
+        },
+        {
+          "file": "lock.ts",
+          "purpose": "File-based locking",
+          "exports": ["Lock"],
+          "type": "util"
+        },
+        {
+          "file": "timeout.ts",
+          "purpose": "Timeout utilities",
+          "exports": ["timeout", "withTimeout"],
+          "type": "util"
+        },
+        {
+          "file": "archive.ts",
+          "purpose": "Archive/compression utilities",
+          "exports": ["Archive", "extractZip", "extractTar"],
+          "type": "util"
+        }
+      ]
+    },
+    {
+      "name": "worktree",
+      "path": "src/worktree",
+      "description": "Git worktree management",
+      "purpose": "Isolated development environments using git worktree",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "Worktree operations - create, remove, reset with creative naming",
+          "exports": ["Worktree", "create", "remove", "reset"],
+          "type": "core"
+        }
+      ]
+    },
+    {
+      "name": "zeroclaw",
+      "path": "src/zeroclaw",
+      "description": "Secure remote execution sandbox",
+      "purpose": "ZeroClaw daemon client, tool routing, controller for sandboxed execution",
+      "key_files": [
+        {
+          "file": "index.ts",
+          "purpose": "ZeroClaw client and tool routing",
+          "exports": ["ZeroClaw", "router"],
+          "type": "tool"
+        },
+        {
+          "file": "client.ts",
+          "purpose": "HTTP client for ZeroClaw daemon communication",
+          "exports": ["ZeroClawClient"],
+          "type": "tool"
+        },
+        {
+          "file": "controller.ts",
+          "purpose": "Remote management - updates, restarts, deployment",
+          "exports": ["ZeroClawController"],
+          "type": "tool"
+        },
+        {
+          "file": "tools.ts",
+          "purpose": "ZeroClaw-specific tool definitions",
+          "exports": ["zeroclawTools"],
+          "type": "tool"
+        }
+      ]
+    }
+  ],
+  "key_concepts": [
+    {
+      "concept": "Session-based conversation",
+      "description": "Messages stored in tree structure with parent-child relationships, supports forking"
+    },
+    {
+      "concept": "Agent system",
+      "description": "Different agent types (build, plan, explore) with permission rules and temperature settings"
+    },
+    {
+      "concept": "Tool execution",
+      "description": "Tools defined with Zod schemas, permission-controlled, supports MCP and ZeroClaw"
+    },
+    {
+      "concept": "Self-evolution",
+      "description": "Learning system collects, analyzes, installs improvements; negative memory tracks failures"
+    },
+    {
+      "concept": "Vector search",
+      "description": "sqlite-vec for semantic similarity search across knowledge and code"
+    },
+    {
+      "concept": "Hierarchical memory",
+      "description": "Module-level code summaries with LLM-generated purpose and key functions"
+    },
+    {
+      "concept": "Skills",
+      "description": "Reusable prompt templates from SKILL.md files in configurable directories"
+    },
+    {
+      "concept": "Project isolation",
+      "description": "Git worktree-based isolated environments for parallel tasks"
+    },
+    {
+      "concept": "Plugin system",
+      "description": "Dynamic plugin loading with hooks for auth, events, tools, HTTP routes"
+    },
+    {
+      "concept": "Event bus",
+      "description": "Pub/sub event system for decoupled inter-component communication"
+    }
+  ],
+  "database_schema": {
+    "tables": [
+      "sessions",
+      "messages",
+      "parts",
+      "projects",
+      "knowledge",
+      "learning_runs",
+      "vector_memory",
+      "vector_sync_meta",
+      "knowledge_nodes",
+      "knowledge_edges",
+      "negative_memory",
+      "archive_snapshot",
+      "character_consistency",
+      "scene_graph"
+    ]
+  },
+  "export_paths": {
+    "core": [
+      "agent",
+      "config",
+      "global",
+      "installation",
+      "permission",
+      "project",
+      "provider",
+      "session",
+      "tool",
+      "worktree"
+    ],
+    "storage": ["storage/db", "storage/schema", "snapshot", "learning/vector-store"],
+    "learning": [
+      "learning/index",
+      "learning/hierarchical-memory",
+      "learning/knowledge-graph",
+      "learning/negative",
+      "learning/archive"
+    ],
+    "util": ["util/log", "util/filesystem", "util/git", "util/glob", "util/queue"],
+    "server": ["server/server"],
+    "cli": ["cli/ui", "cli/cmd/run"]
+  }
+}

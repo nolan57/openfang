@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "时光的回响 - The Echoes of Betrayal Across Time - 横跨四百年的悲剧史诗",
+
+  "difficulty": "hard",
+
+  "storyType": "character",
+
+  "promptStyle": {
+    "verbosity": "detailed",
+    "creativity": 0.85,
+    "structureStrictness": 0.7,
+    "allowDeviation": true
+  },
+
+  "customDifficulty": {
+    "$comment": "Hard difficulty for emotionally intense tragedy - higher stress, more trauma",
+    "stressThresholds": {
+      "critical": 80,
+      "high": 55
+    },
+    "branchConfig": {
+      "maxBranches": 4,
+      "minQualityThreshold": 8
+    },
+    "chaosModifier": 0,
+    "traumaFrequency": 2.0,
+    "skillAwardFrequency": 0.3
+  },
+
+  "customWeights": {
+    "$comment": "Weights optimized for emotional tragedy - emphasis on character psychology and thematic depth",
+    "narrativeQuality": 0.15,
+    "tensionLevel": 0.15,
+    "characterDevelopment": 0.3,
+    "plotProgression": 0.1,
+    "characterGrowth": 0.15,
+    "riskReward": 0.05,
+    "thematicRelevance": 0.1
+  },
+
+  "thematicReflectionInterval": 3,
+
+  "customTraumaTags": {
+    "$comment": "Trauma tags for multi-era tragedy - ancestral guilt, cursed legacy, sacrificial love",
+    "ANCESTRAL_GUILT": "Ancestral_Guilt_Trauma",
+    "CURSED_LEGACY": "Cursed_Family_Legacy",
+    "GHOSTLY_ENCOUNTER": "Supernatural_Encounter_Trauma",
+    "DYNASTY_FALL": "Dynasty_Collapse_Trauma",
+    "FORBIDDEN_LOVE": "Forbidden_Love_Trauma",
+    "SACRIFICIAL_LOVE": "Sacrificial_Love_Trauma",
+    "BETRAYAL_CYCLE": "Betrayal_Cycle_Trauma",
+    "SUSPENDED_DEATH": "Suspended_Death_Trauma",
+    "GRIEF_IMMORTAL": "Immortal_Grief_Trauma",
+    "DESTINY_FULFILLED": "Destiny_Fulfillment_Trauma"
+  },
+
+  "customSkillCategories": {
+    "$comment": "Skills adapted for multi-era tragedy spanning Ming, Qing, Republican, and Modern periods",
+    "SILK_TRADE": "Business_Silk_Trade",
+    "CLASSICAL_LITERATURE": "Mental_Classical_Literature",
+    "FORTUNE_TELLING": "Mental_Fortune_Telling",
+    "SWORDSMANSHIP": "Combat_Swordsmanship",
+    "GUILE": "Social_Guile",
+    "EMOTIONAL_INTELLIGENCE": "Mental_Emotional_Intelligence",
+    "SPIRITUAL_SENSE": "Mental_Spiritual_Sense",
+    "MEDICINE": "Technical_Medicine",
+    "ARCHITECTURE": "Technical_Architecture",
+    "DATA_ANALYSIS": "Technical_Data_Analysis",
+    "PSYCHOLOGY": "Mental_Psychology",
+    "WAR_STRATEGY": "Combat_War_Strategy",
+    "SURVIVAL": "Resistance_Survival",
+    "GHOST_COMMUNICATION": "Supernatural_Ghost_Communication"
+  },
+
+  "customGoalTypes": {
+    "$comment": "Goal types reflecting tragedy, redemption, and destiny across four centuries",
+    "BREAK_CURSE": "Break the ancestral curse",
+    "ATONE_ANCESTOR": "Atone for ancestor's sins",
+    "PROTECT_LEGACY": "Protect family legacy",
+    "AVOID_DESTINY": "Avoid predetermined fate",
+    "EMBRACE_DESTINY": "Embrace one's destiny",
+    "REDEEM_LOVE": "Redeem forbidden love",
+    "PRESERVE_MEMORY": "Preserve family memory",
+    "UNRAVEL_MYSTERY": "Unravel the curse's origin",
+    "SAVE_FAMILY": "Save family from destruction",
+    "HONOR_SACRIFICE": "Honor sacrificial love"
+  },
+
+  "customEmotionTypes": {
+    "$comment": "Emotion types emphasizing tragedy, longing, and spiritual connection across eras",
+    "ANCESTRAL_SORROW": "Ancestral Sorrow",
+    "TRANSCENDENT_LOVE": "Transcendent Love",
+    "MORAL_DILEMMA": "Moral Dilemma",
+    "EXISTENTIAL_DREAD": "Existential Dread",
+    "SPIRITUAL_CONNECTION": "Spiritual Connection",
+    "CURSED_GRIEF": "Cursed Grief",
+    "FORBIDDEN_LONGING": "Forbidden Longing",
+    "SACRIFICIAL_JOY": "Sacrificial Joy",
+    "HAUNTING_MEMORY": "Haunting Memory",
+    "REDEMPTIVE_PEACE": "Redemptive Peace",
+    "KARMIC_AWE": "Karmic Awe",
+    "GENEALOGICAL_SORROW": "Genealogical Sorrow"
+  },
+
+  "customCharacterStatus": {
+    "$comment": "Character status for cursed family members across four centuries",
+    "CURSED": "cursed_by_legacy",
+    "GHOST_TIED": "bound_by_ghost",
+    "KARMIC_DEBT": "carrying_karmic_debt",
+    "TRANSCENDED": "spiritually_transcended",
+    "REINCARNATED": "reincarnated_with_memory",
+    "DOOMED": "fated_to_die_at_27",
+    "AWAKENED": "awakened_to_truth",
+    "REDEEMED": "spiritually_redeemed",
+    "SACRIFICED": "willingly_sacrificed",
+    "ETERNAL_WITNESS": "eternal_witness_of_time"
+  },
+
+  "chapterLength": {
+    "$comment": "Dynamic chapter length for emotional tragedy - allow longer chapters for psychological depth",
+    "mode": "dynamic",
+    "minWords": 1000,
+    "maxWords": 4000,
+    "minChineseChars": 1500,
+    "maxChineseChars": 8000,
+    "qualityOverQuantity": true,
+    "complexityFactors": {
+      "actionScenes": 1.2,
+      "emotionalScenes": 1.8,
+      "psychologicalScenes": 2.0,
+      "dialogueScenes": 0.9,
+      "transitionScenes": 0.7,
+      "supernaturalScenes": 1.5
+    }
+  }
+}

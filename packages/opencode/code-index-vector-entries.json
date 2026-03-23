@@ -1,0 +1,460 @@
+{
+  "format_version": "1.1",
+  "description": "Flat vector entries ready for database import",
+  "package": "opencode",
+
+  "vector_entries": [
+    {
+      "node_id": "mod_agent",
+      "entity_title": "Agent System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Agent configurations and generation system. Defines different AI agent types with permissions, temperature, and custom prompts. Built-in agents: build (default), plan (no edit tools), explore (codebase exploration), general (subagent). Supports dynamic agent generation via LLM. Permission rules integrate with tool execution.",
+      "metadata": {
+        "path": "src/agent",
+        "exports": ["Agent", "generate", "build", "plan", "explore", "general"],
+        "keywords": ["agent", "permissions", "configuration", "subagent"]
+      }
+    },
+    {
+      "node_id": "mod_auth",
+      "entity_title": "Authentication System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Authentication system supporting OAuth, API key, and well-known auth methods. Manages tokens, credentials, and enterprise URL configurations. Provides type-safe auth schema definitions.",
+      "metadata": {
+        "path": "src/auth",
+        "exports": ["Auth", "Oauth", "Api", "WellKnown"],
+        "keywords": ["auth", "authentication", "oauth", "api", "token"]
+      }
+    },
+    {
+      "node_id": "mod_bus",
+      "entity_title": "Event Bus System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Pub/sub event bus for inter-component communication. Supports subscription management, event publishing, and global bus for cross-instance events. Enables decoupled architecture.",
+      "metadata": {
+        "path": "src/bus",
+        "exports": ["Bus", "BusEvent", "GlobalBus"],
+        "keywords": ["bus", "event", "pub/sub", "publish", "subscribe"]
+      }
+    },
+    {
+      "node_id": "mod_cli",
+      "entity_title": "CLI & TUI",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Command-line interface and Terminal UI. Main run command for message handling, session management, tool rendering. TUI built with SolidJS + OpenTUI with theme detection, keyboard handling, dialog system. Commands: run, generate, auth, agent, upgrade, serve, models, stats, export, import, pr, session, db, evolve.",
+      "metadata": {
+        "path": "src/cli",
+        "exports": ["RunCommand", "UI", "App"],
+        "keywords": ["cli", "tui", "terminal", "command"]
+      }
+    },
+    {
+      "node_id": "mod_config",
+      "entity_title": "Configuration System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Hierarchical configuration loading system with multiple precedence levels: remote org defaults, global config, project config, .opencode directory. Supports array concatenation for plugins and instructions. Managed settings for enterprise deployments. Remote config fetching supported.",
+      "metadata": {
+        "path": "src/config",
+        "exports": ["Config", "load"],
+        "keywords": ["config", "configuration", "settings", "hierarchy"]
+      }
+    },
+    {
+      "node_id": "mod_evolution",
+      "entity_title": "Evolution System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Prompt, skill, and memory evolution over time. Tracks improvements through usage. Stores data in .opencode/evolution/ directory. Memory evolution extracts learnings via LLM. Part of self-improvement loop.",
+      "metadata": {
+        "path": "src/evolution",
+        "exports": ["EvolutionStore", "PromptEvolution", "SkillEvolution"],
+        "keywords": ["evolution", "prompts", "skills", "memory", "self-improvement"]
+      }
+    },
+    {
+      "node_id": "mod_file",
+      "entity_title": "File Operations",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "File system operations module. Watcher using chokidar for file changes. Ripgrep integration for code search. Ignore pattern handling for .gitignore. File time utilities.",
+      "metadata": {
+        "path": "src/file",
+        "exports": ["Watcher", "ripgrep", "Ignore"],
+        "keywords": ["file", "filesystem", "watcher", "ripgrep"]
+      }
+    },
+    {
+      "node_id": "mod_global",
+      "entity_title": "Global Paths",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "XDG-based directory paths for data, cache, config, state, bin, log. Provides Global namespace with Path object containing all application directories.",
+      "metadata": { "path": "src/global", "exports": ["Global", "Path"], "keywords": ["global", "paths", "xdg"] }
+    },
+    {
+      "node_id": "mod_ide",
+      "entity_title": "IDE Integration",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "IDE detection and extension installation. Supports Windsurf, VSCode Insiders, VSCode, Cursor, VSCodium. Provides install function to install OpenCode extension. Detects current IDE via environment variables.",
+      "metadata": {
+        "path": "src/ide",
+        "exports": ["Ide", "install", "ide", "alreadyInstalled"],
+        "keywords": ["ide", "vscode", "cursor", "windsurf", "extension"]
+      }
+    },
+    {
+      "node_id": "mod_learning",
+      "entity_title": "Self-Learning System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Comprehensive AI self-improvement system. Components: LearningScheduler for scheduling, Collector collects items, Analyzer evaluates, Installer applies improvements. KnowledgeStore, NegativeMemory tracks failures to avoid repeated mistakes. Archive for snapshots. SelfRefactor for code refactoring. VectorStore for semantic search with sqlite-vec. HierarchicalMemory for module-level code summaries.",
+      "metadata": {
+        "path": "src/learning",
+        "exports": [
+          "LearningScheduler",
+          "Collector",
+          "Analyzer",
+          "Installer",
+          "VectorStore",
+          "HierarchicalMemory",
+          "NegativeMemory"
+        ],
+        "keywords": ["learning", "self-improvement", "evolution", "knowledge", "vector", "embedding"]
+      }
+    },
+    {
+      "node_id": "mod_lsp",
+      "entity_title": "Language Server Protocol",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "LSP client and server management for 20+ languages. Supports TypeScript, JavaScript, Python, Rust, Go, Java, C/C++, C#, Ruby, PHP, Swift, Kotlin, HTML, CSS, JSON, YAML, Terraform, Docker, Lua, Elixir. Auto-installs language servers.",
+      "metadata": {
+        "path": "src/lsp",
+        "exports": ["Language", "getLanguageServer"],
+        "keywords": ["lsp", "language server", "intellisense", "completion"]
+      }
+    },
+    {
+      "node_id": "mod_mcp",
+      "entity_title": "Model Context Protocol",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "MCP server integration. Discovers MCP servers from configuration. Handles OAuth authentication. Provides MCP tools to agents. MCP enables extensible tool capabilities beyond built-in tools.",
+      "metadata": {
+        "path": "src/mcp",
+        "exports": ["MCPClient", "discoverServers"],
+        "keywords": ["mcp", "model context protocol", "tools", "oauth"]
+      }
+    },
+    {
+      "node_id": "mod_permission",
+      "entity_title": "Permission System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Tool permission rules - allow, ask, deny per operation. Next-generation PermissionNext with fine-grained rules. Integrates with agent system for operation control and security.",
+      "metadata": {
+        "path": "src/permission",
+        "exports": ["Permission", "PermissionNext", "Ruleset"],
+        "keywords": ["permission", "security", "allow", "deny"]
+      }
+    },
+    {
+      "node_id": "mod_plugin",
+      "entity_title": "Plugin System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Dynamic plugin loading system with hooks. Built-in plugins for auth (Codex, Copilot, GitLab). Hooks for auth, events, tools, HTTP routes. Plugin recovery manager for auto-restart on failure. Dynamic npm package installation.",
+      "metadata": {
+        "path": "src/plugin",
+        "exports": ["Plugin", "trigger", "list", "init"],
+        "keywords": ["plugin", "hook", "lifecycle", "extension"]
+      }
+    },
+    {
+      "node_id": "mod_project",
+      "entity_title": "Project Management",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Project entity management. Project contains ID, worktree, VCS, name, icon. Instance is current project singleton with context. VCS for version control integration. Bootstrap for project initialization.",
+      "metadata": {
+        "path": "src/project",
+        "exports": ["Project", "Instance", "VCS", "bootstrap"],
+        "keywords": ["project", "instance", "vcs", "git"]
+      }
+    },
+    {
+      "node_id": "mod_provider",
+      "entity_title": "AI Provider System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Multi-provider AI support with 20+ providers: Anthropic, OpenAI, Google Vertex, Google Generative AI, Azure, Amazon Bedrock, OpenRouter, GitHub Copilot, GitLab, Cerebras, Groq, Mistral, DeepInfra, Cohere, Cloudflare Workers. Dynamic SDK loading via Bun. Cost tracking with token usage. Model selection with default and fallback models.",
+      "metadata": {
+        "path": "src/provider",
+        "exports": ["Provider", "getModel", "defaultModel", "getSmallModel"],
+        "keywords": ["provider", "ai", "anthropic", "openai", "google", "azure", "bedrock", "model"]
+      }
+    },
+    {
+      "node_id": "mod_question",
+      "entity_title": "Question Tool System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Interactive question/answer tool for user input. Supports single and multiple choice questions with descriptions. Manages pending requests with ask, reply, reject operations. Zod-validated schemas for options, questions, answers.",
+      "metadata": {
+        "path": "src/question",
+        "exports": ["Question", "ask", "reply", "reject", "Option", "Info"],
+        "keywords": ["question", "answer", "prompt", "input", "interactive"]
+      }
+    },
+    {
+      "node_id": "mod_session",
+      "entity_title": "Session Management",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Conversation session system. Session is conversation container with message tree and forking support. Message storage with parts (text, tool calls, reasoning). Prompt building with system prompt construction. Tool resolution for AI interactions.",
+      "metadata": {
+        "path": "src/session",
+        "exports": ["Session", "createSession", "forkSession", "createUserMessage", "loop"],
+        "keywords": ["session", "conversation", "message", "prompt", "fork"]
+      }
+    },
+    {
+      "node_id": "mod_shell",
+      "entity_title": "Shell Execution",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Shell command execution using Bun subprocess. Provides shell command running with output streaming and environment handling.",
+      "metadata": {
+        "path": "src/shell",
+        "exports": ["Shell", "$", "run"],
+        "keywords": ["shell", "bash", "command", "subprocess"]
+      }
+    },
+    {
+      "node_id": "mod_skill",
+      "entity_title": "Skill System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Reusable prompt templates similar to Claude Code skills. Discovery from multiple directories: .claude/skills, .opencode/skills, remote URLs. SKILL.md format parsing with frontmatter for name and description.",
+      "metadata": {
+        "path": "src/skill",
+        "exports": ["Skill", "execute", "discoverSkills"],
+        "keywords": ["skill", "template", "prompt", "reuse"]
+      }
+    },
+    {
+      "node_id": "mod_snapshot",
+      "entity_title": "Snapshot System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Git-based file versioning. Creates snapshots in separate git repository. Operations: track, restore, revert, diff. Enables file restoration and change tracking over time.",
+      "metadata": {
+        "path": "src/snapshot",
+        "exports": ["Snapshot", "track", "restore", "revert", "diff"],
+        "keywords": ["snapshot", "git", "version", "restore"]
+      }
+    },
+    {
+      "node_id": "mod_storage",
+      "entity_title": "Data Persistence",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "SQLite database with Drizzle ORM. Migration system for schema updates. sqlite-vec extension for vector search. Generic key-value storage. Performance optimizations: WAL mode, 64MB cache, 5s busy timeout.",
+      "metadata": {
+        "path": "src/storage",
+        "exports": ["Database", "Client", "Storage"],
+        "keywords": ["database", "sqlite", "drizzle", "migration", "vector"]
+      }
+    },
+    {
+      "node_id": "mod_tool",
+      "entity_title": "Tool System",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Tool definition and registry system. Tool.define() factory creates tools with Zod parameter validation. Registry loads built-in tools: bash, read, write, edit, glob, grep, webfetch, websearch, codesearch, task, skill, todowrite, memory, plan, question. Also loads MCP tools, plugin tools, ZeroClaw tools.",
+      "metadata": {
+        "path": "src/tool",
+        "exports": ["Tool", "define", "ToolRegistry", "registry"],
+        "keywords": ["tool", "registry", "zod", "parameters", "execution"]
+      }
+    },
+    {
+      "node_id": "mod_util",
+      "entity_title": "Utilities",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Utility functions library. Logging with structured output and file rotation. Filesystem operations for read, write, copy, mkdir. Git operations for status, diff, branch. Glob pattern matching. Work queue for parallel execution. File-based locking. Timeout utilities. Archive compression and extraction. Formatting and internationalization.",
+      "metadata": {
+        "path": "src/util",
+        "exports": ["Log", "Filesystem", "Git", "glob", "Queue", "Lock", "Archive"],
+        "keywords": ["util", "utility", "log", "filesystem", "git", "queue"]
+      }
+    },
+    {
+      "node_id": "mod_worktree",
+      "entity_title": "Worktree Management",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Git worktree-based isolated development environments. Create parallel worktrees with creative names like brave-canyon, cosmic-falcon. Operations: create, remove, reset. Runs start commands after worktree creation.",
+      "metadata": {
+        "path": "src/worktree",
+        "exports": ["Worktree", "create", "remove", "reset"],
+        "keywords": ["worktree", "git", "isolation", "parallel"]
+      }
+    },
+    {
+      "node_id": "mod_zeroclaw",
+      "entity_title": "ZeroClaw Sandbox",
+      "node_type": "module",
+      "vector_type": "code",
+      "content_text": "Secure remote execution sandbox. Client for ZeroClaw daemon communication. Tool routing to sandboxed environment. Controller for remote management including updates, restarts, deployment. Security policies: supervised, read-only, full.",
+      "metadata": {
+        "path": "src/zeroclaw",
+        "exports": ["ZeroClaw", "ZeroClawClient", "ZeroClawController"],
+        "keywords": ["zeroclaw", "sandbox", "remote", "execution", "security"]
+      }
+    },
+    {
+      "node_id": "file_index_ts",
+      "entity_title": "Main Entry Point",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "CLI entry point using yargs. Registers all commands: run, generate, auth, agent, upgrade, uninstall, serve, web, models, stats, export, import, github, pr, session, db, evolve, acp, mcp. Handles uncaught exceptions and unhandled rejections. Database migration on first run. MCP cron check.",
+      "metadata": { "path": "src/index.ts", "line_count": 211, "keywords": ["entry", "cli", "yargs", "command"] }
+    },
+    {
+      "node_id": "file_provider_ts",
+      "entity_title": "AI Provider Main",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Main provider system implementation. Loads AI SDKs dynamically via Bun runtime. Supports 20+ AI providers with custom authentication, regions, and endpoints. Calculates costs by tracking token usage across requests. Provides model selection with defaultModel and getSmallModel for fallback scenarios.",
+      "metadata": {
+        "path": "src/provider/provider.ts",
+        "line_count": 1300,
+        "keywords": ["provider", "ai", "sdk", "cost"]
+      }
+    },
+    {
+      "node_id": "file_session_prompt_ts",
+      "entity_title": "AI Chat Loop",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Core AI chat loop implementation. createUserMessage processes user input. loop function implements AI interaction cycle: retrieves conversation history, builds system prompts, injects relevant memories on first step, calls AI model via provider, handles tool execution results, continues until AI finishes with stop error or max steps. resolveTools builds tool list combining registry tools, MCP tools, and plugin hooks.",
+      "metadata": { "path": "src/session/prompt.ts", "line_count": 600, "keywords": ["chat", "loop", "prompt", "tool"] }
+    },
+    {
+      "node_id": "file_tool_tool_ts",
+      "entity_title": "Tool Definition",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Tool factory using Tool.define function. Takes tool ID and init function that returns description, parameters as Zod schema for validation, and execute function. Supports automatic output truncation for long results.",
+      "metadata": { "path": "src/tool/tool.ts", "line_count": 300, "keywords": ["tool", "define", "zod"] }
+    },
+    {
+      "node_id": "file_learning_vector_ts",
+      "entity_title": "Vector Store",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Vector embedding storage using sqlite-vec extension. Supports multiple embedding models: simple (hash-based), openai, local. Search methods: search combines vec and fallback, searchVec uses cosine distance, searchFallback uses text similarity when vec unavailable. Sync mechanism tracks and syncs knowledge graph nodes. Vector types: content, code, constraint, character, scene, style.",
+      "metadata": {
+        "path": "src/learning/vector-store.ts",
+        "line_count": 636,
+        "keywords": ["vector", "embedding", "similarity", "sqlite-vec"]
+      }
+    },
+    {
+      "node_id": "file_storage_db_ts",
+      "entity_title": "Database Setup",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "SQLite database initialization using bun:sqlite with Drizzle ORM. Migration system for schema updates. Loads sqlite-vec extension for vector search. Performance PRAGMAs: journal_mode=WAL, synchronous=NORMAL, busy_timeout=5000, cache_size=-64000 (64MB), foreign_keys=ON, wal_checkpoint(PASSIVE).",
+      "metadata": {
+        "path": "src/storage/db.ts",
+        "line_count": 198,
+        "keywords": ["database", "sqlite", "drizzle", "migration"]
+      }
+    },
+    {
+      "node_id": "file_server_ts",
+      "entity_title": "HTTP API Server",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "HTTP API server using Hono framework for Bun. Routes: /project, /session, /permission, /provider, /config, /pty, /mcp, /tui. Features: basic authentication, configurable CORS, Server-Sent Events for real-time updates, webhook support with signature verification, proxy fallback to app.opencode.ai.",
+      "metadata": {
+        "path": "src/server/server.ts",
+        "line_count": 500,
+        "keywords": ["server", "http", "api", "hono", "sse"]
+      }
+    },
+    {
+      "node_id": "file_plugin_index_ts",
+      "entity_title": "Plugin Loader",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Plugin loader with hooks system. Dynamic plugin installation from npm packages. Internal plugins for auth (Codex, Copilot, GitLab OAuth). HTTP route registration from plugins. Plugin recovery manager for auto-restart on failure. State management for hooks and input context.",
+      "metadata": {
+        "path": "src/plugin/index.ts",
+        "line_count": 169,
+        "keywords": ["plugin", "hook", "loader", "npm"]
+      }
+    },
+    {
+      "node_id": "file_question_index_ts",
+      "entity_title": "Question Tool",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Interactive question/answer tool implementation. Zod schemas for Option, Info, Request, Answer, Reply with metadata references. Event publishing for Asked, Replied, Rejected states. Pending request state management with ask, reply, reject, RejectedError functions.",
+      "metadata": {
+        "path": "src/question/index.ts",
+        "line_count": 171,
+        "keywords": ["question", "answer", "zod", "interactive"]
+      }
+    },
+    {
+      "node_id": "file_bus_index_ts",
+      "entity_title": "Event Bus",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "Pub/sub event bus implementation. Subscriptions map stores event handlers. InstanceDisposed event triggers on project disposal. Publish and subscribe methods for event communication. GlobalBus for cross-instance events.",
+      "metadata": {
+        "path": "src/bus/index.ts",
+        "line_count": 105,
+        "keywords": ["bus", "event", "pub/sub", "subscription"]
+      }
+    },
+    {
+      "node_id": "file_ide_index_ts",
+      "entity_title": "IDE Integration",
+      "node_type": "file",
+      "vector_type": "code",
+      "content_text": "IDE detection and extension installation. Supports Windsurf, VSCode Insiders, VSCode, Cursor, VSCodium. IDE detection via TERM_PROGRAM and GIT_ASKPASS environment variables. Install function runs CLI command to install OpenCode extension. Custom errors: InstallFailedError, AlreadyInstalledError.",
+      "metadata": {
+        "path": "src/ide/index.ts",
+        "line_count": 76,
+        "keywords": ["ide", "vscode", "cursor", "extension"]
+      }
+    }
+  ],
+
+  "import_instructions": {
+    "target_table": "vector_memory",
+    "required_fields": {
+      "id": "Use node_id field as unique identifier",
+      "node_type": "Use type: module, file, function, concept",
+      "node_id": "Unique identifier from node_id field",
+      "entity_title": "Human-readable title",
+      "vector_type": "Use 'code' for code-related entries",
+      "embedding": "Generate from content_text field",
+      "model": "Use 'simple' for deterministic hash-based embeddings",
+      "dimensions": 384,
+      "metadata": "JSON.stringify of metadata object"
+    },
+    "sql_template": "INSERT INTO vector_memory (id, node_type, node_id, entity_title, vector_type, embedding, model, dimensions, metadata, time_created, time_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  }
+}
