@@ -49,6 +49,7 @@ import { Truncate } from "@/tool/truncation"
 import { Memory } from "../memory/service"
 import { getMemories, incrementMemoryUsage } from "../evolution/store"
 import { runSessionEvolution } from "../evolution/integration"
+import { handleReviewNotification, handleReviewCommand, handleReviewPresentation } from "./handlers"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -371,13 +372,53 @@ export namespace SessionPrompt {
       }
 
       step++
-      if (step === 1)
+      if (step === 1) {
+        // Check for pending reviews and notify user at session start
+        const reviewNotification = await handleReviewNotification()
+        if (reviewNotification) {
+          // Present review notification as a system message
+          log.info("review_notification_presented", { sessionID })
+        }
+
         ensureTitle({
           session,
           modelID: lastUser.model.modelID,
           providerID: lastUser.model.providerID,
           history: msgs,
         })
+      }
+
+      // Check if user message is a review command
+      const userText = msgs
+        .filter((m) => m.info.role === "user")
+        .flatMap((m) => m.parts)
+        .filter((p: any) => p.type === "text")
+        .map((p: any) => ("text" in p ? p.text : ""))
+        .join(" ")
+      
+      if (userText) {
+        const reviewResult = await handleReviewCommand(userText)
+        if (reviewResult.isReview) {
+          // Handle review command response
+          if (reviewResult.response) {
+            log.info("review_command_processed", { 
+              sessionID, 
+              action: reviewResult.action,
+              response: reviewResult.response,
+            })
+          }
+        }
+      }
+
+      // Present pending review if any (auto-present on first step)
+      if (step === 1) {
+        const presented = await handleReviewPresentation()
+        if (presented) {
+          log.info("review_presented", { sessionID })
+          // Don't continue with normal flow while review is pending
+          // User will respond with approve/reject command
+        }
+      }
 
       const model = await Provider.getModel(lastUser.model.providerID, lastUser.model.modelID).catch((e) => {
         if (Provider.ModelNotFoundError.isInstance(e)) {

@@ -105,4 +105,27 @@ export {
   type IndexResult,
   type IndexStatus,
 } from "./knowledge-index-manager"
+export {
+  EvolutionAnalyzer,
+  type EvolutionIssue,
+  type EvolutionIssueType,
+  type PromptAnalysis,
+  type SkillAnalysis,
+  type MemoryAnalysis,
+} from "./evolution-analyzer"
+export {
+  LearningToEvolutionModifier,
+  type ModificationProposal,
+  type ModificationType,
+  type ModificationStatus,
+  type CreateProposalInput,
+  type ApplyModificationResult,
+} from "./evolution-modifier"
+export {
+  LearningFeedbackLoop,
+  type FeedbackLoopConfig,
+  type LearningInsight,
+  type FeedbackCycleResult,
+  DEFAULT_FEEDBACK_LOOP_CONFIG,
+} from "./feedback-loop"
 export * from "./learning.sql"

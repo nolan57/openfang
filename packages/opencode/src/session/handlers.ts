@@ -360,6 +360,93 @@ export async function handleMemoryInjection(
 }
 
 // ============================================================================
+// Handler: In-Session Review (Evolution Proposals)
+// ============================================================================
+
+import {
+  handleInSessionReview,
+  processUserReviewDecision,
+  isReviewCommand,
+  getReviewNotification,
+} from "./in-session-review"
+
+/**
+ * Check for pending evolution reviews and present to user
+ * Should be called at session start to notify user of pending reviews
+ */
+export async function handleReviewNotification(): Promise<string | null> {
+  try {
+    return await getReviewNotification(3)
+  } catch (error) {
+    log.error("review_notification_failed", { error: String(error) })
+    return null
+  }
+}
+
+/**
+ * Process user message for review commands
+ * Should be called before normal message processing
+ */
+export async function handleReviewCommand(
+  userInput: string,
+): Promise<{
+  isReview: boolean
+  response?: string
+  action?: "approved" | "rejected"
+}> {
+  // Check if this is a review-related command
+  if (!isReviewCommand(userInput)) {
+    return { isReview: false }
+  }
+
+  // Process the review decision
+  const result = await processUserReviewDecision(userInput)
+
+  if (!result.success && result.error === "Not a review command") {
+    // It's a review command but not approve/reject (e.g., "list reviews")
+    if (userInput.match(/list\s+(pending\s+)?(proposals|reviews)/i)) {
+      const reviews = await import("./in-session-review")
+      const formatted = await reviews.getPendingReviewsFormatted(10)
+      return {
+        isReview: true,
+        response: formatted.formatted || "No pending reviews",
+      }
+    }
+    return { isReview: true, response: "Unknown review command. Use: approve <id> | reject <id> <reason> | list reviews" }
+  }
+
+  return {
+    isReview: true,
+    response: result.message,
+    action: result.action,
+  }
+}
+
+/**
+ * Present pending review to user
+ * Returns true if a review was presented
+ */
+export async function handleReviewPresentation(
+  ctx?: LoopContext,
+): Promise<boolean> {
+  try {
+    const result = await handleInSessionReview(ctx, {
+      maxReviews: 3,
+      showDetails: true,
+      autoPresent: true,
+    })
+
+    return result.presented
+  } catch (error) {
+    log.error("review_presentation_failed", { error: String(error) })
+    return false
+  }
+}
+
+// Re-export for convenience
+export { isReviewCommand } from "./in-session-review"
+
+// ============================================================================
 // Handler: Dynamic Memory Refresh (Target 2)
 // ============================================================================
 
