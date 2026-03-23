@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1774019437529,
-    "usageCount": 285,
+    "lastUsedAt": 1774162915090,
+    "usageCount": 294,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -68,8 +68,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1774018056436,
-    "usageCount": 217,
+    "lastUsedAt": 1774270895757,
+    "usageCount": 225,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -143,8 +143,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1774019752948,
-    "usageCount": 256,
+    "lastUsedAt": 1774271211805,
+    "usageCount": 262,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1774019967032,
-    "usageCount": 306,
+    "lastUsedAt": 1774145060251,
+    "usageCount": 314,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -218,8 +218,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1774019753196,
-    "usageCount": 195,
+    "lastUsedAt": 1774162682137,
+    "usageCount": 205,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -8604,6 +8604,756 @@
     ],
     "createdAt": 1774019570610,
     "lastUsedAt": 1774019570610,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "3c291269-78f7-4731-8966-43054adc09e3",
+    "key": "ipv4-curl-usage",
+    "value": "Use curl with the -4 flag against trusted endpoints like ifconfig.me to explicitly retrieve the public IPv4 address instead of IPv6.",
+    "context": "check the public ip4 address",
+    "sessionIDs": [
+      "ses_2f28fb7bdffeuE9LSlwfZHrNWR"
+    ],
+    "createdAt": 1774047026887,
+    "lastUsedAt": 1774047026887,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "ef754d05-39da-4a59-93d1-93423b0adf49",
+    "key": "bash-network-checks",
+    "value": "Utilize lightweight bash commands for network diagnostics to quickly verify connectivity without external dependencies.",
+    "context": "check the public ip4 address",
+    "sessionIDs": [
+      "ses_2f28fb7bdffeuE9LSlwfZHrNWR"
+    ],
+    "createdAt": 1774047027154,
+    "lastUsedAt": 1774047027154,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "1562b1cf-65d9-4d39-9a39-1ee50fc0fe04",
+    "key": "documentation-first-verification",
+    "value": "Refer to specific design documentation before analyzing code to confirm file generation logic and structure.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774093123085,
+    "lastUsedAt": 1774093123085,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cb9b3dc8-f95c-493f-be7b-65f42ddd3728",
+    "key": "iteration-to-file-mapping",
+    "value": "Explicitly verify the ratio between processing loops and output files to ensure correct data handling assumptions.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774093123323,
+    "lastUsedAt": 1774093123323,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "ef3a5b09-18da-4ba7-874a-34789c70c9d8",
+    "key": "documentation-first-investigation",
+    "value": "When investigating system behavior like file generation logic, prioritize reviewing existing architectural documentation before analyzing source code to save time and ensure accuracy.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774093245057,
+    "lastUsedAt": 1774093245057,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "3ac94614-37cf-42c5-be7b-fe5a2db7b56a",
+    "key": "structured-logic-verification",
+    "value": "Break down understanding of generation processes into specific questions about loop frequency, artifact-to-scene mapping, and trigger conditions to ensure comprehensive verification.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774093245544,
+    "lastUsedAt": 1774093245544,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "329cd701-7fd8-421a-bd1b-31ca0151267e",
+    "key": "verify-design-docs",
+    "value": "Consult existing design documentation to confirm intended behavior before analyzing implementation details.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774093635630,
+    "lastUsedAt": 1774093635630,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "40933b6e-51d5-492e-a8cd-93b0931088f3",
+    "key": "fragment-based-panel-generation",
+    "value": "Generate panels based on entire text fragments per loop instead of individual sentences to maintain semantic coherence.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774093635904,
+    "lastUsedAt": 1774093635904,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f8d60898-ed95-4401-96ff-bbf97f00deea",
+    "key": "llm-driven-panel-decision",
+    "value": "Allow the LLM to determine panel quantity and content dynamically based on context instead of using fixed rules.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774093636165,
+    "lastUsedAt": 1774093636165,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "6d5119ae-4e6e-4c55-99a0-cc63b97806fe",
+    "key": "review-architecture-docs",
+    "value": "Always consult existing design documentation before modifying logic to ensure alignment with intended system behavior.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094168290,
+    "lastUsedAt": 1774094168290,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a1ddb5eb-6a57-4794-9d73-c2dc950593a2",
+    "key": "llm-semantic-grouping",
+    "value": "Allow the LLM to determine output structure based on semantic context rather than rigid rules like sentence-by-sentence mapping.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094168573,
+    "lastUsedAt": 1774094168573,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f545d8fa-fd90-489a-a1ed-f47d22505a03",
+    "key": "verify-before-refactor",
+    "value": "Confirm current generation conditions and output counts before refactoring to establish a clear baseline for changes.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094168828,
+    "lastUsedAt": 1774094168828,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "5c170b66-e913-4b32-b658-1d69ef5ebd48",
+    "key": "system-mechanism-analysis",
+    "value": "Investigate loop mechanics and word count limits in existing engines before modifying generation logic to ensure compatibility.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094329636,
+    "lastUsedAt": 1774094329636,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cca2a2f9-c72e-44f6-ae10-1d9edcb5db7a",
+    "key": "semantic-granularity",
+    "value": "Avoid rigid one-to-one mappings between text units and output objects; use semantic fragments for better coherence.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094329990,
+    "lastUsedAt": 1774094329990,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a5d7e740-6781-4062-b485-f431657807f7",
+    "key": "llm-driven-structure",
+    "value": "Empower the LLM to decide output structure counts based on content context rather than hard-coded rules.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094330223,
+    "lastUsedAt": 1774094330223,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "29b22a32-660a-4db3-9ac4-c7ce1ff8e7dc",
+    "key": "panel-generation-strategy",
+    "value": "Avoid rigid one-sentence-to-one-panel mappings. Allow the LLM to semantically analyze text fragments to determine panel count and content.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094868451,
+    "lastUsedAt": 1774094868451,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "67fb1264-503c-4c3a-ade1-ce17052fd841",
+    "key": "dynamic-text-length",
+    "value": "Replace fixed word count limits with dynamic constraints. Enable the LLM to adjust text length based on story prompts for better quality.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094868740,
+    "lastUsedAt": 1774094868740,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "69f302bd-6359-4496-95e4-e9ce320cc14d",
+    "key": "documentation-verification",
+    "value": "Verify actual implementation against documentation before refactoring. This ensures constraints like loop counts and file structures are fully understood.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774094868977,
+    "lastUsedAt": 1774094868977,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "999a21c0-aba4-4b0d-99a5-deca5b5da4a8",
+    "key": "dynamic-generation-granularity",
+    "value": "Avoid fixed limits on text length or panel count per loop; instead, prompt the LLM to determine optimal segmentation based on narrative context.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774095310005,
+    "lastUsedAt": 1774095310005,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "5b275e64-ef84-42c7-b805-26b65aedf637",
+    "key": "contextual-state-propagation",
+    "value": "Ensure visual consistency across generation steps by explicitly tracking and passing contextual state like time, environment, and character status to the LLM.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774095310593,
+    "lastUsedAt": 1774095310593,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f6d59fb0-5edd-4220-913b-86b2fd509563",
+    "key": "panel-generation-strategy",
+    "value": "Generate panels based on semantic text fragments rather than individual sentences to ensure each panel represents a meaningful scene.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774095976271,
+    "lastUsedAt": 1774095976271,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "631ff452-e228-4edf-a733-ed134926be93",
+    "key": "dynamic-text-length",
+    "value": "Allow the LLM to determine the text length per generation loop based on story pacing instead of enforcing rigid word count limits.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774095976599,
+    "lastUsedAt": 1774095976599,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "101d10d4-a518-4596-a3b7-27fe6ba26d57",
+    "key": "visual-consistency-tracking",
+    "value": "Implement context tracking for time, environment, and story phase to maintain character appearance consistency across generated panels.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774095977574,
+    "lastUsedAt": 1774095977574,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b3f2afbe-1f92-4d21-ac9c-feea289ea0d0",
+    "key": "panel-generation-strategy",
+    "value": "避免一句一面板的机械映射，应让 LLM 基于文本片段的语义完整性自主判断面板数量。",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774096155153,
+    "lastUsedAt": 1774096155153,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "94f03c67-780b-42df-86b3-462a2a16376c",
+    "key": "dynamic-text-length",
+    "value": "移除每循环固定字数限制，允许 LLM 根据故事提示词动态决定生成文本的长度以保证质量。",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774096155542,
+    "lastUsedAt": 1774096155542,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "d86eda81-0494-4e0a-9c13-f04417b3b7e5",
+    "key": "character-consistency-context",
+    "value": "通过向 LLM 传递时间、环境和故事阶段等上下文，确保前后面板中人物穿着等视觉元素的一致性。",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774096155808,
+    "lastUsedAt": 1774096173959,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "6a1d81ba-7262-4469-b37d-2af50eff069b",
+    "key": "panel-generation-strategy",
+    "value": "Allow the LLM to determine panel count and content based on the entire text fragment rather than rigid sentence-to-panel mapping.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774096985116,
+    "lastUsedAt": 1774096985116,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "e695cd56-c562-40f4-b8be-133fcd736193",
+    "key": "dynamic-text-length",
+    "value": "Remove fixed character limits per loop and let the LLM decide text length based on story prompt requirements for better quality.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774096985444,
+    "lastUsedAt": 1774096985444,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8d532224-0a22-4fa6-ad84-d852b1203ae5",
+    "key": "visual-consistency-context",
+    "value": "Track time, environment, and story phase in context to guide the LLM in maintaining consistent character details across panels.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774096985685,
+    "lastUsedAt": 1774096985685,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "36088fc8-6e40-40b4-ae06-dbecfd86b547",
+    "key": "panel-generation-logic",
+    "value": "避免硬编码句子到面板的映射，应基于 LLM 对文本片段的语义分析动态决定面板数量和内容。",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案 visual-orchestrator.ts中还有如下硬编码的方式的代码，都改成通过prompt指导llm来完成：[Pasted ~20 lines] // Extract potential character names (Chinese names: 2-3 chars before verbs)\n    const charMatches =\n      text.match(\n        /([林陈苏王李张刘赵杨黄周吴徐孙朱马胡郭何高罗宋郑谢冯曾彭萧董韩唐曹邓许傅钟潘袁于余叶蒋魏田程杜丁姚廖方熊金孟韦邱白聂齐康常毛洪易文路温蓝段雷钱侯龙万黎简蒋郑阎陆谭牛邵邱岳邢宁乔孟秦卫尤祁苗管祝谈岳费卜昌孔向盖秋仲阳牛慕容东方上官]([a-zA-Z\\u4e00-\\u9fa5]){1,2}(?:看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头))/g,\n      ) || []\n    const characters = [\n      ...new Set(\n        charMatches.map((m) => m.replace(/(看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头)/g, \"\").trim()),\n      ),\n    ]\n\n    // Detect emotions from keywords\n    const emotionKeywords: Record<string, string[]> = {\n      anger: [\"愤怒\", \"生气\", \"怒火\", \"吼\"],\n      fear: [\"害怕\", \"恐惧\", \"惊恐\", \"颤抖\"],\n      sadness: [\"悲伤\", \"哭泣\", \"泪水\", \"哭\"],\n      joy: [\"高兴\", \"喜悦\", \"笑\", \"开心\"],\n      love: [\"爱\", \"温柔\", \"深情\"],\n      surprise: [\"惊讶\", \"震惊\", \"吃惊\"],\n    }",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774097645898,
+    "lastUsedAt": 1774097645898,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f5920654-dc95-4313-b68b-5836a60492c6",
+    "key": "dynamic-text-limits",
+    "value": "移除每次循环的固定字数限制，允许 LLM 根据故事提示和上下文自主判断生成文本的长度以保证质量。",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案 visual-orchestrator.ts中还有如下硬编码的方式的代码，都改成通过prompt指导llm来完成：[Pasted ~20 lines] // Extract potential character names (Chinese names: 2-3 chars before verbs)\n    const charMatches =\n      text.match(\n        /([林陈苏王李张刘赵杨黄周吴徐孙朱马胡郭何高罗宋郑谢冯曾彭萧董韩唐曹邓许傅钟潘袁于余叶蒋魏田程杜丁姚廖方熊金孟韦邱白聂齐康常毛洪易文路温蓝段雷钱侯龙万黎简蒋郑阎陆谭牛邵邱岳邢宁乔孟秦卫尤祁苗管祝谈岳费卜昌孔向盖秋仲阳牛慕容东方上官]([a-zA-Z\\u4e00-\\u9fa5]){1,2}(?:看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头))/g,\n      ) || []\n    const characters = [\n      ...new Set(\n        charMatches.map((m) => m.replace(/(看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头)/g, \"\").trim()),\n      ),\n    ]\n\n    // Detect emotions from keywords\n    const emotionKeywords: Record<string, string[]> = {\n      anger: [\"愤怒\", \"生气\", \"怒火\", \"吼\"],\n      fear: [\"害怕\", \"恐惧\", \"惊恐\", \"颤抖\"],\n      sadness: [\"悲伤\", \"哭泣\", \"泪水\", \"哭\"],\n      joy: [\"高兴\", \"喜悦\", \"笑\", \"开心\"],\n      love: [\"爱\", \"温柔\", \"深情\"],\n      surprise: [\"惊讶\", \"震惊\", \"吃惊\"],\n    }",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774097646158,
+    "lastUsedAt": 1774097790827,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "1c457382-fff4-48de-bb0f-376623d4062e",
+    "key": "visual-consistency-tracking",
+    "value": "通过在代码中显式传递时间段、环境和故事阶段等上下文信息，帮助 LLM 维持跨面板的人物穿着等视觉一致性。",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案 visual-orchestrator.ts中还有如下硬编码的方式的代码，都改成通过prompt指导llm来完成：[Pasted ~20 lines] // Extract potential character names (Chinese names: 2-3 chars before verbs)\n    const charMatches =\n      text.match(\n        /([林陈苏王李张刘赵杨黄周吴徐孙朱马胡郭何高罗宋郑谢冯曾彭萧董韩唐曹邓许傅钟潘袁于余叶蒋魏田程杜丁姚廖方熊金孟韦邱白聂齐康常毛洪易文路温蓝段雷钱侯龙万黎简蒋郑阎陆谭牛邵邱岳邢宁乔孟秦卫尤祁苗管祝谈岳费卜昌孔向盖秋仲阳牛慕容东方上官]([a-zA-Z\\u4e00-\\u9fa5]){1,2}(?:看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头))/g,\n      ) || []\n    const characters = [\n      ...new Set(\n        charMatches.map((m) => m.replace(/(看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头)/g, \"\").trim()),\n      ),\n    ]\n\n    // Detect emotions from keywords\n    const emotionKeywords: Record<string, string[]> = {\n      anger: [\"愤怒\", \"生气\", \"怒火\", \"吼\"],\n      fear: [\"害怕\", \"恐惧\", \"惊恐\", \"颤抖\"],\n      sadness: [\"悲伤\", \"哭泣\", \"泪水\", \"哭\"],\n      joy: [\"高兴\", \"喜悦\", \"笑\", \"开心\"],\n      love: [\"爱\", \"温柔\", \"深情\"],\n      surprise: [\"惊讶\", \"震惊\", \"吃惊\"],\n    }",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774097646607,
+    "lastUsedAt": 1774097646607,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "61340c04-47fb-44a8-b68a-b8c50431c856",
+    "key": "avoid-per-sentence-panel-generation",
+    "value": "Use the entire text snippet from a loop to generate panels, allowing the LLM to decide the number and content for better coherence and reduced fragmentation.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案 visual-orchestrator.ts中还有如下硬编码的方式的代码，都改成通过prompt指导llm来完成：[Pasted ~20 lines] // Extract potential character names (Chinese names: 2-3 chars before verbs)\n    const charMatches =\n      text.match(\n        /([林陈苏王李张刘赵杨黄周吴徐孙朱马胡郭何高罗宋郑谢冯曾彭萧董韩唐曹邓许傅钟潘袁于余叶蒋魏田程杜丁姚廖方熊金孟韦邱白聂齐康常毛洪易文路温蓝段雷钱侯龙万黎简蒋郑阎陆谭牛邵邱岳邢宁乔孟秦卫尤祁苗管祝谈岳费卜昌孔向盖秋仲阳牛慕容东方上官]([a-zA-Z\\u4e00-\\u9fa5]){1,2}(?:看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头))/g,\n      ) || []\n    const characters = [\n      ...new Set(\n        charMatches.map((m) => m.replace(/(看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头)/g, \"\").trim()),\n      ),\n    ]\n\n    // Detect emotions from keywords\n    const emotionKeywords: Record<string, string[]> = {\n      anger: [\"愤怒\", \"生气\", \"怒火\", \"吼\"],\n      fear: [\"害怕\", \"恐惧\", \"惊恐\", \"颤抖\"],\n      sadness: [\"悲伤\", \"哭泣\", \"泪水\", \"哭\"],\n      joy: [\"高兴\", \"喜悦\", \"笑\", \"开心\"],\n      love: [\"爱\", \"温柔\", \"深情\"],\n      surprise: [\"惊讶\", \"震惊\", \"吃惊\"],\n    } 根据前面已完成的修改，判断是否要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/story_prompt_template.md",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774097868602,
+    "lastUsedAt": 1774097868602,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f669d389-8f84-44a9-a0fa-a3583ddc0966",
+    "key": "llm-driven-text-length-control",
+    "value": "Let the LLM determine the text length per loop based on the story prompt, rather than imposing fixed word limits, to enhance text quality and narrative flow.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案 visual-orchestrator.ts中还有如下硬编码的方式的代码，都改成通过prompt指导llm来完成：[Pasted ~20 lines] // Extract potential character names (Chinese names: 2-3 chars before verbs)\n    const charMatches =\n      text.match(\n        /([林陈苏王李张刘赵杨黄周吴徐孙朱马胡郭何高罗宋郑谢冯曾彭萧董韩唐曹邓许傅钟潘袁于余叶蒋魏田程杜丁姚廖方熊金孟韦邱白聂齐康常毛洪易文路温蓝段雷钱侯龙万黎简蒋郑阎陆谭牛邵邱岳邢宁乔孟秦卫尤祁苗管祝谈岳费卜昌孔向盖秋仲阳牛慕容东方上官]([a-zA-Z\\u4e00-\\u9fa5]){1,2}(?:看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头))/g,\n      ) || []\n    const characters = [\n      ...new Set(\n        charMatches.map((m) => m.replace(/(看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头)/g, \"\").trim()),\n      ),\n    ]\n\n    // Detect emotions from keywords\n    const emotionKeywords: Record<string, string[]> = {\n      anger: [\"愤怒\", \"生气\", \"怒火\", \"吼\"],\n      fear: [\"害怕\", \"恐惧\", \"惊恐\", \"颤抖\"],\n      sadness: [\"悲伤\", \"哭泣\", \"泪水\", \"哭\"],\n      joy: [\"高兴\", \"喜悦\", \"笑\", \"开心\"],\n      love: [\"爱\", \"温柔\", \"深情\"],\n      surprise: [\"惊讶\", \"震惊\", \"吃惊\"],\n    } 根据前面已完成的修改，判断是否要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/story_prompt_template.md",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774097868985,
+    "lastUsedAt": 1774097868985,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "9de18358-4d74-4d13-a62f-9ac08f5cbe14",
+    "key": "ensure-panel-consistency",
+    "value": "Implement code checks for the LLM to consider time, environment, and story stage when generating panels, ensuring consistency in elements like character attire across scenes.",
+    "context": "参考 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/PANEL_GENERATION.md ， 确认以下问题：novel没循环一次，生成多少个panel文件？一个panel文件是不是只描述一个画面？ 生成panel对象的条件是什么？ 每个句子判断对应一个panel对象显然不合理，应该是以当前循环生成的整个文本片段为基础，由LLM判断生成panel的数量和内容 按1、2、3实施 确认novel引擎每循环一次生成的字数是如何决定的？ 这个字数限制显然不合理，novel引擎应该根据story prompt的设定，由llm自主判断每个循环生成的文本片段的字数，否则一个循环生成的字数太少，会极大限制novel引擎生成文本的质量 有个难点：就是如何让生成的panel的内容能指导ai生成前后一致的人物穿着。影响人物穿着一致性的应该是：前后的panel的描述是不是在同一个时间段内，环境是不是没有发生大的变化，还有就是故事发展的阶段没有发生大的转折，在代码中如何让LLM实现类似的判断，并在前后生成的panel中标识或传达这样的信息？给出你的方案 我提出的影响人物穿着一致性的关键因素，只是我的想法，请根据为了能指定AI准确保持人物一致性这样的目的，提出你的关键因素 以硬编码的方式实现一致性有点不合适，应该是通过prompt指导llm来做出判断 实现这个让 LLM 通过 prompt 理解连续性的方案 visual-orchestrator.ts中还有如下硬编码的方式的代码，都改成通过prompt指导llm来完成：[Pasted ~20 lines] // Extract potential character names (Chinese names: 2-3 chars before verbs)\n    const charMatches =\n      text.match(\n        /([林陈苏王李张刘赵杨黄周吴徐孙朱马胡郭何高罗宋郑谢冯曾彭萧董韩唐曹邓许傅钟潘袁于余叶蒋魏田程杜丁姚廖方熊金孟韦邱白聂齐康常毛洪易文路温蓝段雷钱侯龙万黎简蒋郑阎陆谭牛邵邱岳邢宁乔孟秦卫尤祁苗管祝谈岳费卜昌孔向盖秋仲阳牛慕容东方上官]([a-zA-Z\\u4e00-\\u9fa5]){1,2}(?:看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头))/g,\n      ) || []\n    const characters = [\n      ...new Set(\n        charMatches.map((m) => m.replace(/(看着 | 说 | 问 | 回答 | 站 | 走 | 冲 | 转身 | 点头 | 摇头)/g, \"\").trim()),\n      ),\n    ]\n\n    // Detect emotions from keywords\n    const emotionKeywords: Record<string, string[]> = {\n      anger: [\"愤怒\", \"生气\", \"怒火\", \"吼\"],\n      fear: [\"害怕\", \"恐惧\", \"惊恐\", \"颤抖\"],\n      sadness: [\"悲伤\", \"哭泣\", \"泪水\", \"哭\"],\n      joy: [\"高兴\", \"喜悦\", \"笑\", \"开心\"],\n      love: [\"爱\", \"温柔\", \"深情\"],\n      surprise: [\"惊讶\", \"震惊\", \"吃惊\"],\n    } 根据前面已完成的修改，判断是否要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/story_prompt_template.md",
+    "sessionIDs": [
+      "ses_2efd06e7dffehHozGG6jGORtz2"
+    ],
+    "createdAt": 1774097869215,
+    "lastUsedAt": 1774097869215,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8fa63aa2-4899-481c-9ad9-5f18e1d72878",
+    "key": "structural-analysis-workflow",
+    "value": "Map the file structure using glob and grep before deep diving to efficiently identify discrepancies between code and documentation.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774135523254,
+    "lastUsedAt": 1774135523254,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "65ea7727-daf4-4a0c-a15b-aabb4169c0b6",
+    "key": "documentation-drift-prevention",
+    "value": "Schedule regular audits of architecture documents against the current codebase to prevent design drift as the project evolves.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774135523740,
+    "lastUsedAt": 1774135523740,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "0c384dd5-4198-42f6-885f-b544041df3ae",
+    "key": "verification-checklist",
+    "value": "Create a checklist of key architectural components to verify during audits to ensure comprehensive documentation coverage.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774135523973,
+    "lastUsedAt": 1774135523973,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a611e42c-a991-49dd-bab7-36143a3b7dd2",
+    "key": "documentation-sync",
+    "value": "Verify architecture documentation against current code implementation when integration status changes to prevent drift.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774138476466,
+    "lastUsedAt": 1774138476466,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "38ec5377-c809-4647-bdf2-42051d99c8a2",
+    "key": "static-analysis-tools",
+    "value": "Leverage grep and glob commands to quickly assess codebase structure before performing detailed file analysis.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774138476929,
+    "lastUsedAt": 1774138476929,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "7dffb86d-438b-4277-8b76-d7c32867790c",
+    "key": "integration-checklist",
+    "value": "Use design specification documents as a checklist to confirm all required engine components are fully integrated.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774138477146,
+    "lastUsedAt": 1774138477146,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8a168ac5-690a-483d-98ac-3a864b1a7359",
+    "key": "documentation-sync",
+    "value": "Cross-reference architecture diagrams with actual code implementation during integration phases to prevent documentation drift.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774138820104,
+    "lastUsedAt": 1774138820104,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "76a27a24-9072-4c0f-860f-c11b496179e3",
+    "key": "feature-flag-verification",
+    "value": "Use systematic grep or glob searches to verify that optional features are configured as enabled by default across the codebase.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774138820344,
+    "lastUsedAt": 1774138820344,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "6ded6dea-8398-4d1f-963e-15600b89895a",
+    "key": "automated-verification",
+    "value": "Leverage bash scripts and grep patterns to automate code analysis and efficiently verify integration states across large codebases.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774138820635,
+    "lastUsedAt": 1774138820635,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "d3a2eff6-4482-4da7-a814-b23dab815d2b",
+    "key": "documentation-sync",
+    "value": "Update architecture documentation immediately after code analysis to reflect the current system state accurately.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开 从 git 历史记录中，恢复 /Users/lpcw/Documents/opencode/docs",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774139060023,
+    "lastUsedAt": 1774139060023,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "1c386cc2-f573-4d0c-8cbe-105cc652aea6",
+    "key": "integration-verification",
+    "value": "Cross-reference integration status and design documents to ensure optional features are enabled by default during full integration.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开 从 git 历史记录中，恢复 /Users/lpcw/Documents/opencode/docs",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774139060445,
+    "lastUsedAt": 1774139060445,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "714123a0-8fec-44e4-a131-0f6927791a90",
+    "key": "git-history-recovery",
+    "value": "Use git history commands to recover deleted documentation files when current versions are missing or outdated.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开 从 git 历史记录中，恢复 /Users/lpcw/Documents/opencode/docs",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774139060766,
+    "lastUsedAt": 1774139060766,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "9572a524-2bef-4a25-a9c8-c8cf8a3e6525",
+    "key": "documentation-sync",
+    "value": "Update architecture documentation immediately after integration changes using design specs to ensure accuracy.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开 从 git 历史记录中，恢复 /Users/lpcw/Documents/opencode/docs 跟踪这些恢复的文件到git",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774139206359,
+    "lastUsedAt": 1774139206359,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b253bec0-37d6-41ae-88ac-a065f8aa9fe6",
+    "key": "git-history-restore",
+    "value": "When restoring files from git history, verify the target directory and explicitly track them in git.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开 从 git 历史记录中，恢复 /Users/lpcw/Documents/opencode/docs 跟踪这些恢复的文件到git",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774139206594,
+    "lastUsedAt": 1774139262601,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "19b0650d-5bb8-4913-ab92-788fd8394013",
+    "key": "feature-defaults",
+    "value": "Default optional features to enabled during full integration to maximize initial functionality coverage.",
+    "context": "全面分析 /Users/lpcw/Documents/opencode/packages/opencode/src/novel 中的代码，确认是否需要更新 /Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/CODE_ARCHITECTURE.html 根据 [P/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/INTEGRATION_STATUS.md\n/Users/lpcw/Documents/opencode/packages/opencode/src/novel/docs/LEARNING_BRIDGE_DESIGN.md，实现novel引擎完全的整合 可选功能默认打开 从 git 历史记录中，恢复 /Users/lpcw/Documents/opencode/docs 跟踪这些恢复的文件到git",
+    "sessionIDs": [
+      "ses_2ed526896ffejODMKAsHTln2OQ"
+    ],
+    "createdAt": 1774139206856,
+    "lastUsedAt": 1774139206856,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,

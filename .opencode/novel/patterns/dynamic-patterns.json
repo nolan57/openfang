@@ -1,0 +1,31 @@
+{
+  "patterns": [
+    {
+      "keyword": "Generational Debt Pact",
+      "category": "world_rule",
+      "description": "Family prosperity and safety are maintained through a recurring supernatural contract that requires each generation's heir to fulfill a specific dangerous obligation."
+    },
+    {
+      "keyword": "Rite of Passage Isolation",
+      "category": "plot_device",
+      "description": "The protagonist must undergo a solitary confinement ritual at a specific age and time window to inherit family status or secrets."
+    },
+    {
+      "keyword": "Object Memory Vision",
+      "category": "plot_device",
+      "description": "An artifact functions as a recording device that reveals past events or lineage history visually instead of reflecting the present reality."
+    },
+    {
+      "keyword": "Prosperity as Transaction",
+      "category": "tone",
+      "description": "The narrative reframes family success not as a result of virtue or merit, but as a leased commodity paid for with supernatural risk."
+    },
+    {
+      "keyword": "Animated Pact Symbol",
+      "category": "world_rule",
+      "description": "Inanimate objects associated with the supernatural agreement exhibit biological movement to enforce or signal the contract's active state."
+    }
+  ],
+  "version": "1.0",
+  "lastUpdated": 1774214446035
+}
