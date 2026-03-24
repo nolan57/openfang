@@ -1,0 +1,445 @@
+{
+  "storyLines": [
+    {
+      "name": "蔡氏血脉的诅咒",
+      "keyBeats": [
+        {
+          "chapter": 1,
+          "description": "蔡姓书生买下北门外凶宅，家人畏惧不敢入，他独自秉烛夜坐，等待鬼魅出现。",
+          "characters": [
+            "蔡书生",
+            "家人"
+          ],
+          "thematicRelevance": "开启宿命轮回，主角主动直面恐惧而非逃避"
+        },
+        {
+          "chapter": 5,
+          "description": "蔡书生科举登第，搬离宅邸，将秘密封存，后代逐渐遗忘祖训与宅中往事。",
+          "characters": [
+            "蔡书生",
+            "蔡氏先祖"
+          ],
+          "thematicRelevance": "逃避真相换取世俗成功，埋下背叛的伏笔"
+        },
+        {
+          "chapter": 15,
+          "description": "晚清蔡氏后代家道中落，被迫返回祖宅居住，发现梁上隐约有红痕浮现。",
+          "characters": [
+            "蔡守业",
+            "老仆"
+          ],
+          "thematicRelevance": "祖先的债由后代偿还，因果循环不可避"
+        },
+        {
+          "chapter": 20,
+          "description": "蔡守业在夹墙中发现先祖日记，得知当年女鬼身份被刻意隐瞒，心生愧疚。",
+          "characters": [
+            "蔡守业"
+          ],
+          "thematicRelevance": "真相的碎片开始拼凑，救赎的第一步是知晓"
+        },
+        {
+          "chapter": 25,
+          "description": "蔡守业试图请道士驱邪，反而激怒灵体，宅中怪象频发，家人病倒。",
+          "characters": [
+            "蔡守业",
+            "道士",
+            "女鬼"
+          ],
+          "thematicRelevance": "暴力镇压无法解决冤屈，只会加深罪孽"
+        },
+        {
+          "chapter": 35,
+          "description": "民国战乱，蔡氏后人逃离杭州，宅邸被军阀强占，血脉与故土彻底断裂。",
+          "characters": [
+            "蔡流亡者"
+          ],
+          "thematicRelevance": "时代洪流下个体命运如浮萍，诅咒随人流转"
+        },
+        {
+          "chapter": 45,
+          "description": "现代蔡氏裔孙蔡明回国，作为开发商欲拆除祖宅，梦见先祖跪求勿拆。",
+          "characters": [
+            "蔡明",
+            "蔡书生幻象"
+          ],
+          "thematicRelevance": "现代利益与传统因果的冲突，轮回的关键节点"
+        },
+        {
+          "chapter": 50,
+          "description": "蔡明暂停工程，聘请考古队发掘地基，决定直面家族最黑暗的歷史。",
+          "characters": [
+            "蔡明",
+            "考古队长"
+          ],
+          "thematicRelevance": "从逃避转向承担，救赎的实际行动"
+        },
+        {
+          "chapter": 55,
+          "description": "发掘出女性骸骨，蔡明确认其为家族冤魂，公开承认祖先的背叛罪行。",
+          "characters": [
+            "蔡明",
+            "媒体"
+          ],
+          "thematicRelevance": "公开真相是打破轮回的唯一钥匙"
+        },
+        {
+          "chapter": 60,
+          "description": "蔡明保留宅邸改为纪念馆，不再仕途求荣，终老于此，诅咒彻底消散。",
+          "characters": [
+            "蔡明"
+          ],
+          "thematicRelevance": "牺牲世俗成就完成救赎，轮回终结"
+        }
+      ],
+      "status": "active",
+      "currentBeatIndex": 0
+    },
+    {
+      "name": "悬梁女子的真相",
+      "keyBeats": [
+        {
+          "chapter": 2,
+          "description": "夜半女子冉冉而来，颈拖红绳，欲引蔡书生同尽，被蔡言语喝退。",
+          "characters": [
+            "女鬼",
+            "蔡书生"
+          ],
+          "thematicRelevance": "怨恨的具象化，寻求替身而非解脱"
+        },
+        {
+          "chapter": 8,
+          "description": "女子幻影在镜中显现，流露明末服饰特征，暗示其死亡年代与身份。",
+          "characters": [
+            "女鬼",
+            "蔡书生"
+          ],
+          "thematicRelevance": "历史背景的铺垫，悲剧的根源在于时代"
+        },
+        {
+          "chapter": 18,
+          "description": "晚清时女鬼附身婢女，哭诉生前被爱人许诺婚约却遭抛弃另娶。",
+          "characters": [
+            "女鬼",
+            "婢女"
+          ],
+          "thematicRelevance": "背叛的具体内容揭示，情感创伤的核心"
+        },
+        {
+          "chapter": 22,
+          "description": "日记证实女鬼名为柳娘，蔡先祖曾许诺救其家族，后为前程背弃。",
+          "characters": [
+            "蔡守业",
+            "柳娘"
+          ],
+          "thematicRelevance": "背叛的双向性，生存压力下的道德妥协"
+        },
+        {
+          "chapter": 30,
+          "description": "民国时女鬼保护避难少女免受军阀侮辱，怨恨中生出慈悲之心。",
+          "characters": [
+            "女鬼",
+            "难民少女"
+          ],
+          "thematicRelevance": "怨灵的人性觉醒，救赎不仅限于受害者"
+        },
+        {
+          "chapter": 38,
+          "description": "随着时代变迁，迷信消退，女鬼身影变得透明，力量因被遗忘而减弱。",
+          "characters": [
+            "女鬼"
+          ],
+          "thematicRelevance": "记忆是鬼魂的养分，遗忘即二次死亡"
+        },
+        {
+          "chapter": 48,
+          "description": "现代法医鉴定骸骨颈骨有断裂痕，确认非自杀而是被伪装成自缢。",
+          "characters": [
+            "法医",
+            "蔡明"
+          ],
+          "thematicRelevance": "科学揭示历史真相，冤屈得到物理证实"
+        },
+        {
+          "chapter": 52,
+          "description": "女鬼在梦中向蔡明展示生前画面，并非求死，而是求一个名字。",
+          "characters": [
+            "女鬼",
+            "蔡明"
+          ],
+          "thematicRelevance": "诉求的升华，从复仇转向身份认同"
+        },
+        {
+          "chapter": 57,
+          "description": "蔡明为柳娘立牌位，写入蔡氏族谱，承认其为先祖发妻。",
+          "characters": [
+            "蔡明"
+          ],
+          "thematicRelevance": "给予名分是最高形式的道歉与接纳"
+        },
+        {
+          "chapter": 59,
+          "description": "柳娘幻影最后一次出现，红绳解开，向蔡明深深一拜，消散于西湖雾气。",
+          "characters": [
+            "女鬼",
+            "蔡明"
+          ],
+          "thematicRelevance": "和解达成，执念放下，轮回闭合"
+        }
+      ],
+      "status": "active",
+      "currentBeatIndex": 0
+    },
+    {
+      "name": "居住者的爱欲",
+      "keyBeats": [
+        {
+          "chapter": 4,
+          "description": "蔡书生原配夫人因恐惧宅邸，拒绝入住，夫妻情感产生第一道裂痕。",
+          "characters": [
+            "蔡书生",
+            "蔡夫人"
+          ],
+          "thematicRelevance": "秘密成为亲密关系的隔阂，背叛的连锁反应"
+        },
+        {
+          "chapter": 12,
+          "description": "晚清蔡守业与表妹在宅中相爱，家族因迷信反对，表妹郁郁而终。",
+          "characters": [
+            "蔡守业",
+            "表妹"
+          ],
+          "thematicRelevance": "历史重演，后代重复祖先的情感悲剧"
+        },
+        {
+          "chapter": 16,
+          "description": "表妹临终前在西厢房自缢，红绳与柳娘之物相似，怨气叠加。",
+          "characters": [
+            "表妹",
+            "蔡守业"
+          ],
+          "thematicRelevance": "新的冤魂诞生，诅咒因悲伤而增强"
+        },
+        {
+          "chapter": 24,
+          "description": "民国歌女躲入宅中，与革命青年相恋，宅邸成为他们的秘密避难所。",
+          "characters": [
+            "歌女",
+            "革命青年"
+          ],
+          "thematicRelevance": "黑暗中的希望，爱欲在绝境中绽放"
+        },
+        {
+          "chapter": 28,
+          "description": "青年被捕牺牲，歌女欲殉情，被柳娘幻象阻止，告知生命可贵。",
+          "characters": [
+            "歌女",
+            "女鬼"
+          ],
+          "thematicRelevance": "亡者救赎生者，悲剧转化为生存动力"
+        },
+        {
+          "chapter": 32,
+          "description": "歌女将宅中秘密写成戏本，流传后世，让更多人知晓此处发生过的事。",
+          "characters": [
+            "歌女"
+          ],
+          "thematicRelevance": "艺术记录历史，记忆对抗遗忘"
+        },
+        {
+          "chapter": 40,
+          "description": "现代蔡明与妻子感情冷淡，因拆迁事宜争吵，妻子怀疑蔡明外遇。",
+          "characters": [
+            "蔡明",
+            "蔡明妻"
+          ],
+          "thematicRelevance": "现代婚姻危机，映射祖先的情感遗留问题"
+        },
+        {
+          "chapter": 44,
+          "description": "妻子独自夜探宅邸，感受到历史悲凉，理解丈夫的压力与宿命。",
+          "characters": [
+            "蔡明妻"
+          ],
+          "thematicRelevance": "共情是修复关系的桥梁，共同面对创伤"
+        },
+        {
+          "chapter": 52,
+          "description": "夫妻共同整理柳娘遗物，在探究真相的过程中重拾信任与爱。",
+          "characters": [
+            "蔡明",
+            "蔡明妻"
+          ],
+          "thematicRelevance": "共同救赎，爱在理解中重生"
+        },
+        {
+          "chapter": 58,
+          "description": "夫妻决定不再生育，领养孤儿，打破血缘诅咒，选择广义的传承。",
+          "characters": [
+            "蔡明",
+            "蔡明妻"
+          ],
+          "thematicRelevance": "超越血缘的救赎，终结宿命轮回"
+        }
+      ],
+      "status": "active",
+      "currentBeatIndex": 0
+    },
+    {
+      "name": "北关宅邸的兴衰",
+      "keyBeats": [
+        {
+          "chapter": 1,
+          "description": "宅邸位于北关门外，毗邻荒野坟地，因凶名赫赫而锁具坚固，无人问津。",
+          "characters": [
+            "中介",
+            "蔡书生"
+          ],
+          "thematicRelevance": "空间作为命运的容器，孤立无援的象征"
+        },
+        {
+          "chapter": 8,
+          "description": "明末清初战乱，城外火光冲天，宅邸因偏僻反而成为乱世避难所。",
+          "characters": [
+            "难民"
+          ],
+          "thematicRelevance": "危险与安全辩证，死亡之地亦是生存之地"
+        },
+        {
+          "chapter": 14,
+          "description": "乾隆南巡，杭州繁华，宅邸被修葺一新，红墙绿瓦掩盖了梁上血迹。",
+          "characters": [
+            "工匠",
+            "蔡家"
+          ],
+          "thematicRelevance": "盛世掩盖悲剧，表象繁荣下的腐朽"
+        },
+        {
+          "chapter": 21,
+          "description": "太平天国运动，宅邸遭兵火波及，西厢房倒塌，露出地下骸骨一角。",
+          "characters": [
+            "士兵"
+          ],
+          "thematicRelevance": "战争撕开伪装，秘密被迫暴露"
+        },
+        {
+          "chapter": 29,
+          "description": "民国军阀强占宅邸为司令部，肆意破坏风水，鬼魅之夜频发致士兵疯癫。",
+          "characters": [
+            "军阀",
+            "士兵"
+          ],
+          "thematicRelevance": "权力对历史的亵渎，遭致因果反噬"
+        },
+        {
+          "chapter": 36,
+          "description": "抗战时期炸弹落于附近，宅邸奇迹般未倒，被民众视为神迹保护。",
+          "characters": [
+            "市民"
+          ],
+          "thematicRelevance": "建筑成为精神图腾，承载集体记忆"
+        },
+        {
+          "chapter": 42,
+          "description": "现代城市扩张，高楼林立，古宅如孤岛般被玻璃幕墙包围，格格不入。",
+          "characters": [
+            "城市规划者"
+          ],
+          "thematicRelevance": "传统与现代的对立，历史空间的挤压"
+        },
+        {
+          "chapter": 46,
+          "description": "政府下达拆迁令，推土机停在门口，宅邸面临物理意义上的毁灭。",
+          "characters": [
+            "开发商",
+            "蔡明"
+          ],
+          "thematicRelevance": "最后的危机，物质载体与精神记忆的博弈"
+        },
+        {
+          "chapter": 54,
+          "description": "文化学者联名上书，媒体曝光宅邸历史，舆论压力迫使政府暂停拆除。",
+          "characters": [
+            "学者",
+            "记者"
+          ],
+          "thematicRelevance": "社会良知觉醒，集体力量干预宿命"
+        },
+        {
+          "chapter": 60,
+          "description": "宅邸被列为保护建筑，开辟为历史博物馆，夜晚不再锁门，欢迎参观。",
+          "characters": [
+            "游客",
+            "蔡明"
+          ],
+          "thematicRelevance": "从私密禁忌到公共记忆，阳光驱散阴霾"
+        }
+      ],
+      "status": "active",
+      "currentBeatIndex": 0
+    }
+  ],
+  "thematicMotifs": {
+    "red_rope": {
+      "description": "象征自缢、束缚与命运的连接，从凶器变为和解的纽带",
+      "chapters": [
+        2,
+        16,
+        59
+      ],
+      "variations": [
+        "女鬼颈间的红绳",
+        "表妹自缢的红绳",
+        "蔡明解开的红绳结"
+      ]
+    },
+    "bronze_mirror": {
+      "description": "映照真相与虚幻，连接过去与现在的媒介",
+      "chapters": [
+        8,
+        20,
+        44
+      ],
+      "variations": [
+        "镜中显现的明末服饰",
+        "夹墙中发现的古镜",
+        "妻子在镜中看到历史幻影"
+      ]
+    },
+    "west_lake_water": {
+      "description": "时间的流逝，清洗罪孽，也淹没记忆",
+      "chapters": [
+        10,
+        30,
+        59
+      ],
+      "variations": [
+        "西湖边的雾气",
+        "雨水冲刷宅院",
+        "鬼魂消散于水汽"
+      ]
+    },
+    "iron_lock": {
+      "description": "封闭、秘密与保护，最终被打开象征解脱",
+      "chapters": [
+        1,
+        35,
+        60
+      ],
+      "variations": [
+        "坚固的宅门铁锁",
+        "战乱时的封条",
+        "博物馆敞开的大门"
+      ]
+    }
+  },
+  "createdAt": 1774213548641,
+  "lastUpdated": 1774213548642,
+  "theme": "** 背叛与救赎的轮回",
+  "tone": "** 凄美、宿命、深沉",
+  "initialPrompt": "# 时光的回响\n\n[LANGUAGE: Chinese]\n\n---\n\n## Story Metadata\n\n**Theme:** 背叛与救赎的轮回\n**Tone:** 凄美、宿命、深沉\n**Genre:** 横跨明清民国现代的悲剧史诗，融合古典鬼魂传说与心理描写\n\n---\n\n## Time and Location\n\n**Time:** 横跨四百年（明末 → 晚清 → 民国 → 现代）\n**Location:** 杭州西湖畔，北关门外\n\n---\n\n## Opening\n\n杭州北关门外有一屋，鬼屡见，人不敢居，扃锁甚固。书生蔡姓者将买其宅。人危之，蔡不听。券成，家人不肯入。蔡亲自启屋，秉烛坐。至夜半，有女子冉冉来，颈拖红怖色。女子再挂一绳，招蔡。蔡曳一足就之。女子曰：\"君误矣。\"蔡笑曰：\"汝误才有今日，我勿误也。\"鬼大哭，伏地再拜去。自此，怪遂绝，蔡亦登第。或云即蔡炳侯方伯也\n\n---\n\n## Notes for AI\n\n请自由发展这个故事。你会经历四个时代：明末、晚清、民国、现代。每个时代都有多个家族后人面临的冲突悲剧的诅咒。他们有的试图打破，有的试图逃避，有的坦然接受。\n\n你的任务是：让故事自然生长，让角色自己说话。不要害怕悲剧，但也不要拒绝希望。\n",
+  "metaLearnerContext": {
+    "preferredThreadCount": 4,
+    "pacingPreference": "slow"
+  }
+}

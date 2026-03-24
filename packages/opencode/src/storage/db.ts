@@ -207,7 +207,7 @@ export { validateVectorDimensions, storeEmbeddingDim, getStoredEmbeddingDim, ens
 // ====== Database Backup & Recovery Logic ======
 const DB_PATH = path.join(Global.Path.data, "opencode.db")
 const BACKUP_DIR = path.join(Global.Path.data, "backups")
-const MAX_BACKUPS = 5
+const MAX_BACKUPS = 3
 const MAX_CORRUPTED = 3
 const OLD_DATA_DIRS = [
   path.join(os.homedir(), ".local", "share", "opencode"),
