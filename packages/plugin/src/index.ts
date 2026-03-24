@@ -17,6 +17,13 @@ import { type ToolDefinition } from "./tool"
 
 export * from "./tool"
 
+// Security utilities
+export * from "./allow-from"
+export * from "./persistent-dedupe"
+export * from "./ssrf-policy"
+export * from "./fetch-auth"
+export * from "./command-auth"
+
 // Plugin status types
 export type PluginStatusType = "connected" | "disconnected" | "connecting" | "error" | "disabled" | "pending"
 export type PluginLogType = "info" | "message" | "warning" | "error" | "status" | "execution"

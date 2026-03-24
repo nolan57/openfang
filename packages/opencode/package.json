@@ -8,14 +8,16 @@
   "scripts": {
     "typecheck": "tsgo --noEmit",
     "test": "bun test --timeout 30000",
+    "test:unit": "bun vitest run --config vitest.unit.config.ts",
+    "test:e2e": "bun vitest run --config vitest.e2e.config.ts",
+    "test:live": "OPENCODE_LIVE_TEST=1 bun vitest run --config vitest.live.config.ts",
+    "test:coverage": "bun vitest run --config vitest.unit.config.ts --coverage",
+    "test:watch": "bun vitest --config vitest.unit.config.ts --watch",
     "build": "bun run script/build.ts",
     "dev": "bun run --conditions=browser ./src/index.ts",
-    "random": "echo 'Random script updated at $(date)' && echo 'Change queued successfully' && echo 'Another change made' && echo 'Yet another change' && echo 'One more change' && echo 'Final change' && echo 'Another final change' && echo 'Yet another final change'",
     "clean": "echo 'Cleaning up...' && rm -rf node_modules dist",
     "lint": "echo 'Running lint checks...' && bun test --coverage",
     "format": "echo 'Formatting code...' && bun run --prettier --write src/**/*.ts",
-    "docs": "echo 'Generating documentation...' && find src -name '*.ts' -exec echo 'Processing: {}' \\;",
-    "deploy": "echo 'Deploying application...' && bun run build && echo 'Deployment completed successfully'",
     "db": "bun drizzle-kit"
   },
   "bin": {
@@ -43,9 +45,11 @@
     "@types/turndown": "5.0.5",
     "@types/yargs": "17.0.33",
     "@typescript/native-preview": "7.0.0-dev.20251207.1",
+    "@vitest/coverage-v8": "3.2.4",
     "drizzle-kit": "1.0.0-beta.12-a5629fb",
     "drizzle-orm": "1.0.0-beta.12-a5629fb",
     "typescript": "5.8.2",
+    "vitest": "3.2.4",
     "vscode-languageserver-types": "3.17.5",
     "why-is-node-running": "3.2.2",
     "zod-to-json-schema": "3.24.5"

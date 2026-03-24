@@ -1,0 +1,77 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "ignore": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/test-helpers/**",
+    "**/test-utils/**",
+    "**/fixtures/**",
+    "**/fixture/**",
+    "**/migration/**",
+    "script/**",
+    "scripts/**",
+    "deploy/**",
+    "docs/**",
+    "packages/docs/**",
+    "packages/identity/**",
+    "packages/sdk/**",
+    "packages/function/**",
+    "packages/extensions/**",
+    "tui.json",
+    "bunfig.toml",
+    "drizzle.config.ts"
+  ],
+  "ignoreDependencies": [
+    "@types/*",
+    "ink",
+    "react",
+    "react-dom",
+    "@opentui/*",
+    "opentui-spinner"
+  ],
+  "ignoreBinaries": [
+    "bun",
+    "tsgo",
+    "drizzle-kit",
+    "turbo",
+    "husky"
+  ],
+  "workspaces": {
+    "packages/opencode": {
+      "entry": [
+        "src/index.ts",
+        "src/cli/**/*.ts",
+        "src/server/**/*.ts"
+      ],
+      "ignore": [
+        "**/*.test.ts",
+        "**/fixture/**",
+        "migration/**"
+      ],
+      "ignoreDependencies": [
+        "@ai-sdk/*",
+        "@opentelemetry/*",
+        "@actions/*",
+        "@octokit/*",
+        "@parcel/watcher-*"
+      ]
+    },
+    "packages/plugin": {
+      "entry": [
+        "src/index.ts"
+      ],
+      "ignore": [
+        "**/*.test.ts"
+      ]
+    },
+    "packages/util": {
+      "entry": [
+        "src/index.ts"
+      ],
+      "ignore": [
+        "**/*.test.ts"
+      ]
+    }
+  }
+}
