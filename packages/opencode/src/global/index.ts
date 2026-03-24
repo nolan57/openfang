@@ -1,5 +1,5 @@
 import fs from "fs/promises"
-import { xdgData, xdgCache, xdgConfig, xdgState } from "xdg-basedir"
+import { xdgData, xdgCache, xdgState } from "xdg-basedir"
 import path from "path"
 import os from "os"
 import { Filesystem } from "../util/filesystem"
@@ -21,10 +21,7 @@ function getCacheDir(): string {
 }
 
 function getConfigDir(): string {
-  if (process.platform === "darwin") {
-    return path.join(os.homedir(), "Library", "Application Support", app, "config")
-  }
-  return path.join(xdgConfig!, app)
+  return path.join(getDataDir(), "config")
 }
 
 function getStateDir(): string {

@@ -238,8 +238,13 @@ export function isAllowedParsedChatSender<TParsed extends ParsedChatAllowTarget>
         break
 
       case "handle":
-      case "username":
         if (senderNormalized && parsed.handle === senderNormalized) {
+          return true
+        }
+        break
+
+      case "username":
+        if (senderNormalized && parsed.username === senderNormalized) {
           return true
         }
         break

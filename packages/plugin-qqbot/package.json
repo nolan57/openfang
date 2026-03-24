@@ -4,7 +4,8 @@
   "version": "0.2.0",
   "type": "module",
   "license": "MIT",
-  "description": "OpenCode QQ Bot plugin - Control OpenCode via QQ",
+  "description": "DEPRECATED: QQ Bot plugin has been merged into @opencode-ai/plugin. Use @opencode-ai/plugin/providers/qqbot instead.",
+  "deprecated": "QQ Bot plugin has been merged into @opencode-ai/plugin v1.2.11+. Use '@opencode-ai/plugin/providers/qqbot' instead.",
   "main": "./dist/index.js",
   "exports": {
     ".": {

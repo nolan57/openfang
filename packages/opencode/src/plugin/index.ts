@@ -12,6 +12,7 @@ import { Session } from "../session"
 import { NamedError } from "@opencode-ai/util/error"
 import { CopilotAuthPlugin } from "./copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "@gitlab/opencode-gitlab-auth"
+import { QQBotPlugin } from "@opencode-ai/plugin/providers/qqbot"
 import { registerWebhookRoute } from "./webhook-registry"
 import { PluginRecovery } from "./recovery"
 
@@ -21,7 +22,20 @@ export namespace Plugin {
   const BUILTIN = ["opencode-anthropic-auth@0.0.13"]
 
   // Built-in plugins that are directly imported (not installed from npm)
+  // QQBot is conditionally loaded based on QQBOT_ENABLED environment variable
   const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin, GitlabAuthPlugin]
+  
+  // Conditionally loaded plugins
+  async function getConditionalPlugins(): Promise<PluginInstance[]> {
+    const plugins: PluginInstance[] = []
+    
+    // Load QQBot if enabled via environment variable
+    if (Bun.env.QQBOT_ENABLED === "true") {
+      plugins.push(QQBotPlugin)
+    }
+    
+    return plugins
+  }
 
   const state = Instance.state(async () => {
     const client = createOpencodeClient({
@@ -48,6 +62,16 @@ export namespace Plugin {
       log.info("loading internal plugin", { name: plugin.name })
       const init = await plugin(input).catch((err) => {
         log.error("failed to load internal plugin", { name: plugin.name, error: err })
+      })
+      if (init) hooks.push(init)
+    }
+
+    // Load conditional plugins (e.g., QQBot based on env vars)
+    const conditionalPlugins = await getConditionalPlugins()
+    for (const plugin of conditionalPlugins) {
+      log.info("loading conditional plugin", { name: plugin.name })
+      const init = await plugin(input).catch((err) => {
+        log.error("failed to load conditional plugin", { name: plugin.name, error: err })
       })
       if (init) hooks.push(init)
     }

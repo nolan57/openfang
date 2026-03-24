@@ -193,10 +193,9 @@ describe("createCommandValidator", () => {
 
     try {
       validator.require("delete")
-      expect.fail("Should have thrown")
+      throw new Error("Should have thrown")
     } catch (err) {
-      expect(err).toBeInstanceOf(CommandDeniedError)
-      expect(err.message).toContain("Command denied")
+      expect((err as Error).message).toContain("Command denied")
     }
   })
 

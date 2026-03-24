@@ -112,8 +112,8 @@ export interface BearerAuthFetchOptions {
 /**
  * Checks if a response status indicates an authentication failure.
  */
-function isAuthFailureStatus(status: number): boolean {
-  return status === 401 || status === 403
+export function isAuthFailureStatus(response: Response): boolean {
+  return response.status === 401 || response.status === 403
 }
 
 /**

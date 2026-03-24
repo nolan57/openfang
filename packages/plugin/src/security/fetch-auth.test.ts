@@ -8,20 +8,25 @@ import {
   type ScopeTokenProvider,
 } from "./fetch-auth"
 
+// Helper to create a mock fetch function with proper typing
+function createMockFetch(fn: typeof fetch): typeof fetch {
+  return fn as typeof fetch
+}
+
 describe("isAuthFailureStatus", () => {
   it("returns true for 401", () => {
-    expect(isAuthFailureStatus(401)).toBe(true)
+    expect(isAuthFailureStatus({ status: 401 } as Response)).toBe(true)
   })
 
   it("returns true for 403", () => {
-    expect(isAuthFailureStatus(403)).toBe(true)
+    expect(isAuthFailureStatus({ status: 403 } as Response)).toBe(true)
   })
 
   it("returns false for other statuses", () => {
-    expect(isAuthFailureStatus(200)).toBe(false)
-    expect(isAuthFailureStatus(400)).toBe(false)
-    expect(isAuthFailureStatus(404)).toBe(false)
-    expect(isAuthFailureStatus(500)).toBe(false)
+    expect(isAuthFailureStatus({ status: 200 } as Response)).toBe(false)
+    expect(isAuthFailureStatus({ status: 400 } as Response)).toBe(false)
+    expect(isAuthFailureStatus({ status: 404 } as Response)).toBe(false)
+    expect(isAuthFailureStatus({ status: 500 } as Response)).toBe(false)
   })
 })
 
@@ -33,7 +38,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
       const response = await fetchWithBearerAuthScopeFallback({
         url: "https://api.example.com/data",
         scopes: ["read:data"],
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(response.ok).toBe(true)
@@ -61,7 +66,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         url: "https://api.example.com/data",
         scopes: ["read:data"],
         tokenProvider: mockTokenProvider,
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(callCount).toBe(2)
@@ -82,7 +87,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         url: "https://api.example.com/data",
         scopes: ["read:data"],
         tokenProvider: { getAccessToken: async () => "token" },
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(callCount).toBe(2)
@@ -96,7 +101,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
       const response = await fetchWithBearerAuthScopeFallback({
         url: "https://api.example.com/data",
         scopes: ["read:data"],
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(response.status).toBe(401)
@@ -126,7 +131,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         url: "https://api.example.com/data",
         scopes: ["read:admin", "read:data", "read:public"],
         tokenProvider: mockTokenProvider,
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(response.ok).toBe(true)
@@ -145,7 +150,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         url: "https://api.example.com/data",
         scopes: ["scope1", "scope2"],
         tokenProvider: mockTokenProvider,
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(response.status).toBe(401)
@@ -169,7 +174,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         url: "http://api.example.com/data",
         scopes: ["read:data"],
         requireHttps: false,
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(response.ok).toBe(true)
@@ -189,7 +194,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         scopes: ["read:data"],
         tokenProvider: { getAccessToken: async () => "token" },
         shouldRetry: (res) => res.status === 429, // Retry on rate limit
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       // Should retry once with auth
@@ -206,7 +211,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         scopes: ["read:data"],
         tokenProvider: { getAccessToken: async () => "token" },
         shouldAttachAuth: (url) => !url.includes("public"),
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       // Should not retry because shouldAttachAuth returns false
@@ -228,7 +233,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ test: true }),
         },
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(capturedInit?.method).toBe("POST")
@@ -249,7 +254,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         url: "https://api.example.com/data",
         scopes: ["read:data"],
         tokenProvider: { getAccessToken: async () => "test-token-123" },
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(authHeader).toBe("Bearer test-token-123")
@@ -289,7 +294,7 @@ describe("fetchWithBearerAuthScopeFallback", () => {
         url: "https://api.example.com/data",
         scopes: ["scope1", "scope2"],
         tokenProvider: mockTokenProvider,
-        fetchFn: mockFetch as typeof fetch,
+        fetchFn: mockFetch as any,
       })
 
       expect(response.ok).toBe(true)
@@ -312,7 +317,7 @@ describe("createAuthFetch", () => {
     const authFetch = createAuthFetch(
       ["read:data"],
       { getAccessToken: async () => "my-token" },
-      { fetchFn: mockFetch as typeof fetch },
+      { fetchFn: mockFetch as any },
     )
 
     const response = await authFetch("https://api.example.com/data")
@@ -332,7 +337,7 @@ describe("createAuthFetch", () => {
     const authFetch = createAuthFetch(
       ["read:data"],
       { getAccessToken: async () => "token" },
-      { fetchFn: mockFetch as typeof fetch },
+      { fetchFn: mockFetch as any },
     )
 
     await authFetch("https://api.example.com/data", {

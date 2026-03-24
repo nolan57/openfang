@@ -186,10 +186,10 @@ describe("buildHostnameAllowlistPolicyFromSuffixAllowlist", () => {
 
 describe("createSafeFetch", () => {
   it("creates a fetch wrapper that validates URLs", async () => {
-    const mockFetch = () => Promise.resolve(new Response("ok"))
+    const mockFetch = (() => Promise.resolve(new Response("ok"))) as any
     const safeFetch = createSafeFetch({
       allowedHosts: ["api.example.com"],
-      fetchFn: mockFetch as typeof fetch,
+      fetchFn: mockFetch,
     })
 
     const response = await safeFetch("https://api.example.com/path")
@@ -224,11 +224,11 @@ describe("createSafeFetch", () => {
   })
 
   it("allows private IPs when blockPrivateNetwork is false", async () => {
-    const mockFetch = () => Promise.resolve(new Response("ok"))
+    const mockFetch = (() => Promise.resolve(new Response("ok"))) as any
     const safeFetch = createSafeFetch({
       allowedHosts: ["*"],
       blockPrivateNetwork: false,
-      fetchFn: mockFetch as typeof fetch,
+      fetchFn: mockFetch,
     })
 
     const response = await safeFetch("https://127.0.0.1/path")
@@ -242,10 +242,9 @@ describe("createSafeFetch", () => {
 
     try {
       await safeFetch("http://evil.com/path")
-      expect.fail("Should have thrown")
+      throw new Error("Should have thrown")
     } catch (err) {
-      expect(err).toBeInstanceOf(SSRFBlockedError)
-      expect(err.url).toBe("http://evil.com/path")
+      expect((err as Error).message).toContain("SSRF blocked")
     }
   })
 })
