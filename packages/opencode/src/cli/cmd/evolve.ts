@@ -53,13 +53,11 @@ export const EvolveCommand: CommandModule = {
         "migrate [path]",
         "Migrate vector_memory to knowledge graph with full code analysis",
         (yargs) =>
-          yargs
-            .positional("path", { type: "string", default: ".", describe: "Directory to analyze" })
-            .option("ext", {
-              type: "array",
-              default: [".ts", ".tsx", ".js", ".jsx"],
-              describe: "File extensions to analyze",
-            }),
+          yargs.positional("path", { type: "string", default: ".", describe: "Directory to analyze" }).option("ext", {
+            type: "array",
+            default: [".ts", ".tsx", ".js", ".jsx"],
+            describe: "File extensions to analyze",
+          }),
         (args) => migrateKnowledgeGraph({ path: args.path as string, ext: args.ext as string[] }),
       )
       .command("tasks", "List pending deployment tasks", {}, listTasks)
@@ -91,30 +89,117 @@ export const EvolveCommand: CommandModule = {
       )
       .demandCommand(0, ""),
   handler: async (args: any) => {
-    if (args.mode === "spec") {
-      if (!args.specFile) {
-        console.error("Error: --spec-file is required for spec mode")
-        process.exit(1)
-      }
-      const result = await Instance.provide({
-        directory: process.cwd(),
-        fn: async () => {
-          return await runLearning({ spec_file: args.specFile as string })
-        },
-      })
-      if (result.success) {
-        console.log(`✅ Spec Implementation Complete\n\nFiles created: ${result.suggestions}`)
-      } else {
-        console.error(`❌ Spec Implementation Failed: ${result.error}`)
-        process.exit(1)
-      }
-    } else if (args.mode === "execute") {
-      const executor = new EvolutionExecutor({ tasksDir: "docs/learning/tasks" })
-      const results = await executor.executeAll()
-      const success = results.filter((r: any) => r.success).length
-      const failed = results.filter((r: any) => !r.success).length
-      console.log(`⚡ Execution Complete\n\nTotal: ${results.length}\n✅ Success: ${success}\n❌ Failed: ${failed}`)
-    }
+    await Instance.provide({
+      directory: process.cwd(),
+      fn: async () => {
+        if (args.mode === "spec") {
+          if (!args.specFile) {
+            console.error("Error: --spec-file is required for spec mode")
+            process.exit(1)
+          }
+          const result = await runLearning({ spec_file: args.specFile as string })
+          if (result.success) {
+            console.log(`✅ Spec Implementation Complete\n\nFiles created: ${result.suggestions}`)
+          } else {
+            console.error(`❌ Spec Implementation Failed: ${result.error}`)
+            process.exit(1)
+          }
+        } else if (args.mode === "execute") {
+          const executor = new EvolutionExecutor({ tasksDir: "docs/learning/tasks" })
+          const results = await executor.executeAll()
+          const success = results.filter((r: any) => r.success).length
+          const failed = results.filter((r) => !r.success).length
+          console.log(`⚡ Execution Complete\n\nTotal: ${results.length}\n✅ Success: ${success}\n❌ Failed: ${failed}`)
+        } else if (args.mode === "full" || args.mode === "trigger") {
+          const { runLearning } = await import("../../learning/command")
+          const result = await runLearning({})
+
+          if (result.success) {
+            console.log(`🚀 Full Evolution Cycle Complete\n`)
+            console.log(`📊 Results:`)
+            console.log(`- Collected: ${result.collected} items`)
+            console.log(`- Notes created: ${result.notes}`)
+            console.log(`- Skills installed: ${result.installs}`)
+            console.log(`- Code suggestions: ${result.suggestions}`)
+          } else {
+            console.error(`❌ Evolution Failed: ${result.error}`)
+            process.exit(1)
+          }
+        } else if (args.mode === "check") {
+          const { ConsistencyChecker } = await import("../../learning/consistency-checker")
+          const checker = new ConsistencyChecker()
+          const report = await checker.runFullCheck()
+
+          console.log(`✅ Consistency Check Complete\n`)
+          console.log(`📊 Summary:`)
+          console.log(`- Total nodes: ${report.total_nodes}`)
+          console.log(`- Total edges: ${report.total_edges}`)
+          console.log(`- Conflicts: ${report.summary.conflicts}`)
+          console.log(`- Outdated: ${report.summary.outdated}`)
+          console.log(`- Orphans: ${report.summary.orphans}`)
+          console.log(`- Redundant: ${report.summary.redundant}`)
+          console.log(`- Constraint violations: ${report.summary.constraint_violations}`)
+        } else if (args.mode === "status") {
+          const cfg = await Config.get()
+          const evolution = cfg.evolution ?? {}
+          const directions = evolution.directions ?? defaultLearningConfig.topics
+          const sources = evolution.sources ?? defaultLearningConfig.sources
+
+          const graph = new KnowledgeGraph()
+          const safety = new Safety()
+          const trigger = new EvolutionTrigger()
+
+          const [stats, safetyCheck, triggerStatus] = await Promise.all([
+            graph.getStats(),
+            safety.checkCooldown(),
+            trigger.getStatus(),
+          ])
+
+          console.log("\n=== Evolution Status ===\n")
+          console.log("📋 Directions:")
+          for (const d of directions) {
+            console.log(`   - ${d}`)
+          }
+          console.log(`\n🔍 Sources: ${sources.join(", ")}`)
+          console.log(`\n🟢 Enabled: ${evolution.enabled ?? true}`)
+          console.log("\n--- System ---")
+          console.log(`📊 Knowledge Graph: ${stats.nodes} nodes, ${stats.edges} edges`)
+          console.log(`🛡️ Safety: ${safetyCheck.allowed ? "Ready" : "Cooldown active"}`)
+          if (safetyCheck.cooldown_remaining_ms) {
+            console.log(`   Cooldown remaining: ${Math.round(safetyCheck.cooldown_remaining_ms / 1000 / 60)} min`)
+          }
+          console.log(
+            `⏱️ Last check: ${triggerStatus.last_check ? new Date(triggerStatus.last_check).toLocaleString() : "Never"}`,
+          )
+          console.log(`📋 Pending tasks: ${triggerStatus.pending_tasks}`)
+        } else if (args.mode === "tasks") {
+          const tasksDir = "docs/learning/tasks"
+          const deployer = new Deployer(tasksDir)
+          const tasks = await deployer.getPendingTasks()
+
+          console.log("\n=== Pending Deployment Tasks ===\n")
+
+          if (tasks.length === 0) {
+            console.log("No pending tasks")
+            return
+          }
+
+          for (const task of tasks) {
+            console.log(`[${task.id}] ${task.title}`)
+            console.log(`  Status: ${task.status}`)
+            console.log(`  Type: ${task.type}`)
+            if (task.description) {
+              console.log(`  Description: ${task.description}`)
+            }
+          }
+        } else if (args.mode === "monitor") {
+          const trigger = new EvolutionTrigger()
+          trigger.startMonitoring(60000)
+          console.log(`📡 Monitor started (checking every 60s)`)
+          console.log(`\nUse Ctrl+C to stop`)
+        }
+      },
+    })
   },
 }
 

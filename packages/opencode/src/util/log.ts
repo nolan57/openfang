@@ -97,6 +97,16 @@ export namespace Log {
   }
 
   let last = Date.now()
+  let currentSessionID: string | undefined
+
+  export function setSessionID(sessionID: string | undefined) {
+    currentSessionID = sessionID
+  }
+
+  export function getSessionID(): string | undefined {
+    return currentSessionID
+  }
+
   export function create(tags?: Record<string, any>) {
     tags = tags || {}
 
@@ -126,26 +136,51 @@ export namespace Log {
       last = next.getTime()
       return [next.toISOString().split(".")[0], "+" + diff + "ms", prefix, message].filter(Boolean).join(" ") + "\n"
     }
+
+    // Lazy access to Bus/TuiEvent to avoid circular dependency during module initialization
+    function publishToBus(source: string, level: string, message: string) {
+      if (currentSessionID) {
+        // Use dynamic import to break circular dependency at runtime
+        import("../bus").then(({ Bus }) => {
+          import("../cli/cmd/tui/event").then(({ TuiEvent }) => {
+            Bus.publish(TuiEvent.Log, {
+              source,
+              level: level as "info" | "warning" | "error",
+              message,
+            })
+          })
+        })
+      }
+    }
+
     const result: Logger = {
       debug(message?: any, extra?: Record<string, any>) {
         if (shouldLog("DEBUG")) {
           write("DEBUG " + build(message, extra))
         }
+        // Send to TUI for session-related logs
+        publishToBus(tags?.service || "app", "info", String(message ?? ""))
       },
       info(message?: any, extra?: Record<string, any>) {
         if (shouldLog("INFO")) {
           write("INFO  " + build(message, extra))
         }
+        // Send to TUI for session-related logs
+        publishToBus(tags?.service || "app", "info", String(message ?? ""))
       },
       error(message?: any, extra?: Record<string, any>) {
         if (shouldLog("ERROR")) {
           write("ERROR " + build(message, extra))
         }
+        // Send to TUI for session-related logs
+        publishToBus(tags?.service || "app", "error", String(message ?? ""))
       },
       warn(message?: any, extra?: Record<string, any>) {
         if (shouldLog("WARN")) {
           write("WARN  " + build(message, extra))
         }
+        // Send to TUI for session-related logs
+        publishToBus(tags?.service || "app", "warning", String(message ?? ""))
       },
       tag(key: string, value: string) {
         if (tags) tags[key] = value

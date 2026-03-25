@@ -6,6 +6,7 @@ export function InfoPanel() {
   const sync = useSync()
   const { theme } = useTheme()
   const logs = createMemo(() => sync.data.logs)
+  const maxLogLength = 50
 
   return (
     <box
@@ -26,13 +27,29 @@ export function InfoPanel() {
       <scrollbox flexGrow={1}>
         <Show when={logs().length > 0} fallback={<text fg={theme.textMuted}>No logs</text>}>
           <For each={[...logs()].reverse()}>
-            {(log) => (
-              <text
-                fg={log.level === "error" ? theme.error : log.level === "warning" ? theme.warning : theme.textMuted}
-              >
-                [{log.source}] {log.message.length > 35 ? log.message.slice(0, 32) + "..." : log.message}
-              </text>
-            )}
+            {(log) => {
+              const timestamp = new Date(log.timestamp).toLocaleTimeString()
+              const sourcePrefix = log.source ? `[${log.source}]` : ""
+              const message =
+                log.message.length > maxLogLength ? log.message.slice(0, maxLogLength - 3) + "..." : log.message
+              const icon = log.level === "error" ? "✗" : log.level === "warning" ? "⚠" : "•"
+
+              return (
+                <box flexDirection="column" marginBottom={1}>
+                  <text
+                    fg={log.level === "error" ? theme.error : log.level === "warning" ? theme.warning : theme.textMuted}
+                  >
+                    {timestamp} {icon}
+                  </text>
+                  <text
+                    fg={log.level === "error" ? theme.error : log.level === "warning" ? theme.warning : theme.text}
+                    wrapMode="word"
+                  >
+                    {sourcePrefix} {message}
+                  </text>
+                </box>
+              )
+            }}
           </For>
         </Show>
       </scrollbox>

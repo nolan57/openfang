@@ -8,8 +8,11 @@ import { KnowledgeGraph } from "../learning/knowledge-graph"
 import { Safety } from "../learning/safety"
 import { Config } from "../config/config"
 import { Instance } from "../project/instance"
+import { Log } from "../util/log"
 import path from "path"
 import z from "zod"
+
+const log = Log.create({ service: "evolve-tool" })
 
 export const LearningTool = Tool.define("learning", async () => {
   return {
@@ -66,8 +69,7 @@ export const EvolveTool = Tool.define("evolve", async () => {
       mode: z
         .enum(["full", "execute", "status", "check", "trigger", "monitor", "spec", "tasks"])
         .optional()
-        .default("full")
-        .describe("Evolution mode"),
+        .describe("Evolution mode (default: full)"),
       topics: z.array(z.string()).optional().describe("Custom topics (default: from config evolution.directions)"),
       spec_file: z.string().optional().describe("Path to specification document (markdown/json) to implement"),
     }),
@@ -104,6 +106,8 @@ export const EvolveTool = Tool.define("evolve", async () => {
       }
 
       if (mode === "trigger" || mode === "full") {
+        const trigger = new EvolutionTrigger()
+
         await ctx.ask({
           permission: "evolve",
           patterns: args.topics ?? configTopics,
@@ -111,27 +115,81 @@ export const EvolveTool = Tool.define("evolve", async () => {
           metadata: { mode },
         })
 
-        const trigger = new EvolutionTrigger()
-        const result = await trigger.checkAndTrigger()
+        const verbose = mode === "full"
+        log.info("evolve_tool_executing", { mode, verbose, topics: args.topics ?? configTopics })
+        const result = await trigger.checkAndTrigger(verbose)
+
+        let output = mode === "full" ? `🚀 Full Evolution Cycle Complete\n\n` : `🔄 Evolution Check Complete\n\n`
+
+        if (result.steps && result.steps.length > 0) {
+          output += `📋 Execution Steps:\n`
+          output += result.steps.map((s) => `  ${s}`).join("\n")
+          output += `\n\n`
+        }
+
+        output += `📊 Results:\n`
+        output += `- Tasks created: ${result.tasks_created}\n`
+        output += `- Tasks pending: ${result.tasks_pending}\n`
+
+        if (result.cooldown_active) {
+          output += `\n⏸️  Cooldown is active\n`
+        }
+
+        if (result.circuit_breaker_active) {
+          output += `\n⚠️  Circuit breaker is active\n`
+        }
+
+        if (result.errors.length > 0) {
+          output += `\n❌ Errors:\n${result.errors.map((e) => `  - ${e}`).join("\n")}\n`
+        }
 
         return {
-          title: "Evolution Trigger",
-          output: `🔄 Evolution Complete\n\nTasks created: ${result.tasks_created}\nTasks pending: ${result.tasks_pending}`,
-          metadata: {} as any,
+          title: mode === "full" ? "Full Evolution Cycle" : "Evolution Trigger",
+          output,
+          metadata: { result } as any,
         }
       }
 
       if (mode === "execute") {
         const executor = new EvolutionExecutor()
+
+        let output = "⚡ Starting evolution task execution...\n\n"
+
         const results = await executor.executeAll()
 
         const success = results.filter((r) => r.success).length
         const failed = results.filter((r) => !r.success).length
 
+        output += `📊 Execution Summary:\n`
+        output += `- Total tasks: ${results.length}\n`
+        output += `- ✅ Successful: ${success}\n`
+        output += `- ❌ Failed: ${failed}\n\n`
+
+        if (results.length > 0) {
+          output += `📋 Task Details:\n`
+          for (const r of results) {
+            const status = r.success ? "✅" : "❌"
+            const rollback = r.rolled_back ? " (rolled back)" : ""
+            output += `${status} ${r.task_id}: ${r.duration_ms}ms${rollback}\n`
+            if (!r.success) {
+              output += `   Error: ${r.output}\n`
+            }
+          }
+        }
+
+        if (failed > 0) {
+          output += `\n⚠️ Failed tasks:\n`
+          results
+            .filter((r) => !r.success)
+            .forEach((r) => {
+              output += `  - ${r.task_id}: ${r.output}\n`
+            })
+        }
+
         return {
           title: "Evolution Execute",
-          output: `⚡ Execution Complete\n\nTotal: ${results.length}\n✅ Success: ${success}\n❌ Failed: ${failed}`,
-          metadata: {} as any,
+          output,
+          metadata: { results } as any,
         }
       }
 

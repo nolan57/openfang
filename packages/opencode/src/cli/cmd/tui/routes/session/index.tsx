@@ -1507,6 +1507,9 @@ function ToolPart(props: { last: boolean; part: ToolPart; message: AssistantMess
         <Match when={props.part.tool === "skill"}>
           <Skill {...toolprops} />
         </Match>
+        <Match when={props.part.tool === "learning" || props.part.tool === "evolve"}>
+          <Learning {...toolprops} />
+        </Match>
         <Match when={true}>
           <GenericTool {...toolprops} />
         </Match>
@@ -1558,6 +1561,52 @@ function GenericTool(props: ToolProps<any>) {
         </box>
       </BlockTool>
     </Show>
+  )
+}
+
+function Learning(props: ToolProps<any>) {
+  const { theme } = useTheme()
+  const output = createMemo(() => props.output?.trim() ?? "")
+  const [expanded, setExpanded] = createSignal(true)
+  const lines = createMemo(() => output().split("\n"))
+  const maxLines = 10
+  const overflow = createMemo(() => lines().length > maxLines)
+  const limited = createMemo(() => {
+    if (expanded() || !overflow()) return output()
+    return [...lines().slice(0, maxLines), "…"].join("\n")
+  })
+
+  const mode = createMemo(() => {
+    const input = props.input as any
+    return input?.mode ?? "full"
+  })
+
+  const icon = createMemo(() => {
+    const m = mode()
+    if (m === "full") return "🚀"
+    if (m === "execute") return "⚡"
+    if (m === "status") return "📊"
+    if (m === "check") return "✅"
+    if (m === "trigger") return "🔄"
+    if (m === "monitor") return "📡"
+    if (m === "spec") return "📋"
+    if (m === "tasks") return "📝"
+    return "🔮"
+  })
+
+  return (
+    <BlockTool
+      title={`${icon()} ${props.tool} [${mode()}]`}
+      part={props.part}
+      onClick={overflow() ? () => setExpanded((prev) => !prev) : undefined}
+    >
+      <box gap={1}>
+        <text fg={theme.text}>{limited()}</text>
+        <Show when={overflow()}>
+          <text fg={theme.textMuted}>{expanded() ? "Click to collapse" : "Click to expand"}</text>
+        </Show>
+      </box>
+    </BlockTool>
   )
 }
 

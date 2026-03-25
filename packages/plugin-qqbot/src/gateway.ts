@@ -1,5 +1,12 @@
 import type { ResolvedQQBotAccount, GatewayOptions, SessionInfo, MessageContext } from "./types.js"
-import { getAccessToken, getGatewayUrl, sendC2CMessage, sendGroupMessage, sendChannelMessage, sendTypingIndicator } from "./api.js"
+import {
+  getAccessToken,
+  getGatewayUrl,
+  sendC2CMessage,
+  sendGroupMessage,
+  sendChannelMessage,
+  sendTypingIndicator,
+} from "./api.js"
 import { sendTyping } from "./outbound.js"
 import { spawn } from "child_process"
 import fs from "fs/promises"
@@ -570,6 +577,70 @@ export class QQBotGateway {
     }
   }
 
+  private async *callPromptStream(
+    sessionId: string,
+    parts: Array<{ type: "text"; text: string } | { type: "file"; url: string; mime?: string; filename?: string }>,
+  ): AsyncGenerator<{ type: "chunk" | "done" | "error"; content?: string; messageId?: string; error?: string }> {
+    const clientConfig = (this.client as any).client?.getConfig?.() ?? {}
+    const baseUrl = clientConfig.baseUrl ?? "http://localhost:4096"
+    const url = new URL(`${baseUrl}/session/${sessionId}/prompt/stream`)
+    url.searchParams.set("directory", this.directory)
+
+    const headers = new Headers(clientConfig.headers as Record<string, string>)
+    headers.set("Content-Type", "application/json")
+
+    const body = JSON.stringify({ parts })
+
+    const fetchFn = (clientConfig.fetch as typeof fetch | undefined) ?? globalThis.fetch
+    const response = await fetchFn(url.toString(), {
+      method: "POST",
+      headers,
+      body,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      yield { type: "error", error: `HTTP ${response.status}: ${errorText}` }
+      return
+    }
+
+    if (!response.body) {
+      yield { type: "error", error: "No response body" }
+      return
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split("\n").filter((line) => line.trim())
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6)
+            if (data === "[DONE]") {
+              yield { type: "done" }
+              return
+            }
+            try {
+              const parsed = JSON.parse(data)
+              yield parsed
+            } catch {
+              yield { type: "chunk", content: data }
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+  }
+
   private async doProcessMessage(ctx: MessageContext, content: string): Promise<void> {
     this.onStatus.message(`Processing: ${content.slice(0, 50)}...`)
 
@@ -644,20 +715,17 @@ export class QQBotGateway {
       let fullResponse = ""
       let buffer = ""
       let lastSendTime = 0
-      // Get streaming config with defaults
       const responseMode = this.account.config.responseMode || "streaming"
       const streamingDelayMs = this.account.config.streamingDelayMs || 300
       const streamingMinChunk = this.account.config.streamingMinChunk || 200
 
-      // Use streaming mode if configured
       const useStreaming = responseMode === "streaming"
 
-      for await (const chunk of (this.client as any).promptStream({
-        sessionID: currentSessionId,
-        directory: this.directory,
-        parts,
-      })) {
+      this.onStatus.message(`Starting response (mode=${responseMode}, useStreaming=${useStreaming})`)
+
+      for await (const chunk of this.callPromptStream(currentSessionId, parts)) {
         if (this.currentStreamAbort?.signal.aborted) {
+          this.onStatus.message("Stream aborted")
           break
         }
 
@@ -679,7 +747,7 @@ export class QQBotGateway {
                   .replace(/^```json\s*/, "")
                   .replace(/\s*```$/, "")
                   .trim()
-                
+
                 // Try to extract description from JSON if present
                 try {
                   const json = JSON.parse(textToSend)
@@ -695,6 +763,7 @@ export class QQBotGateway {
                 }
 
                 if (textToSend) {
+                  this.onStatus.message(`Sending chunk (${textToSend.length} chars)`)
                   await this.sendReply(ctx, textToSend)
                   buffer = ""
                   lastSendTime = now
@@ -703,26 +772,51 @@ export class QQBotGateway {
             }
           }
         } else if (chunk.type === "done") {
-          // Send any remaining buffered content
-          if (buffer.trim()) {
-            let text = buffer.trim()
-            text = text
+          this.onStatus.message("Stream done")
+
+          // For blocking mode, send the full response at once
+          if (!useStreaming && fullResponse) {
+            let textToSend = fullResponse.trim()
+            textToSend = textToSend
               .replace(/^```json\s*/, "")
               .replace(/\s*```$/, "")
               .trim()
             try {
-              const json = JSON.parse(text)
+              const json = JSON.parse(textToSend)
               if (json && json.description) {
-                text = json.description
+                textToSend = json.description
               }
             } catch (e) {
-              const descMatch = text.match(/"description"\s*:\s*"([^"]+)"/)
+              const descMatch = textToSend.match(/"description"\s*:\s*"([^"]+)"/)
               if (descMatch) {
-                text = descMatch[1]
+                textToSend = descMatch[1]
               }
             }
-            if (text) {
-              await this.sendReply(ctx, text)
+            if (textToSend) {
+              this.onStatus.message(`Sending blocking response (${textToSend.length} chars)`)
+              await this.sendReply(ctx, textToSend)
+            }
+          } else if (buffer.trim()) {
+            // For streaming mode, send remaining buffer
+            let finalText = buffer.trim()
+            finalText = finalText
+              .replace(/^```json\s*/, "")
+              .replace(/\s*```$/, "")
+              .trim()
+            try {
+              const json = JSON.parse(finalText)
+              if (json && json.description) {
+                finalText = json.description
+              }
+            } catch (e) {
+              const descMatch = finalText.match(/"description"\s*:\s*"([^"]+)"/)
+              if (descMatch) {
+                finalText = descMatch[1]
+              }
+            }
+            if (finalText) {
+              this.onStatus.message(`Sending final chunk (${finalText.length} chars)`)
+              await this.sendReply(ctx, finalText)
             }
           }
           break
@@ -748,15 +842,24 @@ export class QQBotGateway {
     }
 
     for (const chunk of chunks) {
-      if (ctx.type === "C2C") {
-        await sendC2CMessage(this.account, ctx.senderId, chunk, replyToId ?? undefined)
-      } else if (ctx.type === "GROUP") {
-        await sendGroupMessage(this.account, ctx.groupId!, chunk, replyToId ?? undefined)
-      } else if (ctx.type === "CHANNEL") {
-        await sendChannelMessage(this.account, ctx.channelId!, chunk, replyToId ?? undefined)
-      }
-      if (replyToId) {
-        recordMessageReply(replyToId)
+      try {
+        if (ctx.type === "C2C") {
+          await sendC2CMessage(this.account, ctx.senderId, chunk, replyToId ?? undefined)
+          this.onStatus.message(`Sent C2C reply to ${ctx.senderId.slice(0, 8)}...`)
+        } else if (ctx.type === "GROUP") {
+          await sendGroupMessage(this.account, ctx.groupId!, chunk, replyToId ?? undefined)
+          this.onStatus.message(`Sent group reply to ${ctx.groupId}`)
+        } else if (ctx.type === "CHANNEL") {
+          await sendChannelMessage(this.account, ctx.channelId!, chunk, replyToId ?? undefined)
+          this.onStatus.message(`Sent channel reply to ${ctx.channelId}`)
+        }
+        if (replyToId) {
+          recordMessageReply(replyToId)
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
+        this.onStatus.error(`Failed to send reply: ${message}`)
+        this.log("error", `sendReply error: ${message}`)
       }
     }
   }
@@ -881,8 +984,8 @@ async function decodeSilkToWav(silkPath: string): Promise<string | null> {
 
     const silkBuffer = await fs.readFile(silkPath)
     const decodeResult = await decodeSilk(silkBuffer, 24000)
-    
-    const pcmBuffer: Uint8Array = (decodeResult as any).pcm || (decodeResult as any).data || decodeResult as any
+
+    const pcmBuffer: Uint8Array = (decodeResult as any).pcm || (decodeResult as any).data || (decodeResult as any)
 
     const wavHeader = createWavHeader(pcmBuffer.length, 24000, 16, 1)
     const wavBuffer = Buffer.concat([wavHeader, pcmBuffer])

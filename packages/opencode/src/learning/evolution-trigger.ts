@@ -79,16 +79,25 @@ export class EvolutionTrigger {
     this.config = { ...defaultTriggerConfig, ...config }
   }
 
-  async checkAndTrigger(): Promise<TriggerResult> {
-    const result: TriggerResult = {
+  async checkAndTrigger(verbose: boolean = false): Promise<TriggerResult & { steps?: string[] }> {
+    const result: TriggerResult & { steps?: string[] } = {
       tasks_created: 0,
       tasks_pending: 0,
       errors: [],
       cooldown_active: false,
       circuit_breaker_active: false,
+      steps: verbose ? [] : undefined,
+    }
+
+    const addStep = (step: string) => {
+      if (verbose && result.steps) {
+        result.steps.push(step)
+      }
     }
 
     try {
+      addStep("🔍 Checking circuit breaker status...")
+      
       if (this.circuitBreaker.state === "open") {
         const shouldTryHalfOpen = Date.now() - this.circuitBreaker.lastStateChange > 5 * 60 * 1000
         if (!shouldTryHalfOpen) {
@@ -97,13 +106,16 @@ export class EvolutionTrigger {
             since: new Date(this.circuitBreaker.lastStateChange).toISOString(),
           })
           result.circuit_breaker_active = true
+          addStep("⚠️ Circuit breaker is OPEN - waiting for recovery")
           return result
         }
         this.circuitBreaker.state = "half-open"
         this.circuitBreaker.lastStateChange = Date.now()
         log.info("circuit_breaker_half_open")
+        addStep("🔄 Circuit breaker is HALF-OPEN - attempting recovery")
       }
 
+      addStep("🛡️ Checking safety cooldown...")
       const cooldownCheck = await this.safety.checkCooldown()
       const customCooldownCheck = this.checkCustomCooldown()
 
@@ -114,9 +126,12 @@ export class EvolutionTrigger {
           remaining: customCooldownCheck.remaining_ms,
         })
         result.cooldown_active = true
+        addStep("⏸️ Cooldown is active - evolution postponed")
         return result
       }
+      addStep("✅ Safety checks passed")
 
+      addStep("📊 Checking confidence level...")
       const confidenceCheck = await this.checkConfidence()
       if (!confidenceCheck.allowed) {
         log.warn("low_confidence_preventing_evolution", {
@@ -124,12 +139,17 @@ export class EvolutionTrigger {
           threshold: this.config.confidence_threshold,
         })
         result.errors.push("Low confidence - evolution prevented")
+        addStep(`⚠️ Low confidence (${confidenceCheck.confidence.toFixed(2)}) - evolution prevented`)
         return result
       }
+      addStep(`✅ Confidence level: ${confidenceCheck.confidence.toFixed(2)}`)
 
+      addStep("📋 Checking pending tasks...")
       const pendingTasks = await this.deployer.getPendingTasks()
       result.tasks_pending = pendingTasks.length
+      addStep(`📊 Found ${pendingTasks.length} pending task(s)`)
 
+      addStep("🔍 Detecting code changes...")
       const codeChanges = await this.detectCodeChanges()
       for (const change of codeChanges) {
         const taskId = await this.deployer.createCodeChangeTask({
@@ -139,34 +159,44 @@ export class EvolutionTrigger {
           restart_command: "echo 'restart'",
         })
         result.tasks_created++
+        addStep(`📝 Created code change task: ${taskId}`)
         log.info("code_change_task_created", { taskId, files: change.files.length })
       }
 
+      addStep("🎯 Checking for new skills...")
       const skillChanges = await this.detectNewSkills()
       for (const skill of skillChanges) {
         if (this.config.require_human_review_for_skills) {
           log.info("skill_change_requires_review", { skill: skill.name })
+          addStep(`🔒 Skill '${skill.name}' requires human review`)
         } else {
           log.info("skill_change_detected", { skill: skill.name })
+          addStep(`✨ New skill detected: ${skill.name}`)
         }
       }
 
+      addStep("🔍 Running consistency check...")
       const consistencyReport = await this.consistency.runFullCheck()
       if (consistencyReport.summary.conflicts > 0 || consistencyReport.summary.outdated > 5) {
         log.warn("consistency_issues_detected", {
           conflicts: consistencyReport.summary.conflicts,
           outdated: consistencyReport.summary.outdated,
         })
+        addStep(`⚠️ Consistency issues: ${consistencyReport.summary.conflicts} conflicts, ${consistencyReport.summary.outdated} outdated`)
+      } else {
+        addStep("✅ Consistency check passed")
       }
 
       this.recordEvolution(true, "successful_check")
       this.updateCircuitBreaker(true)
       this.lastCheck = Date.now()
+      addStep("✅ Evolution check completed successfully")
     } catch (error) {
       result.errors.push(String(error))
       log.error("trigger_check_failed", { error: String(error) })
       this.recordEvolution(false, String(error))
       this.updateCircuitBreaker(false)
+      addStep(`❌ Error: ${String(error)}`)
     }
 
     return result

@@ -1,5 +1,6 @@
 import type { LearningSource, LearningConfig } from "./config"
 import { Log } from "../util/log"
+import { Config } from "../config/config"
 
 const log = Log.create({ service: "learning-collector" })
 
@@ -29,22 +30,27 @@ export class Collector {
     for (const topic of this.config.topics) {
       if (this.config.sources.includes("search")) {
         const searchResults = await this.collectFromSearch(topic)
+        log.info("search results", { topic, count: searchResults.length })
         items.push(...searchResults)
       }
       if (this.config.sources.includes("arxiv")) {
         const arxivResults = await this.collectFromArxiv(topic)
+        log.info("arxiv results", { topic, count: arxivResults.length })
         items.push(...arxivResults)
       }
       if (this.config.sources.includes("github")) {
         const githubResults = await this.collectFromGithub(topic)
+        log.info("github results", { topic, count: githubResults.length })
         items.push(...githubResults)
       }
       if (this.config.sources.includes("pypi")) {
         const pypiResults = await this.collectFromPyPI(topic)
+        log.info("pypi results", { topic, count: pypiResults.length })
         items.push(...pypiResults)
       }
     }
 
+    log.info("total collected", { total: items.length })
     return items.slice(0, this.config.max_items_per_run)
   }
 
@@ -142,51 +148,93 @@ export class Collector {
   }
 
   private async exaSearch(query: string, numResults: number): Promise<ExaSearchResult[]> {
-    const response = await fetch("https://mcp.exa.ai/mcp", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        accept: "application/json",
-      },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "tools/call",
-        params: {
-          name: "web_search_exa",
-          arguments: {
-            query,
-            numResults,
-            type: "auto",
-            livecrawl: "fallback",
-            contextMaxCharacters: 10000,
-          },
-        },
-      }),
-    })
+    const cfg = await Config.get()
+    const apiKey = cfg.evolution?.exaApiKey
 
-    if (!response.ok) {
-      throw new Error(`Exa API error: ${response.status}`)
+    if (!apiKey) {
+      log.warn("Exa API key not configured in opencode.json evolution.exaApiKey")
+      return []
     }
 
-    const responseText = await response.text()
-    const lines = responseText.split("\n")
+    try {
+      const response = await fetch("https://mcp.exa.ai/mcp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: {
+            name: "web_search_exa",
+            arguments: {
+              query,
+              numResults,
+              type: "auto",
+              livecrawl: "fallback",
+              contextMaxCharacters: 10000,
+            },
+          },
+        }),
+      })
 
-    for (const line of lines) {
-      if (line.startsWith("data: ")) {
-        const data = JSON.parse(line.substring(6))
-        if (data.result?.content?.[0]?.text) {
-          const text = data.result.content[0].text
-          try {
-            return JSON.parse(text)
-          } catch {
-            log.warn("failed to parse Exa response as JSON", { text: text.slice(0, 100) })
-            return []
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "unknown error")
+        throw new Error(`Exa API error: ${response.status} ${errorText.slice(0, 200)}`)
+      }
+
+      const responseText = await response.text()
+      const lines = responseText.split("\n")
+      const results: ExaSearchResult[] = []
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const data = JSON.parse(line.substring(6))
+
+          if (data.result?.content) {
+            for (const contentItem of data.result.content) {
+              if (contentItem.text) {
+                const text = contentItem.text
+                log.info("received exa response", { textLength: text.length, preview: text.slice(0, 200) })
+
+                // Try to parse as JSON first
+                try {
+                  const parsed = JSON.parse(text)
+                  if (parsed.results && Array.isArray(parsed.results)) {
+                    log.info("parsed json results", { count: parsed.results.length })
+                    results.push(...parsed.results)
+                    continue
+                  }
+                } catch {
+                  // Not JSON, try to parse as text format
+                }
+
+                // Parse text format: "Title: ...\nURL: ...\nText: ..."
+                const titleMatch = text.match(/Title:\s*(.+?)(?:\n|$)/)
+                const urlMatch = text.match(/URL:\s*(.+?)(?:\n|$)/)
+                const textMatch = text.match(/Text:\s*(.+?)(?:\n|$)/)
+
+                if (titleMatch) {
+                  results.push({
+                    title: titleMatch[1].trim(),
+                    url: urlMatch ? urlMatch[1].trim() : "",
+                    text: textMatch ? textMatch[1].trim() : text,
+                  })
+                }
+              }
+            }
           }
         }
       }
-    }
 
-    return []
+      log.info("exaSearch completed", { query, resultsCount: results.length })
+      return results
+    } catch (e) {
+      log.error("exaSearch failed", { query, error: String(e) })
+      throw e
+    }
   }
 }

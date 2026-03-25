@@ -1243,6 +1243,7 @@ export namespace Config {
             .describe("Sources to collect from during evolution"),
           maxItemsPerRun: z.number().optional().describe("Maximum items to collect per evolution run"),
           cooldownHours: z.number().optional().describe("Hours between major evolution cycles"),
+          exaApiKey: z.string().optional().describe("Exa API key for web search (https://exa.ai)"),
         })
         .optional()
         .describe("Self-evolution configuration for AI-driven improvements"),

@@ -305,6 +305,7 @@ export namespace Session {
         updated: Date.now(),
       },
     }
+    Log.setSessionID(result.id)
     log.info("created", result)
     Database.use((db) => {
       db.insert(SessionTable).values(toRow(result)).run()
@@ -662,6 +663,10 @@ export namespace Session {
           }),
         )
       })
+      // Clear session ID if we're removing the current session
+      if (Log.getSessionID() === sessionID) {
+        Log.setSessionID(undefined)
+      }
     } catch (e) {
       log.error(e)
     }
