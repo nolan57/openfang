@@ -1244,6 +1244,13 @@ export namespace Config {
           maxItemsPerRun: z.number().optional().describe("Maximum items to collect per evolution run"),
           cooldownHours: z.number().optional().describe("Hours between major evolution cycles"),
           exaApiKey: z.string().optional().describe("Exa API key for web search (https://exa.ai)"),
+          disableSkillGeneration: z
+            .boolean()
+            .optional()
+            .default(true)
+            .describe(
+              "Disable automatic skill generation (recommended: true to prevent low-quality auto-generated skills)",
+            ),
         })
         .optional()
         .describe("Self-evolution configuration for AI-driven improvements"),

@@ -111,20 +111,25 @@ export const EvolveCommand: CommandModule = {
           const failed = results.filter((r) => !r.success).length
           console.log(`⚡ Execution Complete\n\nTotal: ${results.length}\n✅ Success: ${success}\n❌ Failed: ${failed}`)
         } else if (args.mode === "full" || args.mode === "trigger") {
-          const { runLearning } = await import("../../learning/command")
-          const result = await runLearning({})
+          await Instance.provide({
+            directory: process.cwd(),
+            fn: async () => {
+              const { runLearning } = await import("../../learning/command")
+              const result = await runLearning({})
 
-          if (result.success) {
-            console.log(`🚀 Full Evolution Cycle Complete\n`)
-            console.log(`📊 Results:`)
-            console.log(`- Collected: ${result.collected} items`)
-            console.log(`- Notes created: ${result.notes}`)
-            console.log(`- Skills installed: ${result.installs}`)
-            console.log(`- Code suggestions: ${result.suggestions}`)
-          } else {
-            console.error(`❌ Evolution Failed: ${result.error}`)
-            process.exit(1)
-          }
+              if (result.success) {
+                console.log(`🚀 Full Evolution Cycle Complete\n`)
+                console.log(`📊 Results:`)
+                console.log(`- Collected: ${result.collected} items`)
+                console.log(`- Notes created: ${result.notes}`)
+                console.log(`- Skills installed: ${result.installs}`)
+                console.log(`- Code suggestions: ${result.suggestions}`)
+              } else {
+                console.error(`❌ Evolution Failed: ${result.error}`)
+                process.exit(1)
+              }
+            },
+          })
         } else if (args.mode === "check") {
           const { ConsistencyChecker } = await import("../../learning/consistency-checker")
           const checker = new ConsistencyChecker()

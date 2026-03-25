@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenCode Evolution Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-2px);
+      }
+      .gradient-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .stat-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+      .loading {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mx-auto px-4 py-8">
+      <!-- Header -->
+      <div class="gradient-header text-white rounded-2xl p-8 mb-8 shadow-lg">
+        <h1 class="text-4xl font-bold mb-2">OpenCode Self-Evolution Dashboard</h1>
+        <p class="text-lg opacity-90">Track AI self-evolution history and progress</p>
+      </div>
+
+      <!-- Stats Overview -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="statsGrid">
+        <div class="card p-6 stat-card text-white">
+          <div class="text-sm opacity-90 mb-1">Total Runs</div>
+          <div class="text-4xl font-bold" id="totalRuns">-</div>
+        </div>
+        <div class="card p-6" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">
+          <div class="text-sm opacity-90 mb-1">Knowledge Items</div>
+          <div class="text-4xl font-bold text-white" id="totalKnowledge">-</div>
+        </div>
+        <div class="card p-6" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">
+          <div class="text-sm opacity-90 mb-1">Source Types</div>
+          <div class="text-4xl font-bold text-white" id="sourceTypes">-</div>
+        </div>
+        <div class="card p-6" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)">
+          <div class="text-sm opacity-90 mb-1">Recent Runs</div>
+          <div class="text-4xl font-bold text-white" id="recentRuns">-</div>
+        </div>
+      </div>
+
+      <!-- Empty Data Message -->
+      <div id="emptyDataMessage" class="hidden card p-8 mb-8 text-center">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">No Evolution Data</h2>
+        <p class="text-gray-600 mb-4">
+          The system has not run any self-evolution cycles yet. Run the
+          <code class="bg-gray-100 px-2 py-1 rounded">/evolve</code> command to start your first evolution.
+        </p>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="card p-6">
+          <h3 class="text-xl font-bold mb-4 text-gray-800">Source Distribution</h3>
+          <canvas id="sourceChart"></canvas>
+        </div>
+        <div class="card p-6">
+          <h3 class="text-xl font-bold mb-4 text-gray-800">Action Types</h3>
+          <canvas id="actionChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Runs -->
+      <div class="card p-6 mb-8">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Evolution Run History</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left py-3 px-4">Run ID</th>
+                <th class="text-left py-3 px-4">Trigger</th>
+                <th class="text-left py-3 px-4">Status</th>
+                <th class="text-left py-3 px-4">Items</th>
+                <th class="text-left py-3 px-4">Created</th>
+                <th class="text-left py-3 px-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="runsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Learning Notes -->
+      <div class="card p-6 mb-8">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Learning Notes</h3>
+        <div id="notesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- Snapshots -->
+      <div class="card p-6">
+        <h3 class="text-xl font-bold mb-4 text-gray-800">System Snapshots</h3>
+        <div id="snapshotsList" class="space-y-3"></div>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div id="loading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p class="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:4096/api/evolution"
+
+      function formatDate(timestamp) {
+        return new Date(timestamp).toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      }
+
+      function truncateId(id) {
+        return id.slice(0, 8) + "..." + id.slice(-4)
+      }
+
+      async function loadData() {
+        try {
+          const statsRes = await fetch(`${API_BASE}/stats`)
+          const statsData = await statsRes.json()
+
+          if (statsData.success) {
+            const stats = statsData.data
+            document.getElementById("totalRuns").textContent = stats.totalRuns
+            document.getElementById("totalKnowledge").textContent = stats.totalKnowledge
+            document.getElementById("sourceTypes").textContent = stats.bySource.length
+            document.getElementById("recentRuns").textContent = stats.recentRuns.length
+
+            if (stats.totalRuns === 0 && stats.totalKnowledge === 0) {
+              document.getElementById("emptyDataMessage").style.display = "block"
+            }
+
+            const sourceCtx = document.getElementById("sourceChart").getContext("2d")
+            if (stats.bySource.length > 0) {
+              new Chart(sourceCtx, {
+                type: "doughnut",
+                data: {
+                  labels: stats.bySource.map((s) => s.source),
+                  datasets: [
+                    {
+                      data: stats.bySource.map((s) => s.count),
+                      backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF"],
+                    },
+                  ],
+                },
+                options: { responsive: true, plugins: { legend: { position: "bottom" } } },
+              })
+            } else {
+              sourceCtx.canvas.parentElement.innerHTML =
+                '<div class="h-64 flex items-center justify-center text-gray-400">No data available</div>'
+            }
+
+            const actionCtx = document.getElementById("actionChart").getContext("2d")
+            if (stats.byAction.length > 0) {
+              new Chart(actionCtx, {
+                type: "bar",
+                data: {
+                  labels: stats.byAction.map((a) => a.action),
+                  datasets: [
+                    {
+                      label: "Count",
+                      data: stats.byAction.map((a) => a.count),
+                      backgroundColor: "#667eea",
+                    },
+                  ],
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } },
+              })
+            } else {
+              actionCtx.canvas.parentElement.innerHTML =
+                '<div class="h-64 flex items-center justify-center text-gray-400">No data available</div>'
+            }
+
+            const runsTable = document.getElementById("runsTable")
+            if (stats.recentRuns.length > 0) {
+              runsTable.innerHTML = stats.recentRuns
+                .map(
+                  (run) => `
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="py-3 px-4 font-mono text-sm">${truncateId(run.id)}</td>
+                  <td class="py-3 px-4"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">${run.trigger}</span></td>
+                  <td class="py-3 px-4">
+                    <span class="px-2 py-1 ${run.status === "completed" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"} rounded text-xs">
+                      ${run.status}
+                    </span>
+                  </td>
+                  <td class="py-3 px-4">${run.items_collected}</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">${formatDate(run.time_created)}</td>
+                  <td class="py-3 px-4">
+                    <button onclick="viewRun('${run.id}')" class="text-blue-600 hover:text-blue-800 text-sm">View Details</button>
+                  </td>
+                </tr>
+              `,
+                )
+                .join("")
+            } else {
+              runsTable.innerHTML =
+                '<tr><td colspan="6" class="py-8 text-center text-gray-400">No evolution runs recorded</td></tr>'
+            }
+          }
+
+          const notesRes = await fetch(`${API_BASE}/notes`)
+          const notesData = await notesRes.json()
+          const notesList = document.getElementById("notesList")
+          if (notesData.success && notesData.data.length > 0) {
+            notesList.innerHTML = notesData.data
+              .slice(0, 6)
+              .map(
+                (note) => `
+              <div class="border rounded-lg p-4 hover:shadow-md transition cursor-pointer" onclick="viewNotes('${note.runId}')">
+                <div class="text-sm text-gray-500 mb-2">${formatDate(note.createdAt)}</div>
+                <div class="font-bold text-gray-800 mb-1">${note.noteCount} notes</div>
+                <div class="text-xs text-gray-600">${truncateId(note.runId)}</div>
+              </div>
+            `,
+              )
+              .join("")
+          } else {
+            notesList.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">No learning notes</div>'
+          }
+
+          const snapshotsRes = await fetch(`${API_BASE}/snapshots`)
+          const snapshotsData = await snapshotsRes.json()
+          const snapshotsList = document.getElementById("snapshotsList")
+          if (snapshotsData.success && snapshotsData.data.length > 0) {
+            snapshotsList.innerHTML = snapshotsData.data
+              .slice(0, 5)
+              .map(
+                (snap) => `
+              <div class="border rounded-lg p-4 flex justify-between items-center">
+                <div>
+                  <div class="font-bold text-gray-800">${snap.snapshot_type}</div>
+                  <div class="text-sm text-gray-600">${snap.description}</div>
+                </div>
+                <div class="text-sm text-gray-500">${formatDate(snap.time_created)}</div>
+              </div>
+            `,
+              )
+              .join("")
+          } else {
+            snapshotsList.innerHTML = '<div class="text-center py-8 text-gray-400">No system snapshots</div>'
+          }
+        } catch (error) {
+          console.error("Failed to load data:", error)
+          alert("Failed to load data: " + error.message)
+        } finally {
+          document.getElementById("loading").style.display = "none"
+        }
+      }
+
+      function viewRun(runId) {
+        window.open(`${API_BASE}/runs/${runId}`, "_blank")
+      }
+
+      function viewNotes(runId) {
+        const notesWindow = window.open("", "_blank")
+        notesWindow.document.write(`
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <title>Learning Notes - ${runId}</title>
+              <script src="https://cdn.tailwindcss.com"><\/script>
+              <style>
+                body { font-family: system-ui, sans-serif; background: #f5f5f5; padding: 2rem; }
+                .note-card { background: white; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+                .note-link { color: #2563eb; text-decoration: none; }
+                .note-link:hover { text-decoration: underline; }
+                .source-tag { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; margin-left: 0.5rem; }
+                .source-search { background: #dbeafe; color: #1e40af; }
+                .source-arxiv { background: #fee2e2; color: #991b1b; }
+                .source-github { background: #dcfce7; color: #166534; }
+              </style>
+            </head>
+            <body>
+              <div class="max-w-4xl mx-auto">
+                <h1 class="text-2xl font-bold mb-4">Learning Notes - ${runId.slice(0, 8)}</h1>
+                <div id="content">Loading...</div>
+              </div>
+              <script>
+                fetch('/api/evolution/notes/${runId}/index')
+                  .then(r => r.json())
+                  .then(data => {
+                    if (data.success) {
+                      const content = data.data.content
+                      const lines = content.split('\\n').filter(line => line.startsWith('- ['))
+                      const notes = []
+                      lines.forEach(line => {
+                        const match = line.match(/- \\[([^\\]]+)\\]\\(\\.\\/([^)]+)\\) \\(([^)]+)\\)/)
+                        if (match) {
+                          notes.push({ title: match[1], file: match[2], source: match[3] })
+                        }
+                      })
+                      
+                      let html = '<div class="space-y-2">'
+                      notes.forEach(note => {
+                        const sourceClass = 'source-' + note.source
+                        html += \`
+                          <div class="note-card">
+                            <a href="/api/evolution/notes/${runId}/\${note.file.replace('.md', '')}" class="note-link font-medium">\${note.title}</a>
+                            <span class="source-tag \${sourceClass}">\${note.source}</span>
+                          </div>
+                        \`
+                      })
+                      html += '</div>'
+                      document.getElementById('content').innerHTML = html
+                    } else {
+                      document.getElementById('content').innerHTML = '<p class="text-red-600">Failed to load: ' + (data.error || 'Unknown error') + '</p>'
+                    }
+                  })
+                  .catch(err => {
+                    document.getElementById('content').innerHTML = '<p class="text-red-600">Failed to load: ' + err.message + '</p>'
+                  })
+              <\/script>
+            </body>
+          </html>
+        `)
+        notesWindow.document.close()
+      }
+
+      document.addEventListener("DOMContentLoaded", loadData)
+    </script>
+  </body>
+</html>

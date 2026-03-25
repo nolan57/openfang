@@ -66,6 +66,7 @@ export const LearningConfig = z.object({
   note_output_dir: z.string(),
   spec_file: z.string().optional(),
   automation: AutomationConfig.optional(),
+  disableSkillGeneration: z.boolean().optional().default(false).describe("Disable automatic skill generation"),
 })
 export type LearningConfig = z.infer<typeof LearningConfig>
 
@@ -81,6 +82,7 @@ export const defaultLearningConfig: LearningConfig = {
   max_items_per_run: 10,
   note_output_dir: "docs/learning/notes",
   automation: defaultAutomationConfig,
+  disableSkillGeneration: true,
 }
 
 /**

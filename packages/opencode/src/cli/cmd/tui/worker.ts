@@ -41,6 +41,8 @@ let server: Bun.Server<BunWebSocketData> | undefined
 
 const eventStream = {
   abort: undefined as AbortController | undefined,
+  lastError: undefined as string | undefined,
+  errorCount: 0,
 }
 
 const startEventStream = (directory: string) => {
@@ -63,6 +65,8 @@ const startEventStream = (directory: string) => {
     signal,
   })
 
+  let consecutiveErrors = 0
+
   ;(async () => {
     while (!signal.aborted) {
       const events = await Promise.resolve(
@@ -75,9 +79,15 @@ const startEventStream = (directory: string) => {
       ).catch(() => undefined)
 
       if (!events) {
-        await Bun.sleep(250)
+        consecutiveErrors++
+        // Exponential backoff for repeated errors
+        const delay = Math.min(250 * Math.pow(2, consecutiveErrors - 1), 5000)
+        await Bun.sleep(delay)
         continue
       }
+
+      // Reset error count on successful connection
+      consecutiveErrors = 0
 
       for await (const event of events.stream) {
         Rpc.emit("event", event as Event)
@@ -88,9 +98,24 @@ const startEventStream = (directory: string) => {
       }
     }
   })().catch((error) => {
-    Log.Default.error("event stream error", {
-      error: error instanceof Error ? error.message : error,
-    })
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    // Prevent log spam by deduplicating consecutive identical errors
+    if (eventStream.lastError !== errorMsg) {
+      eventStream.lastError = errorMsg
+      eventStream.errorCount = 1
+      Log.Default.error("event stream error", {
+        error: errorMsg,
+      })
+    } else {
+      eventStream.errorCount++
+      // Only log every 10th consecutive identical error
+      if (eventStream.errorCount % 10 === 0) {
+        Log.Default.error("event stream error (repeated)", {
+          error: errorMsg,
+          count: eventStream.errorCount,
+        })
+      }
+    }
   })
 }
 

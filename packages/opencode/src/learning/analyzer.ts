@@ -1,9 +1,29 @@
 import type { CollectedItem } from "./collector"
 import { Log } from "../util/log"
 import { NegativeMemory } from "./negative"
+import { Config } from "../config/config"
+import type { LearningConfig } from "./config"
 
 const log = Log.create({ service: "learning-analyzer" })
 const negativeMemory = new NegativeMemory()
+
+let cachedConfig: LearningConfig | null = null
+
+async function getLearningConfig(): Promise<LearningConfig> {
+  if (cachedConfig) return cachedConfig
+
+  const cfg = await Config.get()
+  cachedConfig = {
+    enabled: cfg.evolution?.enabled ?? true,
+    schedule: { cron: undefined, idle_check: true, idle_threshold_minutes: 30 },
+    sources: (cfg.evolution?.sources as any[]) ?? ["search", "arxiv", "github"],
+    topics: cfg.evolution?.directions ?? [],
+    max_items_per_run: cfg.evolution?.maxItemsPerRun ?? 10,
+    note_output_dir: "docs/learning/notes",
+    disableSkillGeneration: cfg.evolution?.disableSkillGeneration ?? true,
+  }
+  return cachedConfig
+}
 
 export interface AnalyzedItem extends CollectedItem {
   summary: string
@@ -14,6 +34,7 @@ export interface AnalyzedItem extends CollectedItem {
 
 export class Analyzer {
   async analyze(items: CollectedItem[]): Promise<AnalyzedItem[]> {
+    const config = await getLearningConfig()
     const results: AnalyzedItem[] = []
 
     for (const item of items) {
@@ -24,7 +45,7 @@ export class Analyzer {
       }
 
       try {
-        const analyzed = this.analyzeItem(item)
+        const analyzed = await this.analyzeItem(item, config)
         results.push(analyzed)
       } catch (e) {
         log.error("failed to analyze item", { url: item.url, error: String(e) })
@@ -34,11 +55,11 @@ export class Analyzer {
     return results
   }
 
-  private analyzeItem(item: CollectedItem): AnalyzedItem {
+  private async analyzeItem(item: CollectedItem, config: LearningConfig): Promise<AnalyzedItem> {
     const summary = this.extractSummary(item.content)
     const tags = this.extractTags(item)
     const score = this.calculateValueScore(item, tags)
-    const action = this.determineAction(score)
+    const action = await this.determineAction(score, config)
 
     return {
       ...item,
@@ -93,7 +114,13 @@ export class Analyzer {
     return Math.min(100, score)
   }
 
-  private determineAction(score: number): AnalyzedItem["action"] {
+  private async determineAction(score: number, config: LearningConfig): Promise<AnalyzedItem["action"]> {
+    // Check if skill generation is disabled
+    if (config.disableSkillGeneration) {
+      log.info("skill_generation_disabled", { score })
+      return "note_only"
+    }
+
     if (score >= 80) return "install_skill"
     if (score >= 60) return "code_suggestion"
     return "note_only"

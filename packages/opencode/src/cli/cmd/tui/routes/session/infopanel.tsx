@@ -7,6 +7,14 @@ export function InfoPanel() {
   const { theme } = useTheme()
   const logs = createMemo(() => sync.data.logs)
   const maxLogLength = 50
+  const maxLogs = 30
+
+  // Throttle log rendering to prevent performance issues
+  const displayLogs = createMemo(() => {
+    const allLogs = logs()
+    // Only show the most recent logs to prevent rendering lag
+    return allLogs.slice(-maxLogs)
+  })
 
   return (
     <box
@@ -25,8 +33,8 @@ export function InfoPanel() {
         </text>
       </box>
       <scrollbox flexGrow={1}>
-        <Show when={logs().length > 0} fallback={<text fg={theme.textMuted}>No logs</text>}>
-          <For each={[...logs()].reverse()}>
+        <Show when={displayLogs().length > 0} fallback={<text fg={theme.textMuted}>No logs</text>}>
+          <For each={[...displayLogs()].reverse()}>
             {(log) => {
               const timestamp = new Date(log.timestamp).toLocaleTimeString()
               const sourcePrefix = log.source ? `[${log.source}]` : ""

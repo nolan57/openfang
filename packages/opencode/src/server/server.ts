@@ -8,6 +8,7 @@ import { streamSSE } from "hono/streaming"
 import { proxy } from "hono/proxy"
 import { basicAuth } from "hono/basic-auth"
 import z from "zod"
+import path from "path"
 import { Provider } from "../provider/provider"
 import { NamedError } from "@opencode-ai/util/error"
 import { LSP } from "../lsp"
@@ -43,6 +44,7 @@ import { GlobalRoutes } from "./routes/global"
 import { ControlRoutes } from "./routes/control"
 import { SchedulerRoutes } from "./routes/scheduler"
 import { TracesRoutes } from "./routes/traces"
+import { EvolutionRoutes } from "./routes/evolution"
 import { MDNS } from "./mdns"
 
 // @ts-ignore This global is needed to prevent ai-sdk from logging warnings to stdout https://github.com/vercel/ai/blob/2dc67e0ef538307f21368db32d5a12345d98831b/packages/ai/src/logger/log-warnings.ts#L85
@@ -277,6 +279,7 @@ export namespace Server {
         .route("/control", ControlRoutes())
         .route("/scheduler", SchedulerRoutes())
         .route("/api/traces", TracesRoutes())
+        .route("/api/evolution", EvolutionRoutes())
         .post(
           "/instance/dispose",
           describeRoute({
@@ -582,10 +585,26 @@ export namespace Server {
             })
           },
         )
+        // Serve evolution dashboard static files before catch-all proxy
+        .get("/api/evolution/static/*", async (c) => {
+          // Use c.req.path and strip the prefix to get the filename
+          const fullPath = c.req.path
+          const prefix = "/api/evolution/static/"
+          const filename = fullPath.startsWith(prefix) ? fullPath.slice(prefix.length) : ""
+          const packageRoot = process.cwd()
+          const filePath = path.join(packageRoot, "src/server/static", filename)
+          if (!filename) return c.json({ success: false, error: "File not found" }, 404)
+          const file = Bun.file(filePath)
+          const exists = await file.exists()
+          if (!exists) {
+            return c.json({ success: false, error: "File not found" }, 404)
+          }
+          return c.html(await file.text())
+        })
         .all("/*", async (c) => {
-          const path = c.req.path
+          const requestPath = c.req.path
 
-          const response = await proxy(`https://app.opencode.ai${path}`, {
+          const response = await proxy(`https://app.opencode.ai${requestPath}`, {
             ...c.req,
             headers: {
               ...c.req.raw.headers,

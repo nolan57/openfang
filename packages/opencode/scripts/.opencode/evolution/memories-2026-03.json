@@ -1,0 +1,422 @@
+[
+  {
+    "id": "f861296f-b0e4-4d4f-bab1-351a69042448",
+    "key": "testing-approach",
+    "value": "Write tests first (TDD) for better design",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441805663,
+    "lastUsedAt": 1774441805663,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "0a746a39-f825-4312-b77d-d97b28e519fd",
+    "key": "refactoring-guidance",
+    "value": "Make small, incremental changes",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441806157,
+    "lastUsedAt": 1774441806157,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "33ec2126-dee8-4b97-abdb-6e7791da90e1",
+    "key": "debugging-tips",
+    "value": "Start with minimal reproduction case",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441806363,
+    "lastUsedAt": 1774441806363,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "91c1e0a5-4c50-41bc-89a2-7eee80e9e9e5",
+    "key": "api-design",
+    "value": "Design APIs with clear contracts and version them",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441809657,
+    "lastUsedAt": 1774441809657,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "67cf810c-e08c-4f8f-a1c3-9462c507ec0f",
+    "key": "database-tips",
+    "value": "Use indexes and avoid N+1 queries",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441809887,
+    "lastUsedAt": 1774445418310,
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "03d789b1-4e0d-4b71-a133-481c2b7eda1a",
+    "key": "git-workflow",
+    "value": "Make small, focused commits with clear messages",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441811037,
+    "lastUsedAt": 1774441811037,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "1ef561bf-6b03-46c4-a36c-61ebace35766",
+    "key": "verify-feedback-routing",
+    "value": "Ensure progress feedback is correctly wired to the output stream and tested in the live environment to prevent regressions.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441816811,
+    "lastUsedAt": 1774441816811,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b1ec640d-15cb-4396-a198-f1ce37444b28",
+    "key": "generic-ui-logging",
+    "value": "Architect UI logging components to consume generic session events rather than implementing command-specific display logic.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441817116,
+    "lastUsedAt": 1774441817116,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8e32cb15-47c6-4f3a-917c-5da4fd17178d",
+    "key": "tui-stream-subscription",
+    "value": "Confirm TUI panels are actively subscribed to the session's log stream to ensure real-time information display.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441826942,
+    "lastUsedAt": 1774441826942,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "026cf692-ad8c-49ec-b459-6582710bbb85",
+    "key": "generic-logging-architecture",
+    "value": "Implement logging as a shared service accessible by all commands rather than coupling it to specific features for better scalability.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441953006,
+    "lastUsedAt": 1774444339976,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8eeb9944-b68b-4ca8-840a-6d7562f0aca9",
+    "key": "feedback-integration-testing",
+    "value": "When updating feedback mechanisms, test the specific execution paths to ensure new code changes correctly wire into the display pipeline.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774441953297,
+    "lastUsedAt": 1774442866485,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "504c1694-8177-4354-8eeb-85c2649cc6ee",
+    "key": "tui-log-integration",
+    "value": "Bind TUI log regions to the global session event bus instead of specific commands to ensure universal log visibility.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774443043032,
+    "lastUsedAt": 1774444578573,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "63b49a71-2be4-422b-86e1-997bcb77341b",
+    "key": "progress-stream-verification",
+    "value": "Verify that progress callbacks are correctly wired to the active session context after refactoring to prevent silent failures.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774443043242,
+    "lastUsedAt": 1774443043242,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "ec6c65b8-aa4f-4d46-bf91-9a6c8edefcf2",
+    "key": "feature-regression-check",
+    "value": "Regression test existing feedback features after code changes to ensure previous improvements were not inadvertently broken.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774443043454,
+    "lastUsedAt": 1774444199033,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "ba528db4-e32a-4566-8de8-e8e658705edb",
+    "key": "multi-channel-feedback",
+    "value": "Implement logging systems that simultaneously update chat sessions and dedicated UI panels to ensure users see progress across all interfaces.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774444309744,
+    "lastUsedAt": 1774444309744,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "772bcd77-e542-43a2-af76-beb4f0706a5d",
+    "key": "generic-logging-architecture",
+    "value": "Design logging improvements as generic services rather than command-specific fixes to ensure consistency across all system operations.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774444309960,
+    "lastUsedAt": 1774444309960,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a8daf6f6-02a4-4afc-97a6-00de94f077b0",
+    "key": "verify-ui-event-subscription",
+    "value": "Confirm that UI components like log sidebars are properly subscribed to event streams to prevent empty states despite backend activity.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results.",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774444310161,
+    "lastUsedAt": 1774444310161,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "e0bcd8c2-da83-4f76-bac9-f38dc0916bb8",
+    "key": "progress-feedback-verification",
+    "value": "After adding progress logging to long-running tasks, verify the output stream is correctly wired to the chat session to prevent silent failures.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774444429235,
+    "lastUsedAt": 1774444429235,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "4782b803-0631-437c-a350-d938e2f26c99",
+    "key": "generic-log-architecture",
+    "value": "Implement log display as a session-wide generic feature rather than tying it to specific commands to ensure consistent visibility across all operations.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774444430200,
+    "lastUsedAt": 1774444430200,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "04035d16-20ff-46f2-a131-e415707d80a5",
+    "key": "tui-log-integration",
+    "value": "Ensure backend log events are explicitly pushed to dedicated UI components like sidebar log panels to keep them synchronized with session activity.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774444431088,
+    "lastUsedAt": 1774444431088,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "448a0851-32fd-4684-a44f-aa7a6977bbc5",
+    "key": "progress-feedback-regression",
+    "value": "Verify that existing progress feedback logic remains connected after code changes, ensuring long-running tasks still report status to the session stream.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么 分析和判断哪些skills值得激活使用，哪些要废弃",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774444681512,
+    "lastUsedAt": 1774446402193,
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "3aeff773-7b02-49cb-a7ad-e9360b67dac9",
+    "key": "generic-tui-logging",
+    "value": "Implement a centralized log listener for the TUI sidebar region to automatically display logs for all commands rather than building command-specific solutions.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么 分析和判断哪些skills值得激活使用，哪些要废弃",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774444681790,
+    "lastUsedAt": 1774444681790,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b9fc237f-89f0-4c86-a3f3-28372fdefbf9",
+    "key": "session-progress-feedback",
+    "value": "Ensure long-running commands stream progress updates directly to the chat session to prevent user uncertainty during execution.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么 分析和判断哪些skills值得激活使用，哪些要废弃 废弃这5个技能 废弃这5个技能",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774445361518,
+    "lastUsedAt": 1774445361518,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "641dcd33-78bd-4179-9937-c40cc50538f2",
+    "key": "tui-log-binding",
+    "value": "Verify that application log events are explicitly routed to the TUI's log display component rather than relying on standard output.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么 分析和判断哪些skills值得激活使用，哪些要废弃 废弃这5个技能 废弃这5个技能",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774445624144,
+    "lastUsedAt": 1774445624144,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "78843f29-81fc-404f-9b88-01a7507e20f6",
+    "key": "generic-logging-implementation",
+    "value": "Implement logging enhancements as a universal feature across all session commands instead of hardcoding them for specific workflows.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么 分析和判断哪些skills值得激活使用，哪些要废弃 废弃这5个技能 废弃这5个技能",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774445624317,
+    "lastUsedAt": 1774445624317,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b7f32d13-f93a-44f7-8782-0d06ef273e98",
+    "key": "verify-execution-wiring",
+    "value": "After implementing progress feedback, verify that the specific command execution flow actually triggers the logging functions to ensure visibility.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么 分析和判断哪些skills值得激活使用，哪些要废弃 废弃这5个技能 废弃这5个技能 暂停自动技能生成",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774446192800,
+    "lastUsedAt": 1774446192800,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f453b478-987c-45d6-b037-54e98ecda1b1",
+    "key": "tui-log-binding",
+    "value": "Ensure TUI components like sidebar log areas are properly bound to the central logging stream to display real-time session information.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么 分析和判断哪些skills值得激活使用，哪些要废弃 废弃这5个技能 废弃这5个技能 暂停自动技能生成",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774446193164,
+    "lastUsedAt": 1774446193164,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "ade288ef-4ec6-47b9-9d7f-edaccc71cbfc",
+    "key": "generic-logging-design",
+    "value": "Design logging and progress reporting as a generic service instead of command-specific logic to ensure consistent feedback across all tools.",
+    "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览 访问dashboard只能看到学习笔记有相关数据显示，其他都为0或空，请修复 evloution dashboard除了知识条目外，其他都有数据显示了 已修复，知识条目也显示有数据了，不过，这些数据都是保存在文件系统中的吗？还是应该保存在数据库中的？请分析/evolve指令相关的learning模块的代码来判断 将文档改成英文 将 evolution dashboard 页面改成英文，取消各种图标 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n--status\n\nIf no arguments provided, run full evolution cycle and report results. 最近一次自进化获取的skills是什么 分析和判断哪些skills值得激活使用，哪些要废弃 废弃这5个技能 废弃这5个技能 暂停自动技能生成",
+    "sessionIDs": [
+      "ses_2ddbf87ccffeGpL7vbjkX29Y51"
+    ],
+    "createdAt": 1774446193605,
+    "lastUsedAt": 1774446193605,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  }
+]

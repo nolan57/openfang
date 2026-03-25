@@ -5437,6 +5437,7 @@
     "status": "draft"
   },
   {
+    "id": "f2f34001-c479-47b9-b615-57dcdeebe9c7",
     "name": "auto-glob-task",
     "description": "Auto-generated skill for 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个L",
     "content": "# 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添\n\n## Description\n\nAuto-generated skill for: 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-25\n",
@@ -5445,8 +5446,23 @@
       "tuilogsloglogevolve"
     ],
     "sessionID": "ses_2ddbf87ccffeGpL7vbjkX29Y51",
-    "id": "f2f34001-c479-47b9-b615-57dcdeebe9c7",
     "createdAt": 1774397732291,
+    "status": "draft"
+  },
+  {
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个L",
+    "content": "# 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添\n\n## Description\n\nAuto-generated skill for: 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n- Working with edit operations\n- Working with write operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-25\n",
+    "triggerPatterns": [
+      "evolve",
+      "tuilogsloglogevolve",
+      "trigger",
+      "opencode",
+      "selfevolution"
+    ],
+    "sessionID": "ses_2ddbf87ccffeGpL7vbjkX29Y51",
+    "id": "a4e1de27-2703-48c6-96b4-0aecd200d1e7",
+    "createdAt": 1774426212839,
     "status": "draft"
   }
 ]

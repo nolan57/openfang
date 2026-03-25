@@ -138,17 +138,28 @@ export namespace Log {
     }
 
     // Lazy access to Bus/TuiEvent to avoid circular dependency during module initialization
+    // Prevent log loops by tracking in-flight log publications
+    let publishingLog = false
     function publishToBus(source: string, level: string, message: string) {
-      if (currentSessionID) {
+      if (currentSessionID && !publishingLog) {
+        publishingLog = true
         // Use dynamic import to break circular dependency at runtime
         import("../bus").then(({ Bus }) => {
           import("../cli/cmd/tui/event").then(({ TuiEvent }) => {
-            Bus.publish(TuiEvent.Log, {
-              source,
-              level: level as "info" | "warning" | "error",
-              message,
-            })
+            try {
+              Bus.publish(TuiEvent.Log, {
+                source,
+                level: level as "info" | "warning" | "error",
+                message,
+              })
+            } catch {
+              // Ignore errors to prevent log loops
+            } finally {
+              publishingLog = false
+            }
           })
+        }).catch(() => {
+          publishingLog = false
         })
       }
     }
