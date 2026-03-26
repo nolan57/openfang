@@ -78,10 +78,8 @@ export {
   generateTestCases,
   createSkillSandbox,
 } from "./skill-sandbox"
-export {
-  type ArchitectureConstraint,
-  createConstraintLoader,
-} from "./constraint-loader"
+export { SkillValidator, type ValidationResult } from "./skill-validator"
+export { type ArchitectureConstraint, createConstraintLoader } from "./constraint-loader"
 export {
   DynamicQueryGenerator,
   type QueryGenerationResult,
