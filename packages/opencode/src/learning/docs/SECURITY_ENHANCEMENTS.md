@@ -1,148 +1,146 @@
 # Learning Module Security Enhancements
 
-Implementation of 4 security enhancements based on tou.txt requirements.
+Implementation of security enhancements based on tou.txt requirements.
 
-## 1. Enhanced Test Coverage (Mutation Testing)
+## 1. VM-Based Test Execution (tou.txt Requirement #1)
 
 **File**: `src/learning/skill-validator.ts`
 
 ### Features Implemented
 
-- ✅ New `runMutationTesting()` method
-- ✅ Supports 4 mutation types:
-  - Return value removal
-  - Condition replacement
-  - Operator replacement
-  - Equality inversion
-- ✅ Mutation score threshold: 70%
-- ✅ Automatic mutation testing to detect test case quality
+- ✅ Fixed `runTests()` empty implementation - now uses Node.js `vm` module
+- ✅ Sandboxed execution context with restricted globals
+- ✅ Proper test result validation against expected output
+- ✅ Timeout protection (5000ms) to prevent infinite loops
+- ✅ Module require blacklist blocking dangerous modules
 
 ### Code Example
 
 ```typescript
-async runMutationTesting(skillCode: string, testCases) {
-  const mutations = this.generateMutations(skillCode)
-  let killedMutants = 0
+private async executeInVM(skillCode: string, input: string, expected: string): Promise<boolean> {
+  const context = vm.createContext({
+    console: { log: () => {}, warn: () => {}, error: () => {} },
+    require: (moduleName: string) => {
+      if (DANGEROUS_MODULES.includes(moduleName)) {
+        throw new Error(`Security violation: require('${moduleName}') not allowed`)
+      }
+      return {}
+    },
+    process: { env: {}, cwd: () => "/sandbox" },
+  })
 
-  for (const mutant of mutations) {
-    const testResults = await this.runTests(mutant.code, testCases)
-    if (!testResults.every(r => r.passed)) {
-      killedMutants++ // Test detected mutation
-    }
-  }
+  const result = vm.runInContext(wrappedCode, context, {
+    timeout: TEST_TIMEOUT_MS,
+    displayErrors: true,
+  })
 
-  const score = killedMutants / mutations.length
-  return { score, passed: score >= 0.7 }
+  return String(result) === String(expected)
 }
+```
+
+### Dangerous Module Blacklist
+
+```typescript
+const DANGEROUS_MODULES = [
+  "child_process", // Process spawning
+  "fs", // File system access
+  "path", // Path manipulation
+  "os", // OS information
+  "net", // Network access
+  "dgram", // UDP sockets
+  "dns", // DNS queries
+]
 ```
 
 ---
 
-## 2. Improved Dependency Management
+## 2. Enhanced Dependency Checking (tou.txt Requirement #2)
 
 **File**: `src/learning/installer.ts`
 
 ### Features Implemented
 
-- ✅ `extractImports()` - Extract all import statements from code
-- ✅ `checkMissingDependencies()` - Check for undeclared npm dependencies
-- ✅ New install type `pending_deps` - Mark skills with missing dependencies
-- ✅ Automatic detection of dependencies and devDependencies in package.json
+- ✅ `checkMissingDependencies()` now returns `{ missing, blocked }`
+- ✅ **Blocking mechanism**: Skills with missing dependencies are rejected
+- ✅ Installation prevented until dependencies are resolved
+- ✅ Detailed error logging with action taken
 
-### Detection Logic
+### Detection & Blocking Logic
 
 ```typescript
-// Extract import statements
-const imports = this.extractImports(skillCode)
+const depCheckResult = await this.checkMissingDependencies(imports, skillName)
 
-// Check for missing dependencies
-const missingDeps = await this.checkMissingDependencies(imports)
-
-if (missingDeps.length > 0) {
+if (depCheckResult.blocked && depCheckResult.missing.length > 0) {
   return {
     success: false,
     type: "pending_deps",
-    missing_deps: missingDeps,
+    missing_deps: depCheckResult.missing,
+    error: `Missing dependencies: ${missing.join(", ")}`,
   }
+}
+```
+
+### Return Type
+
+```typescript
+interface DepCheckResult {
+  missing: string[] // List of missing dependencies
+  blocked: boolean // Whether installation is blocked
 }
 ```
 
 ---
 
-## 3. Strengthened Human Feedback Loop
+## 3. Timeout Protection (tou.txt Requirement #3)
 
-**Files**: `src/learning/command.ts`, `src/learning/negative.ts`
+**File**: `src/learning/skill-validator.ts`
 
 ### Features Implemented
 
-- ✅ Automatically record rejected skills to Negative Memory
-- ✅ Analyze skill features (source domain, tags, keywords)
-- ✅ Reduce scoring weight for future content from similar sources
-- ✅ Feature extraction: source, domain, tags, title_keywords
+- ✅ `TEST_TIMEOUT_MS = 5000` - 5 second timeout
+- ✅ Automatic termination of infinite loops
+- ✅ Clear error messages for timeout violations
+- ✅ Prevents validator from hanging
 
-### Feedback Recording
+### Timeout Configuration
 
 ```typescript
-async function recordSkillRejection(result, analyzed) {
-  const features = {
-    source: rejectedItem.source,
-    domain: extractDomain(rejectedItem.url),
-    tags: rejectedItem.tags,
-    title_keywords: rejectedItem.title.toLowerCase().split(" "),
-  }
+const TEST_TIMEOUT_MS = 5000
 
-  await negativeMemory.recordFailure({
-    failure_type: "install_failed",
-    context: {
-      reason: result.error,
-      source: features.source,
-      domain: features.domain,
-      tags: features.tags,
-    },
-    blocked_items: [rejectedItem.url, rejectedItem.title],
-  })
+vm.runInContext(wrappedCode, context, {
+  timeout: TEST_TIMEOUT_MS,
+  filename: "skill.js",
+  displayErrors: true,
+})
+
+// Error handling
+if (error.code === "ERR_SCRIPT_EXECUTION_TIMEOUT") {
+  throw new Error(`Test execution timeout after ${TEST_TIMEOUT_MS}ms`)
 }
 ```
 
 ---
 
-## 4. Refined Sandbox Resource Limits (Syscall Filtering)
+## 4. Secure Module Simulation (tou.txt Requirement #4)
 
-**File**: `src/learning/skill-sandbox.ts`
+**File**: `src/learning/skill-validator.ts`
 
 ### Features Implemented
 
-- ✅ `DANGEROUS_PATTERNS` blacklist - 29 dangerous patterns
-- ✅ `detectDangerousPatterns()` - Code scanning
-- ✅ `SAFE_GLOBALS` - Safe vm context
-- ✅ `executeInVM()` - Isolated execution using Node.js vm module
+- ✅ Custom `require()` function in VM context
+- ✅ Immediate error on dangerous module import attempt
+- ✅ Safe mock objects for allowed modules
+- ✅ Comprehensive security violation logging
 
-### Dangerous Patterns List
+### Require Interceptor
 
 ```typescript
-const DANGEROUS_PATTERNS = [
-  "child_process", // Child processes
-  "exec",
-  "execSync", // Command execution
-  "spawn",
-  "spawnSync", // Process spawning
-  "eval(",
-  "Function(", // Code injection
-  "fs.readFile", // File system access
-  "process.env", // Environment variables
-  "/etc/passwd", // Sensitive paths
-  "~/.ssh",
-  ".env", // Credential files
-]
-```
-
-### Execution Flow
-
-```
-1. Detect dangerous patterns → Reject immediately if found
-2. Create vm sandbox context → Expose only safe globals
-3. Execute skill code in isolated environment
-4. Auto-terminate on timeout
+require: (moduleName: string) => {
+  if (DANGEROUS_MODULES.includes(moduleName)) {
+    throw new Error(`Security violation: require('${moduleName}') is not allowed in sandbox`)
+  }
+  return {} // Safe empty mock
+}
 ```
 
 ---
@@ -156,68 +154,52 @@ cd packages/opencode
 bun test
 ```
 
-### Verification Points
+### Verification Checklist
 
-1. ✅ Mutation Testing: Skills with mutation score < 70% are rejected
-2. ✅ Dependency Check: Skills with missing dependencies return `pending_deps`
-3. ✅ Feedback Loop: Rejected skills are recorded to negative memory
-4. ✅ Syscall Filter: Code with dangerous patterns is blocked
-
----
-
-## Configuration
-
-### opencode.json Settings
-
-```json
-{
-  "evolution": {
-    "disableSkillGeneration": false,
-    "embedding": {
-      "provider": "dashscope",
-      "model": "text-embedding-v4"
-    }
-  }
-}
-```
-
-### Environment Variables
-
-```bash
-# Bash
-export EMBEDDING_MODEL="dashscope/text-embedding-v4"
-
-# Fish
-set -g EMBEDDING_MODEL "dashscope/text-embedding-v4"
-```
+1. ✅ **VM Isolation**: Code runs in sandboxed context
+2. ✅ **Timeout**: `while(true){}` loops terminate after 5s
+3. ✅ **Module Blocking**: `require('child_process')` throws error
+4. ✅ **Dependency Check**: Missing deps block installation
+5. ✅ **Test Validation**: Results compared against expected values
 
 ---
 
 ## Modified Files
 
-| File                 | Changes                   | Lines Added |
-| -------------------- | ------------------------- | ----------- |
-| `skill-validator.ts` | Mutation Testing          | +90         |
-| `installer.ts`       | Dependency Detection      | +65         |
-| `command.ts`         | Feedback Loop Enhancement | +55         |
-| `skill-sandbox.ts`   | Syscall Filtering         | +85         |
+| File                 | Changes                                              | Lines Added |
+| -------------------- | ---------------------------------------------------- | ----------- |
+| `skill-validator.ts` | VM-based test execution + timeout + module blacklist | +95         |
+| `installer.ts`       | Enhanced dependency blocking                         | +35         |
 
 ---
 
-## Security Enhancement Summary
+## Security Summary
 
-| Enhancement       | Protects Against         | Risk Level | Status      |
-| ----------------- | ------------------------ | ---------- | ----------- |
-| Mutation Testing  | Low-quality tests        | Medium     | ✅ Complete |
-| Dependency Check  | Undeclared dependencies  | High       | ✅ Complete |
-| Feedback Loop     | Repeated failures        | Medium     | ✅ Complete |
-| Syscall Filtering | Malicious code execution | High       | ✅ Complete |
+| Protection               | Mechanism            | Status      |
+| ------------------------ | -------------------- | ----------- |
+| **Infinite Loops**       | 5000ms timeout       | ✅ Complete |
+| **Dangerous Modules**    | Require blacklist    | ✅ Complete |
+| **Missing Dependencies** | Install blocking     | ✅ Complete |
+| **Sandbox Escape**       | VM context isolation | ✅ Complete |
+
+---
+
+## Configuration
+
+No additional configuration required. All security features are enabled by default.
+
+### Constants (skill-validator.ts)
+
+```typescript
+const DANGEROUS_MODULES = ["child_process", "fs", "path", "os", "net", "dgram", "dns"]
+const TEST_TIMEOUT_MS = 5000
+```
 
 ---
 
 ## Future Recommendations
 
-1. **Whitelist Mechanism**: Allow skills from trusted sources to skip certain checks
-2. **Dynamic Blacklist Learning**: Automatically adjust DANGEROUS_PATTERNS based on user behavior
-3. **Resource Quota Management**: Limit CPU/memory usage per skill
-4. **Audit Logging**: Record all security check decisions for traceability
+1. **Configurable Timeout**: Allow per-skill timeout configuration
+2. **Module Whitelist**: Explicitly allow safe built-in modules
+3. **Resource Limits**: Memory usage caps per test
+4. **Code Coverage**: Track test coverage for installed skills

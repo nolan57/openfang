@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1774395711025,
-    "usageCount": 298,
+    "lastUsedAt": 1774674369745,
+    "usageCount": 302,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -68,8 +68,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1774425658057,
-    "usageCount": 231,
+    "lastUsedAt": 1774535321647,
+    "usageCount": 232,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -143,8 +143,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1774396518620,
-    "usageCount": 266,
+    "lastUsedAt": 1774674275165,
+    "usageCount": 272,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1774394168828,
-    "usageCount": 320,
+    "lastUsedAt": 1774673742658,
+    "usageCount": 323,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -218,8 +218,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1774396155963,
-    "usageCount": 208,
+    "lastUsedAt": 1774534668814,
+    "usageCount": 209,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -9660,15 +9660,345 @@
     "archived": false
   },
   {
+    "id": "30abc194-ece3-4b57-97fd-5d32bef4d356",
     "key": "generic-logging-design",
     "value": "Design logging and progress features as generic utilities applicable to all commands to ensure consistent visibility across different workflows.",
     "context": "在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览",
     "sessionIDs": [
       "ses_2ddbf87ccffeGpL7vbjkX29Y51"
     ],
-    "id": "30abc194-ece3-4b57-97fd-5d32bef4d356",
     "createdAt": 1774426195843,
     "lastUsedAt": 1774426195843,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "d7d0c09a-e718-4cec-95c9-4bc7c0f2946f",
+    "key": "legacy-code-analysis",
+    "value": "Thoroughly map existing data flows and dependencies before modifying generation logic to prevent unintended regressions.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774534799337,
+    "lastUsedAt": 1774534799337,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "e0236860-4e50-4f19-9006-242a7db8e100",
+    "key": "external-research-integration",
+    "value": "Supplement code analysis with external research to identify industry-standard algorithms before implementing custom solutions.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774534800638,
+    "lastUsedAt": 1774534800638,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cc3d3f4a-ff05-4d67-a226-8eba4ad74fc4",
+    "key": "module-code-analysis",
+    "value": "Analyze existing module code structures before implementing features to ensure alignment with current data flows.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774535794576,
+    "lastUsedAt": 1774535794576,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8e2b98e4-bd21-4fe1-acc7-78802136d667",
+    "key": "llm-config-reuse",
+    "value": "Retrieve LLM instances from existing module configurations instead of initializing new ones to maintain context consistency.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774535794947,
+    "lastUsedAt": 1774535794947,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "daefca7e-af21-42bf-a8c7-01c66f8fc855",
+    "key": "priority-algorithm-research",
+    "value": "Research established prioritization algorithms before implementing custom logic to optimize task execution order.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774535795440,
+    "lastUsedAt": 1774535795440,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "ae7c3846-bc99-47c7-9473-9667f6d20802",
+    "key": "config-file-paths",
+    "value": "Verify API keys in specific local config paths like ~/.local/share/opencode/config/opencode.json before implementing fallback mechanisms.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536086044,
+    "lastUsedAt": 1774536086044,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cf5a58de-e562-4559-ab5f-a8aa2b5edcf0",
+    "key": "module-service-reuse",
+    "value": "Retrieve shared services like LLM instances directly from existing modules to maintain configuration consistency.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536086406,
+    "lastUsedAt": 1774536086406,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "42b2f7be-a423-4956-b0e7-8d4438319c38",
+    "key": "algorithm-research-first",
+    "value": "Research established algorithms for priority-based features before implementing custom logic to ensure optimal performance.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536086658,
+    "lastUsedAt": 1774536086658,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b54756a3-7824-4fd2-983f-ca90ce3f9d4f",
+    "key": "config-dependency-check",
+    "value": "Verify configuration files for API keys and feature flags before implementing dependent functionality to prevent runtime errors.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536284547,
+    "lastUsedAt": 1774536364721,
+    "usageCount": 1,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8cde3032-36af-44d0-89dc-2bfbe95f320c",
+    "key": "module-resource-consistency",
+    "value": "Reuse existing module-specific resources like LLM instances instead of initializing new ones to maintain architectural consistency.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536284864,
+    "lastUsedAt": 1774536284864,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "ead87837-bfec-4b57-b36c-cea755542d8e",
+    "key": "algorithm-research-before-implementation",
+    "value": "Research best practices and algorithms before implementing improvements to ensure optimal performance and correctness.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536285103,
+    "lastUsedAt": 1774536285103,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "2681c888-267f-46a2-b23f-eee3cbe68c5b",
+    "key": "config-path-verification",
+    "value": "Verify specific configuration file paths and key accessibility when integrating external APIs into modules.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能 将文档 packages/opencode/SKILL_IMPROVEMENT_SUMMARY.md 改成英文",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536472589,
+    "lastUsedAt": 1774536472589,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "03b675fb-9c96-4b33-a365-cf4da9113655",
+    "key": "feature-state-checks",
+    "value": "Confirm default feature states in code before implementing changes to ensure intended functionality is activated.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能 将文档 packages/opencode/SKILL_IMPROVEMENT_SUMMARY.md 改成英文",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536472897,
+    "lastUsedAt": 1774536472897,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "14b0dbce-d152-48bf-977e-96b381a1f123",
+    "key": "documentation-standardization",
+    "value": "Maintain project documentation in English to ensure consistency and accessibility across all packages.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能 将文档 packages/opencode/SKILL_IMPROVEMENT_SUMMARY.md 改成英文",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774536473199,
+    "lastUsedAt": 1774536473199,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "c2f64616-73fe-4043-b805-ad8ceeeb17ee",
+    "key": "config-path-verification",
+    "value": "Verify all potential configuration file paths and precedence rules when accessing API keys or settings to ensure correct data retrieval.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能 将文档 packages/opencode/SKILL_IMPROVEMENT_SUMMARY.md 改成英文 push local to the branch linux of remote skills还有一个可能的保存路径 /home/urio/.local/share/opencode/config/skills ，请确认项目是否也在使用",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774537035469,
+    "lastUsedAt": 1774537035469,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "a39dd01e-7469-463f-98b3-00166d780e74",
+    "key": "feature-flag-checks",
+    "value": "Confirm the enablement status of features like auto-generated skills in configuration files before implementation to avoid overriding intended defaults.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能 将文档 packages/opencode/SKILL_IMPROVEMENT_SUMMARY.md 改成英文 push local to the branch linux of remote skills还有一个可能的保存路径 /home/urio/.local/share/opencode/config/skills ，请确认项目是否也在使用",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774537036068,
+    "lastUsedAt": 1774537036068,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "5448514d-bb33-422f-a834-c5f2b734d19a",
+    "key": "documentation-workflow",
+    "value": "Maintain documentation language consistency and follow specific remote branch workflows when pushing updates to shared repositories.",
+    "context": "分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能 将文档 packages/opencode/SKILL_IMPROVEMENT_SUMMARY.md 改成英文 push local to the branch linux of remote skills还有一个可能的保存路径 /home/urio/.local/share/opencode/config/skills ，请确认项目是否也在使用",
+    "sessionIDs": [
+      "ses_2d5874f0bffeqIn6ZjAPvLRwfJ"
+    ],
+    "createdAt": 1774537036320,
+    "lastUsedAt": 1774537036320,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "af65380a-0159-4f3d-88bd-caa14e490ad4",
+    "key": "targeted-code-search",
+    "value": "Combine glob to scope specific modules and grep for domain keywords to efficiently isolate files responsible for specific features.",
+    "context": "分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM",
+    "sessionIDs": [
+      "ses_2cd684489ffeXpfPdDFTmAa8KI"
+    ],
+    "createdAt": 1774672339251,
+    "lastUsedAt": 1774672339251,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "b40de7c4-e35e-4a62-a768-e388c41d3355",
+    "key": "efficient-code-search",
+    "value": "Combine grep for content keywords and glob for file structures to quickly isolate specific logic within complex modules.",
+    "context": "分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好",
+    "sessionIDs": [
+      "ses_2cd684489ffeXpfPdDFTmAa8KI"
+    ],
+    "createdAt": 1774672731581,
+    "lastUsedAt": 1774672731581,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "384762f8-7a43-4781-af3c-8c77e400e8c7",
+    "key": "verify-agent-infrastructure",
+    "value": "Ensure underlying services like vector search and LLM memory are healthy before running AI agent tasks to avoid interruptions during code analysis.",
+    "context": "分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好 根据 ~/Documents/tou.txt的内容实施代码修改",
+    "sessionIDs": [
+      "ses_2cd684489ffeXpfPdDFTmAa8KI"
+    ],
+    "createdAt": 1774674206881,
+    "lastUsedAt": 1774674206881,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "de7ae9a7-b3aa-4cd5-b282-53827d1aeb5a",
+    "key": "code-search-techniques",
+    "value": "Combine grep and glob tools to trace functionality across files when analyzing specific modules like learning.",
+    "context": "分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好 根据 ~/Documents/tou.txt的内容实施代码修改 将详细文档改成英文",
+    "sessionIDs": [
+      "ses_2cd684489ffeXpfPdDFTmAa8KI"
+    ],
+    "createdAt": 1774674368478,
+    "lastUsedAt": 1774674368478,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "key": "code-search-strategy",
+    "value": "Utilize grep and glob tools extensively to trace feature implementation across files when documentation is missing.",
+    "context": "分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好 根据 ~/Documents/tou.txt的内容实施代码修改 将详细文档改成英文 push to the branch linux of remote",
+    "sessionIDs": [
+      "ses_2cd684489ffeXpfPdDFTmAa8KI"
+    ],
+    "id": "5a7c777c-262b-4141-b9db-4d0e17c2d2ac",
+    "createdAt": 1774674534977,
+    "lastUsedAt": 1774674534977,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,

@@ -120,7 +120,10 @@ export class Installer {
     return Array.from(imports)
   }
 
-  private async checkMissingDependencies(imports: string[]): Promise<string[]> {
+  private async checkMissingDependencies(
+    imports: string[],
+    skillName: string,
+  ): Promise<{ missing: string[]; blocked: boolean }> {
     const missing: string[] = []
 
     try {
@@ -138,11 +141,26 @@ export class Installer {
           missing.push(imp)
         }
       }
+
+      if (missing.length > 0) {
+        log.error("missing_dependencies_detected", {
+          skill: skillName,
+          missing_deps: missing,
+          all_imports: imports,
+          action: "blocking_installation",
+        })
+
+        return {
+          missing,
+          blocked: true,
+        }
+      }
+
+      return { missing: [], blocked: false }
     } catch (error) {
       log.warn("failed_to_read_package_json", { error: String(error) })
+      return { missing: [], blocked: false }
     }
-
-    return missing
   }
 
   private async createSkillFromContent(item: AnalyzedItemForInstall): Promise<InstallResult> {
@@ -216,23 +234,19 @@ Respond ONLY with the markdown skill content.
       const validation = await this.validator.validate(skillContent, existingContent)
 
       const imports = this.extractImports(skillContent)
-      const missingDeps = await this.checkMissingDependencies(imports)
+      const depCheckResult = await this.checkMissingDependencies(imports, item.title)
 
-      if (missingDeps.length > 0) {
-        log.warn("skill_has_missing_dependencies", {
-          title: item.title,
-          missing_deps: missingDeps,
-          all_imports: imports,
-        })
-
+      if (depCheckResult.blocked && depCheckResult.missing.length > 0) {
         return {
           success: false,
           type: "pending_deps",
           name: item.title,
-          missing_deps: missingDeps,
-          error: `Missing dependencies: ${missingDeps.join(", ")}`,
+          missing_deps: depCheckResult.missing,
+          error: `Missing dependencies: ${depCheckResult.missing.join(", ")}`,
         }
       }
+
+      const missingDeps = depCheckResult.missing
 
       log.info("skill_validation_result", {
         title: item.title,

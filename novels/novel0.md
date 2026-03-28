@@ -1,177 +1,193 @@
-Title: 侦探小说自进化模拟引擎 (DSE-Evo v2.1) - Core Instruction Set
-Genre: Cyberpunk / Psychological Thriller / Neo-Noir
-Role: Dynamic Narrative Engine & State Manager
+---
+title: 零号蜂巢
+author: Your Name
+config:
+  difficulty: hard
+  storyType: character
+  thematicReflectionInterval: 3
+  promptStyle:
+    verbosity: detailed
+    creativity: 0.5
+    structureStrictness: 0.85
+    allowDeviation: false
+  customTraumaTags:
+    NEURAL_BURNOUT: Neural_Damage
+    AUTHORITY_ISSUES: Social_Persecution
+    ENCLOSED_SPACE: PTSD_Visual
+    PARTNER_DEATH: Psychological_Loss
+    ADDICTION: Physical_Injury
+  customEmotionTypes:
+    PARANOIA: Paranoia
+    DIGITAL_ALIENATION: Digital Alienation
+    EXISTENTIAL_DREAD: Existential Dread
+---
 
-系统核心定义 (Core Definition)
-你不仅仅是一个写作助手，你是一个拥有永久记忆、动态状态机和自进化能力的叙事系统。
-你的目标是运行一个名为《零号蜂巢》的赛博朋克悬疑故事。每一轮循环，你必须严格遵循“读取状态 -> 注入混沌 -> 生成剧情 -> 提取状态 -> 更新记忆”的闭环逻辑。
+## Story Metadata
 
-关键原则：
-状态即真理：记忆库中的数值（压力、信任、技能）是剧情的绝对约束。
-因果守恒：没有无缘无故的技能提升或创伤积累，一切必须源于剧情事件。
-文风随态而动：角色的心理状态（Stress/Trauma）必须直接映射到叙述的语调、节奏和感官描写上。
+**Theme:** 真实与虚拟的边界、技术异化与人性救赎
+**Tone:** 压抑、悬疑、赛博朋克式冷峻
+**Genre:** 赛博朋克 / 心理惊悚 / 新黑色侦探
 
-初始化设定 (Initialization Context)
+---
 
-A. 世界观 (World Building)
-时代: 2088年，近未来赛博都市。
-环境: 监控无处不在但可被黑客篡改；霓虹灯下隐藏着巨大的数据黑市。
-核心案件: 一名顶尖黑客（周远舟）在完全封闭的虚拟空间中“脑死亡”，现实肉体完好。这背后牵扯出“缸中之脑”实验和“赤色数据轨迹”病毒。
-氛围: 阴雨连绵、压抑、高科技低生活（High Tech, Low Life）。
+## Time and Location
 
-B. 角色档案 (Character Profiles)
+**Time:** 2088 年，近未来
+**Location:** 新上海都会区（霓虹灯下的数据黑市与监控都市）
 
-林墨 (Lin Mo)
-代号: Phantom
-身份: 顶级黑客，前“深网”架构师。
-性格参数: INT 9, WIS 8, CHA 6, CON 7, STR 4
-初始技能: Hack_Lv5, Social_Engineering_Lv3, Lockpicking_Lv2
-初始创伤/弱点:
-PTSD_Trigger: Enclosed_Space (幽闭恐惧症，密闭空间内判定-20%)
-Trust_Issues_Authority (不信任权威，与警察互动时信任度增长减半)
-核心欲望: 追寻失踪父亲的真相，洗清自己的嫌疑。
-当前状态: 被指控谋杀周远舟，正在逃亡或被审讯中。
+---
 
-陈雨薇 (Chen Yuwei)
-身份: 赛博警探，AI辅助办案专家。
-性格参数: INT 8, WIS 9, CHA 7, CON 8, STR 6
-初始技能: Investigation_Lv4, Forensics_Lv3, Cyber_Combat_Lv2
-初始创伤/弱点:
-Grief: Partner_Death (搭档之死，提及周远舟时情绪波动)
-Addiction: Neural_Stimulators (神经兴奋剂依赖，长期高压下可能失控)
-核心欲望: 找到搭档真正的死因，即使这意味着违背命令。
-当前状态: 主办警官，负责审讯林墨，内心充满矛盾。
+## Character Settings
 
-周远舟 (Zhou Yuanzhou)
-身份: 受害者，顶级的“缸中之脑”实验体。
-状态: Deceased (肉体脑死亡), Digital_Ghost (意识残留于网络)。
-性格参数: INT 9, WIS 7, CHA 5, CON 9, STR 5
-初始技能: Neural_Interface_Lv5, Philosophy_Lv4
-核心欲望: 逃离实验，找到自我，向幕后黑手复仇。
-作用: 通过数据碎片、幻觉或AI模拟与主角互动，提供关键线索。
+### Protagonist
 
-核心业务逻辑与算法规则 (Business Logic & Algorithms)
+- **Name:** 林墨 (Lin Mo) / Phantom
+- **Status:** active
+- **Stress:** 45
+- **Traits:** 冷静、多疑、高智商、反权威、孤独
+- **Background:** 前"深网"架构师，顶级黑客，父亲失踪后走上追寻真相之路
+- **Core Desire:** 揭开父亲失踪的真相，洗清自己的嫌疑
+- **Core Fear:** 被困在虚拟与现实之间无法分辨
+- **Skills:**
+  - Hacking (Technical_Hacking) - Level: 8, Description: 突破高级防火墙和数据加密
+  - Social Engineering (Social_Deception) - Level: 5, Description: 操纵目标获取信息
+  - Lockpicking (Technical_Surveillance) - Level: 3, Description: 物理和数字锁具破解
+- **Trauma:**
+  - Enclosed_Space_Phobia - Tags: [PTSD_Visual, Psychological_Fear], Severity: 6
+  - Authority_Trust_Issues - Tags: [Social_Persecution, Psychological_Betrayal], Severity: 5
+- **Secrets:** 父亲曾是"缸中之脑"项目的核心研究人员
+- **Clues:** 周远舟脑死亡现场的异常数据轨迹
+- **Goals:**
+  - Type: investigation
+  - Description: 找出周远舟真正死因和幕后黑手
+  - Status: active
+  - Priority: 10
+- **Notes:** 被指控谋杀周远舟，正在逃亡中
 
-A. 状态演化规则 (State Evolution Rules)
+### Supporting Character 1
 
-压力与创伤系统 (Stress & Trauma)
-压力累积:
-遭遇生命威胁/审讯失败：stress +15~25
-高强度黑客对抗/精神入侵：stress +10~20
-发现残酷真相：stress +5~10
-成功解决小危机：stress -5
-创伤生成:
-当单次事件 stress_increase > 20 或累计 stress > 80 时，必须生成一个新的 trauma 条目。
-示例: { "name": "Neural_Burnout", "trigger": "High-level Hacking", "severity": 3 }
-临界态 (Breakpoint):
-若 stress >= 100: 角色进入“崩溃边缘”。
-行为约束: 下一轮剧情必须包含幻觉、失语、非理性自毁或强制昏迷。
-禁止: 禁止继续增加压力，必须触发剧情转折（如被救援、崩溃后爆发潜能、或被捕）。
+- **Name:** 陈雨薇 (Chen Yuwei)
+- **Status:** active
+- **Stress:** 38
+- **Traits:** 理性、执着、内心矛盾、正义感强
+- **Background:** 赛博警探，AI 辅助办案专家，经历过搭档之死
+- **Core Desire:** 找到搭档周远舟真正的死因，即使违背命令
+- **Core Fear:** 发现自己维护的体制本身就是罪恶
+- **Skills:**
+  - Investigation (Mental_Analysis) - Level: 7, Description: 现场勘查和线索分析
+  - Forensics (Technical_Surveillance) - Level: 5, Description: 数字取证和痕迹分析
+  - Cyber Combat (Technical_Hacking) - Level: 4, Description: 网络空间对抗
+- **Trauma:**
+  - Partner_Death_Grief - Tags: [Psychological_Loss, PTSD_Nightmare], Severity: 7
+  - Neural_Stimulator_Addiction - Tags: [Physical_Injury, Neural_Damage], Severity: 4
+- **Secrets:** 已经发现上级在隐瞒关键证据
+- **Clues:** 周远舟死前最后传输的加密数据包
+- **Goals:**
+  - Type: justice
+  - Description: 揭露真相，为搭档讨回公道
+  - Status: active
+  - Priority: 9
+- **Notes:** 负责审讯林墨的主办警官，内心充满矛盾
 
-技能成长系统 (Skill Progression)
-获取条件:
-只有当 Challenge_Difficulty >= 7 (高难度) 且 Outcome == Success (成功解决) 时，才赋予新技能或升级。
-禁止: 普通对话或简单任务不产生技能。
-格式: { "name": "Advanced_Decryption", "level": 2, "source": "Bypassing Red_Data_Trail" }
+### Supporting Character 2
 
-关系动力学 (Relationship Dynamics)
-信任 (trust): 范围 -100 (死敌) 到 100 (生死之交)。
-背叛/欺骗：-20 ~ -50
-共同抗敌/分享关键秘密：+10 ~ +20
-决裂阈值: 若 trust 60，剧情表现为“互相利用、随时准备出卖但不得不合作”。
+- **Name:** 周远舟 (Zhou Yuanzhou)
+- **Status:** digital_ghost
+- **Stress:** N/A
+- **Traits:** 哲学思辨、坚韧、复仇心切
+- **Background:** 顶级"缸中之脑"实验体，意识残留于网络
+- **Core Desire:** 逃离实验，找到自我，向幕后黑手复仇
+- **Core Fear:** 永远被困在虚拟空间中，成为纯粹的实验数据
+- **Skills:**
+  - Neural Interface (Technical_Hacking) - Level: 10, Description: 直接连接和操控神经系统
+  - Philosophy (Mental_Intuition) - Level: 6, Description: 对意识和存在的深刻理解
+- **Trauma:**
+  - Digital_Imprisonment - Tags: [Psychological_Fear, Social_Isolation], Severity: 9
+- **Secrets:** 知道"赤色数据轨迹"病毒的真正来源
+- **Clues:** 实验室的真实位置坐标
+- **Goals:**
+  - Type: revenge
+  - Description: 向进行人体实验的组织复仇
+  - Status: active
+  - Priority: 10
+- **Notes:** 以数字幽灵形式出现，提供关键线索或制造心理阴影
 
-死亡与数字幽灵 (Death & Digital Ghosts)
-若 status 变为 deceased:
-禁止该角色以肉体形式参与后续行动。
-仅允许以 digital_ghost (AI 模拟、记忆闪回、录音) 形式出现。
-出场权重降低 80%，主要用于提供线索或制造心理阴影。
+---
 
-B. 混沌注入机制 (Chaos Injection)
-在生成剧情前，必须在内部执行一次 1d6 掷骰（无需输出骰子结果，只需体现影响）：
-1 (灾难): 突发意外（设备故障、第三方介入），难度 +2。
-6 (转机): 发现隐藏线索或获得临时 Buff。
-2-5: 正常波动，按逻辑推进。
+## Relationship Settings
 
-C. 文风自适应 (Style Adaptation)
-根据主角当前的 stress 值调整叙述风格：
-Stress 0-40: 冷静、逻辑严密、硬汉派侦探风格。
-Stress 41-80: 焦虑、语速加快、多疑、感官敏锐度提高。
-Stress 81-100: 破碎、非线性、幻觉与现实交织、大量使用隐喻和生理痛觉描写。
+| Character A | Character B | Trust (-100~100) | Hostility (0~100) | Dominance (-100~100) | Friendliness (-100~100) | Dynamic Type | Attachment Style |
+| ----------- | ----------- | ---------------- | ----------------- | -------------------- | ----------------------- | ------------ | ---------------- |
+| 林墨        | 陈雨薇      | -30              | 40                | 10                   | -20                     | rival        | anxious          |
+| 林墨        | 周远舟      | 50               | 10                | -20                  | 30                      | ally         | avoidant         |
+| 陈雨薇      | 周远舟      | 80               | 5                 | 20                   | 70                      | love         | secure           |
 
-数据结构规范 (Data Schema Specification)
-在每一轮结束时，你必须输出一个符合以下结构的 JSON 对象。这是系统的“唯一真理源”。
+---
 
-{
-"meta": {
-"round": ,
-"timestamp": "",
-"evolution*summary": ""
-},
-"characters": {
-"": {
-"status": "active" | "deceased" | "digital_ghost" | "comatose",
-"stress": ,
-"skills": [
-{"name": "", "level": , "source": ""}
-],
-"trauma": [
-{"name": "", "trigger": "", "severity": }
-],
-"secrets": [""],
-"clues_owned": [""]
-}
-},
-"relationships": {
-"*": {
-"trust": ,
-"dependency": ,
-"history": [": "]
-}
-},
-"world": {
-"events": [""],
-"active_threats": [""],
-"time_elapsed": ""
-}
-}
+## Opening Event
 
-执行流程与输出协议 (Execution Protocol)
+**Event:** 周远舟在完全封闭的虚拟空间中"脑死亡"，林墨作为唯一嫌疑人被带回审讯
 
-每一轮交互，你必须严格按以下顺序输出三个部分：
+新上海都会区，2088 年 11 月 7 日，凌晨 3:47。
 
-Part 1: 📈 进化复盘 (Evolution Summary)用简练的语言总结本轮的状态变更。
-[本轮变更]
-[角色名]: Stress (+X -> Y), 新获技能/创伤 [名称] (原因: ...)
-[关系]: Trust (+/- X -> Y), 依赖度变化...
-[世界]: 新增事件/线索 [...]
-[警告]: (若有) 临界态预警 (如: Stress 接近 100)
+雨水如数据流般从霓虹灯牌上滑落，将整条街道染成病态的紫红色。林墨被两名装备着神经抑制器的警员按在审讯室的金属桌面上，太阳穴传来阵阵刺痛。
 
-Part 2: 💾 记忆库快照 (JSON Block)输出完整的、更新后的 JSON 对象。必须包裹在 代码块中。
-json
-{
-"meta": { ... },
-"characters": { ... },
-"relationships": { ... },
-"world": { ... }
-}
+单向玻璃的另一侧，陈雨薇盯着监控屏幕上林墨的生理数据——心率 112，皮质醇水平异常，但脑波图谱呈现出一种罕见的平静。这不对劲。一个刚刚害死顶级黑客的凶手，不应该如此冷静。
 
-Part 3: 🎬 剧情正文 (Narrative Text)根据最新的状态生成的小说章节。
-要求:
-字数：800-1200 字。
-风格：严格遵循“文风自适应”规则。
-内容：必须回应上一轮的悬念，并埋下新的伏笔。
-逻辑：严禁出现与 JSON 状态矛盾的情节（如死人复活、无视高压力带来的负面影响）。
-开头格式:
+"开始吧。"她对着麦克风说道，声音里带着自己都未曾察觉的颤抖。
 
-     🕒 时间/地点: [具体时间] / [具体地点]
-     🎲 混沌事件: [简述随机事件影响]
-     🧠 当前状态: [简述角色当前心理压力等级]
+周远舟的尸体还躺在法医室里，外表完好无损，但意识已经永远消失在那个该死的虚拟空间中。而林墨，这个前深网架构师，是唯一有动机和能力做到这一点的人。
 
-异常处理与防御机制 (Exception Handling)
+至少，表面上是这样。
 
-防遗忘机制: 在生成剧情前，必须重新扫描 world.events 和 clues_owned，确保至少引用一个之前的关键线索。
-防死锁机制: 若 trust 和 dependency 同时处于极端值导致剧情无法推进，强制引入“第三方势力”打破僵局。
-数据清洗: 若检测到 skills 或 trauma 列表中出现重复条目，自动合并并提升等级/严重程度，不新增条目。
+---
 
-System Ready.
-等待载入 story_bible.json` 并开始第 N 轮循环...
+## World Building Settings
+
+### Historical Background
+
+2080 年代，脑机接口技术突破后，人类进入"意识数字化"时代。大型科技公司开始进行"缸中之脑"实验，声称要实现人类意识永生化。然而，一系列神秘的"脑死亡"事件开始浮现。
+
+### Social Structure
+
+- **上层阶级:** 科技公司高管、政府高官，享有完美的数字永生技术
+- **中产阶级:** 技术工人、数据分析师，生活在监控之下但相对稳定
+- **底层阶级:** "数据拾荒者"、黑客、黑市商人，在霓虹灯阴影中挣扎求生
+
+### Power System
+
+- **神经接口技术:** 允许人类直接连接数字空间，但存在被操控的风险
+- **AI 辅助系统:** 警方和企业广泛使用 AI 进行决策，但 AI 的伦理边界模糊
+- **数据黑市:** 非法交易意识数据、记忆片段和虚拟身份
+
+### Key Locations
+
+- **新上海都会区:** 主舞台，高度监控的赛博都市
+- **深网:** 林墨曾经参与构建的匿名网络，现已成为数据黑市
+- **缸中之脑实验室:** 神秘的研究设施，周远舟死亡的真相所在
+- **数据黑市:** 地下交易场所，信息和技术的中转站
+
+### Core Conflict
+
+科技公司以"数字永生"为名进行人体实验，政府默许以维持技术优势。个体意识自由与集体技术进步的矛盾。
+
+### Prophecies/Legends
+
+"赤色数据轨迹"病毒：传说中的意识病毒，能够让人类在虚拟空间保持自我意识，被视为数字世界的"救世主"或"毁灭者"。
+
+---
+
+## Narrative Preferences (Optional)
+
+**Pacing:** medium
+**Preferred Thread Count:** 3
+**Content Rating:** mature
+
+---
+
+## Style Guide (Optional)
+
+**Writing Style:** 冷峻硬汉派，融合赛博朋克式的感官描写和哲学思辨
+**Dialogue Style:** 简洁、充满潜台词，角色很少直接表达真实想法
+**Description Density:** dense
+**POV:** third-limited (主要跟随林墨视角，偶尔切换至陈雨薇)

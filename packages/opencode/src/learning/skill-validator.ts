@@ -1,9 +1,14 @@
 import { writeFile, rm } from "fs/promises"
 import { execSync } from "child_process"
+import vm from "vm"
 import { Log } from "../util/log"
 import { withSpan } from "./tracing"
 
 const log = Log.create({ service: "skill-validator" })
+
+const DANGEROUS_MODULES = ["child_process", "fs", "path", "os", "net", "dgram", "dns"]
+
+const TEST_TIMEOUT_MS = 5000
 
 export interface ValidationResult {
   valid: boolean
@@ -144,14 +149,101 @@ export class SkillValidator {
     skillCode: string,
     testCases: Array<{ name: string; input: string; expected: string }>,
   ): Promise<Array<{ name: string; passed: boolean }>> {
-    const results = []
+    const results: Array<{ name: string; passed: boolean }> = []
 
     for (const testCase of testCases) {
-      const passed = true
-      results.push({ name: testCase.name, passed })
+      try {
+        const passed = await this.executeInVM(skillCode, testCase.input, testCase.expected)
+        results.push({ name: testCase.name, passed })
+      } catch (error: any) {
+        log.warn("test_execution_failed", {
+          test_name: testCase.name,
+          error: error.message,
+        })
+        results.push({ name: testCase.name, passed: false })
+      }
     }
 
     return results
+  }
+
+  private async executeInVM(skillCode: string, input: string, expected: string): Promise<boolean> {
+    const context = vm.createContext({
+      console: {
+        log: () => {},
+        warn: () => {},
+        error: () => {},
+        info: () => {},
+      },
+      require: (moduleName: string) => {
+        if (DANGEROUS_MODULES.includes(moduleName)) {
+          throw new Error(`Security violation: require('${moduleName}') is not allowed in sandbox`)
+        }
+        return {}
+      },
+      module: { exports: {} },
+      exports: {},
+      setTimeout,
+      setInterval,
+      clearTimeout,
+      clearInterval,
+      __dirname: "/sandbox",
+      __filename: "/sandbox/skill.js",
+      process: {
+        env: {},
+        cwd: () => "/sandbox",
+        version: process.version,
+        versions: process.versions,
+      },
+      Buffer,
+    })
+
+    const wrappedCode = `
+      (function(module, exports) {
+        try {
+          ${skillCode}
+        } catch (e) {
+          throw new Error('Skill code execution failed: ' + e.message);
+        }
+      })(module, exports);
+      
+      let result;
+      if (typeof exports.execute === 'function') {
+        result = exports.execute(${JSON.stringify(input)});
+      } else if (typeof exports.default === 'function') {
+        result = exports.default(${JSON.stringify(input)});
+      } else if (typeof module.exports.execute === 'function') {
+        result = module.exports.execute(${JSON.stringify(input)});
+      } else if (typeof module.exports.default === 'function') {
+        result = module.exports.default(${JSON.stringify(input)});
+      } else {
+        throw new Error('Skill must export execute() or default function');
+      }
+      
+      result;
+    `
+
+    try {
+      const result = vm.runInContext(wrappedCode, context, {
+        timeout: TEST_TIMEOUT_MS,
+        filename: "skill.js",
+        displayErrors: true,
+      })
+
+      const resultStr = String(result ?? "")
+      const expectedStr = String(expected)
+
+      return resultStr === expectedStr || resultStr.includes(expectedStr)
+    } catch (error: any) {
+      if (error.code === "ERR_SCRIPT_EXECUTION_TIMEOUT") {
+        log.error("test_timeout", {
+          timeout_ms: TEST_TIMEOUT_MS,
+          test_input: input,
+        })
+        throw new Error(`Test execution timeout after ${TEST_TIMEOUT_MS}ms`)
+      }
+      throw error
+    }
   }
 
   private async computeMaxSimilarity(skillCode: string, existingSkills: string[]): Promise<number> {

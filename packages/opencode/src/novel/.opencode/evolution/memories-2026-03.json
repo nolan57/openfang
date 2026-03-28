@@ -23,8 +23,8 @@
       "ses_304094b2effeSgOIC6xJCPsJjA"
     ],
     "createdAt": 1773760074401,
-    "lastUsedAt": 1773951309103,
-    "usageCount": 7,
+    "lastUsedAt": 1774670361049,
+    "usageCount": 9,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -113,8 +113,8 @@
       "ses_304094b2effeSgOIC6xJCPsJjA"
     ],
     "createdAt": 1773835020523,
-    "lastUsedAt": 1773951272817,
-    "usageCount": 3,
+    "lastUsedAt": 1774670732114,
+    "usageCount": 5,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -278,8 +278,8 @@
       "ses_304094b2effeSgOIC6xJCPsJjA"
     ],
     "createdAt": 1773837071793,
-    "lastUsedAt": 1773845224605,
-    "usageCount": 4,
+    "lastUsedAt": 1774669573575,
+    "usageCount": 7,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -293,8 +293,8 @@
       "ses_304094b2effeSgOIC6xJCPsJjA"
     ],
     "createdAt": 1773837072007,
-    "lastUsedAt": 1773844562211,
-    "usageCount": 1,
+    "lastUsedAt": 1774671703107,
+    "usageCount": 4,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -939,6 +939,81 @@
     ],
     "createdAt": 1773845466700,
     "lastUsedAt": 1773845466700,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "0a42fd1e-f172-4aed-b1fa-fcfb9077591f",
+    "key": "structured-code-exploration",
+    "value": "Start with glob searches to map file relationships before reading individual implementations for efficient codebase exploration.",
+    "context": "分析和总结 novel引擎生成panel的逻辑",
+    "sessionIDs": [
+      "ses_2cdc76cbdffeJKpvfjxVPwAaJX"
+    ],
+    "createdAt": 1774664274493,
+    "lastUsedAt": 1774664274493,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "9cb6134a-ed01-43b1-9ab5-c1fa671bdbe1",
+    "key": "code-tracing-technique",
+    "value": "Trace event listeners and state managers to distinguish between hard-coded logic and data-driven configurations.",
+    "context": "分析和总结 novel引擎生成panel的逻辑 关键服装变化触发器是硬编码的方式吗",
+    "sessionIDs": [
+      "ses_2cdc76cbdffeJKpvfjxVPwAaJX"
+    ],
+    "createdAt": 1774664405437,
+    "lastUsedAt": 1774664405437,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "96c1b529-4b71-411f-9b35-c437e2a4578c",
+    "key": "decouple-trigger-logic",
+    "value": "Avoid hard-coding visual change triggers by using data-driven configurations to simplify future content updates.",
+    "context": "分析和总结 novel引擎生成panel的逻辑 关键服装变化触发器是硬编码的方式吗 实施改进 实施改进 继续实施改进",
+    "sessionIDs": [
+      "ses_2cdc76cbdffeJKpvfjxVPwAaJX"
+    ],
+    "createdAt": 1774669306812,
+    "lastUsedAt": 1774669306812,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "304ef4dc-0feb-473d-8111-ca35038e1193",
+    "key": "decouple-hardcoded-triggers",
+    "value": "Replace hardcoded costume change triggers with configurable data structures to enhance flexibility and simplify future content updates.",
+    "context": "分析和总结 novel引擎生成panel的逻辑 关键服装变化触发器是硬编码的方式吗 实施改进 实施改进 继续实施改进 push local to branch linux of remote push local to branch linux of remote",
+    "sessionIDs": [
+      "ses_2cdc76cbdffeJKpvfjxVPwAaJX"
+    ],
+    "createdAt": 1774670176959,
+    "lastUsedAt": 1774670176959,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "e4245c16-d01b-4eb7-91d0-a40326ba5174",
+    "key": "targeted-keyword-search",
+    "value": "Use `grep` with feature-specific keywords within the target module directory to quickly locate candidate files responsible for specific logic.",
+    "context": "分析 learning 模块哪些代码文件是处理自动生成skills的",
+    "sessionIDs": [
+      "ses_2cd684489ffeXpfPdDFTmAa8KI"
+    ],
+    "createdAt": 1774670514173,
+    "lastUsedAt": 1774670514173,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,

@@ -5450,6 +5450,7 @@
     "status": "draft"
   },
   {
+    "id": "a4e1de27-2703-48c6-96b4-0aecd200d1e7",
     "name": "auto-glob-task",
     "description": "Auto-generated skill for 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个L",
     "content": "# 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添\n\n## Description\n\nAuto-generated skill for: 在会话中执行 /evolve进行完整的自进化，没有任何进度信息在会话中反馈，但之前已经做代码改进，添加了进度信息反馈了，请确认原因并修复 步骤信息会在会话中显示吗？ TUI界面有个右侧栏，其中有一个Logs区域，但一直都没有任何log信息显示出来，应该实现可以在那块区域中显示当前会话产生的log信息，这个功能改进不仅仅针对evolve指令的，而是一个通用的改进 Trigger the OpenCode self-evolution system to:\n\n1. Collect new information from web (arXiv, GitHub, PyPI)\n2. Analyze and plan improvements\n3. Generate deployment tasks\n4. Optionally execute them via ZeroClaw\n\n**Usage:**\n\n- `/evolve` - Run full self-evolution cycle (collect → analyze → create tasks)\n- `/evolve --execute` - Also execute pending deployment tasks\n- `/evolve --status` - Show current evolution status\n- `/evolve --check` - Check for issues without making changes\n\n**What it does:**\n\n1. **Research**: Search for latest AI/agent research and tools\n2. **Analyze**: Score and filter based on relevance\n3. **Plan**: Create improvement proposals\n4. **Execute** (with --execute): Run ZeroClaw to apply changes\n\n**Safety features:**\n\n- Cooldown period (24h between major evolutions)\n- Golden snapshot before each change\n- Automatic rollback on failure\n- Human review for large changes\n\n**Examples:**\n\n```\n/evolve\n/evolve --execute\n/evolve --status\n```\n\n\n\nIf no arguments provided, run full evolution cycle and report results. the opencode.json is in ~/.local/share/opencode/config the exa api key is :   f89ef302-9553-40c7-9715-6d6d66c33d16 应该修改代码从opencode.json获取exaapikey push local to remote branch linux 远程仓库有linux分支，请再次确认 总结一下本次自进化，生成的结果的具体内容 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 别瞎找了，分析一下learning的代码，再来查找生成的结果保存在哪 continue 应该建立一个web页面，专门可视化自进化过程、显示自进化历史记录、自进化成果内容阅览\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n- Working with edit operations\n- Working with write operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-25\n",
@@ -5461,8 +5462,164 @@
       "selfevolution"
     ],
     "sessionID": "ses_2ddbf87ccffeGpL7vbjkX29Y51",
-    "id": "a4e1de27-2703-48c6-96b4-0aecd200d1e7",
     "createdAt": 1774426212839,
+    "status": "draft"
+  },
+  {
+    "id": "35c9c13b-a1aa-4268-89e3-569f6fd14e79",
+    "name": "auto-read-task",
+    "description": "Auto-generated skill for 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue",
+    "content": "# 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 contin\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue\n\n## Triggers\n\nThis skill activates when:\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-26\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "continue"
+    ],
+    "sessionID": "ses_2d5874f0bffeqIn6ZjAPvLRwfJ",
+    "createdAt": 1774534780628,
+    "status": "draft"
+  },
+  {
+    "id": "43e11802-4aa5-4a11-8773-d4a347c998b1",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，ll",
+    "content": "# 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 contin\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with todowrite operations\n- Working with edit operations\n- Working with write operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-26\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "continue",
+      "llmlearningllm"
+    ],
+    "sessionID": "ses_2d5874f0bffeqIn6ZjAPvLRwfJ",
+    "createdAt": 1774535779775,
+    "status": "draft"
+  },
+  {
+    "id": "8302126f-e216-4f56-a4c7-f5b59e208aaf",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，ll",
+    "content": "# 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 contin\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with todowrite operations\n- Working with edit operations\n- Working with write operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-26\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "continue",
+      "llmlearningllm",
+      "localshareopencodeconfigopencodejsonlearningexa"
+    ],
+    "sessionID": "ses_2d5874f0bffeqIn6ZjAPvLRwfJ",
+    "createdAt": 1774536249573,
+    "status": "draft"
+  },
+  {
+    "id": "c6b2a1c1-2cb8-42e0-8321-c94fb22c08e1",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，ll",
+    "content": "# 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 contin\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能 将文档 packages/opencode/SKILL_IMPROVEMENT_SUMMARY.md 改成英文\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with todowrite operations\n- Working with edit operations\n- Working with write operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-26\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "continue",
+      "llmlearningllm",
+      "localshareopencodeconfigopencodejsonlearningexa"
+    ],
+    "sessionID": "ses_2d5874f0bffeqIn6ZjAPvLRwfJ",
+    "createdAt": 1774536470468,
+    "status": "draft"
+  },
+  {
+    "id": "81b873bc-2e26-4ff0-b9a2-c6c7adbcda60",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，ll",
+    "content": "# 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 contin\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块代码中自动生成skills的功能，搜索和学习最佳算法来改进 continue 按优先级实施，注意，llm使用learning模块代码中获取的llm 按优先级实施，注意，llm使用learning模块代码中获取的llm exa api key已经在 ~/.local/share/opencode/config/opencode.json中设置了，learning模块应该已经可以从这个配置文件获得exa api key 之前通过配置文件设置自动生成技能默认禁止的，请确认是否为禁止状态，若是，激活自动生成技能 将文档 packages/opencode/SKILL_IMPROVEMENT_SUMMARY.md 改成英文 push local to the branch linux of remote skills还有一个可能的保存路径 /home/urio/.local/share/opencode/config/skills ，请确认项目是否也在使用\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with todowrite operations\n- Working with edit operations\n- Working with write operations\n- Working with bash operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-26\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "continue",
+      "llmlearningllm",
+      "localshareopencodeconfigopencodejsonlearningexa"
+    ],
+    "sessionID": "ses_2d5874f0bffeqIn6ZjAPvLRwfJ",
+    "createdAt": 1774537036782,
+    "status": "draft"
+  },
+  {
+    "id": "59ee4886-c4be-4071-a8ec-b301911ffa78",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] ze",
+    "content": "# 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "opencode",
+      "pasted",
+      "l115822"
+    ],
+    "sessionID": "ses_2cd684489ffeXpfPdDFTmAa8KI",
+    "createdAt": 1774672327083,
+    "status": "draft"
+  },
+  {
+    "id": "314d8a53-7328-4c94-9bb9-21b8f155e5c0",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] ze",
+    "content": "# 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "opencode",
+      "pasted",
+      "l115822"
+    ],
+    "sessionID": "ses_2cd684489ffeXpfPdDFTmAa8KI",
+    "createdAt": 1774672676490,
+    "status": "draft"
+  },
+  {
+    "id": "72221c7d-01ff-46de-972e-8826d804f5e9",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] ze",
+    "content": "# 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好 根据 ~/Documents/tou.txt的内容实施代码修改\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "opencode",
+      "pasted",
+      "l115822"
+    ],
+    "sessionID": "ses_2cd684489ffeXpfPdDFTmAa8KI",
+    "createdAt": 1774674234738,
+    "status": "draft"
+  },
+  {
+    "id": "386a821a-51a3-471a-97b0-70b2b743bd37",
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] ze",
+    "content": "# 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好 根据 ~/Documents/tou.txt的内容实施代码修改 将详细文档改成英文\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "opencode",
+      "pasted",
+      "l115822"
+    ],
+    "sessionID": "ses_2cd684489ffeXpfPdDFTmAa8KI",
+    "createdAt": 1774674388958,
+    "status": "draft"
+  },
+  {
+    "name": "auto-grep-task",
+    "description": "Auto-generated skill for 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] ze",
+    "content": "# 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好 根据 ~/Documents/tou.txt的内容实施代码修改 将详细文档改成英文 push to the branch linux of remote\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [
+      "learning",
+      "skills",
+      "opencode",
+      "pasted",
+      "l115822"
+    ],
+    "sessionID": "ses_2cd684489ffeXpfPdDFTmAa8KI",
+    "id": "faff331c-88d9-4304-8df3-c674cad6df94",
+    "createdAt": 1774674508659,
     "status": "draft"
   }
 ]
