@@ -1,6 +1,7 @@
 import { generateText } from "ai"
 import { getNovelLanguageModel } from "./model"
 import { Log } from "../util/log"
+import { getVisualConfig, type VisualConfig } from "./config"
 import type { VisualPanelSpec } from "./types"
 
 const log = Log.create({ service: "continuity-analyzer" })
@@ -76,12 +77,26 @@ export interface ContinuityContext {
 /**
  * LLM-based continuity analyzer for visual panel generation.
  * Analyzes story segments to determine character outfit consistency.
+ * Configuration-driven: outfit change triggers are loaded from visual-config.json
  */
 export class ContinuityAnalyzer {
   private systemPrompt: string
+  private config: VisualConfig
 
   constructor() {
-    this.systemPrompt = `You are a continuity analyst for visual novel panel generation.
+    this.config = getVisualConfig()
+    this.systemPrompt = this.buildSystemPrompt()
+  }
+
+  /**
+   * Builds the system prompt using configuration-driven outfit change triggers
+   */
+  private buildSystemPrompt(): string {
+    const triggers = this.config.continuity?.llm_analysis?.outfit_change_triggers
+    const highConfidenceTriggers = triggers?.high_confidence || []
+    const lowConfidenceTriggers = triggers?.low_confidence || []
+
+    return `You are a continuity analyst for visual novel panel generation.
 Your task is to analyze story segments and determine character outfit consistency across panels.
 
 ## Key Questions to Answer:
@@ -90,26 +105,25 @@ Your task is to analyze story segments and determine character outfit consistenc
 - Is this scene continuous with the previous one?
 - How much time has passed? (immediately, minutes, hours, days)
 - Did the character sleep? (critical for outfit change)
-- Look for explicit time markers: "第二天", "当晚", "meanwhile", "suddenly"
+- Look for explicit time markers in the text
 
 ### 2. LOCATION CONTINUITY
 - Is the character in the same place?
 - Same building? Same room?
-- Look for explicit location markers: "回到家", "到达办公室", "went home"
+- Look for explicit location markers in the text
 
 ### 3. OUTFIT CHANGE INDICATORS
-**High confidence outfit change triggers:**
-- Explicit: "换上", "穿上", "changed into", "put on"
-- Location-based: "回家" + time passed, "到家后"
-- Hygiene: "洗澡", "shower", "洗漱"
-- Time-based: "睡觉", "went to bed", "第二天", "woke up"
-- Event-based: "宴会", "ceremony", "formal event"
+**High confidence outfit change triggers (these strongly indicate outfit change):**
+${highConfidenceTriggers.map((t) => `- "${t}"`).join("\n")}
 
-**Low confidence (may not change):**
-- Short time passage (< 1 hour)
-- Same location, no break
-- Urgent/emergency situations
-- Outdoor continuous scenes
+**Low confidence triggers (these suggest continuity, may not change):**
+${lowConfidenceTriggers.map((t) => `- "${t}"`).join("\n")}
+
+**General guidelines for outfit changes:**
+- Short time passage (< 1 hour) → likely same clothes
+- Same location, no break → likely same clothes
+- Urgent/emergency situations → likely same clothes
+- Outdoor continuous scenes → likely same clothes
 
 ### 4. NARRATIVE LOGIC
 Use common sense:
@@ -152,7 +166,8 @@ Use common sense:
 - Prioritize explicit mentions over implied changes
 - Consider narrative urgency (emergency = no time to change)
 - Sleep = almost always outfit change
-- Same scene, continuous time = maintain outfit`
+- Same scene, continuous time = maintain outfit
+- Check for high confidence triggers first, then apply narrative logic`
   }
 
   /**

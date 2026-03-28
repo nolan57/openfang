@@ -90,6 +90,32 @@ const NegativePromptsSchema = z.object({
 })
 
 // ============================================================================
+// CONTINUITY ANALYSIS SCHEMA
+// ============================================================================
+
+const ContinuityTriggersSchema = z.object({
+  high_confidence: z.array(z.string()),
+  low_confidence: z.array(z.string()),
+})
+
+const ContinuityLLMAnalysisSchema = z.object({
+  enabled: z.boolean(),
+  temperature: z.number(),
+  focus_areas: z.array(z.string()),
+  outfit_change_triggers: ContinuityTriggersSchema,
+})
+
+const ContinuityPromptEnhancementSchema = z.object({
+  consistency_keywords: z.array(z.string()),
+  max_previous_panels: z.number(),
+})
+
+const ContinuitySchema = z.object({
+  llm_analysis: ContinuityLLMAnalysisSchema,
+  prompt_enhancement: ContinuityPromptEnhancementSchema,
+})
+
+// ============================================================================
 // NEW: STRATEGY LAYER SCHEMAS
 // ============================================================================
 
@@ -168,6 +194,7 @@ const VisualConfigSchema = z.object({
   weather_palettes: z.record(z.string(), z.array(z.string())).optional(),
   llm: LlmSchema,
   panel_generation: PanelGenerationSchema,
+  continuity: ContinuitySchema,
   hash: HashSchema,
 })
 

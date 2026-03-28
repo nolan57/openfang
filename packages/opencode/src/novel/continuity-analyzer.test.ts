@@ -1,11 +1,14 @@
 import { describe, test, expect, beforeEach } from "bun:test"
 import { ContinuityAnalyzer, type ContinuityAnalysis } from "./continuity-analyzer"
+import { loadVisualConfig } from "./config"
 import type { VisualPanelSpec } from "./types"
 
 describe("ContinuityAnalyzer", () => {
   let analyzer: ContinuityAnalyzer
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Load config before creating analyzer
+    await loadVisualConfig()
     analyzer = new ContinuityAnalyzer()
   })
 
