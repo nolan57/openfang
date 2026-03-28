@@ -5,15 +5,18 @@ import { NegativeMemory, type FailureType } from "./negative"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
 import { SkillValidator } from "./skill-validator"
+import { readFile } from "fs/promises"
+import { resolve } from "path"
 
 const log = Log.create({ service: "learning-installer" })
 const negativeMemory = new NegativeMemory()
 
 export interface InstallResult {
   success: boolean
-  type: "skill" | "mcp" | "none"
+  type: "skill" | "mcp" | "none" | "pending_deps"
   name?: string
   error?: string
+  missing_deps?: string[]
 }
 
 export interface AnalyzedItemForInstall {
@@ -97,6 +100,51 @@ export class Installer {
     }
   }
 
+  private extractImports(code: string): string[] {
+    const importRegex =
+      /(?:import\s+(?:(?:\*\s+as\s+\w+|\{[\s\S]*?\}|\w+)\s+from\s+)?|require\(['"])([@\w][\w\-./]*)['"]/g
+    const imports = new Set<string>()
+    let match
+
+    while ((match = importRegex.exec(code)) !== null) {
+      const moduleName = match[1] || match[2]
+      if (moduleName && !moduleName.startsWith(".") && !moduleName.startsWith("/")) {
+        imports.add(
+          moduleName.split("/")[0].startsWith("@")
+            ? moduleName.split("/").slice(0, 2).join("/")
+            : moduleName.split("/")[0],
+        )
+      }
+    }
+
+    return Array.from(imports)
+  }
+
+  private async checkMissingDependencies(imports: string[]): Promise<string[]> {
+    const missing: string[] = []
+
+    try {
+      const packageJsonPath = resolve(process.cwd(), "package.json")
+      const packageJsonContent = await readFile(packageJsonPath, "utf-8")
+      const packageJson = JSON.parse(packageJsonContent)
+
+      const declaredDeps = new Set([
+        ...Object.keys(packageJson.dependencies || {}),
+        ...Object.keys(packageJson.devDependencies || {}),
+      ])
+
+      for (const imp of imports) {
+        if (!declaredDeps.has(imp)) {
+          missing.push(imp)
+        }
+      }
+    } catch (error) {
+      log.warn("failed_to_read_package_json", { error: String(error) })
+    }
+
+    return missing
+  }
+
   private async createSkillFromContent(item: AnalyzedItemForInstall): Promise<InstallResult> {
     try {
       const defaultModel = await Provider.defaultModel()
@@ -167,12 +215,32 @@ Respond ONLY with the markdown skill content.
 
       const validation = await this.validator.validate(skillContent, existingContent)
 
+      const imports = this.extractImports(skillContent)
+      const missingDeps = await this.checkMissingDependencies(imports)
+
+      if (missingDeps.length > 0) {
+        log.warn("skill_has_missing_dependencies", {
+          title: item.title,
+          missing_deps: missingDeps,
+          all_imports: imports,
+        })
+
+        return {
+          success: false,
+          type: "pending_deps",
+          name: item.title,
+          missing_deps: missingDeps,
+          error: `Missing dependencies: ${missingDeps.join(", ")}`,
+        }
+      }
+
       log.info("skill_validation_result", {
         title: item.title,
         valid: validation.valid,
         syntaxCheck: validation.syntaxCheck,
         testPassRate: validation.testPassRate,
         noveltyScore: validation.noveltyScore,
+        mutationScore: validation.mutationScore,
         issues: validation.issues,
       })
 

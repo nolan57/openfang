@@ -5,7 +5,7 @@ import { Collector } from "./collector"
 import { Analyzer } from "./analyzer"
 import { NoteGenerator } from "./notes"
 import { KnowledgeStore } from "./store"
-import { Installer } from "./installer"
+import { Installer, type InstallResult } from "./installer"
 import { CodeSuggester, type CodeSuggestion } from "./suggester"
 import { Archive, type ArchiveState } from "./archive"
 import { Log } from "../util/log"
@@ -13,8 +13,10 @@ import { readFile, writeFile, mkdir } from "fs/promises"
 import { resolve, dirname } from "path"
 import { generateText } from "ai"
 import { Provider } from "../provider/provider"
+import { NegativeMemory } from "./negative"
 
 const log = Log.create({ service: "learning-command" })
+const negativeMemory = new NegativeMemory()
 
 export interface LearningResult {
   success: boolean
@@ -280,6 +282,12 @@ export async function runLearning(config?: Partial<LearningConfig>): Promise<Lea
     const installResults = await installer.install(analyzed)
     log.info("install results", { results: installResults })
 
+    // Record rejected skills to negative memory with source analysis
+    const rejectedSkills = installResults.filter((r) => !r.success)
+    for (const rejected of rejectedSkills) {
+      await recordSkillRejection(rejected, analyzed)
+    }
+
     const suggestions = await suggester.generateSuggestions(analyzed)
     log.info("code suggestions", { count: suggestions.length })
 
@@ -324,6 +332,46 @@ export async function runLearning(config?: Partial<LearningConfig>): Promise<Lea
       suggestions: 0,
       error: String(e),
     }
+  }
+}
+
+async function recordSkillRejection(result: InstallResult, analyzed: any[]): Promise<void> {
+  const rejectedItem = analyzed.find((a) => a.title === result.name)
+  if (!rejectedItem) return
+
+  const features = {
+    source: rejectedItem.source,
+    domain: extractDomain(rejectedItem.url),
+    tags: rejectedItem.tags,
+    title_keywords: rejectedItem.title.toLowerCase().split(" "),
+  }
+
+  await negativeMemory.recordFailure({
+    failure_type: "install_failed",
+    description: `Skill rejected: ${result.name}`,
+    context: {
+      reason: result.error,
+      source: features.source,
+      domain: features.domain,
+      tags: features.tags,
+    },
+    severity: 3,
+    blocked_items: [rejectedItem.url, rejectedItem.title],
+  })
+
+  log.info("recorded_skill_rejection", {
+    name: result.name,
+    source: features.source,
+    domain: features.domain,
+  })
+}
+
+function extractDomain(url: string): string {
+  try {
+    const urlObj = new URL(url)
+    return urlObj.hostname
+  } catch {
+    return "unknown"
   }
 }
 

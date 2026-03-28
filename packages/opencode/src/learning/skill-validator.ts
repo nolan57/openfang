@@ -12,6 +12,8 @@ export interface ValidationResult {
   semanticSimilarity: number
   noveltyScore: number
   issues: string[]
+  mutationScore?: number
+  mutationTestPassed?: boolean
 }
 
 export class SkillValidator {
@@ -32,6 +34,12 @@ export class SkillValidator {
         issues.push(`Test pass rate low: ${(testPassRate * 100).toFixed(0)}%`)
       }
 
+      // Mutation testing
+      const mutationResult = await this.runMutationTesting(skillCode, testCases)
+      if (!mutationResult.passed) {
+        issues.push(`Mutation testing failed: score ${(mutationResult.score * 100).toFixed(0)}%`)
+      }
+
       const similarity = await this.computeMaxSimilarity(skillCode, existingSkills)
       const noveltyScore = 1 - similarity
 
@@ -39,7 +47,7 @@ export class SkillValidator {
         issues.push(`High similarity to existing skill: ${(similarity * 100).toFixed(0)}%`)
       }
 
-      const valid = syntaxCheck && testPassRate >= 0.6 && noveltyScore >= 0.2
+      const valid = syntaxCheck && testPassRate >= 0.6 && noveltyScore >= 0.2 && mutationResult.passed
 
       span.setAttributes({
         valid,
@@ -47,6 +55,7 @@ export class SkillValidator {
         testPassRate,
         similarity,
         noveltyScore,
+        mutationScore: mutationResult.score,
         issuesCount: issues.length,
       })
 
@@ -57,6 +66,8 @@ export class SkillValidator {
         semanticSimilarity: similarity,
         noveltyScore,
         issues,
+        mutationScore: mutationResult.score,
+        mutationTestPassed: mutationResult.passed,
       }
     })
   }
@@ -173,5 +184,133 @@ export class SkillValidator {
     }
 
     return maxSimilarity
+  }
+
+  async runMutationTesting(
+    skillCode: string,
+    testCases: Array<{ name: string; input: string; expected: string }>,
+  ): Promise<{ score: number; passed: boolean }> {
+    const mutations = this.generateMutations(skillCode)
+
+    if (mutations.length === 0) {
+      log.warn("no_mutations_generated", { code_length: skillCode.length })
+      return { score: 1.0, passed: true }
+    }
+
+    let killedMutants = 0
+
+    for (const mutant of mutations) {
+      try {
+        const testResults = await this.runTests(mutant.code, testCases)
+        const allPassed = testResults.every((r) => r.passed)
+
+        if (!allPassed) {
+          killedMutants++
+          log.debug("mutation_killed", {
+            mutant_id: mutant.id,
+            type: mutant.type,
+            test_failed: testResults.find((r) => !r.passed)?.name,
+          })
+        } else {
+          log.warn("mutation_survived", {
+            mutant_id: mutant.id,
+            type: mutant.type,
+            description: mutant.description,
+          })
+        }
+      } catch {
+        killedMutants++
+        log.debug("mutation_killed_by_syntax_error", { mutant_id: mutant.id })
+      }
+    }
+
+    const score = killedMutants / mutations.length
+    const passed = score >= 0.7
+
+    log.info("mutation_testing_completed", {
+      total_mutants: mutations.length,
+      killed: killedMutants,
+      survived: mutations.length - killedMutants,
+      score: (score * 100).toFixed(1) + "%",
+      passed,
+    })
+
+    return { score, passed }
+  }
+
+  private generateMutations(code: string): Array<{
+    id: string
+    code: string
+    type: string
+    description: string
+  }> {
+    const mutations: Array<{
+      id: string
+      code: string
+      type: string
+      description: string
+    }> = []
+
+    const lines = code.split("\n")
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+
+      if (!line.trim() || line.trim().startsWith("//")) {
+        continue
+      }
+
+      if (line.includes("return")) {
+        const mutated = [...lines]
+        mutated[i] = line.replace(/return\s+(.+?)([;})\s])/g, "return undefined$2")
+        if (mutated[i] !== line) {
+          mutations.push({
+            id: `mutant_${i}_return`,
+            code: mutated.join("\n"),
+            type: "return_value_removal",
+            description: `Removed return value at line ${i + 1}`,
+          })
+        }
+      }
+
+      if (line.includes("if")) {
+        const mutated = [...lines]
+        mutated[i] = line.replace(/if\s*\(([^)]+)\)/g, "if (true)")
+        if (mutated[i] !== line) {
+          mutations.push({
+            id: `mutant_${i}_condition`,
+            code: mutated.join("\n"),
+            type: "condition_replacement",
+            description: `Replaced condition with true at line ${i + 1}`,
+          })
+        }
+      }
+
+      if (line.includes("+") && !line.includes("++") && !line.includes("+=")) {
+        const mutated = [...lines]
+        mutated[i] = line.replace(/\+/g, "-")
+        if (mutated[i] !== line) {
+          mutations.push({
+            id: `mutant_${i}_operator`,
+            code: mutated.join("\n"),
+            type: "operator_replacement",
+            description: `Changed + to - at line ${i + 1}`,
+          })
+        }
+      }
+
+      if (line.includes("===")) {
+        const mutated = [...lines]
+        mutated[i] = line.replace(/===/g, "!==")
+        mutations.push({
+          id: `mutant_${i}_equality`,
+          code: mutated.join("\n"),
+          type: "equality_inversion",
+          description: `Inverted === to !== at line ${i + 1}`,
+        })
+      }
+    }
+
+    return mutations.slice(0, 10)
   }
 }
