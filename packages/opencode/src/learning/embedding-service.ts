@@ -4,6 +4,7 @@ import { Global } from "../global"
 import type { EmbeddingGenerator, VectorType } from "./vector-store-interface"
 import { getConfiguredEmbeddingDim, storeEmbeddingDim, Database } from "../storage/db"
 import { embedWithDimensions } from "./embed-utils"
+import { getEmbeddingApiKey } from "./embedding-config-loader"
 
 export namespace EmbeddingService {
   const log = Log.create({ service: "embedding" })
@@ -72,7 +73,7 @@ export namespace EmbeddingService {
     "deepseek-embedding": 1536,
 
     // Default fallback
-    default: 384,
+    default: 1536,
   }
 
   /**
@@ -255,11 +256,13 @@ export namespace EmbeddingService {
           // Alibaba Cloud DashScope - use embedWithDimensions to support dimensions parameter
           return async (text: string, _vectorType: VectorType): Promise<Float32Array> => {
             try {
+              // 统一配置加载：按优先级读取 explicit > env > dotenv > config-file > default
+              const effectiveApiKey = config.apiKey || (await getEmbeddingApiKey({ apiKey: config.apiKey }))
               return await embedWithDimensions({
                 model: modelName,
                 value: text,
                 dimensions: config.dimensions,
-                apiKey: config.apiKey || process.env.DASHSCOPE_API_KEY,
+                apiKey: effectiveApiKey,
               })
             } catch (error) {
               log.error("dashscope_embedding_failed", {

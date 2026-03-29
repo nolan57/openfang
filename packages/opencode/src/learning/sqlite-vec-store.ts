@@ -5,7 +5,7 @@
  * Falls back to text-based search when the extension is not available.
  */
 
-import { Database, getConfiguredEmbeddingDim } from "../storage/db"
+import { Database, getConfiguredEmbeddingDim, validateVectorDimensions } from "../storage/db"
 import { vector_memory, vector_sync_meta } from "./learning.sql"
 import { knowledge_nodes } from "./knowledge-graph"
 import { eq, sql, and } from "drizzle-orm"
@@ -49,14 +49,18 @@ export class SqliteVecStore implements IVectorStore {
   private configuredDim: number
 
   constructor(config: VectorStoreConfig = {}) {
+    // [ENH] Get configured dimension from db.ts first (respects EMBEDDING_DIM env var and stored dimension)
+    // validateVectorDimensions will check database for stored dimension and update process.env.EMBEDDING_DIM
+    const sqlite = Database.raw()
+    const validatedDim = validateVectorDimensions(sqlite, log)
+
     this.config = {
       defaultModel: config.defaultModel ?? "simple",
-      defaultDimensions: config.defaultDimensions ?? 384,
+      defaultDimensions: config.defaultDimensions ?? validatedDim,
       initializeVecTable: config.initializeVecTable ?? true,
       embeddingGenerator: config.embeddingGenerator,
     }
-    // [ENH] Get configured dimension from db.ts (respects EMBEDDING_DIM env var)
-    this.configuredDim = getConfiguredEmbeddingDim()
+    this.configuredDim = validatedDim
   }
 
   /**
@@ -303,12 +307,7 @@ export class SqliteVecStore implements IVectorStore {
    * [SYNC] Sync vector entry to knowledge_node table for graph queries
    * This ensures both vector search and graph traversal work on the same data
    */
-  private syncToKnowledgeNode(
-    id: string,
-    entry: Omit<VectorEntry, "id">,
-    embeddingJson: string,
-    now: number,
-  ): void {
+  private syncToKnowledgeNode(id: string, entry: Omit<VectorEntry, "id">, embeddingJson: string, now: number): void {
     // Map node_type to KnowledgeGraph NodeType
     const nodeType = this.mapNodeType(entry.node_type)
 
@@ -828,7 +827,7 @@ export class SqliteVecStore implements IVectorStore {
   /**
    * Migrate vector_memory data to knowledge_node table
    * Note: Edge generation is handled by Memory.indexProject() for proper AST analysis
-   * 
+   *
    * @returns Statistics about the migration
    */
   async migrateToKnowledgeGraph(): Promise<{

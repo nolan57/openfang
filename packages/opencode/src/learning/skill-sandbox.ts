@@ -440,3 +440,10 @@ export function generateTestCases(skillCode: string, count: number = 3): TestCas
 
   return testCases.slice(0, count)
 }
+
+/**
+ * Factory function to create a SkillSandbox instance
+ */
+export function createSkillSandbox(config?: Partial<SandboxConfig>): SkillSandbox {
+  return new SkillSandbox(config)
+}

@@ -1,5 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai"
 import { embed as originalEmbed, type EmbeddingModel } from "ai"
+import { getEmbeddingApiKey } from "./embedding-config-loader"
 
 const DASHSCOPE_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
@@ -17,9 +18,14 @@ export async function embedWithDimensions(options: CustomEmbedOptions): Promise<
   // 判断是否使用 DashScope
   if (model.startsWith("text-embedding-") && (apiKey?.includes("sk-") || !apiKey)) {
     // 使用 DashScope API
-    const dashscopeApiKey = apiKey || process.env.DASHSCOPE_API_KEY
+    // 统一配置加载：按优先级读取 explicit > env > dotenv > config-file > default
+    const dashscopeApiKey = apiKey || (await getEmbeddingApiKey({ apiKey }))
     if (!dashscopeApiKey) {
-      throw new Error("DASHSCOPE_API_KEY is required")
+      throw new Error(
+        "DASHSCOPE_API_KEY 未配置！请通过以下方式之一设置:\n" +
+          "  1. 导出环境变量：export DASHSCOPE_API_KEY=your-key\n" +
+          "  2. 或在 opencode.jsonc 中配置 embedding.apiKey 字段",
+      )
     }
 
     const response = await fetch(`${baseURL}/embeddings`, {
@@ -37,7 +43,7 @@ export async function embedWithDimensions(options: CustomEmbedOptions): Promise<
 
     if (!response.ok) {
       const error = await response.text()
-      throw new Error(`DashScope API error: ${response.status} ${error}`)
+      throw new Error(`DashScope API 错误：${response.status} ${error}`)
     }
 
     const data = await response.json()

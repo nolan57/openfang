@@ -5607,6 +5607,7 @@
     "status": "draft"
   },
   {
+    "id": "faff331c-88d9-4304-8df3-c674cad6df94",
     "name": "auto-grep-task",
     "description": "Auto-generated skill for 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] ze",
     "content": "# 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好 根据 ~/Documents/tou.txt的内容实施代码修改 将详细文档改成英文 push to the branch linux of remote\n\n## Triggers\n\nThis skill activates when:\n- Working with grep operations\n- Working with read operations\n- Working with bash operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
@@ -5618,8 +5619,172 @@
       "l115822"
     ],
     "sessionID": "ses_2cd684489ffeXpfPdDFTmAa8KI",
-    "id": "faff331c-88d9-4304-8df3-c674cad6df94",
     "createdAt": 1774674508659,
+    "status": "draft"
+  },
+  {
+    "id": "d69a704c-b0d9-4113-80de-886c5b494228",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件",
+    "content": "# 确认项目使用了哪些配置文件\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774740700036,
+    "status": "draft"
+  },
+  {
+    "id": "a091df7d-9681-460f-880f-39459b90afad",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774740828061,
+    "status": "draft"
+  },
+  {
+    "id": "0182e457-8d79-4bb7-a9be-08e909daef6a",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774741457819,
+    "status": "draft"
+  },
+  {
+    "id": "3c091100-e7bb-4cf4-981b-40c38e3fd4b8",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774741891516,
+    "status": "draft"
+  },
+  {
+    "id": "c68c18ee-8e80-4d13-a3f5-d8e5472e7a6e",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536",
+      "1536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774743082655,
+    "status": "draft"
+  },
+  {
+    "id": "39efac78-ac12-4a76-8a93-43abbfb7fba5",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536",
+      "1536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774743419789,
+    "status": "draft"
+  },
+  {
+    "id": "e303c1d3-087f-4014-83f0-837643deb183",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536",
+      "1536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774743673215,
+    "status": "draft"
+  },
+  {
+    "id": "812d6389-1da7-45db-b1a8-f81d03e767bd",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536",
+      "1536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774744143383,
+    "status": "draft"
+  },
+  {
+    "id": "3a4a4d47-c4c4-4077-bd00-64900934bb5f",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536",
+      "1536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774745176438,
+    "status": "draft"
+  },
+  {
+    "id": "3df953b9-5150-498b-9ee6-57fce85e8b66",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 将文档和代码中的信息文字改成中文，并具体测试是否能正确使用embedding模型\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536",
+      "1536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774745579351,
+    "status": "draft"
+  },
+  {
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 将文档和代码中的信息文字改成中文，并具体测试是否能正确使用embedding模型 将文档改成中文\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536",
+      "1536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "id": "2480e1a7-2dd8-40ca-aeae-9303649cc663",
+    "createdAt": 1774745765075,
     "status": "draft"
   }
 ]

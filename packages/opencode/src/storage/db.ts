@@ -33,6 +33,7 @@ declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number }[] | undefi
 /**
  * Default embedding dimension
  * Can be overridden via EMBEDDING_DIM environment variable
+ * Using OpenAI text-embedding-3-small dimensions (1536)
  */
 const DEFAULT_EMBEDDING_DIM = 1536
 

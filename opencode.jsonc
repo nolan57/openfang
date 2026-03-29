@@ -20,15 +20,20 @@
       "Context Management",
       "Code Understanding",
       "RLHF",
-      "DPO",
+      "DPO"
     ],
     "sources": ["search", "arxiv", "github", "pypi", "blogs"],
     "maxItemsPerRun": 10,
-    "cooldownHours": 24,
+    "cooldownHours": 24
   },
   "experimental": {
     "openTelemetry": true,
     "batch_tool": false,
-    "mcp_timeout": 60000,
+    "mcp_timeout": 60000
   },
+    "embedding": {
+      "provider": "dashscope",
+      "model": "text-embedding-v4",
+      "apiKey": "sk-391a1bcf03e04b55961d15d34de937b2"
+    }
 }

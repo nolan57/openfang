@@ -138,7 +138,11 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
       const dashscopeModel = "text-embedding-v4"
       const embeddingDimensions = 1536
 
-      if (!process.env.DASHSCOPE_API_KEY) {
+      // 统一配置加载：按优先级读取 explicit > env > dotenv > config-file > default
+      const { getEmbeddingApiKey } = await import("../learning/embedding-config-loader")
+      const apiKey = await getEmbeddingApiKey()
+
+      if (!apiKey) {
         return {
           title: "Code Index Failed",
           metadata: { error: "DASHSCOPE_API_KEY not set" },
@@ -162,6 +166,7 @@ export const BuildCodeIndexTool: Tool.Info<typeof params> = {
             model: dashscopeModel,
             value: entry.content_text,
             dimensions: embeddingDimensions,
+            apiKey: apiKey,
           })
           const embedding = Array.from(vector)
           const embeddingJson = JSON.stringify(embedding)

@@ -66,7 +66,7 @@ export const vector_memory = sqliteTable("vector_memory", {
   vector_type: text().notNull(), // "content" | "code" | "constraint" | "character" | "scene" | "style"
   embedding: text().notNull(), // JSON array of floats
   model: text().notNull().default("simple"), // "simple" | "openai" | "local"
-  dimensions: integer().notNull().default(384),
+  dimensions: integer().notNull().default(1536),
   metadata: text(), // JSON - additional data
   // [ENH] TTL: Optional expiration timestamp (Unix milliseconds)
   expires_at: integer(), // null means no expiration

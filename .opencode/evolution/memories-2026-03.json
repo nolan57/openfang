@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1774674369745,
-    "usageCount": 302,
+    "lastUsedAt": 1774741546469,
+    "usageCount": 305,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -68,8 +68,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1774535321647,
-    "usageCount": 232,
+    "lastUsedAt": 1774745878496,
+    "usageCount": 235,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -143,8 +143,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1774674275165,
-    "usageCount": 272,
+    "lastUsedAt": 1774743519883,
+    "usageCount": 274,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1774673742658,
-    "usageCount": 323,
+    "lastUsedAt": 1774745599692,
+    "usageCount": 327,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -218,8 +218,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1774534668814,
-    "usageCount": 209,
+    "lastUsedAt": 1774745314282,
+    "usageCount": 211,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -9990,15 +9990,105 @@
     "archived": false
   },
   {
+    "id": "5a7c777c-262b-4141-b9db-4d0e17c2d2ac",
     "key": "code-search-strategy",
     "value": "Utilize grep and glob tools extensively to trace feature implementation across files when documentation is missing.",
     "context": "分析 learning 模块哪些代码文件是处理自动生成skills的 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM continue continue 使用opencode时，出现下面异常信息：    [Pasted ~10 l11:58:22 AM ⚠\n[zeroclaw] zeroclaw_auto_start_failed\n11:58:18 AM ✗\n[default] exception \n11:58:18 AM ⚠\n[learning-feedback-loop] feedback_loop_knowledge_init_failed\n11:59:20 AM ⚠\n[memory] vector_search_faile\n12:01:54 PM ✗\n[memory] Failed to extract memories with LLM 请查看 ~/.local/share/opencode/config/opencode.json 和 ~/.bashrc 和 fish配置文件是否已经配置好 根据 ~/Documents/tou.txt的内容实施代码修改 将详细文档改成英文 push to the branch linux of remote",
     "sessionIDs": [
       "ses_2cd684489ffeXpfPdDFTmAa8KI"
     ],
-    "id": "5a7c777c-262b-4141-b9db-4d0e17c2d2ac",
     "createdAt": 1774674534977,
     "lastUsedAt": 1774674534977,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "7f2b3e8f-ab93-4042-a56f-6cc2928726c4",
+    "key": "optimize-file-searches",
+    "value": "Consolidate glob patterns and prioritize common configuration locations to reduce excessive tool calls during project investigation.",
+    "context": "确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed",
+    "sessionIDs": [
+      "ses_2c93753e3ffekBGPR70AuIP2xp"
+    ],
+    "createdAt": 1774740860243,
+    "lastUsedAt": 1774740860243,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "2a2a8841-287e-47df-a6bc-54acf16cc216",
+    "key": "config-focus-init-errors",
+    "value": "Initialization failures often stem from configuration issues, so prioritize locating and validating relevant config files first.",
+    "context": "确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因",
+    "sessionIDs": [
+      "ses_2c93753e3ffekBGPR70AuIP2xp"
+    ],
+    "createdAt": 1774741489899,
+    "lastUsedAt": 1774741489899,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "30e59d4d-431d-4351-aed3-dc9f29531b8d",
+    "key": "embedding-dimension-consistency",
+    "value": "Ensure embedding dimensions (e.g., 1536 vs 384) match across model configurations and database schemas to avoid initialization failures.",
+    "context": "确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度",
+    "sessionIDs": [
+      "ses_2c93753e3ffekBGPR70AuIP2xp"
+    ],
+    "createdAt": 1774743094767,
+    "lastUsedAt": 1774743094767,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "9ecc6de0-1bc3-458f-acfc-d9698a7738a2",
+    "key": "embedding-dimension-sync",
+    "value": "When updating embedding dimensions, systematically audit all database operations and backup files to ensure consistency across the system.",
+    "context": "确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度",
+    "sessionIDs": [
+      "ses_2c93753e3ffekBGPR70AuIP2xp"
+    ],
+    "createdAt": 1774743436503,
+    "lastUsedAt": 1774743436503,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8423d3e2-fedb-4e31-bd2c-69d93a88db58",
+    "key": "embedding-dimension-consistency",
+    "value": "修改嵌入维度时，需同步更新代码、数据库结构及备份文件，避免初始化失败。",
+    "context": "确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗",
+    "sessionIDs": [
+      "ses_2c93753e3ffekBGPR70AuIP2xp"
+    ],
+    "createdAt": 1774744175826,
+    "lastUsedAt": 1774744175826,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "e0440838-9a83-4746-8245-ed578b27c67b",
+    "key": "embedding-dimension-consistency",
+    "value": "Verify embedding dimensions are consistent across model code, database schemas, and backups to prevent initialization failures.",
+    "context": "确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止",
+    "sessionIDs": [
+      "ses_2c93753e3ffekBGPR70AuIP2xp"
+    ],
+    "createdAt": 1774745213009,
+    "lastUsedAt": 1774745213009,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,
