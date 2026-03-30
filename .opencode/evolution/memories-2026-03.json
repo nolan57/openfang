@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1774741546469,
-    "usageCount": 305,
+    "lastUsedAt": 1774875104650,
+    "usageCount": 308,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -68,8 +68,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1774745878496,
-    "usageCount": 235,
+    "lastUsedAt": 1774875927207,
+    "usageCount": 239,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1774745599692,
-    "usageCount": 327,
+    "lastUsedAt": 1774874555592,
+    "usageCount": 330,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -10089,6 +10089,126 @@
     ],
     "createdAt": 1774745213009,
     "lastUsedAt": 1774745213009,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "42ad43d6-bec0-46ee-b377-76afeddfb06c",
+    "key": "embedding-dimension-consistency",
+    "value": "修改 embedding 维度时，需同步检查代码、数据库表结构及备份文件，确保全链路维度一致以避免初始化失败。",
+    "context": "确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 将文档和代码中的信息文字改成中文，并具体测试是否能正确使用embedding模型 将文档改成中文 push local to the branch linux of remote",
+    "sessionIDs": [
+      "ses_2c93753e3ffekBGPR70AuIP2xp"
+    ],
+    "createdAt": 1774746017727,
+    "lastUsedAt": 1774746017727,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "8e022e68-9cd0-4035-aaca-e7731050a6da",
+    "key": "deep-codebase-inspection",
+    "value": "Utilize glob and read tools to map entry points and dependencies of both projects before designing integration.",
+    "context": "全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案",
+    "sessionIDs": [
+      "ses_2c18bb207ffebklu0mixZ4HNob"
+    ],
+    "createdAt": 1774869728671,
+    "lastUsedAt": 1774869728671,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "71d59f01-741b-4d45-a864-8afc712c3191",
+    "key": "pre-integration-audit",
+    "value": "Always audit the current state of external components, such as removed agents, before planning integration to prevent redundancy.",
+    "context": "全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认",
+    "sessionIDs": [
+      "ses_2c18bb207ffebklu0mixZ4HNob"
+    ],
+    "createdAt": 1774870179771,
+    "lastUsedAt": 1774870179771,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "1fc0671f-c7ac-4e66-af6b-0daf900c96c0",
+    "key": "multi-agent-integration-plan",
+    "value": "Define clear communication protocols between host and integrated agents to ensure seamless orchestration within the opencode framework.",
+    "context": "全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除",
+    "sessionIDs": [
+      "ses_2c18bb207ffebklu0mixZ4HNob"
+    ],
+    "createdAt": 1774870683739,
+    "lastUsedAt": 1774870683740,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "7a1feb57-20ae-480a-abc5-40f3bc7a0217",
+    "key": "agent-pruning-strategy",
+    "value": "When integrating external agent systems, verify and prune pre-built components to exclude irrelevant ones like specialized traders that do not fit the target architecture.",
+    "context": "全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文",
+    "sessionIDs": [
+      "ses_2c18bb207ffebklu0mixZ4HNob"
+    ],
+    "createdAt": 1774872816009,
+    "lastUsedAt": 1774872816009,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "f531e7a6-0e31-488a-8b27-760e3aa1994e",
+    "key": "documentation-language-policy",
+    "value": "Mandate English for all integration documentation and future updates to maintain consistency across international teams.",
+    "context": "全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合 take next steps to complete the integration continue",
+    "sessionIDs": [
+      "ses_2c18bb207ffebklu0mixZ4HNob"
+    ],
+    "createdAt": 1774874736755,
+    "lastUsedAt": 1774874736755,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "6e3f27aa-8957-4920-97fb-89da23d37f57",
+    "key": "documentation-language-standard",
+    "value": "Standardize documentation language to English early in the project to ensure consistency across all future deliverables and team collaboration.",
+    "context": "全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合 take next steps to complete the integration continue take next stops 1、2、3, no ui integration",
+    "sessionIDs": [
+      "ses_2c18bb207ffebklu0mixZ4HNob"
+    ],
+    "createdAt": 1774875688701,
+    "lastUsedAt": 1774875688701,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "key": "agent-pruning-strategy",
+    "value": "Evaluate and remove unnecessary pre-built agents during integration to align with the target system's core functionality.",
+    "context": "全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合 take next steps to complete the integration continue take next stops 1、2、3, no ui integration push the local of opencode to branch linux of remote",
+    "sessionIDs": [
+      "ses_2c18bb207ffebklu0mixZ4HNob"
+    ],
+    "id": "ab230e05-9040-4f56-9a5c-91bc97828e45",
+    "createdAt": 1774875931206,
+    "lastUsedAt": 1774875931206,
     "usageCount": 0,
     "sensitive": false,
     "encrypted": false,

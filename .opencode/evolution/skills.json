@@ -5772,6 +5772,7 @@
     "status": "draft"
   },
   {
+    "id": "2480e1a7-2dd8-40ca-aeae-9303649cc663",
     "name": "auto-glob-task",
     "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
     "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 将文档和代码中的信息文字改成中文，并具体测试是否能正确使用embedding模型 将文档改成中文\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
@@ -5783,8 +5784,146 @@
       "1536"
     ],
     "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
-    "id": "2480e1a7-2dd8-40ca-aeae-9303649cc663",
     "createdAt": 1774745765075,
+    "status": "draft"
+  },
+  {
+    "id": "3dcad50b-c335-4042-a3f2-b7649ca2e722",
+    "name": "auto-glob-task",
+    "description": "Auto-generated skill for 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测",
+    "content": "# 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-l\n\n## Description\n\nAuto-generated skill for: 确认项目使用了哪些配置文件 分析下面的异常的原因 7:31:40 AM ✗\n[evolution-learning-bridge] evolution_bridge_init_failed 通过逐个测试确认异常原因 不要使用384维度，要使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 检查所有涉及数据库操作的代码，确认是否需要同步修改使用1536维度 项目具备自动备份和从备份数据库恢复的功能，备份数据库都保存在 ~/.local/share/opencode中的某个子目录下，检查是否需要将当前的数据库和备份数据库有否384维度，以及是否需要改成1536维度 检查所有使用embedding模型的代码，确认是否统一调用了同一个方法，并确认是否统一使用了同一个配置文件 有个问题，在fish环境下，能正确读取和传达在~/.zshrc中设置的DASHSCOPE_API_KEY环境变量吗 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 给出一个通用的方案，能按层次逐级读取embedding相关配置，直到可用为止或所有路径都读取完毕为止 将文档和代码中的信息文字改成中文，并具体测试是否能正确使用embedding模型 将文档改成中文 push local to the branch linux of remote\n\n## Triggers\n\nThis skill activates when:\n- Working with glob operations\n- Working with read operations\n- Working with grep operations\n- Working with bash operations\n- Working with todowrite operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-29\n",
+    "triggerPatterns": [
+      "73140",
+      "evolutionlearningbridge",
+      "evolutionbridgeinitfailed",
+      "3841536",
+      "1536"
+    ],
+    "sessionID": "ses_2c93753e3ffekBGPR70AuIP2xp",
+    "createdAt": 1774745971087,
+    "status": "draft"
+  },
+  {
+    "id": "d80ed40b-8fdb-4226-bd7f-ac72d4a415c3",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案",
+    "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "homeuriodocumentsopenfang",
+      "openfangopencodeagents"
+    ],
+    "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
+    "createdAt": 1774869698127,
+    "status": "draft"
+  },
+  {
+    "id": "32b2109a-af10-4aa9-a0c6-6a8353c7e3f9",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一",
+    "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "homeuriodocumentsopenfang",
+      "openfangopencodeagents",
+      "openfang7agent"
+    ],
+    "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
+    "createdAt": 1774870151159,
+    "status": "draft"
+  },
+  {
+    "id": "4791f625-adf4-49c7-9e8b-2a90f9200c87",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一",
+    "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "homeuriodocumentsopenfang",
+      "openfangopencodeagents",
+      "openfang7agent",
+      "openfangtrader",
+      "agent"
+    ],
+    "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
+    "createdAt": 1774870674600,
+    "status": "draft"
+  },
+  {
+    "id": "ed892114-6a3b-4fcc-8719-2d06d870f2e3",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一",
+    "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with write operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "homeuriodocumentsopenfang",
+      "openfangopencodeagents",
+      "openfang7agent",
+      "openfangtrader",
+      "agent"
+    ],
+    "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
+    "createdAt": 1774872799564,
+    "status": "draft"
+  },
+  {
+    "id": "c394a1d6-bc1d-42a3-91be-ae20a1c0ebef",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一",
+    "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with write operations\n- Working with edit operations\n- Working with todowrite operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "homeuriodocumentsopenfang",
+      "openfangopencodeagents",
+      "openfang7agent",
+      "openfangtrader",
+      "agent"
+    ],
+    "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
+    "createdAt": 1774873500922,
+    "status": "draft"
+  },
+  {
+    "id": "3fdf7f2d-07dd-4043-9813-e0956896c504",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一",
+    "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合 take next steps to complete the integration continue\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with glob operations\n- Working with write operations\n- Working with edit operations\n- Working with todowrite operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "homeuriodocumentsopenfang",
+      "openfangopencodeagents",
+      "openfang7agent",
+      "openfangtrader",
+      "agent"
+    ],
+    "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
+    "createdAt": 1774874725031,
+    "status": "draft"
+  },
+  {
+    "id": "023cb313-22dc-406d-b1bb-dd43a1ef00b5",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一",
+    "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合 take next steps to complete the integration continue take next stops 1、2、3, no ui integration\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with glob operations\n- Working with write operations\n- Working with edit operations\n- Working with todowrite operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "homeuriodocumentsopenfang",
+      "openfangopencodeagents",
+      "openfang7agent",
+      "openfangtrader",
+      "agent"
+    ],
+    "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
+    "createdAt": 1774875677029,
+    "status": "draft"
+  },
+  {
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一",
+    "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合 take next steps to complete the integration continue take next stops 1、2、3, no ui integration push the local of opencode to branch linux of remote\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with glob operations\n- Working with write operations\n- Working with edit operations\n- Working with todowrite operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "homeuriodocumentsopenfang",
+      "openfangopencodeagents",
+      "openfang7agent",
+      "openfangtrader",
+      "agent"
+    ],
+    "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
+    "id": "08b6985f-015d-4773-8bfe-129ff8c2e0bd",
+    "createdAt": 1774875905345,
     "status": "draft"
   }
 ]
