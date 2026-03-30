@@ -142,6 +142,7 @@
       "devDependencies": {
         "@babel/core": "7.28.4",
         "@octokit/webhooks-types": "7.6.1",
+        "@opencode-ai/script": "workspace:*",
         "@parcel/watcher-darwin-arm64": "2.5.1",
         "@parcel/watcher-darwin-x64": "2.5.1",
         "@parcel/watcher-linux-arm64-glibc": "2.5.1",
@@ -171,6 +172,7 @@
       "name": "@opencode-ai/plugin",
       "version": "1.2.11",
       "dependencies": {
+        "@opencode-ai/sdk": "workspace:*",
         "silk-wasm": "^3.3.4",
         "zod": "4.1.8",
       },
@@ -186,6 +188,7 @@
       "name": "@opencode-ai/plugin-qqbot",
       "version": "0.2.0",
       "dependencies": {
+        "@opencode-ai/sdk": "workspace:*",
         "silk-wasm": "^3.3.4",
         "zod": "^3.24.0",
       },

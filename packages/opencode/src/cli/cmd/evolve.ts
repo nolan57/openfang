@@ -146,7 +146,7 @@ export const EvolveCommand: CommandModule = {
           console.log(`- Constraint violations: ${report.summary.constraint_violations}`)
         } else if (args.mode === "status") {
           const cfg = await Config.get()
-          const evolution = cfg.evolution ?? {}
+          const evolution = cfg.evolution ?? {} as NonNullable<typeof cfg.evolution>
           const directions = evolution.directions ?? defaultLearningConfig.topics
           const sources = evolution.sources ?? defaultLearningConfig.sources
 
@@ -277,7 +277,7 @@ async function showStatus() {
     directory: process.cwd(),
     fn: async () => {
       const cfg = await Config.get()
-      const evolution = cfg.evolution ?? {}
+      const evolution = cfg.evolution ?? {} as NonNullable<typeof cfg.evolution>
       const directions = evolution.directions ?? defaultLearningConfig.topics
       const sources = evolution.sources ?? defaultLearningConfig.sources
 

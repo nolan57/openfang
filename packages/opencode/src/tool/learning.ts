@@ -30,7 +30,7 @@ export const LearningTool = Tool.define("learning", async () => {
     }),
     async execute(args: any, ctx: any) {
       const cfg = await Config.get()
-      const evolution = cfg.evolution ?? {}
+      const evolution = cfg.evolution ?? {} as NonNullable<typeof cfg.evolution>
       const configTopics = evolution.directions ?? defaultLearningConfig.topics
       const configSources = evolution.sources ?? defaultLearningConfig.sources
 
@@ -78,7 +78,7 @@ export const EvolveTool = Tool.define("evolve", async () => {
       const graph = new KnowledgeGraph()
       const safety = new Safety()
       const cfg = await Config.get()
-      const evolution = cfg.evolution ?? {}
+      const evolution = cfg.evolution ?? {} as NonNullable<typeof cfg.evolution>
       const configTopics = evolution.directions ?? defaultLearningConfig.topics
 
       if (mode === "status") {
@@ -283,7 +283,7 @@ export const EvolutionConfigTool = Tool.define("evolution-config", async () => {
     }),
     async execute(args: any, ctx: any) {
       const cfg = await Config.get()
-      const evolution = cfg.evolution ?? {}
+      const evolution = cfg.evolution ?? {} as NonNullable<typeof cfg.evolution>
       const currentDirections = evolution.directions ?? defaultLearningConfig.topics
       const currentSources = evolution.sources ?? defaultLearningConfig.sources
 

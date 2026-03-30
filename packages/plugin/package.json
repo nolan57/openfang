@@ -19,6 +19,7 @@
     "dist"
   ],
   "dependencies": {
+    "@opencode-ai/sdk": "workspace:*",
     "zod": "4.1.8",
     "silk-wasm": "^3.3.4"
   },

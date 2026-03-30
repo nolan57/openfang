@@ -111,7 +111,7 @@ export function unregisterAcpRuntimeBackend(id: string): void {
  * @returns Backend or null if not found
  */
 export function getAcpRuntimeBackend(id?: string): AcpRuntimeBackend | null {
-  const normalized = normalizeRuntimeId(id)
+  const normalized = id ? normalizeRuntimeId(id) : undefined
 
   if (normalized) {
     return BACKENDS_BY_ID.get(normalized) ?? null
@@ -151,7 +151,7 @@ export function getAcpRuntime(id?: string): AcpRuntime | null {
  * @throws Error if no runtime is available
  */
 export function requireAcpRuntime(id?: string): AcpRuntime {
-  const normalized = normalizeRuntimeId(id)
+  const normalized = id ? normalizeRuntimeId(id) : undefined
   const backend = getAcpRuntimeBackend(normalized || undefined)
 
   if (!backend) {

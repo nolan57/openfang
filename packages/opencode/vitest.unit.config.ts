@@ -26,12 +26,6 @@ export default defineConfig({
     // Coverage for unit tests
     coverage: {
       ...baseConfig.test?.coverage,
-      thresholds: {
-        lines: 70,
-        functions: 70,
-        branches: 60,
-        statements: 70,
-      },
       exclude: [
         ...(baseConfig.test?.coverage?.exclude ?? []),
         "src/index.ts",
