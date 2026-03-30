@@ -53,8 +53,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029283,
-    "lastUsedAt": 1774875104650,
-    "usageCount": 308,
+    "lastUsedAt": 1774880700613,
+    "usageCount": 310,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -68,8 +68,8 @@
       "ses_35b4f689dffeto5TwCXGWKvVOn"
     ],
     "createdAt": 1772334029285,
-    "lastUsedAt": 1774875927207,
-    "usageCount": 239,
+    "lastUsedAt": 1774879395892,
+    "usageCount": 241,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -143,8 +143,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356236445,
-    "lastUsedAt": 1774743519883,
-    "usageCount": 274,
+    "lastUsedAt": 1774880400794,
+    "usageCount": 275,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -188,8 +188,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381757,
-    "lastUsedAt": 1774874555592,
-    "usageCount": 330,
+    "lastUsedAt": 1774879678723,
+    "usageCount": 331,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -218,8 +218,8 @@
       "ses_35805165effeHyLN6HRw4T02Qx"
     ],
     "createdAt": 1772356381759,
-    "lastUsedAt": 1774745314282,
-    "usageCount": 211,
+    "lastUsedAt": 1774879865593,
+    "usageCount": 213,
     "sensitive": false,
     "encrypted": false,
     "archived": false
@@ -10200,16 +10200,61 @@
     "archived": false
   },
   {
+    "id": "ab230e05-9040-4f56-9a5c-91bc97828e45",
     "key": "agent-pruning-strategy",
     "value": "Evaluate and remove unnecessary pre-built agents during integration to align with the target system's core functionality.",
     "context": "全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合 take next steps to complete the integration continue take next stops 1、2、3, no ui integration push the local of opencode to branch linux of remote",
     "sessionIDs": [
       "ses_2c18bb207ffebklu0mixZ4HNob"
     ],
-    "id": "ab230e05-9040-4f56-9a5c-91bc97828e45",
     "createdAt": 1774875931206,
     "lastUsedAt": 1774875931206,
     "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "c141b837-ef7d-4dcc-83e6-47946596d7be",
+    "key": "config-source-tracing",
+    "value": "Trace configuration variable origins in code to distinguish between environment variables and hardcoded values when debugging setup errors.",
+    "context": "执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，提示 embedding 模型没有配置成功.全面分析和修复 set the dimensions to 1536(1563?) and set the api key to sk-391a1bcf03e04b55961d15d34de937b2 永久移除环境变量 EMBEDDING_DIM 当前是fish环境 要分析代码，确认 config.dimensions 的来源，根据来源来 1、移除环境变量 或 2、将dimension由384改成1536 恢复1536，不要使用384 将代码中使用环境变量的语句移除 仅移除和emebedding模型相关的环境变量读取的代码",
+    "sessionIDs": [
+      "ses_2c1142803ffevRf6ALpjJU5TM0"
+    ],
+    "createdAt": 1774880961430,
+    "lastUsedAt": 1774881218708,
+    "usageCount": 2,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "cb632ded-9d4c-4990-9b84-ed49d3627909",
+    "key": "environment-variable-conflicts",
+    "value": "Check shell environment variables that may override code configurations when debugging model setup issues.",
+    "context": "执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，提示 embedding 模型没有配置成功.全面分析和修复 set the dimensions to 1536(1563?) and set the api key to sk-391a1bcf03e04b55961d15d34de937b2 永久移除环境变量 EMBEDDING_DIM 当前是fish环境 要分析代码，确认 config.dimensions 的来源，根据来源来 1、移除环境变量 或 2、将dimension由384改成1536 恢复1536，不要使用384 将代码中使用环境变量的语句移除 仅移除和emebedding模型相关的环境变量读取的代码 将 ~/.local/share/opencode/ 中的所有数据库都emebedding的维度都改成 1536",
+    "sessionIDs": [
+      "ses_2c1142803ffevRf6ALpjJU5TM0"
+    ],
+    "createdAt": 1774881180205,
+    "lastUsedAt": 1774881180205,
+    "usageCount": 0,
+    "sensitive": false,
+    "encrypted": false,
+    "archived": false
+  },
+  {
+    "id": "fff03c47-9d0e-470c-ba7e-ccbe39578291",
+    "key": "vector-db-dimension-migration",
+    "value": "When changing embedding dimensions, update existing local database schemas to match the new dimension to prevent compatibility errors.",
+    "context": "执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，提示 embedding 模型没有配置成功.全面分析和修复 set the dimensions to 1536(1563?) and set the api key to sk-391a1bcf03e04b55961d15d34de937b2 永久移除环境变量 EMBEDDING_DIM 当前是fish环境 要分析代码，确认 config.dimensions 的来源，根据来源来 1、移除环境变量 或 2、将dimension由384改成1536 恢复1536，不要使用384 将代码中使用环境变量的语句移除 仅移除和emebedding模型相关的环境变量读取的代码 将 ~/.local/share/opencode/ 中的所有数据库都emebedding的维度都改成 1536 搜索所有配置embedding相关的代码，确保移除所有从环境变量读取相关配置的代码",
+    "sessionIDs": [
+      "ses_2c1142803ffevRf6ALpjJU5TM0"
+    ],
+    "createdAt": 1774882002045,
+    "lastUsedAt": 1774882092480,
+    "usageCount": 1,
     "sensitive": false,
     "encrypted": false,
     "archived": false

@@ -38,21 +38,11 @@ declare const OPENCODE_MIGRATIONS: { sql: string; timestamp: number }[] | undefi
 const DEFAULT_EMBEDDING_DIM = 1536
 
 /**
- * Get configured embedding dimension from environment or default
+ * Get configured embedding dimension from config file or default
+ * Note: Environment variable EMBEDDING_DIM is no longer supported to avoid conflicts
  */
 export function getConfiguredEmbeddingDim(): number {
-  const envDim = process.env.EMBEDDING_DIM
-  if (envDim) {
-    const dim = parseInt(envDim, 10)
-    if (isNaN(dim) || dim <= 0) {
-      log.warn("invalid EMBEDDING_DIM environment variable, using default", {
-        value: envDim,
-        default: DEFAULT_EMBEDDING_DIM,
-      })
-      return DEFAULT_EMBEDDING_DIM
-    }
-    return dim
-  }
+  // Environment variable support removed - use opencode.jsonc instead
   return DEFAULT_EMBEDDING_DIM
 }
 
@@ -128,77 +118,38 @@ function storeEmbeddingDim(sqlite: BunDatabase, dim: number): void {
  * This should be called during database initialization
  *
  * Logic:
- * 1. If EMBEDDING_DIM env is set, use it (user explicit config)
- * 2. If database has stored dimension, use it (preserve existing vectors)
- * 3. Otherwise use default (fresh database)
+ * 1. If database has stored dimension, use it (preserve existing vectors)
+ * 2. Otherwise use default (fresh database)
  *
- * Only throws error when user explicitly sets EMBEDDING_DIM that conflicts
- * with the stored dimension in database.
- *
- * @throws VectorDimensionMismatchError if user explicitly sets EMBEDDING_DIM that conflicts with stored dimension
+ * Note: Environment variable EMBEDDING_DIM is no longer supported.
+ * Use opencode.jsonc embedding.dimensions to configure.
  */
 function validateVectorDimensions(sqlite: BunDatabase, logger: typeof log): number {
-  const envDim = process.env.EMBEDDING_DIM
   const storedDim = getStoredEmbeddingDim(sqlite)
-
-  // Parse environment variable if set
-  const configuredDim = envDim ? parseInt(envDim, 10) : undefined
-  const hasExplicitConfig = envDim !== undefined && !isNaN(configuredDim!) && configuredDim! > 0
+  const configuredDim = undefined // Environment variable support removed
 
   logger.debug("vector_dimension_check", {
-    envDim,
     configured: configuredDim,
     stored: storedDim,
-    hasExplicitConfig,
+    hasExplicitConfig: false,
   })
 
   // If no dimension stored yet, this is a fresh database
   if (storedDim === undefined) {
-    const dimToUse = configuredDim ?? DEFAULT_EMBEDDING_DIM
+    const dimToUse = DEFAULT_EMBEDDING_DIM
     logger.info("initializing_vector_dimension", {
       dimension: dimToUse,
-      source: hasExplicitConfig ? "env" : "default",
+      source: "default",
     })
     storeEmbeddingDim(sqlite, dimToUse)
     return dimToUse
   }
 
-  // If user explicitly set EMBEDDING_DIM, check if it matches stored
-  if (hasExplicitConfig) {
-    if (storedDim === configuredDim) {
-      logger.debug("vector_dimension_verified", { dimension: configuredDim, source: "env" })
-      return configuredDim!
-    }
-
-    // User explicitly set a conflicting dimension - this is an error
-    logger.error("vector_dimension_mismatch", {
-      stored: storedDim,
-      configured: configuredDim,
-    })
-
-    throw new VectorDimensionMismatchError({
-      storedDimension: storedDim,
-      configuredDimension: configuredDim!,
-      hint: `Embedding model changed. You must either:
-1. Set EMBEDDING_DIM=${storedDim} to use the existing vectors, or
-2. Clear the vector_memory table and rebuild with the new dimension:
-   DELETE FROM vector_memory;
-   DELETE FROM vec_vector_memory;
-   UPDATE system_metadata SET value = '${configuredDim}' WHERE key = 'embedding_dimension';
-   
-After changing dimension, restart the application.`,
-    })
-  }
-
-  // No explicit config - use stored dimension to preserve existing vectors
+  // Use stored dimension to preserve existing vectors
   logger.info("vector_dimension_using_stored", {
     dimension: storedDim,
     source: "database",
-    hint: "Set EMBEDDING_DIM env to override",
   })
-
-  // Update env var so EmbeddingService picks up the correct dimension
-  process.env.EMBEDDING_DIM = String(storedDim)
 
   return storedDim
 }

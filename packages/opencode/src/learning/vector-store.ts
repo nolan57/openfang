@@ -84,8 +84,14 @@ export async function getSharedVectorStore(config?: VectorStoreConfig): Promise<
   let effectiveConfig = config
   if (!config?.embeddingGenerator) {
     try {
+      // Use config file instead of environment variable
+      const { loadEmbeddingConfig } = await import("./embedding-config-loader")
+      const embeddingConfig = await loadEmbeddingConfig()
       const service = await EmbeddingService.createService({
-        modelId: process.env.EMBEDDING_MODEL || "dashscope/text-embedding-v4",
+        modelId: embeddingConfig.model,
+        apiKey: embeddingConfig.apiKey,
+        dimensions: embeddingConfig.dimensions,
+        baseURL: embeddingConfig.baseURL,
       })
       effectiveConfig = {
         ...config,

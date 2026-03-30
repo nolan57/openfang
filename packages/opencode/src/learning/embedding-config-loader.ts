@@ -1,17 +1,18 @@
 /**
  * Embedding 配置加载器
  *
- * 按优先级逐级读取配置，直到找到可用配置为止：
+ * 配置来源（按优先级）：
  * 1. 显式传入的参数（最高优先级）
- * 2. 环境变量 (process.env / Bun.env)
- * 3. .env 文件（项目根目录、用户目录）
- * 4. opencode.jsonc / opencode.json 配置文件
- * 5. 默认配置（最低优先级）
+ * 2. opencode.jsonc / opencode.json 配置文件
+ * 3. 默认配置（最低优先级）
+ *
+ * 注意：环境变量和 .env 文件支持已移除，避免配置冲突
  */
 
 import { existsSync } from "fs"
 import path from "path"
 import { Log } from "../util/log"
+import * as JSONC from "jsonc-parser"
 
 const log = Log.create({ service: "embedding-config" })
 
@@ -56,77 +57,90 @@ const DEFAULTS: EmbeddingConfig = {
 
 /**
  * 尝试从 .env 文件加载配置
+ * 注意：已移除 .env 文件支持，配置只能从 opencode.jsonc/json 读取
  */
 async function loadFromDotEnv(): Promise<Partial<EmbeddingConfig> | null> {
-  const candidates = [
-    // 项目根目录
-    path.join(process.cwd(), ".env"),
-    path.join(process.cwd(), ".env.local"),
-    // 用户配置目录
-    path.join(process.env.HOME || "", ".config", "opencode", ".env"),
-    path.join(process.env.HOME || "", ".opencode", ".env"),
-  ]
-
-  for (const envPath of candidates) {
-    if (existsSync(envPath)) {
-      try {
-        const content = await Bun.file(envPath).text()
-        const lines = content.split("\n")
-        const config: Partial<EmbeddingConfig> = {}
-
-        for (const line of lines) {
-          const trimmed = line.trim()
-          if (trimmed.startsWith("#") || !trimmed.includes("=")) continue
-
-          const [key, ...valueParts] = trimmed.split("=")
-          const value = valueParts.join("=").replace(/^["']|["']$/g, "")
-
-          if (key === "DASHSCOPE_API_KEY") {
-            config.apiKey = value
-          } else if (key === "EMBEDDING_MODEL") {
-            config.model = value
-          } else if (key === "EMBEDDING_DIM") {
-            config.dimensions = parseInt(value, 10)
-          } else if (key === "DASHSCOPE_BASE_URL") {
-            config.baseURL = value
-          }
-        }
-
-        if (Object.keys(config).length > 0) {
-          log.debug("已从 .env 文件加载配置", { path: envPath })
-          return config
-        }
-      } catch (error) {
-        log.debug("加载 .env 文件失败", { path: envPath, error: String(error) })
-      }
-    }
-  }
-
+  // .env file support removed - use opencode.jsonc instead
   return null
+}
+
+/**
+ * 查找项目根目录（包含 opencode.jsonc/json 的目录）
+ * 向上遍历目录树，直到找到配置文件或到达根目录
+ */
+function findProjectRoot(startDir: string = process.cwd()): string | null {
+  let currentDir = startDir
+  const rootRegex = /^[A-Z]:\\$/i.test(startDir) ? /^[A-Z]:\\$/i : /^\/$/i
+
+  while (true) {
+    // 检查当前目录是否有配置文件
+    if (existsSync(path.join(currentDir, "opencode.jsonc")) || existsSync(path.join(currentDir, "opencode.json"))) {
+      return currentDir
+    }
+
+    // 检查是否到达根目录
+    if (rootRegex.test(currentDir)) {
+      return null
+    }
+
+    const parentDir = path.dirname(currentDir)
+    // 如果父目录与当前目录相同，说明已到达根目录
+    if (parentDir === currentDir) {
+      return null
+    }
+
+    currentDir = parentDir
+  }
 }
 
 /**
  * 尝试从 opencode.jsonc/json 加载配置
  */
 async function loadFromConfigFile(): Promise<Partial<EmbeddingConfig> | null> {
-  const candidates = [
-    // 当前项目
-    path.join(process.cwd(), "opencode.jsonc"),
-    path.join(process.cwd(), "opencode.json"),
-    // 用户配置目录
-    path.join(process.env.HOME || "", ".config", "opencode", "opencode.jsonc"),
-    path.join(process.env.HOME || "", ".config", "opencode", "opencode.json"),
-    path.join(process.env.HOME || "", ".opencode", "opencode.jsonc"),
-    path.join(process.env.HOME || "", ".opencode", "opencode.json"),
-  ]
+  const candidates: string[] = []
+
+  // 1. 首先查找项目根目录的配置文件
+  const projectRoot = findProjectRoot()
+  if (projectRoot) {
+    candidates.push(path.join(projectRoot, "opencode.jsonc"), path.join(projectRoot, "opencode.json"))
+  }
+
+  // 2. 当前工作目录（兼容旧代码）
+  candidates.push(path.join(process.cwd(), "opencode.jsonc"), path.join(process.cwd(), "opencode.json"))
+
+  // 3. 用户配置目录
+  const home = process.env.HOME || ""
+  if (home) {
+    candidates.push(
+      path.join(home, ".config", "opencode", "opencode.jsonc"),
+      path.join(home, ".config", "opencode", "opencode.json"),
+      path.join(home, ".opencode", "opencode.jsonc"),
+      path.join(home, ".opencode", "opencode.json"),
+    )
+  }
+
+  // 4. 全局配置目录
+  try {
+    const { Global } = await import("../global")
+    candidates.push(path.join(Global.Path.config, "opencode.jsonc"), path.join(Global.Path.config, "opencode.json"))
+  } catch (error) {
+    log.debug("无法加载 Global 模块", { error: String(error) })
+  }
 
   for (const configPath of candidates) {
     if (existsSync(configPath)) {
       try {
         const content = await Bun.file(configPath).text()
-        // 简单的 JSONC 解析（去除注释）
-        const jsonContent = content.replace(/\/\/.*$/gm, "")
-        const config = JSON.parse(jsonContent)
+        // 使用 jsonc-parser 解析（支持注释和尾随逗号）
+        const errors: JSONC.ParseError[] = []
+        const config = JSONC.parse(content, errors)
+
+        if (errors.length > 0) {
+          log.debug("配置文件解析警告", {
+            path: configPath,
+            errors: errors.map((e) => JSONC.printParseErrorCode(e.error)),
+          })
+        }
 
         if (config.embedding) {
           const embedding = config.embedding
@@ -153,35 +167,12 @@ async function loadFromConfigFile(): Promise<Partial<EmbeddingConfig> | null> {
 
 /**
  * 从环境变量加载配置
+ * 注意：已移除环境变量支持，配置只能从配置文件读取
  */
 function loadFromEnv(): Partial<EmbeddingConfig> {
-  const config: Partial<EmbeddingConfig> = {}
-
-  // 支持多种环境变量命名
-  const apiKey =
-    process.env.DASHSCOPE_API_KEY ||
-    process.env.OPENCODE_EMBEDDING_API_KEY ||
-    process.env.EMBEDDING_API_KEY ||
-    Bun.env.DASHSCOPE_API_KEY ||
-    Bun.env.OPENCODE_EMBEDDING_API_KEY ||
-    Bun.env.EMBEDDING_API_KEY
-
-  if (apiKey) config.apiKey = apiKey
-
-  const model = process.env.EMBEDDING_MODEL || Bun.env.EMBEDDING_MODEL
-  if (model) config.model = model
-
-  const dim = process.env.EMBEDDING_DIM || Bun.env.EMBEDDING_DIM
-  if (dim) config.dimensions = parseInt(dim, 10)
-
-  const baseURL = process.env.DASHSCOPE_BASE_URL || Bun.env.DASHSCOPE_BASE_URL
-  if (baseURL) config.baseURL = baseURL
-
-  if (Object.keys(config).length > 0) {
-    log.debug("已从环境变量加载配置")
-  }
-
-  return config
+  // 环境变量支持已移除，避免与配置文件冲突
+  // 配置只能从 opencode.jsonc/json 文件中读取
+  return {}
 }
 
 /**
@@ -194,21 +185,19 @@ function mergeConfigs(
   configFile: Partial<EmbeddingConfig>,
   defaults: EmbeddingConfig,
 ): EmbeddingConfig {
-  // 优先级：explicit > env > dotenv > configFile > defaults
+  // 优先级：explicit > dotenv > configFile > defaults
+  // 注意：环境变量支持已移除，避免与配置文件冲突
   const result: EmbeddingConfig = {
-    apiKey: explicit.apiKey || env.apiKey || dotenv.apiKey || configFile.apiKey || defaults.apiKey,
-    model: explicit.model || env.model || dotenv.model || configFile.model || defaults.model,
-    dimensions:
-      explicit.dimensions || env.dimensions || dotenv.dimensions || configFile.dimensions || defaults.dimensions,
-    baseURL: explicit.baseURL || env.baseURL || dotenv.baseURL || configFile.baseURL || defaults.baseURL,
+    apiKey: explicit.apiKey || dotenv.apiKey || configFile.apiKey || defaults.apiKey,
+    model: explicit.model || dotenv.model || configFile.model || defaults.model,
+    dimensions: explicit.dimensions || dotenv.dimensions || configFile.dimensions || defaults.dimensions,
+    baseURL: explicit.baseURL || dotenv.baseURL || configFile.baseURL || defaults.baseURL,
     source: "default",
   }
 
   // 确定来源
   if (explicit.apiKey || explicit.model || explicit.dimensions || explicit.baseURL) {
     result.source = "explicit"
-  } else if (env.apiKey || env.model || env.dimensions || env.baseURL) {
-    result.source = "env"
   } else if (dotenv?.apiKey || dotenv?.model || dotenv?.dimensions || dotenv?.baseURL) {
     result.source = "dotenv"
   } else if (configFile?.apiKey || configFile?.model || configFile?.dimensions || configFile?.baseURL) {
@@ -230,17 +219,11 @@ export class EmbeddingConfigLoaderImpl implements EmbeddingConfigLoader {
     // 1. 显式参数（最高优先级）
     const explicit = overrides || {}
 
-    // 2. 环境变量
-    const env = loadFromEnv()
-
-    // 3. .env 文件
-    const dotenv = (await loadFromDotEnv()) || {}
-
-    // 4. 配置文件
+    // 2. 配置文件
     const configFile = (await loadFromConfigFile()) || {}
 
-    // 5. 合并所有配置
-    const config = mergeConfigs(explicit, env, dotenv, configFile, DEFAULTS)
+    // 3. 合并配置（环境变量和 .env 支持已移除）
+    const config = mergeConfigs(explicit, {}, {}, configFile, DEFAULTS)
 
     // 缓存配置
     this.cachedConfig = config

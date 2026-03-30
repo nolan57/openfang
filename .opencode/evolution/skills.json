@@ -5911,6 +5911,7 @@
     "status": "draft"
   },
   {
+    "id": "08b6985f-015d-4773-8bfe-129ff8c2e0bd",
     "name": "auto-bash-task",
     "description": "Auto-generated skill for 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一",
     "content": "# 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进\n\n## Description\n\nAuto-generated skill for: 全面分析 /home/urio/Documents/openfang ，给出将openfang整合进opencode的多agents的一部分的方案 openfang的7个预构建的agent已经剔除了一部分，请再确认 将openfang的trader agent剔除 将整合文档改成英文，记住，后续的文档都使用英文 按混合框架实施openfang和opencode的整合 take next steps to complete the integration continue take next stops 1、2、3, no ui integration push the local of opencode to branch linux of remote\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with glob operations\n- Working with write operations\n- Working with edit operations\n- Working with todowrite operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
@@ -5922,8 +5923,71 @@
       "agent"
     ],
     "sessionID": "ses_2c18bb207ffebklu0mixZ4HNob",
-    "id": "08b6985f-015d-4773-8bfe-129ff8c2e0bd",
     "createdAt": 1774875905345,
+    "status": "draft"
+  },
+  {
+    "id": "92835fca-a5c7-49c4-90d4-7e935b981288",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，",
+    "content": "# 执行 opencode novel start /home/Urio/Documents/openc\n\n## Description\n\nAuto-generated skill for: 执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，提示 embedding 模型没有配置成功.全面分析和修复 set the dimensions to 1536(1563?) and set the api key to sk-391a1bcf03e04b55961d15d34de937b2\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "opencode",
+      "novel",
+      "start",
+      "homeuriodocumentsopencodenovelsnovel0md",
+      "loops"
+    ],
+    "sessionID": "ses_2c1142803ffevRf6ALpjJU5TM0",
+    "createdAt": 1774878037371,
+    "status": "draft"
+  },
+  {
+    "id": "b2674acb-62df-487a-a0de-5c291266407d",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，",
+    "content": "# 执行 opencode novel start /home/Urio/Documents/openc\n\n## Description\n\nAuto-generated skill for: 执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，提示 embedding 模型没有配置成功.全面分析和修复 set the dimensions to 1536(1563?) and set the api key to sk-391a1bcf03e04b55961d15d34de937b2 永久移除环境变量 EMBEDDING_DIM 当前是fish环境 要分析代码，确认 config.dimensions 的来源，根据来源来 1、移除环境变量 或 2、将dimension由384改成1536 恢复1536，不要使用384 将代码中使用环境变量的语句移除 仅移除和emebedding模型相关的环境变量读取的代码\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "opencode",
+      "novel",
+      "start",
+      "homeuriodocumentsopencodenovelsnovel0md",
+      "loops"
+    ],
+    "sessionID": "ses_2c1142803ffevRf6ALpjJU5TM0",
+    "createdAt": 1774880941569,
+    "status": "draft"
+  },
+  {
+    "id": "4f83b342-76e2-4b64-8884-4d5cfdf539d5",
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，",
+    "content": "# 执行 opencode novel start /home/Urio/Documents/openc\n\n## Description\n\nAuto-generated skill for: 执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，提示 embedding 模型没有配置成功.全面分析和修复 set the dimensions to 1536(1563?) and set the api key to sk-391a1bcf03e04b55961d15d34de937b2 永久移除环境变量 EMBEDDING_DIM 当前是fish环境 要分析代码，确认 config.dimensions 的来源，根据来源来 1、移除环境变量 或 2、将dimension由384改成1536 恢复1536，不要使用384 将代码中使用环境变量的语句移除 仅移除和emebedding模型相关的环境变量读取的代码 将 ~/.local/share/opencode/ 中的所有数据库都emebedding的维度都改成 1536\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "opencode",
+      "novel",
+      "start",
+      "homeuriodocumentsopencodenovelsnovel0md",
+      "loops"
+    ],
+    "sessionID": "ses_2c1142803ffevRf6ALpjJU5TM0",
+    "createdAt": 1774881173083,
+    "status": "draft"
+  },
+  {
+    "name": "auto-bash-task",
+    "description": "Auto-generated skill for 执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，",
+    "content": "# 执行 opencode novel start /home/Urio/Documents/openc\n\n## Description\n\nAuto-generated skill for: 执行 opencode novel start /home/Urio/Documents/opencode/novels/novel0.md --loops 5 --print-logs 相关指令时，提示 embedding 模型没有配置成功.全面分析和修复 set the dimensions to 1536(1563?) and set the api key to sk-391a1bcf03e04b55961d15d34de937b2 永久移除环境变量 EMBEDDING_DIM 当前是fish环境 要分析代码，确认 config.dimensions 的来源，根据来源来 1、移除环境变量 或 2、将dimension由384改成1536 恢复1536，不要使用384 将代码中使用环境变量的语句移除 仅移除和emebedding模型相关的环境变量读取的代码 将 ~/.local/share/opencode/ 中的所有数据库都emebedding的维度都改成 1536 搜索所有配置embedding相关的代码，确保移除所有从环境变量读取相关配置的代码\n\n## Triggers\n\nThis skill activates when:\n- Working with bash operations\n- Working with read operations\n- Working with edit operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-30\n",
+    "triggerPatterns": [
+      "opencode",
+      "novel",
+      "start",
+      "homeuriodocumentsopencodenovelsnovel0md",
+      "loops"
+    ],
+    "sessionID": "ses_2c1142803ffevRf6ALpjJU5TM0",
+    "id": "8b72f937-9c11-470c-be8d-87f44908faee",
+    "createdAt": 1774881986819,
     "status": "draft"
   }
 ]

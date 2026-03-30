@@ -49,8 +49,8 @@ export class SqliteVecStore implements IVectorStore {
   private configuredDim: number
 
   constructor(config: VectorStoreConfig = {}) {
-    // [ENH] Get configured dimension from db.ts first (respects EMBEDDING_DIM env var and stored dimension)
-    // validateVectorDimensions will check database for stored dimension and update process.env.EMBEDDING_DIM
+    // [ENH] Get configured dimension from db.ts (uses database stored dimension)
+    // Environment variable support removed - use opencode.jsonc instead
     const sqlite = Database.raw()
     const validatedDim = validateVectorDimensions(sqlite, log)
 
@@ -71,13 +71,16 @@ export class SqliteVecStore implements IVectorStore {
    * @returns SqliteVecStore instance with configured embedding generator
    *
    * @example
-   * // Using OpenAI text-embedding-3-small
-   * const store = await SqliteVecStore.withEmbeddingModel("openai/text-embedding-3-small")
+   * // Using config file (recommended)
+   * // Configure in opencode.jsonc:
+   * // { "embedding": { "provider": "dashscope", "model": "text-embedding-v4", "apiKey": "sk-..." } }
+   * const store = await SqliteVecStore.withEmbeddingModel("dashscope/text-embedding-v4")
    *
    * // Using custom configuration
    * const store = await SqliteVecStore.withEmbeddingModel({
-   *   modelId: "openai/text-embedding-3-small",
-   *   apiKey: process.env.OPENAI_API_KEY,
+   *   modelId: "dashscope/text-embedding-v4",
+   *   apiKey: "sk-...", // Use your API key from config file
+   *   dimensions: 1536,
    * })
    */
   static async withEmbeddingModel(

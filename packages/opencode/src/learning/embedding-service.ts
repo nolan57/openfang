@@ -355,9 +355,7 @@ export namespace EmbeddingService {
       const sqlite = Database.raw()
       storeEmbeddingDim(sqlite, dimensions)
 
-      // Update environment variable for current session
-      process.env.EMBEDDING_DIM = String(dimensions)
-
+      // Note: Environment variable update removed - use config file instead
       log.info("embedding_dimensions_auto_configured", {
         previousDimension: currentDim,
         newDimension: dimensions,
