@@ -1272,6 +1272,23 @@ export namespace Config {
         })
         .optional()
         .describe("Embedding configuration for vector indexing"),
+      openfang: z
+        .object({
+          enabled: z.boolean().optional().default(false).describe("Enable OpenFang integration (Rust-based Agent OS)"),
+          baseUrl: z.string().optional().default("http://localhost:4200").describe("OpenFang service base URL"),
+          apiKey: z.string().optional().describe("OpenFang API key for authentication"),
+          autoActivateHands: z
+            .array(z.string())
+            .optional()
+            .describe("Hands to auto-activate on startup (e.g., ['researcher', 'collector'])"),
+          wasmEnabled: z
+            .boolean()
+            .optional()
+            .default(false)
+            .describe("Enable WASM runtime for low-latency operations (future feature)"),
+        })
+        .optional()
+        .describe("OpenFang integration configuration (https://github.com/RightNow-AI/openfang)"),
       mcpCronPath: z
         .string()
         .optional()
