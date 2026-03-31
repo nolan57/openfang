@@ -1,5 +1,6 @@
 import { Log } from "../../util/log"
 import { readFile } from "fs/promises"
+import { existsSync } from "fs"
 import { resolve, dirname } from "path"
 import { fileURLToPath } from "url"
 import { z } from "zod"
@@ -268,22 +269,58 @@ function getConfigPath(): string {
     return resolve(envPath)
   }
 
-  // Try to get module directory from import.meta.url
-  let moduleDir: string
+  // Try multiple strategies to find the config file
+  const candidates: string[] = []
+
+  // Strategy 1: Try to get module directory from import.meta.url
   try {
     const url = import.meta.url
-    if (url && !url.startsWith("file://")) {
-      throw new Error("Invalid URL")
+    if (url && url.startsWith("file://")) {
+      let moduleDir = dirname(fileURLToPath(url))
+
+      // Fix for bun sandbox paths (e.g., /$bunfs/root/...)
+      if (moduleDir.startsWith("/$bunfs")) {
+        // Extract the actual source path after the sandbox prefix
+        const relativePath = moduleDir.replace(/^\/\$bunfs\/(?:root|home)/, "")
+        // Try to resolve relative to current working directory
+        moduleDir = resolve(process.cwd(), relativePath)
+      }
+
+      candidates.push(resolve(moduleDir, "visual-config.json"))
     }
-    moduleDir = dirname(fileURLToPath(url))
-  } catch {
-    // Fallback: use process.cwd() + relative path
-    moduleDir = resolve(process.cwd(), "src", "novel", "config")
+  } catch (e) {
+    log.debug("import.meta.url strategy failed", { error: String(e) })
   }
 
-  // Verify the file exists, otherwise use fallback
-  const configPath = resolve(moduleDir, "visual-config.json")
-  return configPath
+  // Strategy 2: Use __dirname (works in most Bun environments)
+  try {
+    if (typeof __dirname !== "undefined") {
+      candidates.push(resolve(__dirname, "visual-config.json"))
+    }
+  } catch (e) {
+    log.debug("__dirname strategy failed", { error: String(e) })
+  }
+
+  // Strategy 3: Try hardcoded path relative to package root
+  candidates.push(
+    resolve(process.cwd(), "src", "novel", "config", "visual-config.json"),
+    resolve(process.cwd(), "packages", "opencode", "src", "novel", "config", "visual-config.json"),
+  )
+
+  // Find the first existing file
+  for (const configPath of candidates) {
+    try {
+      if (existsSync(configPath)) {
+        log.debug("config_path_found", { path: configPath })
+        return configPath
+      }
+    } catch (e) {
+      log.debug("config_path_check_failed", { path: configPath, error: String(e) })
+    }
+  }
+
+  // Return the default path even if it doesn't exist (will error later)
+  return candidates[0] ?? resolve(process.cwd(), "src", "novel", "config", "visual-config.json")
 }
 
 /**

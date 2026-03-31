@@ -5,7 +5,7 @@
  * Falls back to text-based search when the extension is not available.
  */
 
-import { Database, getConfiguredEmbeddingDim, validateVectorDimensions } from "../storage/db"
+import { Database, getConfiguredEmbeddingDim, validateVectorDimensions, storeEmbeddingDim } from "../storage/db"
 import { vector_memory, vector_sync_meta } from "./learning.sql"
 import { knowledge_nodes } from "./knowledge-graph"
 import { eq, sql, and } from "drizzle-orm"
@@ -52,7 +52,51 @@ export class SqliteVecStore implements IVectorStore {
     // [ENH] Get configured dimension from db.ts (uses database stored dimension)
     // Environment variable support removed - use opencode.jsonc instead
     const sqlite = Database.raw()
-    const validatedDim = validateVectorDimensions(sqlite, log)
+    let validatedDim = validateVectorDimensions(sqlite, log)
+
+    // [ENH] Check if config file has explicit dimension setting
+    // If so, override the database stored dimension
+    try {
+      // Read config file directly (synchronous)
+      const fs = require("fs")
+      const path = require("path")
+      const os = require("os")
+
+      // Try to find opencode.jsonc in common locations
+      const configPaths = [
+        path.join(process.cwd(), "opencode.jsonc"),
+        path.join(process.cwd(), "opencode.json"),
+        path.join(os.homedir(), ".config", "opencode", "opencode.jsonc"),
+        path.join(os.homedir(), ".opencode", "opencode.jsonc"),
+      ]
+
+      for (const configPath of configPaths) {
+        if (fs.existsSync(configPath)) {
+          const content = fs.readFileSync(configPath, "utf-8")
+          // Simple JSON parsing (won't handle comments, but good enough for dimension check)
+          try {
+            const config = JSON.parse(content.replace(/\/\/.*$/gm, "").replace(/,\s*}/g, "}"))
+            if (config.embedding?.dimensions) {
+              const configDim = config.embedding.dimensions
+              if (configDim !== validatedDim) {
+                log.info("vector_dimension_overriding_from_config", {
+                  storedDimension: validatedDim,
+                  configuredDimension: configDim,
+                  path: configPath,
+                })
+                validatedDim = configDim
+                storeEmbeddingDim(sqlite, validatedDim)
+              }
+              break
+            }
+          } catch (parseError) {
+            log.debug("config_parse_failed", { path: configPath, error: String(parseError) })
+          }
+        }
+      }
+    } catch (error) {
+      log.debug("vector_dimension_config_check_failed", { error: String(error) })
+    }
 
     this.config = {
       defaultModel: config.defaultModel ?? "simple",
