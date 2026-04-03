@@ -1,5 +1,6 @@
 import type { CommandModule } from "yargs"
-import { EvolutionOrchestrator, analyzeAndEvolve, loadDynamicPatterns, PatternMiner } from "@/novel"
+import { EvolutionOrchestrator, loadDynamicPatterns } from "@/novel"
+import { enhancedPatternMiner } from "@/novel/pattern-miner-enhanced"
 import { readFile, writeFile } from "fs/promises"
 import { resolve } from "path"
 import { Skill } from "@/skill/skill"
@@ -75,7 +76,7 @@ async function handleStart(args: any) {
       for (let i = 0; i < loops; i++) {
         if (i > 0) {
           console.log(`\n--- Loop ${i + 1}/${loops} ---`)
-          await analyzeAndEvolve(promptContent, await loadDynamicPatterns())
+          await enhancedPatternMiner.onTurn({ storySegment: promptContent, characters: {}, chapter: 1, fullStory: promptContent })
         }
         const result = await orchestrator.runNovelCycle(promptContent)
         console.log(`\n ✓ Loop ${i + 1} complete!`)
@@ -124,20 +125,27 @@ async function handleInject(args: any) {
     const content = await readFile(filePath, "utf-8")
     console.log(`💉 Injecting context from: ${args.file}`)
 
-    await analyzeAndEvolve(content, await loadDynamicPatterns())
+    await enhancedPatternMiner.onTurn({ storySegment: content, characters: {}, chapter: 1, fullStory: content })
     console.log(" ✓ Context injected and patterns updated!")
   })
 }
 
 async function handleEvolve() {
   await bootstrap(process.cwd(), async () => {
-    console.log(" Triggering PatternMiner evolution...")
-    const patterns = await loadDynamicPatterns()
+    console.log("🔍 Triggering Enhanced Pattern Miner evolution...")
+    await enhancedPatternMiner.initialize()
     const engine = await getOrchestrator()
     const state = engine.getState()
     try {
-      await analyzeAndEvolve(state.fullStory || "", patterns)
-      console.log(" ✓ Evolution complete!")
+      await enhancedPatternMiner.onTurn({
+        storySegment: state.fullStory || "",
+        characters: state.characters || {},
+        chapter: state.chapterCount || 1,
+        fullStory: state.fullStory || "",
+      })
+      const stats = enhancedPatternMiner.getStats()
+      console.log("✓ Evolution complete!")
+      console.log(`  Patterns: ${stats.patterns}, Archetypes: ${stats.archetypes}, Templates: ${stats.templates}, Motifs: ${stats.motifs}`)
     } finally {
       await engine.dispose()
     }

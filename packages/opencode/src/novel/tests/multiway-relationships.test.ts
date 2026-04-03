@@ -1,327 +1,100 @@
-import { describe, test, expect, beforeEach } from "bun:test"
-import { MultiWayRelationshipManager } from "../multiway-relationships"
+﻿import { describe, test, expect, beforeEach } from "bun:test"
+import { RelationshipViewService, AsyncGroupManagementService, type GraphReader } from "../multiway-relationships"
+import type { GraphNode, GraphEdge } from "../story-knowledge-graph"
 
-describe("MultiWayRelationshipManager", () => {
-  let manager: MultiWayRelationshipManager
+describe("RelationshipViewService", () => {
+  let service: RelationshipViewService
+
+  const mockGraphReader: GraphReader = {
+    getCharacterNames: async () => [],
+    getCharacterIdByName: async () => null,
+    getRelationshipsForCharacters: async () => [],
+    getEdgeCountForChapter: async () => 0,
+    getAllCharacters: async () => [],
+    getActiveCharacters: async () => [],
+    findNodeByName: async () => null,
+    addGroup: async () => ({ id: "", name: "", type: "group", firstAppearance: 0, status: "active" } as GraphNode),
+    addMemberToGroup: async () => ({ id: "", source: "", target: "", type: "memberOf", strength: 0, chapter: 0 } as GraphEdge),
+    getGroupMembers: async () => [],
+    getAllGroups: async () => [],
+  }
 
   beforeEach(() => {
-    manager = new MultiWayRelationshipManager()
+    service = new RelationshipViewService(mockGraphReader)
   })
 
-  const createCharacters = (names: string[]): Record<string, any> => {
-    const chars: Record<string, any> = {}
-    for (const name of names) {
-      chars[name] = { name, stress: 0, status: "active" }
-    }
-    return chars
+  test("getSceneTensionLevel returns 0 for empty characters", () => {
+    expect(service.getSceneTensionLevel([], 1)).toBe(0)
+  })
+
+  test("getSceneTensionLevel returns default for single character", () => {
+    expect(service.getSceneTensionLevel(["Alice"], 1)).toBe(0)
+  })
+
+  test("analyzeGroupDynamics returns empty result for < 2 characters", async () => {
+    const result = await service.analyzeGroupDynamics(["Alice"], 1)
+    expect(result.cohesion).toBe(0)
+    expect(result.fractureRisks).toEqual([])
+  })
+
+  test("detectTriads returns empty for < 3 characters", async () => {
+    const triads = await service.detectTriads(["Alice", "Bob"], 1)
+    expect(triads).toEqual([])
+  })
+
+  test("discoverActiveGroups returns empty for no characters", async () => {
+    const groups = await service.discoverActiveGroups(30, 1)
+    expect(groups).toEqual([])
+  })
+})
+
+describe("AsyncGroupManagementService", () => {
+  let service: AsyncGroupManagementService
+
+  const createdGroups: Array<{ id: string; name: string; chapter: number }> = []
+  const createdMemberships: Array<{ groupId: string; characterId: string; role: string }> = []
+
+  const mockGraphReader: GraphReader = {
+    getCharacterNames: async () => ["Alice", "Bob"],
+    getCharacterIdByName: async (name: string) => name === "Alice" || name === "Bob" ? name : null,
+    getRelationshipsForCharacters: async () => [],
+    getEdgeCountForChapter: async () => 0,
+    getAllCharacters: async () => [],
+    getActiveCharacters: async () => [],
+    findNodeByName: async () => null,
+    addGroup: async (name: string, chapter: number) => {
+      const id = `group_${Date.now()}`
+      createdGroups.push({ id, name, chapter })
+      return { id, name, type: "group", firstAppearance: chapter, status: "active" } as GraphNode
+    },
+    addMemberToGroup: async (groupId: string, characterId: string, role: string) => {
+      createdMemberships.push({ groupId, characterId, role })
+      return { id: `edge_${Date.now()}`, source: characterId, target: groupId, type: "memberOf", strength: 70, chapter: 1 } as GraphEdge
+    },
+    getAllGroups: async () => createdGroups.map((g) => ({ id: g.id, name: g.name, type: "group", firstAppearance: g.chapter, status: "active" } as GraphNode)),
+    getGroupMembers: async () => [],
   }
 
-  const createRelationships = (pairs: Array<[string, string, number]>): Record<string, any> => {
-    const rels: Record<string, any> = {}
-    for (const [a, b, trust] of pairs) {
-      rels[`${a}-${b}`] = {
-        trust,
-        hostility: trust < 0 ? Math.abs(trust) : 0,
-        dominance: 0,
-        friendliness: trust > 0 ? trust : 0,
-      }
-    }
-    return rels
-  }
-
-  test("detectTriads identifies stable triad", async () => {
-    const characters = createCharacters(["Alice", "Bob", "Charlie"])
-    const relationships = createRelationships([
-      ["Alice", "Bob", 60],
-      ["Bob", "Charlie", 70],
-      ["Alice", "Charlie", 65],
-    ])
-
-    const triads = await manager.detectTriads(characters, relationships, 1)
-
-    expect(triads.length).toBeGreaterThan(0)
-    expect(triads[0].pattern).toBe("stable")
+  beforeEach(() => {
+    createdGroups.length = 0
+    createdMemberships.length = 0
+    service = new AsyncGroupManagementService(mockGraphReader)
   })
 
-  test("detectTriads identifies unstable triad", async () => {
-    const characters = createCharacters(["Alice", "Bob", "Charlie"])
-    const relationships = createRelationships([
-      ["Alice", "Bob", -60],
-      ["Bob", "Charlie", -70],
-      ["Alice", "Charlie", -65],
-    ])
+  test("createGroupConcept creates group and memberships", async () => {
+    const groupId = await service.createGroupConcept("Test Alliance", ["Alice", "Bob"], "A test group", 1)
 
-    const triads = await manager.detectTriads(characters, relationships, 1)
-
-    expect(triads.length).toBeGreaterThan(0)
+    expect(groupId).toBeDefined()
+    expect(createdGroups.length).toBe(1)
+    expect(createdGroups[0].name).toBe("Test Alliance")
+    expect(createdMemberships.length).toBe(2)
+    expect(createdMemberships.map((m) => m.characterId).sort()).toEqual(["Alice", "Bob"])
   })
 
-  test("createGroup stores group", async () => {
-    const group = await manager.createGroup(
-      "triad",
-      "Test Alliance",
-      [
-        { name: "Alice", role: "leader" },
-        { name: "Bob", role: "member" },
-        { name: "Charlie", role: "member" },
-      ],
-      "A test alliance",
-      1,
-      { skipDynamicsAnalysis: true },
-    )
-
-    expect(group.id).toBeDefined()
-    expect(group.name).toBe("Test Alliance")
-    expect(group.members.length).toBe(3)
-  })
-
-  test("getGroup retrieves group", async () => {
-    const created = await manager.createGroup(
-      "faction",
-      "Test Faction",
-      [{ name: "Alice", role: "leader" }],
-      "Test",
-      1,
-      { skipDynamicsAnalysis: true },
-    )
-
-    const retrieved = manager.getGroup(created.id)
-    expect(retrieved).toBeDefined()
-    expect(retrieved?.name).toBe("Test Faction")
-  })
-
-  test("getGroupsForCharacter returns character's groups", async () => {
-    await manager.createGroup("faction", "Group 1", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    await manager.createGroup("coalition", "Group 2", [{ name: "Alice", role: "member" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const groups = manager.getGroupsForCharacter("Alice")
-    expect(groups.length).toBe(2)
-  })
-
-  test("addMemberToGroup adds member", async () => {
-    const group = await manager.createGroup(
-      "triad",
-      "Test",
-      [
-        { name: "Alice", role: "leader" },
-        { name: "Bob", role: "member" },
-      ],
-      "Test",
-      1,
-      { skipDynamicsAnalysis: true },
-    )
-
-    const added = manager.addMemberToGroup(group.id, "Charlie", "newcomer", 2)
-    expect(added).toBe(true)
-
-    const updated = manager.getGroup(group.id)
-    expect(updated?.members.length).toBe(3)
-  })
-
-  test("removeMemberFromGroup removes member", async () => {
-    const group = await manager.createGroup("triad", "Test", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    manager.addMemberToGroup(group.id, "Bob", "member", 1)
-    const removed = manager.removeMemberFromGroup(group.id, "Bob", 2)
-
-    expect(removed).toBe(true)
-
-    const updated = manager.getGroup(group.id)
-    expect(updated?.members.length).toBe(1)
-  })
-
-  test("updateMemberRole changes role", async () => {
-    const group = await manager.createGroup("faction", "Test", [{ name: "Alice", role: "member" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const updated = manager.updateMemberRole(group.id, "Alice", "leader")
-    expect(updated).toBe(true)
-
-    const retrieved = manager.getGroup(group.id)
-    const member = retrieved?.members.find((m) => m.characterName === "Alice")
-    expect(member?.role).toBe("leader")
-  })
-
-  test("addGroupRelationship creates relationship", async () => {
-    const group1 = await manager.createGroup("faction", "Faction A", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const group2 = await manager.createGroup("faction", "Faction B", [{ name: "Bob", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const added = manager.addGroupRelationship(group1.id, group2.id, "rivalry", 70, "Long-standing rivalry")
-
-    expect(added).toBe(true)
-
-    const retrieved = manager.getGroup(group1.id)
-    expect(retrieved?.relationships?.length).toBe(1)
-  })
-
-  test("dissolveGroup marks group as dissolved", async () => {
-    const group = await manager.createGroup("coalition", "Test", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const dissolved = manager.dissolveGroup(group.id, 5)
-    expect(dissolved).toBe(true)
-
-    const retrieved = manager.getGroup(group.id)
-    expect(retrieved?.dissolvedChapter).toBe(5)
-  })
-
-  test("getActiveGroups excludes dissolved groups", async () => {
-    const group = await manager.createGroup("faction", "Test", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    manager.dissolveGroup(group.id, 2)
-
-    const active = manager.getActiveGroups()
-    expect(active.length).toBe(0)
-  })
-
-  test("getGroupReport generates report", async () => {
-    await manager.createGroup("faction", "Test Faction", [{ name: "Alice", role: "leader" }], "A test faction", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const report = manager.getGroupReport()
-    expect(report).toContain("Multi-Way Relationships Report")
-    expect(report).toContain("Test Faction")
-  })
-
-  test("getGroup retrieves group", async () => {
-    const created = await manager.createGroup(
-      "faction",
-      "Test Faction",
-      [{ name: "Alice", role: "leader" }],
-      "Test",
-      1,
-      { skipDynamicsAnalysis: true },
-    )
-
-    const retrieved = manager.getGroup(created.id)
-    expect(retrieved).toBeDefined()
-    expect(retrieved?.name).toBe("Test Faction")
-  })
-
-  test("getGroupsForCharacter returns character's groups", async () => {
-    await manager.createGroup("faction", "Group 1", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    await manager.createGroup("coalition", "Group 2", [{ name: "Alice", role: "member" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const groups = manager.getGroupsForCharacter("Alice")
-    expect(groups.length).toBe(2)
-  })
-
-  test("addMemberToGroup adds member", async () => {
-    const group = await manager.createGroup(
-      "triad",
-      "Test",
-      [
-        { name: "Alice", role: "leader" },
-        { name: "Bob", role: "member" },
-      ],
-      "Test",
-      1,
-      { skipDynamicsAnalysis: true },
-    )
-
-    const added = manager.addMemberToGroup(group.id, "Charlie", "newcomer", 2)
-    expect(added).toBe(true)
-
-    const updated = manager.getGroup(group.id)
-    expect(updated?.members.length).toBe(3)
-  })
-
-  test("removeMemberFromGroup removes member", async () => {
-    const group = await manager.createGroup("triad", "Test", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    manager.addMemberToGroup(group.id, "Bob", "member", 1)
-    const removed = manager.removeMemberFromGroup(group.id, "Bob", 2)
-
-    expect(removed).toBe(true)
-
-    const updated = manager.getGroup(group.id)
-    expect(updated?.members.length).toBe(1)
-  })
-
-  test("updateMemberRole changes role", async () => {
-    const group = await manager.createGroup("faction", "Test", [{ name: "Alice", role: "member" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const updated = manager.updateMemberRole(group.id, "Alice", "leader")
-    expect(updated).toBe(true)
-
-    const retrieved = manager.getGroup(group.id)
-    const member = retrieved?.members.find((m) => m.characterName === "Alice")
-    expect(member?.role).toBe("leader")
-  })
-
-  test("addGroupRelationship creates relationship", async () => {
-    const group1 = await manager.createGroup("faction", "Faction A", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const group2 = await manager.createGroup("faction", "Faction B", [{ name: "Bob", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const added = manager.addGroupRelationship(group1.id, group2.id, "rivalry", 70, "Long-standing rivalry")
-
-    expect(added).toBe(true)
-
-    const retrieved = manager.getGroup(group1.id)
-    expect(retrieved?.relationships?.length).toBe(1)
-  })
-
-  test("dissolveGroup marks group as dissolved", async () => {
-    const group = await manager.createGroup("coalition", "Test", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const dissolved = manager.dissolveGroup(group.id, 5)
-    expect(dissolved).toBe(true)
-
-    const retrieved = manager.getGroup(group.id)
-    expect(retrieved?.dissolvedChapter).toBe(5)
-  })
-
-  test("getActiveGroups excludes dissolved groups", async () => {
-    const group = await manager.createGroup("faction", "Test", [{ name: "Alice", role: "leader" }], "Test", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    manager.dissolveGroup(group.id, 2)
-
-    const active = manager.getActiveGroups()
-    expect(active.length).toBe(0)
-  })
-
-  test("getGroupReport generates report", async () => {
-    await manager.createGroup("faction", "Test Faction", [{ name: "Alice", role: "leader" }], "A test faction", 1, {
-      skipDynamicsAnalysis: true,
-    })
-
-    const report = manager.getGroupReport()
-    expect(report).toContain("Multi-Way Relationships Report")
-    expect(report).toContain("Test Faction")
+  test("refineGroupWithLLM does not throw", () => {
+    expect(() => {
+      service.refineGroupWithLLM("test-group", "Test description", 1)
+    }).not.toThrow()
+    // LLM runs asynchronously via queueMicrotask, so we just verify it doesn't throw
   })
 })

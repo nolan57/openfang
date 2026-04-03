@@ -1,4 +1,4 @@
-import { Log } from "../util/log"
+﻿import { Log } from "../util/log"
 import { readFile, writeFile, readdir } from "fs/promises"
 import { resolve, dirname, join } from "path"
 import { Skill } from "../skill/skill"
@@ -35,10 +35,14 @@ import { StoryWorldMemory, storyWorldMemory } from "./story-world-memory"
 import { StoryKnowledgeGraph, storyKnowledgeGraph } from "./story-knowledge-graph"
 import { BranchStorage, branchStorage } from "./branch-storage"
 import { MotifTracker, motifTracker } from "./motif-tracker"
+import { EnhancedPatternMiner, enhancedPatternMiner } from "./pattern-miner-enhanced"
 import { CharacterLifecycleManager, characterLifecycleManager } from "./character-lifecycle"
 import { EndGameDetector, endGameDetector } from "./end-game-detection"
 import { FactionDetector, factionDetector } from "./faction-detector"
-import { RelationshipInertiaManager, relationshipInertiaManager } from "./relationship-inertia"
+import { RelationshipInertiaManager, relationshipInertiaManager, type PlotHook } from "./relationship-inertia"
+import { RelationshipViewService, AsyncGroupManagementService, type TriadPattern, type GraphReader } from "./multiway-relationships"
+import { ProceduralWorldGenerator, type Region } from "./procedural-world"
+import { debounce } from "./performance"
 import { initializeCustomTypes } from "./types"
 import {
   NovelLearningBridgeManager,
@@ -204,6 +208,14 @@ export class EvolutionOrchestrator {
   private visualPanelsEnabled: boolean = true
   private advancedModulesInitialized: boolean = false
   private configManager: NovelConfigManager
+  /** Advanced pattern mining with archetypes, motifs, and plot templates */
+  private enhancedPatternMiner: EnhancedPatternMiner
+  /** Stateless relationship view service (read-only, cached) */
+  private relationshipViewService: RelationshipViewService
+  /** Async group management service (write, non-blocking) */
+  private asyncGroupService: AsyncGroupManagementService
+  /** Procedural world generator for story setting and locations */
+  private proceduralWorld: ProceduralWorldGenerator | null = null
 
   // Dimension 3: LRU cache for context building (avoids redundant re-computation within same chapter)
   private contextCache: {
@@ -239,6 +251,11 @@ export class EvolutionOrchestrator {
     this.endGameDetector = endGameDetector
     this.factionDetector = factionDetector
     this.relationshipInertiaManager = relationshipInertiaManager
+    this.enhancedPatternMiner = enhancedPatternMiner
+    // Initialize stateless relationship services
+    const graphReader = this.buildGraphReader()
+    this.relationshipViewService = new RelationshipViewService(graphReader)
+    this.asyncGroupService = new AsyncGroupManagementService(graphReader)
     this.branchOptions = config.branchOptions || 3
     this.verbose = config.verbose || false
     this.visualPanelsEnabled = config.visualPanelsEnabled !== undefined ? config.visualPanelsEnabled : true
@@ -269,6 +286,7 @@ export class EvolutionOrchestrator {
       await this.storyKnowledgeGraph.initialize()
       await this.branchStorage.initialize()
       await this.motifTracker.initialize()
+      await this.enhancedPatternMiner.initialize()
 
       // Initialize Learning Bridge for Phase 3 reverse improvement
       await this.initializeLearningBridge()
@@ -321,6 +339,122 @@ export class EvolutionOrchestrator {
   private log(message: string, ...args: any[]): void {
     if (this.verbose) {
       console.log(message, ...args)
+    }
+  }
+
+  /**
+   * Build a GraphReader adapter for relationship services.
+   * Provides read access to story state and knowledge graph.
+   */
+  private buildGraphReader(): GraphReader {
+    return {
+      getCharacterNames: async () => Object.keys(this.storyState.characters),
+      getCharacterIdByName: async (name: string) => {
+        return this.storyState.characters[name] ? name : null
+      },
+      getRelationshipsForCharacters: async (characterIds: string[]) => {
+        // Build relationship edges from story state
+        const edges: import("./story-knowledge-graph").GraphEdge[] = []
+        for (let i = 0; i < characterIds.length; i++) {
+          for (let j = i + 1; j < characterIds.length; j++) {
+            const key = `${characterIds[i]}-${characterIds[j]}`
+            const rel = this.storyState.relationships?.[key] || this.storyState.relationships?.[`${characterIds[j]}-${characterIds[i]}`]
+            if (rel && typeof rel.trust === "number") {
+              edges.push({
+                id: `edge_${key}`,
+                source: characterIds[i],
+                target: characterIds[j],
+                type: "knows",
+                strength: rel.trust,
+                chapter: this.storyState.chapterCount,
+              })
+            }
+          }
+        }
+        return edges
+      },
+      getEdgeCountForChapter: async (chapter: number) =>
+        this.storyKnowledgeGraph.getEdgeCountForChapter(chapter),
+      getAllCharacters: async () => {
+        return (await this.storyKnowledgeGraph.getNodesByType("character")).map((n) => ({
+          id: n.id, name: n.name, type: n.type as "character", firstAppearance: n.firstAppearance, status: n.status,
+        }))
+      },
+      getActiveCharacters: async () => {
+        return (await this.storyKnowledgeGraph.getActiveCharacters()).map((n) => ({
+          id: n.id, name: n.name, type: n.type as "character", firstAppearance: n.firstAppearance, status: n.status,
+        }))
+      },
+      findNodeByName: async (type: string, name: string) => {
+        return this.storyKnowledgeGraph.findNodeByName(type as import("./story-knowledge-graph").NodeType, name)
+      },
+      addGroup: async (name: string, chapter: number, metadata?: Record<string, unknown>) => {
+        return this.storyKnowledgeGraph.addGroup(name, chapter, metadata)
+      },
+      addMemberToGroup: async (groupId: string, characterId: string, role: string, chapter: number) => {
+        return this.storyKnowledgeGraph.addMemberToGroup(groupId, characterId, role, chapter)
+      },
+      getGroupMembers: async (groupId: string) => {
+        return this.storyKnowledgeGraph.getGroupMembers(groupId)
+      },
+      getAllGroups: async () => {
+        return this.storyKnowledgeGraph.getAllGroups()
+      },
+    }
+  }
+
+  /**
+   * Event-driven relationship instability analysis.
+   * Uses RelationshipViewService for pure computation (no side effects).
+   */
+  private async analyzeRelationshipInstability(currentChapter: number): Promise<void> {
+    const edgeCount = await this.storyKnowledgeGraph.getEdgeCountForChapter(currentChapter)
+    const charCount = Object.keys(this.storyState.characters).length
+
+    // Only analyze if there are enough relationships to form triads
+    if (charCount < 3 || edgeCount < 2) return
+
+    try {
+      const charNames = Object.keys(this.storyState.characters)
+      const triads = await this.relationshipViewService.detectTriads(charNames, currentChapter)
+
+      const unstableTriads = triads.filter((t: TriadPattern) => t.pattern === "unstable" || t.pattern === "competitive")
+      if (unstableTriads.length > 0) {
+        log.info("relationship_instability_detected", {
+          chapter: currentChapter,
+          totalTriads: triads.length,
+          unstableTriads: unstableTriads.length,
+          patterns: unstableTriads.map((t: TriadPattern) => `${t.characters.join(", ")}: ${t.pattern}`).join("; "),
+        })
+
+        // Store instability markers in story state for visual orchestrator to consume
+        this.storyState.relationshipInstability = {
+          chapter: currentChapter,
+          triadCount: triads.length,
+          unstableCount: unstableTriads.length,
+          tensionLevel: triads.length > 0 ? unstableTriads.length / triads.length : 0,
+        }
+      }
+
+      // Every 5 chapters or when edge count is high, discover active groups asynchronously
+      if (currentChapter % 5 === 0 || edgeCount > 5) {
+        queueMicrotask(async () => {
+          try {
+            const groups = await this.relationshipViewService.discoverActiveGroups(30, currentChapter)
+            if (groups.length > 0) {
+              log.info("active_groups_discovered", { count: groups.length, chapter: currentChapter })
+              // Refine first group with LLM asynchronously
+              if (groups[0]) {
+                this.asyncGroupService.refineGroupWithLLM(groups[0].id, `${groups[0].name}: ${groups[0].memberIds.join(", ")}`, currentChapter)
+              }
+            }
+          } catch (error) {
+            log.warn("async_group_discovery_failed", { error: String(error) })
+          }
+        })
+      }
+    } catch (error) {
+      log.warn("relationship_instability_analysis_failed", { error: String(error) })
     }
   }
 
@@ -441,6 +575,89 @@ export class EvolutionOrchestrator {
     } catch (error) {
       log.error("narrative_skeleton_initialization_failed", { error: String(error) })
     }
+
+    // Initialize procedural world if not already done
+    await this.ensureProceduralWorld(initialPrompt)
+  }
+
+  /**
+   * Generate or load the procedural world (regions, history, conflicts).
+   * Called once at story start, persisted via story state.
+   */
+  private async ensureProceduralWorld(initialPrompt: string): Promise<void> {
+    if (this.proceduralWorld) return // Already initialized
+
+    try {
+      // Check if world data is already in story state
+      const existingRegions = (this.storyState as any).proceduralRegions as Region[] | undefined
+      if (existingRegions && existingRegions.length > 0) {
+        this.log(`   Loaded procedural world with ${existingRegions.length} regions`)
+        this.proceduralWorld = new ProceduralWorldGenerator()
+        for (const region of existingRegions) {
+          (this.proceduralWorld as any).regions.set(region.id, region)
+        }
+        return
+      }
+
+      // Generate new world based on prompt seed
+      const seed = this.hashString(initialPrompt)
+      this.proceduralWorld = new ProceduralWorldGenerator({
+        seed,
+        mapSize: 100,
+        regionCount: 15 + this.randomInt(0, 10),
+        enableHistory: true,
+        enableEcology: false,
+      })
+
+      this.log(`   Generating procedural world (seed: ${seed})...`)
+      const worldData = await this.proceduralWorld.generateWorld(initialPrompt)
+
+      // Store regions in story state for persistence
+      ;(this.storyState as any).proceduralRegions = worldData.regions
+      ;(this.storyState as any).proceduralHistory = worldData.history
+      ;(this.storyState as any).proceduralConflicts = worldData.conflicts
+
+      // Sync regions to knowledge graph as location nodes
+      for (const region of worldData.regions) {
+        try {
+          const existingLocation = await this.storyKnowledgeGraph.findNodeByName("location", region.name)
+          if (!existingLocation) {
+            await this.storyKnowledgeGraph.addLocation(region.name, this.storyState.chapterCount, region.description)
+          }
+        } catch {
+          // Non-critical: world generation shouldn't block story
+        }
+      }
+
+      this.log(`   World generated: ${worldData.regions.length} regions, ${worldData.history.length} history events, ${worldData.conflicts.length} conflicts`)
+    } catch (error) {
+      log.warn("procedural_world_init_failed", { error: String(error) })
+    }
+  }
+
+  private hashString(str: string): number {
+    let hash = 0
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash |= 0
+    }
+    return Math.abs(hash)
+  }
+
+  private randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min
+  }
+
+  /**
+   * Get the current location region from the procedural world.
+   * Used for location-aware story generation and visual panel generation.
+   */
+  async getCurrentLocationRegion(): Promise<Region | null> {
+    if (!this.proceduralWorld) return null
+    const currentLocation = this.storyState.world?.location
+    if (!currentLocation) return null
+    return this.proceduralWorld.getRegionByName(currentLocation) || null
   }
 
   private extractThemeFromPrompt(prompt: string): string {
@@ -761,60 +978,9 @@ OUTPUT JSON:
       log.warn("llm_selection_failed", { error: String(e) })
     }
 
-    // Fallback: select highest scoring branch
-    return branches.reduce(
-      (best, b) => (b.evaluation.narrativeQuality > best.evaluation.narrativeQuality ? b : best),
-      branches[0],
-    )
-  }
-
-  private async generateBranchStory(
-    promptContent: string,
-    baseState: StoryState,
-    chaosResult: ChaosResult,
-    branchPoint: string,
-    choice: string,
-  ): Promise<string> {
-    const previousStory = baseState.fullStory || "(这是故事的开始)"
-    const characterInfo = Object.keys(baseState.characters).join(", ") || "主角"
-
-    // Detect language from prompt [LANGUAGE: ...] tag
-    const languageMatch = promptContent.match(/\[LANGUAGE:\s*([^\]]+)\]/i)
-    const specifiedLanguage = languageMatch ? languageMatch[1].trim() : "Chinese"
-    const languageInstruction = `IMPORTANT: Write all story content in ${specifiedLanguage}.`
-
-    const systemPrompt = `You are a creative story writer. Continue the story with a SPECIFIC choice.
-
-Rules:
-- ${languageInstruction}
-- The protagonist makes a clear choice: "${choice}"
-- This choice should stem from: "${branchPoint}"
-- Maintain consistency with established characters
-- Create engaging, descriptive narrative
-- Chapter length: 300-500 words (or 500-800 Chinese characters)
-- INCORPORATE the chaos event naturally`
-
-    const userPrompt = `Story Context (previous chapters):
-${previousStory.slice(-2000)}
-
-Established Characters: ${characterInfo}
-
-🎲 Chaos Event (Roll: ${chaosResult.roll}/6 - ${chaosResult.category.toUpperCase()}):
-${chaosResult.event}
-${chaosResult.narrativePrompt}
-
-🔀 Branch Point: ${branchPoint}
-✅ Choice Made: ${choice}
-
-Write Chapter ${baseState.chapterCount + 1}:`
-
-    const result = await callLLM({
-      prompt: userPrompt,
-      system: systemPrompt,
-      callType: "branch_story_generation",
-    })
-
-    return result.text.trim()
+    // Fallback: dynamic weighted scoring with threat detection
+    log.info("branch_selection_fallback_to_rule_based")
+    return this.selectBestBranch(branches, "LLM_CALL_FAILED")
   }
 
   private async evaluateBranch(
@@ -881,24 +1047,52 @@ Output JSON:
     }
   }
 
-  private selectBestBranch(branches: StoryBranch[]): StoryBranch {
-    // Weighted scoring: narrative quality 30%, tension 25%, character dev 25%, plot 20%
-    const weights = {
-      narrativeQuality: 0.3,
-      tensionLevel: 0.25,
-      characterDevelopment: 0.25,
-      plotProgression: 0.2,
+  /**
+   * Hybrid selector: acts as circuit breaker fallback when LLM fails.
+   * Applies dynamic weights based on story config and filters branches
+   * that lead to illegal states (e.g., protagonist death in non-tragedy mode).
+   */
+  private selectBestBranch(branches: StoryBranch[], fallbackReason: string = "DEFAULT"): StoryBranch {
+    // ── Threat Detection: filter branches that lead to hero death ──
+    const safeBranches = branches.filter((branch) => !this.isBranchLeadsToHeroDeath(branch))
+
+    if (safeBranches.length === 0) {
+      log.warn("all_branches_are_dead_ends", { reason: fallbackReason })
+      return branches[0]
     }
 
-    let bestBranch = branches[0]
+    // ── Dynamic Weighting: adjust based on story config ──
+    const weights = this.calculateDynamicWeights(fallbackReason)
+
+    let bestBranch = safeBranches[0]
     let bestScore = -1
 
-    for (const branch of branches) {
+    for (const branch of safeBranches) {
+      const evaluation = branch.evaluation || {
+        narrativeQuality: 5,
+        tensionLevel: 5,
+        characterDevelopment: 5,
+        plotProgression: 5,
+        characterGrowth: 5,
+        riskReward: 5,
+        thematicRelevance: 5,
+      }
+
+      // Risk adjustment: during LLM failure, penalize high-risk branches
+      let riskAdjustment = 1.0
+      if (
+        fallbackReason === "LLM_CALL_FAILED" ||
+        fallbackReason === "JSON_PARSE_ERROR"
+      ) {
+        riskAdjustment = 1.0 - (evaluation.riskReward * 0.1)
+      }
+
       const score =
-        branch.evaluation.narrativeQuality * weights.narrativeQuality +
-        branch.evaluation.tensionLevel * weights.tensionLevel +
-        branch.evaluation.characterDevelopment * weights.characterDevelopment +
-        branch.evaluation.plotProgression * weights.plotProgression
+        evaluation.narrativeQuality * weights.narrativeQuality +
+        evaluation.tensionLevel * weights.tensionLevel +
+        evaluation.characterDevelopment * weights.characterDevelopment +
+        evaluation.plotProgression * weights.plotProgression +
+        evaluation.thematicRelevance * weights.thematicRelevance * riskAdjustment
 
       if (score > bestScore) {
         bestScore = score
@@ -906,8 +1100,65 @@ Output JSON:
       }
     }
 
-    log.info("branch_scored", { bestScore: bestScore.toFixed(2) })
+    log.info("fallback_branch_selected", {
+      reason: fallbackReason,
+      selectedId: bestBranch.id,
+      finalScore: bestScore.toFixed(2),
+      safeBranches: safeBranches.length,
+      totalBranches: branches.length,
+    })
+
     return bestBranch
+  }
+
+  /**
+   * Calculate dynamic weights based on story type and fallback status.
+   */
+  private calculateDynamicWeights(fallbackReason: string): Record<string, number> {
+    const config = this.configManager.getConfig()
+
+    // Base weights
+    const weights: Record<string, number> = {
+      narrativeQuality: 0.2,
+      tensionLevel: 0.2,
+      characterDevelopment: 0.2,
+      plotProgression: 0.2,
+      thematicRelevance: 0.2,
+    }
+
+    // Adjust based on story type
+    switch (config.storyType) {
+      case "action":
+        weights.plotProgression = 0.35
+        weights.narrativeQuality = 0.15
+        break
+      case "character":
+        weights.tensionLevel = 0.3
+        weights.characterDevelopment = 0.3
+        break
+      case "theme":
+        weights.thematicRelevance = 0.35
+        weights.narrativeQuality = 0.15
+        break
+    }
+
+    // During fallback, increase plotProgression (stability) and reduce narrativeQuality
+    if (fallbackReason !== "DEFAULT") {
+      weights.plotProgression += 0.1
+      weights.narrativeQuality = Math.max(0.05, weights.narrativeQuality - 0.05)
+    }
+
+    return weights
+  }
+
+  /**
+   * Check if a branch leads to protagonist death.
+   */
+  private isBranchLeadsToHeroDeath(branch: StoryBranch): boolean {
+    const heroName = Object.keys(this.storyState.characters)[0]
+    if (!heroName) return false
+    const heroState = branch.stateAfter?.characters?.[heroName]
+    return heroState?.status === "deceased" || heroState?.status === "dead"
   }
 
   /**
@@ -957,11 +1208,27 @@ Output JSON:
   }
 
   async saveState(): Promise<void> {
+    // Persist procedural world regions into story state
+    if (this.proceduralWorld) {
+      const regions = this.proceduralWorld.getAllRegions()
+      if (regions.length > 0) {
+        ;(this.storyState as any).proceduralRegions = regions
+      }
+    }
+
     const path = resolve(getStoryBiblePath())
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, JSON.stringify(this.storyState, null, 2))
     log.info("state_saved", { chapter: this.storyState.chapterCount })
   }
+
+  /**
+   * Debounced save: prevents redundant saves during rapid state updates.
+   * Uses performance.ts debounce utility.
+   */
+  private debouncedSaveState = debounce(async () => {
+    await this.saveState()
+  }, 2000)
 
   async runNovelCycle(promptContent: string, useBranches: boolean = false): Promise<string> {
     const cycleStart = Date.now()
@@ -984,16 +1251,49 @@ Output JSON:
     await this.initializeCharacterDeepener()
     this.log(`   Loaded ${this.patterns.length} patterns`)
 
+    // ── Plot Hook Consumption ──
+    // Check for active relationship-driven plot hooks and inject the most relevant
+    // one into the chaos event context. This ensures generated hooks actually
+    // influence the narrative instead of going into a void.
+    let activePlotHook: PlotHook | null = null
+    try {
+      const currentChapter = this.storyState.chapterCount + 1
+      const hooks = this.relationshipInertiaManager.getActiveHooks()
+      const eligibleHooks = hooks.filter((h) => {
+        if (!h.chapterRange) return true
+        return currentChapter >= h.chapterRange.min && currentChapter <= h.chapterRange.max
+      })
+      if (eligibleHooks.length > 0) {
+        // Select the hook with highest tension potential
+        activePlotHook = eligibleHooks.sort((a, b) => b.tensionPotential - a.tensionPotential)[0]
+        this.log(`   Plot hook selected: ${activePlotHook.type} (${activePlotHook.characters.join(", ")})`)
+      }
+    } catch (error) {
+      log.warn("plot_hook_selection_failed", { error: String(error) })
+    }
+
     const chaosEvent = EvolutionRulesEngine.rollChaos()
 
     // 动态生成具体事件
     this.log(`   [DEBUG] Generating chaos event with LLM...`)
     const chaosStart = Date.now()
-    const chaosEventWithDetail = await EvolutionRulesEngine.generateChaosEventWithLLM(chaosEvent, {
+
+    // Inject active plot hook into chaos event context
+    const chaosContext: {
+      currentStory: string
+      characters: string[]
+      recentEvents: string[]
+      plotHook?: string
+    } = {
       currentStory: promptContent,
       characters: Object.keys(this.storyState.characters || {}),
       recentEvents: this.storyState.world?.events || [],
-    })
+    }
+    if (activePlotHook) {
+      chaosContext.plotHook = `PLOT HOOK TO ADDRESS: ${activePlotHook.type} — ${activePlotHook.description}. Characters involved: ${activePlotHook.characters.join(", ")}. Narrative impact: ${activePlotHook.narrativeImpact}. Weave this into the chaos event naturally.`
+    }
+
+    const chaosEventWithDetail = await EvolutionRulesEngine.generateChaosEventWithLLM(chaosEvent, chaosContext)
     this.log(`   [DEBUG] Chaos event generated in ${Date.now() - chaosStart}ms`)
 
     const chaosResult: ChaosResult = {
@@ -1181,6 +1481,49 @@ ${graphConstraintContext}`
       }
     }
 
+    // ── Character Psychology Deepening ──
+    // Activate the character deepener to perform Big Five, Attachment Theory,
+    // and Character Arc analysis on all established characters.
+    // This was previously initialized but never actually called.
+    try {
+      const charNames = Object.keys(this.storyState.characters).slice(0, 4)
+      if (charNames.length > 0) {
+        this.log(`   Deepening character psychology for ${charNames.length} characters...`)
+        const deepeningStart = Date.now()
+
+        for (const charName of charNames) {
+          const char = this.storyState.characters[charName]
+          if (!char) continue
+
+          const profile = await this.characterDeepener.deepenCharacter({
+            name: charName,
+            status: char.status || "active",
+            stress: char.stress || 0,
+            traits: char.traits || [],
+            skills: char.skills || [],
+            trauma: char.trauma || [],
+            secrets: char.secrets || [],
+            clues: char.clues || [],
+            goals: char.goals || [],
+            notes: char.notes || "",
+            relationships: char.relationships || {},
+          })
+
+          // Store the psychological profile on the character state
+          this.storyState.characters[charName].psychologicalProfile = profile.psychologicalProfile
+          this.storyState.characters[charName].characterArc = profile.characterArc
+          this.storyState.characters[charName].relationshipDynamics = profile.relationshipDynamics
+
+          this.log(`   ${charName}: ${profile.psychologicalProfile.attachmentStyle}, arc=${profile.characterArc.currentPhase}`)
+        }
+
+        this.log(`   Character psychology deepened in ${Date.now() - deepeningStart}ms`)
+      }
+    } catch (error) {
+      log.warn("character_deepening_failed", { error: String(error) })
+      // Non-critical: continue even if psychology analysis fails
+    }
+
     // 【新增】如果仍然没有角色，从故事文本中提取
     if (Object.keys(this.storyState.characters).length === 0) {
       this.log(`   [DEBUG] No characters found, extracting from story...`)
@@ -1263,8 +1606,19 @@ ${graphConstraintContext}`
       }
     }
 
-    // Analyze and evolve patterns/skills
-    await analyzeAndEvolve(storySegment, this.patterns)
+    // Analyze and evolve patterns using EnhancedPatternMiner
+    // Extracts archetypes, plot templates, motifs, and auto-generates skills
+    try {
+      const patternResults = await this.enhancedPatternMiner.onTurn({
+        storySegment,
+        characters: this.storyState.characters,
+        chapter: this.storyState.chapterCount,
+        fullStory: this.storyState.fullStory || "",
+      })
+      this.log(`   Pattern mining completed: ${patternResults.archetypes.length} archetypes, ${patternResults.templates.length} templates, ${patternResults.motifs.length} motifs`)
+    } catch (error) {
+      log.warn("enhanced_pattern_mining_failed", { error: String(error) })
+    }
 
     // === ADVANCED MODULES INTEGRATION ===
 
@@ -1370,6 +1724,16 @@ ${graphConstraintContext}`
           this.storyState.chapterCount,
         )
       }
+
+      // ── Plot Hook Triggering ──
+      // If a plot hook was selected for this chapter, mark it as triggered
+      // now that the story has been generated. This closes the hook consumption loop.
+      if (activePlotHook) {
+        const triggered = this.relationshipInertiaManager.triggerHook(activePlotHook.id, this.storyState.chapterCount)
+        if (triggered) {
+          this.log(`   Plot hook triggered: ${activePlotHook.type} — "${activePlotHook.description}"`)
+        }
+      }
     } catch (error) {
       log.warn("relationship_inertia_update_failed", { error: String(error) })
     }
@@ -1426,6 +1790,20 @@ ${graphConstraintContext}`
     }
 
     // === END ADVANCED MODULES INTEGRATION ===
+
+    // ── Event-Driven Relationship Instability Analysis ──
+    // Instead of fixed chapter polling, this triggers when relationship edges
+    // change frequently within a chapter (e.g., "鸿门宴" chapter with dramatic relationship shifts)
+    try {
+      const nextChapter = this.storyState.chapterCount
+      await this.analyzeRelationshipInstability(nextChapter)
+      if ((this.storyState as any).relationshipInstability) {
+        const instability = (this.storyState as any).relationshipInstability
+        this.log(`   Relationship instability: ${instability.unstableCount}/${instability.triadCount} triads unstable (tension: ${(instability.tensionLevel * 100).toFixed(0)}%)`)
+      }
+    } catch (error) {
+      log.warn("relationship_instability_check_failed", { error: String(error) })
+    }
 
     const currentTurn = this.storyState.turnCount || 0
     const reflectionInterval = this.configManager.getThematicReflectionInterval()
@@ -1578,13 +1956,6 @@ If a field is not mentioned, use empty string or empty array.`
 
     // Retry with exponential backoff
     return this.parsePromptWithLLM(promptContent, retries + 1)
-  }
-
-  /**
-   * Simple fallback parsing - removed. Relies entirely on LLM.
-   */
-  private parsePromptSimple(promptContent: string): any {
-    return this.parsePromptWithLLM(promptContent)
   }
 
   /**
@@ -2256,109 +2627,3 @@ If no clear characters are found, return an empty array [].`
   }
 }
 
-/**
- * Standalone function to analyze and evolve patterns
- */
-export async function analyzeAndEvolve(context: string, currentPatterns: any[] = []): Promise<void> {
-  log.info("pattern_analysis_started", {
-    contextLength: context.length,
-    patternCount: currentPatterns.length,
-  })
-
-  try {
-    const prompt = `You are a narrative pattern analyst.
-Analyze this story segment and extract unique patterns NOT in the existing list.
-
-Existing Patterns: ${JSON.stringify(currentPatterns.slice(-5))}
-Story Segment: ${context.substring(0, 1500)}
-
-Output JSON array of new patterns. Each pattern:
-{ "keyword": "pattern name", "category": "character_trait|plot_device|world_rule|tone", "description": "what this pattern does" }`
-
-    const result = await callLLM({
-      prompt: prompt,
-      callType: "pattern_analysis",
-    })
-
-    const text = result.text
-    const jsonMatch = text.match(/\[[\s\S]*\]/)
-    if (!jsonMatch) {
-      log.info("no_patterns_extracted")
-      return
-    }
-
-    const newPatterns = JSON.parse(jsonMatch[0])
-    if (newPatterns.length > 0) {
-      const dynamicPath = resolve(getDynamicPatternsPath())
-      await mkdir(dirname(dynamicPath), { recursive: true })
-      const existing = (await fileExists(dynamicPath))
-        ? JSON.parse(await readFile(dynamicPath, "utf-8"))
-        : { patterns: [], version: "1.0", lastUpdated: null }
-
-      const merged = {
-        ...existing,
-        patterns: [...(existing.patterns || []), ...newPatterns],
-        lastUpdated: Date.now(),
-      }
-
-      await writeFile(dynamicPath, JSON.stringify(merged, null, 2))
-      log.info("patterns_discovered", { count: newPatterns.length })
-
-      // Generate skill if complex structure detected
-      await checkAndGenerateSkills(context)
-    }
-  } catch (error) {
-    log.error("pattern_analysis_failed", { error: String(error) })
-  }
-}
-
-async function checkAndGenerateSkills(context: string): Promise<void> {
-  try {
-    const prompt = `Analyze this story segment and determine if a narrative skill should be generated.
-
-Story Segment (last 500 chars):
-${context.slice(-500)}
-
-Output JSON:
-{
-  "shouldGenerate": true/false,
-  "trigger": "brief reason if true",
-  "skillName": "camelCase skill name if true",
-  "guidelines": ["guideline 1", "guideline 2", "guideline 3"],
-  "examples": ["example 1", "example 2"]
-}`
-
-    const result = await callLLM({
-      prompt: prompt,
-      callType: "skill_generation_check",
-    })
-
-    const match = result.text.match(/\{[\s\S]*\}/)
-    if (!match) return
-
-    const decision = JSON.parse(match[0])
-    if (!decision.shouldGenerate) return
-
-    const skillContent = `# Auto-Generated Narrative Skill
-
-Generated: ${new Date().toISOString()}
-
-## Trigger
-${decision.trigger}
-
-## Guidelines
-${(decision.guidelines || []).map((g: string) => `- ${g}`).join("\n")}
-
-## Examples
-${(decision.examples || []).map((e: string) => `- ${e}`).join("\n")}
-`
-    const skillsDir = resolve(getSkillsPath())
-    await mkdir(skillsDir, { recursive: true })
-    const fileName = `${skillsDir}/${decision.skillName || "auto"}-${Date.now()}.md`
-    await writeFile(fileName, skillContent)
-    await Skill.reload()
-    log.info("skill_generated", { fileName })
-  } catch (error) {
-    log.error("skill_generation_failed", { error: String(error) })
-  }
-}

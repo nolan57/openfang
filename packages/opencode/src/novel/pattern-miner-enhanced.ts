@@ -6,7 +6,9 @@ import { generateText } from "ai"
 import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
 import { memoize } from "./performance"
-import { getPatternsDirPath } from "./novel-config"
+import { getPatternsDirPath, getSkillsPath } from "./novel-config"
+import { callLLM } from "./llm-wrapper"
+import { Skill } from "../skill/skill"
 
 const log = Log.create({ service: "pattern-miner-enhanced" })
 
@@ -661,9 +663,70 @@ Focus on elements that could recur and evolve throughout the story.`
       this.extractMotifs(turnData.storySegment, turnData.chapter),
     ])
 
+    // Generate narrative skills if complex patterns detected
+    await this.checkAndGenerateSkills(turnData.storySegment, turnData.fullStory)
+
     await this.savePatterns()
 
     return { archetypes, templates, motifs }
+  }
+
+  /**
+   * Analyze story segment and generate narrative skills when complex patterns emerge.
+   * Migrated from orchestrator's checkAndGenerateSkills.
+   */
+  private async checkAndGenerateSkills(storySegment: string, fullStory?: string): Promise<void> {
+    try {
+      const prompt = `Analyze this story segment and determine if a narrative skill should be generated.
+
+Story Segment (last 500 chars):
+${storySegment.slice(-500)}
+
+Full Story Context (last 1000 chars):
+${(fullStory || "").slice(-1000)}
+
+Output JSON:
+{
+  "shouldGenerate": true/false,
+  "trigger": "brief reason if true",
+  "skillName": "camelCase skill name if true",
+  "guidelines": ["guideline 1", "guideline 2", "guideline 3"],
+  "examples": ["example 1", "example 2"]
+}`
+
+      const result = await callLLM({
+        prompt,
+        callType: "skill_generation_check",
+      })
+
+      const match = result.text.match(/\{[\s\S]*\}/)
+      if (!match) return
+
+      const decision = JSON.parse(match[0])
+      if (!decision.shouldGenerate) return
+
+      const skillContent = `# Auto-Generated Narrative Skill
+
+Generated: ${new Date().toISOString()}
+
+## Trigger
+${decision.trigger}
+
+## Guidelines
+${(decision.guidelines || []).map((g: string) => `- ${g}`).join("\n")}
+
+## Examples
+${(decision.examples || []).map((e: string) => `- ${e}`).join("\n")}
+`
+      const skillsDir = resolve(getSkillsPath())
+      await mkdir(skillsDir, { recursive: true })
+      const fileName = `${skillsDir}/${decision.skillName || "auto"}-${Date.now()}.md`
+      await writeFile(fileName, skillContent)
+      await Skill.reload()
+      log.info("skill_generated", { fileName })
+    } catch (error) {
+      log.error("skill_generation_failed", { error: String(error) })
+    }
   }
 
   getStats(): {

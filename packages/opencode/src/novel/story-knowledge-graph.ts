@@ -18,7 +18,7 @@ function getDbPath(): string {
   return GRAPH_DB_PATH
 }
 
-export const NodeTypeSchema = z.enum(["character", "location", "item", "event", "faction", "concept", "theme"])
+export const NodeTypeSchema = z.enum(["character", "location", "item", "event", "faction", "concept", "theme", "group"])
 
 export const EdgeTypeSchema = z.enum([
   "knows",
@@ -37,6 +37,8 @@ export const EdgeTypeSchema = z.enum([
   "influenced_by",
   "believes_in",
   "kills",
+  "hasRole",
+  "hasRelationship",
 ])
 
 export const GraphNodeSchema = z.object({
@@ -83,6 +85,8 @@ export class StoryKnowledgeGraph {
   private db: any = null
   private config: KnowledgeGraphConfig
   private initialized: boolean = false
+  /** Edge change counter per chapter — for event-driven relationship instability detection */
+  private edgeChangeCountByChapter: Map<number, number> = new Map()
 
   constructor(config: Partial<KnowledgeGraphConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
@@ -244,8 +248,20 @@ export class StoryKnowledgeGraph {
       })
     }
 
+    // Increment edge change counter for event-driven instability detection
+    const currentCount = this.edgeChangeCountByChapter.get(edge.chapter) || 0
+    this.edgeChangeCountByChapter.set(edge.chapter, currentCount + 1)
+
     log.info("edge_added", { id, source: edge.source, target: edge.target, type: edge.type })
     return { ...edge, id }
+  }
+
+  /**
+   * Get the number of edge changes for a given chapter.
+   * Used for event-driven relationship instability detection.
+   */
+  async getEdgeCountForChapter(chapter: number): Promise<number> {
+    return this.edgeChangeCountByChapter.get(chapter) || 0
   }
 
   async connectCharacterToLocation(characterId: string, locationId: string, chapter: number): Promise<GraphEdge> {
@@ -288,6 +304,82 @@ export class StoryKnowledgeGraph {
       strength,
       chapter,
     })
+  }
+
+  async addGroup(
+    name: string,
+    chapter: number,
+    metadata?: Record<string, unknown>,
+  ): Promise<GraphNode> {
+    return this.addNode({
+      type: "group",
+      name,
+      description: `Group: ${name}`,
+      firstAppearance: chapter,
+      status: "active",
+      metadata: metadata || {},
+    })
+  }
+
+  async addMemberToGroup(groupId: string, characterId: string, role: string, chapter: number): Promise<GraphEdge> {
+    return this.addEdge({
+      source: characterId,
+      target: groupId,
+      type: "memberOf",
+      strength: 70,
+      description: role,
+      chapter,
+    })
+  }
+
+  async getGroupMembers(groupId: string): Promise<GraphNode[]> {
+    const edges = await this.getEdgesForNode(groupId, "memberOf")
+    const members: GraphNode[] = []
+    for (const edge of edges) {
+      const memberNode = await this.getNode(edge.source)
+      if (memberNode) members.push(memberNode)
+    }
+    return members
+  }
+
+  async getGroupsForCharacter(characterId: string): Promise<GraphNode[]> {
+    const edges = await this.getEdgesForNode(characterId, "memberOf")
+    const groups: GraphNode[] = []
+    for (const edge of edges) {
+      const groupNode = await this.getNode(edge.target)
+      if (groupNode) groups.push(groupNode)
+    }
+    return groups
+  }
+
+  async getAllGroups(): Promise<GraphNode[]> {
+    return this.getNodesByType("group").then((nodes) => nodes.filter((n) => n.status === "active"))
+  }
+
+  /**
+   * Get relationship edges between specific characters.
+   * Used by RelationshipViewService for tension/dynamics calculation.
+   */
+  async getRelationshipsForCharacters(characterIds: string[]): Promise<GraphEdge[]> {
+    const allEdges: GraphEdge[] = []
+    const socialEdges = await this.getEdgesForNode(characterIds[0] || "", "knows")
+    // We query by checking edges that connect character nodes
+    // For efficiency, we return all edges and filter client-side
+    for (let i = 0; i < characterIds.length; i++) {
+      for (let j = i + 1; j < characterIds.length; j++) {
+        const nodeA = await this.findNodeByName("character", characterIds[i])
+        const nodeB = await this.findNodeByName("character", characterIds[j])
+        if (nodeA && nodeB) {
+          const edgesA = await this.getEdgesForNode(nodeA.id)
+          for (const edge of edgesA) {
+            if (edge.target === nodeB.id || edge.source === nodeB.id) {
+              allEdges.push(edge)
+            }
+          }
+        }
+      }
+    }
+    return allEdges
   }
 
   async getNode(id: string): Promise<GraphNode | null> {

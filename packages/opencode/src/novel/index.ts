@@ -1,5 +1,12 @@
-export { PatternMiner, analyzeAndEvolve, loadDynamicPatterns } from "./pattern-miner"
-export { EvolutionOrchestrator } from "./orchestrator"
+export { EvolutionOrchestrator, loadDynamicPatterns } from "./orchestrator"
+export { EnhancedPatternMiner, enhancedPatternMiner } from "./pattern-miner-enhanced"
+export {
+  RelationshipViewService, AsyncGroupManagementService, relationshipViewService, asyncGroupManagementService,
+  type TriadPattern, type GraphReader, type IRelationshipViewService, type IAsyncGroupManagementService,
+  type GroupDynamicsResult, type MultiWayRelationship,
+} from "./multiway-relationships"
+export { ProceduralWorldGenerator, type Region, type RegionType, type WorldGenerationConfig } from "./procedural-world"
+export { memoize, debounce, throttle, batch, lazy, rateLimit } from "./performance"
 export { NovelConfig } from "../config/novel-config"
 export { StateExtractor, stateExtractor } from "./state-extractor"
 export { EvolutionRulesEngine, evolutionRules } from "./evolution-rules"

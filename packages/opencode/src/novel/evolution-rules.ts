@@ -140,6 +140,7 @@ export class EvolutionRulesEngine {
       characters: string[]
       recentEvents: string[]
       themes?: string[]
+      plotHook?: string
     },
     storyTone?: StoryTone,
   ): Promise<ChaosEvent> {
@@ -165,6 +166,10 @@ export class EvolutionRulesEngine {
             ? "MINOR (Small but noticeable change)"
             : "STATIC (Minimal change, status quo maintained)"
 
+      const plotHookSection = storyContext.plotHook
+        ? `\nPLOT HOOK TO INCORPORATE:\n${storyContext.plotHook}\n\nIMPORTANT: This plot hook represents a pending narrative thread. The chaos event should naturally weave in or address this hook. This is a strong narrative direction — prioritize it over generic events.`
+        : ""
+
       const prompt = promptBuilder
         .withVariables({
           IMPACT: impactLabel,
@@ -172,6 +177,7 @@ export class EvolutionRulesEngine {
           STORY_CONTEXT: storyContext.currentStory.substring(0, 1500),
           CHARACTERS: storyContext.characters.join(", "),
           RECENT_EVENTS: storyContext.recentEvents.join("\n") || "None",
+          PLOT_HOOK: plotHookSection,
         })
         .build()
 

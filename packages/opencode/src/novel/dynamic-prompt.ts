@@ -285,7 +285,7 @@ Based on the abstract chaos dimensions below, decide WHAT SPECIFICALLY happens i
 ## Chaos Dimensions
 - **Impact Direction**: {{IMPACT}}
   - positive: Something beneficial occurs
-  - negative: Something harmful occurs  
+  - negative: Something harmful occurs
   - neutral: Something neither clearly good nor bad occurs
 
 - **Change Magnitude**: {{MAGNITUDE}}
@@ -305,11 +305,13 @@ Based on the abstract chaos dimensions below, decide WHAT SPECIFICALLY happens i
 ## Recent Events
 {{RECENT_EVENTS}}
 
+{{PLOT_HOOK}}
+
 ## Your Task
 Decide what SPECIFICALLY happens. Be creative and unexpected while staying true to the story.
 
 Output ONLY the event description (2-4 sentences). No other text.`,
-    variables: ["IMPACT", "MAGNITUDE", "STORY_CONTEXT", "CHARACTERS", "RECENT_EVENTS"],
+    variables: ["IMPACT", "MAGNITUDE", "STORY_CONTEXT", "CHARACTERS", "RECENT_EVENTS", "PLOT_HOOK"],
   },
 
   characterAnalysis: {

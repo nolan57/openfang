@@ -1,7 +1,8 @@
 import path from "path"
 import { readFile, writeFile, readdir, stat } from "fs/promises"
 import { resolve, join } from "path"
-import { EvolutionOrchestrator, analyzeAndEvolve, loadDynamicPatterns } from "./orchestrator"
+import { EvolutionOrchestrator, loadDynamicPatterns } from "./orchestrator"
+import { enhancedPatternMiner } from "./pattern-miner-enhanced"
 import { Instance } from "../project/instance"
 import {
   getStoryBiblePath,
@@ -233,9 +234,8 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       const orchestrator = new EvolutionOrchestrator()
       await orchestrator.loadState()
 
-      // Trigger pattern analysis
-      const patterns = await loadDynamicPatterns()
-      await analyzeAndEvolve(content, patterns)
+      // Trigger pattern analysis using EnhancedPatternMiner
+      await enhancedPatternMiner.onTurn({ storySegment: content, characters: {}, chapter: 1, fullStory: content })
 
       // Update story state
       const state = orchestrator.getState()
@@ -247,16 +247,23 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
     }
 
     case "/evolve": {
-      console.log(" Forcing evolution cycle...")
+      console.log("🔍 Forcing evolution cycle...")
 
+      await enhancedPatternMiner.initialize()
       const orchestrator = new EvolutionOrchestrator()
       await orchestrator.loadState()
 
       const state = orchestrator.getState()
-      const patterns = await loadDynamicPatterns()
-      await analyzeAndEvolve(state.fullStory || "", patterns)
+      await enhancedPatternMiner.onTurn({
+        storySegment: state.fullStory || "",
+        characters: state.characters || {},
+        chapter: state.chapterCount || 1,
+        fullStory: state.fullStory || "",
+      })
 
+      const stats = enhancedPatternMiner.getStats()
       console.log("✓ Evolution complete!")
+      console.log(`  Patterns: ${stats.patterns}, Archetypes: ${stats.archetypes}, Templates: ${stats.templates}, Motifs: ${stats.motifs}`)
 
       // Show updated patterns
       const updatedPatterns = await loadDynamicPatterns()

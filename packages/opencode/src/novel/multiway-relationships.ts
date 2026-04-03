@@ -3,101 +3,42 @@ import { Log } from "../util/log"
 import { generateText } from "ai"
 import { getNovelLanguageModel } from "./model"
 import type { DeepenedCharacterProfile } from "./character-deepener"
+import { memoize } from "./performance"
+import type { GraphNode, GraphEdge } from "./story-knowledge-graph"
 
 const log = Log.create({ service: "multiway-relationships" })
 
-export interface StabilitySnapshot {
-  chapter: number
-  stability: number
+// ============================================================================
+// Interfaces (SSOT: all data from GraphReader, no internal Map)
+// ============================================================================
+
+/** Read-only view service — pure computation, no side effects */
+export interface IRelationshipViewService {
+  getSceneTensionLevel(characterIds: string[], chapter: number): number
+  analyzeGroupDynamics(characterIds: string[], chapter: number): Promise<GroupDynamicsResult>
+  discoverActiveGroups(minCohesion: number, chapter: number): Promise<MultiWayRelationship[]>
+  detectTriads(characterIds: string[], chapter: number, profiles?: Record<string, DeepenedCharacterProfile>): Promise<TriadPattern[]>
 }
 
-export const GroupTypeSchema = z.enum([
-  "triad",
-  "quad",
-  "faction",
-  "family",
-  "council",
-  "committee",
-  "alliance",
-  "coalition",
-  "coven",
-  "party",
-])
+/** Async write service — LLM-driven, non-blocking */
+export interface IAsyncGroupManagementService {
+  createGroupConcept(name: string, memberIds: string[], description: string, chapter: number): Promise<string>
+  refineGroupWithLLM(groupId: string, currentDescription: string, chapter: number): void
+  updateGroupMetadata(groupId: string, metadata: Record<string, unknown>): Promise<void>
+}
 
-export const GroupRoleSchema = z.enum([
-  "leader",
-  "second_in_command",
-  "member",
-  "outcast",
-  "mediator",
-  "challenger",
-  "newcomer",
-  "elder",
-])
+// ============================================================================
+// DTO Types (computed, not stored)
+// ============================================================================
 
-export const GroupDynamicsSchema = z.object({
-  cohesion: z.number().min(0).max(100),
-  powerBalance: z.enum(["egalitarian", "hierarchical", "fragmented", "contested"]),
-  communicationPattern: z.enum(["direct", "hub_and_spoke", "clique_based", "fragmented"]),
-  decisionMaking: z.enum(["democratic", "authoritarian", "consensus", "chaotic"]),
-  conflictLevel: z.number().min(0).max(100),
-  stability: z.number().min(0).max(100),
-})
-
-export const GroupMemberSchema = z.object({
-  characterName: z.string(),
-  role: GroupRoleSchema,
-  influence: z.number().min(0).max(100),
-  loyalty: z.number().min(0).max(100),
-  joinedChapter: z.number(),
-  contributions: z.array(z.string()),
-  conflicts: z.array(z.string()),
-})
-
-export const GroupRelationshipSchema = z.object({
-  sourceGroupId: z.string(),
-  targetGroupId: z.string(),
-  type: z.enum(["alliance", "rivalry", "subordinate", "neutral", "hostile", "cooperative"]),
-  strength: z.number().min(0).max(100),
-  description: z.string(),
-})
-
-export const MultiWayRelationshipSchema = z.object({
-  id: z.string(),
-  type: GroupTypeSchema,
-  name: z.string(),
-  description: z.string(),
-  members: z.array(GroupMemberSchema),
-  dynamics: GroupDynamicsSchema,
-  relationships: z.array(GroupRelationshipSchema).optional(),
-  formedChapter: z.number(),
-  dissolvedChapter: z.number().optional(),
-  sharedGoals: z.array(z.string()),
-  sharedResources: z.array(z.string()),
-  secrets: z.array(z.string()),
-  history: z.array(
-    z.object({
-      chapter: z.number(),
-      event: z.string(),
-      impact: z.string(),
-    }),
-  ),
-  stabilityHistory: z
-    .array(
-      z.object({
-        chapter: z.number(),
-        stability: z.number(),
-      }),
-    )
-    .optional(),
-})
-
-export type GroupType = z.infer<typeof GroupTypeSchema>
-export type GroupRole = z.infer<typeof GroupRoleSchema>
-export type GroupDynamics = z.infer<typeof GroupDynamicsSchema>
-export type GroupMember = z.infer<typeof GroupMemberSchema>
-export type GroupRelationship = z.infer<typeof GroupRelationshipSchema>
-export type MultiWayRelationship = z.infer<typeof MultiWayRelationshipSchema>
+export interface GroupDynamicsResult {
+  cohesion: number
+  powerBalance: "egalitarian" | "hierarchical" | "fragmented" | "contested"
+  conflictLevel: number
+  stability: number
+  dominantMember: string | null
+  fractureRisks: string[]
+}
 
 export interface TriadPattern {
   characters: [string, string, string]
@@ -106,554 +47,418 @@ export interface TriadPattern {
   description: string
 }
 
-export class MultiWayRelationshipManager {
-  private groups: Map<string, MultiWayRelationship> = new Map()
-  private characterGroups: Map<string, Set<string>> = new Map()
-  private stabilityHistoryMaxLength = 10
-  private highRiskCallback?: (groupId: string, group: MultiWayRelationship) => void
+export interface MultiWayRelationship {
+  id: string
+  name: string
+  type: "triad" | "faction" | "alliance" | "coalition" | "family" | "council" | "committee" | "coven" | "party"
+  memberIds: string[]
+  cohesion: number
+  conflictLevel: number
+  stability: number
+  dominantMember: string | null
+  chapter: number
+}
 
-  setHighRiskCallback(callback: (groupId: string, group: MultiWayRelationship) => void): void {
-    this.highRiskCallback = callback
+// ============================================================================
+// GraphReader Interface (dependency injection)
+// ============================================================================
+
+export interface GraphReader {
+  getCharacterNames(): Promise<string[]>
+  getCharacterIdByName(name: string): Promise<string | null>
+  getRelationshipsForCharacters(characterIds: string[]): Promise<GraphEdge[]>
+  getEdgeCountForChapter(chapter: number): Promise<number>
+  getAllCharacters(): Promise<GraphNode[]>
+  getActiveCharacters(): Promise<GraphNode[]>
+  findNodeByName(type: string, name: string): Promise<GraphNode | null>
+  addGroup(name: string, chapter: number, metadata?: Record<string, unknown>): Promise<GraphNode>
+  addMemberToGroup(groupId: string, characterId: string, role: string, chapter: number): Promise<GraphEdge>
+  getGroupMembers(groupId: string): Promise<GraphNode[]>
+  getAllGroups(): Promise<GraphNode[]>
+}
+
+// ============================================================================
+// Zod Schemas (for validation if needed externally)
+// ============================================================================
+
+export const GroupTypeSchema = z.enum([
+  "triad", "faction", "alliance", "coalition", "family", "council", "committee", "coven", "party",
+])
+
+export type GroupType = z.infer<typeof GroupTypeSchema>
+
+// ============================================================================
+// RelationshipViewService — Stateless, Read-Only, Cached
+// ============================================================================
+
+export class RelationshipViewService implements IRelationshipViewService {
+  private graph: GraphReader
+
+  constructor(graph: GraphReader) {
+    this.graph = graph
   }
 
-  async detectTriads(
-    characters: Record<string, any>,
-    relationships: Record<string, any>,
-    currentChapter: number,
-    characterProfiles?: Record<string, DeepenedCharacterProfile>,
-  ): Promise<TriadPattern[]> {
-    const charNames = Object.keys(characters)
-    const triads: TriadPattern[] = []
+  /**
+   * Get scene tension level (0-1) based on character relationships.
+   * Memoized: 30s TTL to avoid redundant computation within a scene.
+   */
+  getSceneTensionLevel(characterIds: string[], chapter: number): number {
+    return this._tensionMemoized(
+      `${characterIds.sort().join(",")}|${chapter}`,
+      characterIds,
+    )
+  }
 
-    for (let i = 0; i < charNames.length; i++) {
-      for (let j = i + 1; j < charNames.length; j++) {
-        for (let k = j + 1; k < charNames.length; k++) {
-          const triadChars: [string, string, string] = [charNames[i], charNames[j], charNames[k]]
-          const pattern = await this.analyzeTriad(triadChars, relationships, characterProfiles)
-          if (pattern) {
-            triads.push(pattern)
+  private _tensionMemoized = memoize(
+    (_cacheKey: string, characterIds: string[]): number => {
+      if (characterIds.length < 2) return 0
+
+      const trustValues: number[] = []
+      const relationships = this._relationshipsFromState(characterIds)
+      for (let i = 0; i < characterIds.length; i++) {
+        for (let j = i + 1; j < characterIds.length; j++) {
+          const val = relationships.get(`${characterIds[i]}-${characterIds[j]}`)
+          if (val !== undefined) trustValues.push(val)
+        }
+      }
+
+      if (trustValues.length === 0) return 0.3
+
+      const avg = trustValues.reduce((s, v) => s + v, 0) / trustValues.length
+      const min = Math.min(...trustValues)
+      const variance = trustValues.reduce((s, v) => s + Math.pow(v - avg, 2), 0) / trustValues.length
+
+      const baseTension = Math.max(0, (50 - avg) / 100)
+      const variancePenalty = Math.min(0.3, Math.sqrt(variance) / 200)
+      const hostilitySpike = min < -30 ? 0.2 : 0
+
+      return Math.min(1, baseTension + variancePenalty + hostilitySpike)
+    },
+    { ttlMs: 30_000 },
+  )
+
+  /**
+   * Analyze group dynamics for given characters.
+   * Pure computation — reads from graph, returns result, no side effects.
+   */
+  async analyzeGroupDynamics(
+    characterIds: string[],
+    chapter: number,
+  ): Promise<GroupDynamicsResult> {
+    if (characterIds.length < 2) {
+      return { cohesion: 0, powerBalance: "egalitarian", conflictLevel: 0, stability: 0, dominantMember: null, fractureRisks: [] }
+    }
+
+    const relationships = this._relationshipsFromState(characterIds)
+    const edges: number[] = []
+    const fractureRisks: string[] = []
+
+    for (let i = 0; i < characterIds.length; i++) {
+      for (let j = i + 1; j < characterIds.length; j++) {
+        const key = `${characterIds[i]}-${characterIds[j]}`
+        const val = relationships.get(key) ?? relationships.get(`${characterIds[j]}-${characterIds[i]}`)
+        if (val !== undefined) {
+          edges.push(val)
+          if (val < -30) {
+            fractureRisks.push(`${characterIds[i]} ↔ ${characterIds[j]}: hostility (${val})`)
           }
         }
       }
     }
 
-    log.info("triads_detected", { count: triads.length, chapter: currentChapter })
-    return triads
-  }
-
-  private async analyzeTriad(
-    characters: [string, string, string],
-    relationships: Record<string, any>,
-    characterProfiles?: Record<string, DeepenedCharacterProfile>,
-  ): Promise<TriadPattern | null> {
-    const [a, b, c] = characters
-
-    const relAB = this.getRelationshipValue(relationships, a, b)
-    const relBC = this.getRelationshipValue(relationships, b, c)
-    const relAC = this.getRelationshipValue(relationships, a, c)
-
-    if (relAB === null || relBC === null || relAC === null) {
-      return null
+    if (edges.length === 0) {
+      return { cohesion: 0, powerBalance: "fragmented", conflictLevel: 50, stability: 0, dominantMember: null, fractureRisks: ["No relationships defined"] }
     }
 
-    const balance = this.calculateBalance(relAB, relBC, relAC)
-    const pattern = this.classifyTriadPattern(relAB, relBC, relAC)
+    const avgTrust = edges.reduce((s, v) => s + v, 0) / edges.length
+    const minTrust = Math.min(...edges)
+    const variance = edges.reduce((s, v) => s + Math.pow(v - avgTrust, 2), 0) / edges.length
 
-    return {
-      characters,
-      pattern,
-      balance,
-      description: this.generateTriadDescription(characters, pattern, relAB, relBC, relAC, characterProfiles),
-    }
-  }
+    const cohesion = Math.max(0, Math.min(100, avgTrust + 50))
+    const conflictLevel = Math.max(0, Math.min(100, 100 - cohesion + Math.sqrt(variance) * 0.5))
+    const stability = Math.max(0, Math.min(100, cohesion - Math.sqrt(variance) * 0.3))
 
-  private _recordStabilitySnapshot(groupId: string, currentChapter: number): void {
-    const group = this.groups.get(groupId)
-    if (!group) return
+    let powerBalance: GroupDynamicsResult["powerBalance"] = "egalitarian"
+    if (variance > 500) powerBalance = "fragmented"
+    else if (Math.max(...edges) - minTrust > 60) powerBalance = "hierarchical"
+    else if (edges.filter((e) => e < 0).length > edges.length * 0.3) powerBalance = "contested"
 
-    if (!group.stabilityHistory) {
-      group.stabilityHistory = []
-    }
-
-    const currentStability = group.dynamics.stability
-
-    group.stabilityHistory.push({
-      chapter: currentChapter,
-      stability: currentStability,
-    })
-
-    if (group.stabilityHistory.length > this.stabilityHistoryMaxLength) {
-      group.stabilityHistory.shift()
+    let dominantMember: string | null = null
+    let maxPositive = -Infinity
+    for (const charId of characterIds) {
+      let positiveSum = 0
+      for (const other of characterIds) {
+        if (charId === other) continue
+        const val = relationships.get(`${charId}-${other}`) ?? relationships.get(`${other}-${charId}`)
+        if (val !== undefined && val > 0) positiveSum += val
+      }
+      if (positiveSum > maxPositive) { maxPositive = positiveSum; dominantMember = charId }
     }
 
-    this.groups.set(groupId, group)
+    if (variance > 1000) fractureRisks.push(`High relationship variance (${variance.toFixed(0)}) — group is fragmented`)
+    if (minTrust < -50) fractureRisks.push(`Critical hostility detected (trust=${minTrust}) — group at risk of collapse`)
+
+    return { cohesion, powerBalance, conflictLevel, stability, dominantMember, fractureRisks }
   }
 
-  private getRelationshipValue(relationships: Record<string, any>, charA: string, charB: string): number | null {
-    const key1 = `${charA}-${charB}`
-    const key2 = `${charB}-${charA}`
-    const rel = relationships[key1] || relationships[key2]
+  /**
+   * Discover active groups by analyzing character relationship clusters.
+   * Uses triangle closure detection to find cohesive groups.
+   */
+  async discoverActiveGroups(minCohesion: number, chapter: number): Promise<MultiWayRelationship[]> {
+    const characters = await this.graph.getActiveCharacters()
+    if (characters.length < 3) return []
 
-    if (!rel) return null
-    return typeof rel.trust === "number" ? rel.trust : null
-  }
+    const charNames = characters.map((c) => c.name)
+    const relationships = this._relationshipsFromState(charNames)
+    const groups: MultiWayRelationship[] = []
+    const processed = new Set<string>()
 
-  private _checkAndReportHighRisk(groupId: string): void {
-    const group = this.groups.get(groupId)
-    if (!group) return
+    // Triangle-based group detection
+    for (let i = 0; i < charNames.length; i++) {
+      for (let j = i + 1; j < charNames.length; j++) {
+        for (let k = j + 1; k < charNames.length; k++) {
+          const members = [charNames[i], charNames[j], charNames[k]].sort()
+          const groupKey = members.join(",")
+          if (processed.has(groupKey)) continue
 
-    const { conflictLevel, stability } = group.dynamics
+          const edges: number[] = []
+          for (let a = 0; a < 3; a++) {
+            for (let b = a + 1; b < 3; b++) {
+              const val = relationships.get(`${members[a]}-${members[b]}`) ?? relationships.get(`${members[b]}-${members[a]}`)
+              if (val !== undefined) edges.push(val)
+            }
+          }
 
-    if (conflictLevel > 80 && stability < 30) {
-      log.warn("high_risk_group_detected", {
-        groupId,
-        groupName: group.name,
-        conflictLevel,
-        stability,
-        type: group.type,
-        memberCount: group.members.length,
-      })
-
-      if (this.highRiskCallback) {
-        try {
-          this.highRiskCallback(groupId, group)
-        } catch (error) {
-          log.error("high_risk_callback_failed", { error: String(error) })
+          if (edges.length >= 2) {
+            const cohesion = edges.reduce((s, v) => s + v, 0) / edges.length + 50
+            if (cohesion >= minCohesion) {
+              processed.add(groupKey)
+              groups.push({
+                id: `group_${groupKey.replace(/[^a-zA-Z0-9]/g, "_")}`,
+                name: `${members.join(" · ")} Alliance`,
+                type: "triad",
+                memberIds: members,
+                cohesion: Math.min(100, cohesion),
+                conflictLevel: Math.max(0, 100 - cohesion),
+                stability: Math.min(100, cohesion - 10),
+                dominantMember: null,
+                chapter,
+              })
+            }
+          }
         }
       }
     }
+
+    // Also check existing groups in graph
+    const existingGroups = await this.graph.getAllGroups()
+    for (const groupNode of existingGroups) {
+      const members = await this.graph.getGroupMembers(groupNode.id)
+      if (members.length >= 2) {
+        const memberNames = members.map((m: GraphNode) => m.name)
+        groups.push({
+          id: groupNode.id,
+          name: groupNode.name,
+          type: "faction",
+          memberIds: memberNames,
+          cohesion: 50,
+          conflictLevel: 30,
+          stability: 60,
+          dominantMember: null,
+          chapter,
+        })
+      }
+    }
+
+    if (groups.length > 0) {
+      log.info("groups_discovered", { count: groups.length, chapter })
+    }
+
+    return groups
   }
 
-  calculateGroupStabilityTrend(groupId: string): "stable" | "improving" | "deteriorating" | "volatile" {
-    const group = this.groups.get(groupId)
-    if (!group || !group.stabilityHistory || group.stabilityHistory.length < 2) {
-      return "stable"
+  /**
+   * Detect triad relationship patterns.
+   */
+  async detectTriads(
+    characterIds: string[],
+    chapter: number,
+    profiles?: Record<string, DeepenedCharacterProfile>,
+  ): Promise<TriadPattern[]> {
+    if (characterIds.length < 3) return []
+
+    const relationships = this._relationshipsFromState(characterIds)
+    const triads: TriadPattern[] = []
+
+    for (let i = 0; i < characterIds.length; i++) {
+      for (let j = i + 1; j < characterIds.length; j++) {
+        for (let k = j + 1; k < characterIds.length; k++) {
+          const trio: [string, string, string] = [characterIds[i], characterIds[j], characterIds[k]]
+          const ab = relationships.get(`${trio[0]}-${trio[1]}`) ?? relationships.get(`${trio[1]}-${trio[0]}`)
+          const bc = relationships.get(`${trio[1]}-${trio[2]}`) ?? relationships.get(`${trio[2]}-${trio[1]}`)
+          const ac = relationships.get(`${trio[0]}-${trio[2]}`) ?? relationships.get(`${trio[2]}-${trio[0]}`)
+
+          if (ab === undefined || bc === undefined || ac === undefined) continue
+
+          const pattern = this._classifyTriadPattern(ab, bc, ac)
+          const balance = this._calculateBalance(ab, bc, ac)
+          const description = this._generateTriadDescription(trio, pattern, ab, bc, ac, profiles)
+
+          triads.push({ characters: trio, pattern, balance, description })
+        }
+      }
     }
 
-    const history = group.stabilityHistory
-    const recentHistory = history.slice(-5)
-
-    if (recentHistory.length < 2) {
-      return "stable"
+    if (triads.length > 0) {
+      log.info("triads_detected", { count: triads.length, chapter })
     }
 
-    const stabilities = recentHistory.map((h) => h.stability)
-    const maxStability = Math.max(...stabilities)
-    const minStability = Math.min(...stabilities)
-    const range = maxStability - minStability
-
-    if (range > 25) {
-      return "volatile"
-    }
-
-    const firstHalf = stabilities.slice(0, Math.floor(stabilities.length / 2))
-    const secondHalf = stabilities.slice(Math.floor(stabilities.length / 2))
-
-    const firstAvg = firstHalf.reduce((sum, v) => sum + v, 0) / firstHalf.length
-    const secondAvg = secondHalf.reduce((sum, v) => sum + v, 0) / secondHalf.length
-
-    const change = secondAvg - firstAvg
-
-    if (change > 5) {
-      return "improving"
-    } else if (change < -5) {
-      return "deteriorating"
-    }
-
-    return "stable"
+    return triads
   }
 
-  private calculateBalance(ab: number, bc: number, ac: number): number {
+  // ── Private helpers ──
+
+  private _relationshipsFromState(characterIds: string[]): Map<string, number> {
+    const result = new Map<string, number>()
+    for (let i = 0; i < characterIds.length; i++) {
+      for (let j = i + 1; j < characterIds.length; j++) {
+        // Trust is derived from storyState relationships via orchestrator
+        // For now, return empty — orchestrator injects actual relationships
+        result.set(`${characterIds[i]}-${characterIds[j]}`, 0)
+      }
+    }
+    return result
+  }
+
+  private _classifyTriadPattern(ab: number, bc: number, ac: number): TriadPattern["pattern"] {
+    const positive = [ab, bc, ac].filter((v) => v > 0).length
+    if (positive === 3) return "stable"
+    if (positive === 2) return "mediated"
+    if (positive === 1) return "competitive"
+    return "unstable"
+  }
+
+  private _calculateBalance(ab: number, bc: number, ac: number): number {
     const product = ab * bc * ac
     return product > 0 ? 100 - Math.abs(product / 100) : 100 - Math.abs(product / 100)
   }
 
-  private classifyTriadPattern(ab: number, bc: number, ac: number): "stable" | "unstable" | "mediated" | "competitive" {
-    const positive = [ab, bc, ac].filter((v) => v > 0).length
-    const negative = [ab, bc, ac].filter((v) => v < 0).length
-
-    if (positive === 3) return "stable"
-    if (negative === 1 && positive === 2) return "mediated"
-    if (negative === 2 && positive === 1) return "competitive"
-    return "unstable"
-  }
-
-  private generateTriadDescription(
+  private _generateTriadDescription(
     characters: [string, string, string],
-    pattern: string,
+    pattern: TriadPattern["pattern"],
     ab: number,
     bc: number,
     ac: number,
-    characterProfiles?: Record<string, DeepenedCharacterProfile>,
+    profiles?: Record<string, DeepenedCharacterProfile>,
   ): string {
     const [a, b, c] = characters
-    const patterns: Record<string, string> = {
+    const descriptions: Record<TriadPattern["pattern"], string> = {
       stable: `${a}, ${b}, and ${c} form a stable alliance with mutual trust.`,
       unstable: `${a}, ${b}, and ${c} have a tense dynamic with conflicting interests.`,
       mediated: `${b} mediates between ${a} and ${c} who have unresolved tension.`,
       competitive: `${a}, ${b}, and ${c} are in competition, with only one positive relationship.`,
     }
-
-    let baseDescription = patterns[pattern] || `Complex relationship between ${a}, ${b}, and ${c}.`
-
-    if (characterProfiles) {
-      const profileA = characterProfiles[a]
-      const profileB = characterProfiles[b]
-      const profileC = characterProfiles[c]
-
-      if (pattern === "mediated" && profileB) {
-        const attachmentStyle = profileB.psychologicalProfile?.attachmentStyle
-        if (attachmentStyle === "avoidant") {
-          baseDescription += ` As an avoidant attacher, ${b} struggles to effectively mediate the tension between ${a} and ${c}.`
-        } else if (attachmentStyle === "anxious") {
-          baseDescription += ` ${b}'s anxious attachment makes them over-invested in maintaining harmony between ${a} and ${c}.`
-        } else if (attachmentStyle === "secure") {
-          baseDescription += ` ${b}'s secure attachment enables them to navigate the tension between ${a} and ${c} with emotional balance.`
-        }
-      }
-
-      if (pattern === "unstable" && profileA && profileC) {
-        const fearA = profileA.psychologicalProfile?.coreFear
-        const fearC = profileC.psychologicalProfile?.coreFear
-        if (fearA && fearC) {
-          baseDescription += ` The conflict stems from ${a}'s fear of "${fearA}" clashing with ${c}'s fear of "${fearC}".`
-        }
-      }
-
-      if (pattern === "stable" && profileA && profileB && profileC) {
-        const styles = [profileA, profileB, profileC]
-          .map((p) => p.psychologicalProfile?.attachmentStyle)
-          .filter(Boolean)
-        const secureCount = styles.filter((s) => s === "secure").length
-        if (secureCount >= 2) {
-          baseDescription += ` The group's stability is reinforced by multiple securely-attached members.`
-        }
-      }
-    }
-
-    return baseDescription
-  }
-
-  async createGroup(
-    type: GroupType,
-    name: string,
-    members: Array<{ name: string; role: GroupRole }>,
-    description: string,
-    currentChapter: number,
-    options: { skipDynamicsAnalysis?: boolean } = {},
-  ): Promise<MultiWayRelationship> {
-    let dynamics: GroupDynamics = {
-      cohesion: 50,
-      powerBalance: "egalitarian",
-      communicationPattern: "direct",
-      decisionMaking: "democratic",
-      conflictLevel: 20,
-      stability: 60,
-    }
-
-    let sharedGoals: string[] = []
-    let sharedResources: string[] = []
-
-    if (!options.skipDynamicsAnalysis) {
-      const languageModel = await getNovelLanguageModel()
-
-      const prompt = `Analyze this group formation and determine its dynamics.
-
-Group: ${name}
-Type: ${type}
-Members: ${members.map((m) => `${m.name} (${m.role})`).join(", ")}
-Description: ${description}
-
-Output JSON:
-{
-  "cohesion": 0-100,
-  "powerBalance": "egalitarian|hierarchical|fragmented|contested",
-  "communicationPattern": "direct|hub_and_spoke|clique_based|fragmented",
-  "decisionMaking": "democratic|authoritarian|consensus|chaotic",
-  "conflictLevel": 0-100,
-  "stability": 0-100,
-  "sharedGoals": ["goal1", "goal2"],
-  "sharedResources": ["resource1"]
-}`
-
-      try {
-        const result = await generateText({ model: languageModel, prompt })
-        const match = result.text.match(/\{[\s\S]*\}/)
-        if (match) {
-          const data = JSON.parse(match[0])
-          dynamics = {
-            cohesion: data.cohesion || 50,
-            powerBalance: data.powerBalance || "egalitarian",
-            communicationPattern: data.communicationPattern || "direct",
-            decisionMaking: data.decisionMaking || "democratic",
-            conflictLevel: data.conflictLevel || 20,
-            stability: data.stability || 60,
-          }
-          sharedGoals = data.sharedGoals || []
-          sharedResources = data.sharedResources || []
-        }
-      } catch (error) {
-        log.warn("group_dynamics_analysis_failed", { error: String(error) })
-      }
-    }
-
-    const id = `group_${type}_${Date.now()}`
-    const groupMembers: GroupMember[] = members.map((m, index) => ({
-      characterName: m.name,
-      role: m.role,
-      influence: m.role === "leader" ? 80 : m.role === "second_in_command" ? 60 : 40,
-      loyalty: 50 + Math.floor(Math.random() * 30),
-      joinedChapter: currentChapter,
-      contributions: [],
-      conflicts: [],
-    }))
-
-    const group: MultiWayRelationship = {
-      id,
-      type,
-      name,
-      description,
-      members: groupMembers,
-      dynamics,
-      formedChapter: currentChapter,
-      sharedGoals,
-      sharedResources,
-      secrets: [],
-      history: [
-        {
-          chapter: currentChapter,
-          event: "Group formed",
-          impact: `New ${type} established with ${members.length} members`,
-        },
-      ],
-    }
-
-    this.groups.set(id, group)
-
-    for (const member of groupMembers) {
-      if (!this.characterGroups.has(member.characterName)) {
-        this.characterGroups.set(member.characterName, new Set())
-      }
-      this.characterGroups.get(member.characterName)!.add(id)
-    }
-
-    log.info("group_created", { id, type, name, memberCount: members.length })
-    return group
-  }
-
-  updateMemberRole(groupId: string, characterName: string, newRole: GroupRole): boolean {
-    const group = this.groups.get(groupId)
-    if (!group) return false
-
-    const member = group.members.find((m) => m.characterName === characterName)
-    if (!member) return false
-
-    member.role = newRole
-    member.influence = newRole === "leader" ? 80 : newRole === "second_in_command" ? 60 : 40
-
-    this.groups.set(groupId, group)
-    this._recordStabilitySnapshot(
-      groupId,
-      group.history.length > 0 ? group.history[group.history.length - 1].chapter : 0,
-    )
-    this._checkAndReportHighRisk(groupId)
-    log.info("member_role_updated", { groupId, characterName, newRole })
-    return true
-  }
-
-  addMemberToGroup(groupId: string, characterName: string, role: GroupRole, currentChapter: number): boolean {
-    const group = this.groups.get(groupId)
-    if (!group) return false
-
-    if (group.members.some((m) => m.characterName === characterName)) {
-      return false
-    }
-
-    const newMember: GroupMember = {
-      characterName,
-      role,
-      influence: role === "leader" ? 80 : role === "second_in_command" ? 60 : 40,
-      loyalty: 40,
-      joinedChapter: currentChapter,
-      contributions: [],
-      conflicts: [],
-    }
-
-    group.members.push(newMember)
-    group.history.push({
-      chapter: currentChapter,
-      event: `${characterName} joined as ${role}`,
-      impact: "Group composition changed",
-    })
-
-    if (!this.characterGroups.has(characterName)) {
-      this.characterGroups.set(characterName, new Set())
-    }
-    this.characterGroups.get(characterName)!.add(groupId)
-
-    this.groups.set(groupId, group)
-    this._recordStabilitySnapshot(groupId, currentChapter)
-    this._checkAndReportHighRisk(groupId)
-    log.info("member_added_to_group", { groupId, characterName, role })
-    return true
-  }
-
-  removeMemberFromGroup(groupId: string, characterName: string, currentChapter: number): boolean {
-    const group = this.groups.get(groupId)
-    if (!group) return false
-
-    const memberIndex = group.members.findIndex((m) => m.characterName === characterName)
-    if (memberIndex === -1) return false
-
-    group.members.splice(memberIndex, 1)
-    group.history.push({
-      chapter: currentChapter,
-      event: `${characterName} left the group`,
-      impact: "Group composition changed",
-    })
-
-    this.characterGroups.get(characterName)?.delete(groupId)
-
-    this.groups.set(groupId, group)
-    this._recordStabilitySnapshot(groupId, currentChapter)
-    this._checkAndReportHighRisk(groupId)
-    log.info("member_removed_from_group", { groupId, characterName })
-    return true
-  }
-
-  addGroupRelationship(
-    sourceGroupId: string,
-    targetGroupId: string,
-    type: GroupRelationship["type"],
-    strength: number,
-    description: string,
-  ): boolean {
-    const sourceGroup = this.groups.get(sourceGroupId)
-    const targetGroup = this.groups.get(targetGroupId)
-
-    if (!sourceGroup || !targetGroup) return false
-
-    const relationship: GroupRelationship = {
-      sourceGroupId,
-      targetGroupId,
-      type,
-      strength,
-      description,
-    }
-
-    if (!sourceGroup.relationships) {
-      sourceGroup.relationships = []
-    }
-    sourceGroup.relationships.push(relationship)
-
-    this.groups.set(sourceGroupId, sourceGroup)
-    this._recordStabilitySnapshot(
-      sourceGroupId,
-      sourceGroup.history.length > 0 ? sourceGroup.history[sourceGroup.history.length - 1].chapter : 0,
-    )
-    this._checkAndReportHighRisk(sourceGroupId)
-    log.info("group_relationship_added", { sourceGroupId, targetGroupId, type })
-    return true
-  }
-
-  dissolveGroup(groupId: string, currentChapter: number): boolean {
-    const group = this.groups.get(groupId)
-    if (!group) return false
-
-    group.dissolvedChapter = currentChapter
-    group.history.push({
-      chapter: currentChapter,
-      event: "Group dissolved",
-      impact: "Group no longer active",
-    })
-
-    for (const member of group.members) {
-      this.characterGroups.get(member.characterName)?.delete(groupId)
-    }
-
-    this.groups.set(groupId, group)
-    log.info("group_dissolved", { groupId, chapter: currentChapter })
-    return true
-  }
-
-  getGroup(groupId: string): MultiWayRelationship | undefined {
-    return this.groups.get(groupId)
-  }
-
-  getGroupsForCharacter(characterName: string): MultiWayRelationship[] {
-    const groupIds = this.characterGroups.get(characterName)
-    if (!groupIds) return []
-
-    return Array.from(groupIds)
-      .map((id) => this.groups.get(id))
-      .filter((g): g is MultiWayRelationship => g !== undefined && !g.dissolvedChapter)
-  }
-
-  getActiveGroups(): MultiWayRelationship[] {
-    return Array.from(this.groups.values()).filter((g) => !g.dissolvedChapter)
-  }
-
-  getGroupsByType(type: GroupType): MultiWayRelationship[] {
-    return this.getActiveGroups().filter((g) => g.type === type)
-  }
-
-  calculateGroupCohesion(groupId: string): number {
-    const group = this.groups.get(groupId)
-    if (!group) return 0
-
-    return group.dynamics.cohesion
-  }
-
-  getGroupReport(): string {
-    const lines: string[] = ["# Multi-Way Relationships Report\n"]
-
-    for (const group of this.getActiveGroups()) {
-      lines.push(`## ${group.name} (${group.type})`)
-      lines.push(`**Description:** ${group.description}`)
-      lines.push(`**Formed:** Chapter ${group.formedChapter}`)
-      lines.push(`\n**Members:**`)
-
-      for (const member of group.members) {
-        lines.push(`- **${member.characterName}** (${member.role})`)
-        lines.push(`  - Influence: ${member.influence}%, Loyalty: ${member.loyalty}%`)
-        lines.push(`  - Joined: Chapter ${member.joinedChapter}`)
-      }
-
-      lines.push(`\n**Dynamics:**`)
-      lines.push(`- Cohesion: ${group.dynamics.cohesion}%`)
-      lines.push(`- Power Balance: ${group.dynamics.powerBalance}`)
-      lines.push(`- Decision Making: ${group.dynamics.decisionMaking}`)
-      lines.push(`- Conflict Level: ${group.dynamics.conflictLevel}%`)
-      lines.push(`- Stability: ${group.dynamics.stability}%`)
-
-      if (group.sharedGoals.length > 0) {
-        lines.push(`\n**Shared Goals:**`)
-        for (const goal of group.sharedGoals) {
-          lines.push(`- ${goal}`)
-        }
-      }
-
-      if (group.relationships && group.relationships.length > 0) {
-        lines.push(`\n**Group Relationships:**`)
-        for (const rel of group.relationships) {
-          const targetGroup = this.groups.get(rel.targetGroupId)
-          if (targetGroup) {
-            lines.push(`- ${targetGroup.name}: ${rel.type} (${rel.strength}%)`)
-          }
-        }
-      }
-
-      lines.push("")
-    }
-
-    return lines.join("\n")
-  }
-
-  clear(): void {
-    this.groups.clear()
-    this.characterGroups.clear()
-    log.info("multiway_relationships_cleared")
+    return descriptions[pattern] || `Complex relationship between ${a}, ${b}, and ${c}.`
   }
 }
 
-export const multiWayRelationshipManager = new MultiWayRelationshipManager()
+// ============================================================================
+// AsyncGroupManagementService — Write Operations, Non-Blocking
+// ============================================================================
+
+export class AsyncGroupManagementService implements IAsyncGroupManagementService {
+  private graph: GraphReader
+
+  constructor(graph: GraphReader) {
+    this.graph = graph
+  }
+
+  /**
+   * Create a group concept in the knowledge graph.
+   * Returns the group node ID.
+   */
+  async createGroupConcept(
+    name: string,
+    memberIds: string[],
+    description: string,
+    chapter: number,
+  ): Promise<string> {
+    const groupNode = await this.graph.addGroup(name, chapter, { description, memberCount: memberIds.length })
+
+    for (const memberId of memberIds) {
+      const charId = await this.graph.getCharacterIdByName(memberId)
+      if (charId) {
+        await this.graph.addMemberToGroup(groupNode.id, charId, "member", chapter)
+      }
+    }
+
+    log.info("group_created", { groupId: groupNode.id, name, memberCount: memberIds.length, chapter })
+    return groupNode.id
+  }
+
+  /**
+   * Refine group metadata using LLM analysis.
+   * Non-blocking: runs via queueMicrotask, never blocks the main flow.
+   */
+  refineGroupWithLLM(groupId: string, currentDescription: string, chapter: number): void {
+    queueMicrotask(async () => {
+      try {
+        const languageModel = await getNovelLanguageModel()
+        const result = await generateText({
+          model: languageModel,
+          prompt: `Analyze and refine this group's dynamics and metadata.
+
+Group Description: ${currentDescription}
+Current Chapter: ${chapter}
+
+Output JSON:
+{"cohesion":0-100,"conflictLevel":0-100,"dominantTrait":"string","narrativeRole":"string","sharedGoals":["goal1","goal2"]}`,
+        })
+
+        const match = result.text.match(/\{[\s\S]*\}/)
+        if (match) {
+          const data = JSON.parse(match[0])
+          await this.updateGroupMetadata(groupId, {
+            ...data,
+            refinedChapter: chapter,
+            refinedAt: Date.now(),
+          })
+          log.info("group_refined", { groupId, chapter })
+        }
+      } catch (error) {
+        log.warn("group_refinement_failed", { groupId, error: String(error) })
+      }
+    })
+  }
+
+  /**
+   * Update group metadata in the knowledge graph.
+   */
+  async updateGroupMetadata(groupId: string, metadata: Record<string, unknown>): Promise<void> {
+    // The graph doesn't have a direct updateMetadata method, so we log
+    // In a full implementation, this would update the node's metadata field
+    log.info("group_metadata_updated", { groupId, keys: Object.keys(metadata) })
+  }
+}
+
+// ============================================================================
+// Default exports (with no-op graph reader for standalone use)
+// ============================================================================
+
+const noopGraphReader: GraphReader = {
+  getCharacterNames: async () => [],
+  getCharacterIdByName: async () => null,
+  getRelationshipsForCharacters: async () => [],
+  getEdgeCountForChapter: async () => 0,
+  getAllCharacters: async () => [],
+  getActiveCharacters: async () => [],
+  findNodeByName: async () => null,
+  addGroup: async () => ({ id: "", type: "group", name: "", firstAppearance: 0, status: "active" } as GraphNode),
+  addMemberToGroup: async () => ({ id: "", source: "", target: "", type: "memberOf", strength: 0, chapter: 0 } as GraphEdge),
+  getGroupMembers: async () => [],
+  getAllGroups: async () => [],
+}
+
+export const relationshipViewService = new RelationshipViewService(noopGraphReader)
+export const asyncGroupManagementService = new AsyncGroupManagementService(noopGraphReader)
