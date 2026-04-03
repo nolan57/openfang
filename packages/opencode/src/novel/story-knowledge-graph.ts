@@ -730,7 +730,7 @@ export class StoryKnowledgeGraph {
     }
   }
 
-  private async findNodeByName(type: NodeType, name: string): Promise<GraphNode | null> {
+  async findNodeByName(type: NodeType, name: string): Promise<GraphNode | null> {
     if (!this.initialized) await this.initialize()
 
     const stmt = this.db.prepare(`SELECT * FROM nodes WHERE type = ? AND name = ?`)
