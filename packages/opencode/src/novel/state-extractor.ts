@@ -1,5 +1,5 @@
 import { Log } from "../util/log"
-import { generateText } from "ai"
+import { callLLM, callLLMJson } from "./llm-wrapper"
 import { Provider } from "../provider/provider"
 import { getTraumaTags, getSkillCategories, getCharacterStatus, getEmotionTypes, getGoalTypes, SALIENCE_LEVELS } from "./types"
 import type {
@@ -15,7 +15,6 @@ import type {
 } from "../types/novel-state"
 import { validateSkillAward, validateTraumaSeverity, calculateStressDelta } from "../types/novel-state"
 import { buildStateExtractionPrompt } from "../prompts/state-extraction-prompt"
-import { getNovelLanguageModel } from "./model"
 
 const log = Log.create({ service: "state-extractor" })
 
@@ -187,16 +186,15 @@ export class StateExtractor {
 
   async extract(storyText: string, currentState: any, turnResult?: Partial<TurnResult>): Promise<StateUpdate> {
     try {
-      const languageModel = await getNovelLanguageModel()
-
       const evaluation = await this.evaluateTurn(storyText, currentState, turnResult)
-
       const systemPrompt = this.buildSystemPrompt(currentState, evaluation)
 
-      const result = await generateText({
-        model: languageModel,
-        system: systemPrompt,
+      const result = await callLLM({
         prompt: `Story segment to analyze:\n\n${storyText}`,
+        system: systemPrompt,
+        callType: "state_extraction",
+        temperature: 0.3,
+        useRetry: true,
       })
 
       const text = result.text.trim()
@@ -241,8 +239,6 @@ export class StateExtractor {
     currentState: any,
     turnResult?: Partial<TurnResult>,
   ): Promise<TurnEvaluation> {
-    const languageModel = await getNovelLanguageModel()
-
     const evaluationPrompt = `You are a strict narrative auditor. Evaluate this turn's outcome.
 
 ANALYSIS RULES:
@@ -289,15 +285,17 @@ Output JSON only:
   ]
 }`
 
-    const evalResult = await generateText({
-      model: languageModel,
-      system: evaluationPrompt,
-      prompt: `Current state:\n${JSON.stringify(currentState, null, 2)}\n\nStory:\n${storyText}`,
-    })
-
-    const evalJson = evalResult.text.match(/\{[\s\S]*\}/)?.[0]
-    if (evalJson) {
-      return JSON.parse(evalJson) as TurnEvaluation
+    try {
+      const result = await callLLMJson<TurnEvaluation>({
+        prompt: `Current state:\n${JSON.stringify(currentState, null, 2)}\n\nStory:\n${storyText}`,
+        system: evaluationPrompt,
+        callType: "turn_evaluation",
+        temperature: 0.2,
+        useRetry: true,
+      })
+      return result.data
+    } catch (error) {
+      log.warn("turn_evaluation_failed", { error: String(error) })
     }
 
     return {
@@ -311,8 +309,6 @@ Output JSON only:
 
   async extractMindModel(characterName: string, storyText: string, currentState: any): Promise<MindModel | null> {
     try {
-      const languageModel = await getNovelLanguageModel()
-
       const currentChar = currentState.characters?.[characterName]
       const existingMindModel = currentChar?.mindModel
         ? JSON.stringify(currentChar.mindModel, null, 2)
@@ -338,19 +334,14 @@ Output JSON only with this exact structure:
 
 Each field should be 1-3 concise sentences.`
 
-      const result = await generateText({
-        model: languageModel,
-        prompt: prompt,
+      const result = await callLLMJson<MindModel>({
+        prompt,
+        callType: "mind_model_extraction",
+        temperature: 0.3,
+        useRetry: true,
       })
-
-      const text = result.text.trim()
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-
-      if (jsonMatch) {
-        const mindModel = JSON.parse(jsonMatch[0])
-        log.info("mind_model_extracted", { character: characterName })
-        return mindModel as MindModel
-      }
+      log.info("mind_model_extracted", { character: characterName })
+      return result.data
     } catch (error) {
       log.error("mind_model_extraction_failed", { character: characterName, error: String(error) })
     }

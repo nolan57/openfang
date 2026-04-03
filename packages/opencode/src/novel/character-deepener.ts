@@ -1,6 +1,5 @@
 import { Log } from "../util/log"
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLMJson } from "./llm-wrapper"
 import type { CharacterLifecycle } from "./character-lifecycle"
 
 const log = Log.create({ service: "character-deepener" })
@@ -102,12 +101,7 @@ export class CharacterDeepener {
   async deepenCharacter(character: CharacterStateInput): Promise<DeepenedCharacterProfile> {
     log.info("deepening_character", { name: character.name })
 
-    const languageModel = await getNovelLanguageModel()
-
-    // Build character data summary
     const characterSummary = this.buildCharacterSummary(character)
-
-    // Build world knowledge dictionary from config
     const worldKnowledgeDict = this.buildWorldKnowledgeDictionary()
 
     const prompt = `You are a character psychology expert. Your task is to analyze the character based on their current state data using psychological frameworks.
@@ -129,76 +123,48 @@ Use the following psychological frameworks for analysis:
 === Output Format (strict JSON) ===
 {
   "psychologicalProfile": {
-    "bigFiveTraits": {
-      "openness": 1-10,
-      "conscientiousness": 1-10,
-      "extraversion": 1-10,
-      "agreeableness": 1-10,
-      "neuroticism": 1-10
-    },
+    "bigFiveTraits": { "openness": 1-10, "conscientiousness": 1-10, "extraversion": 1-10, "agreeableness": 1-10, "neuroticism": 1-10 },
     "attachmentStyle": "secure|anxious|avoidant|disorganized",
-    "coreFear": "One sentence describing character's deepest fear",
-    "coreDesire": "One sentence describing character's core desire",
+    "coreFear": "One sentence",
+    "coreDesire": "One sentence",
     "defenseMechanisms": ["mechanism1", "mechanism2"],
     "copingStrategies": ["strategy1", "strategy2"]
   },
   "characterArc": {
     "currentPhase": "denial|resistance|exploration|integration|mastery",
     "arcDirection": "growth|decline|complex|stagnation",
-    "potentialBreakthrough": "Character's potential breakthrough point",
-    "potentialBreakdown": "Character's potential breakdown point"
+    "potentialBreakthrough": "potential breakthrough point",
+    "potentialBreakdown": "potential breakdown point"
   },
-  "relationshipDynamics": {
-    "otherCharacter": {
-      "dynamicType": "ally|rival|mentor|protégé|enemy|unknown",
-      "powerBalance": "dominant|submissive|equal|shifting",
-      "tension": "cooperating|conflicting|neutral|betrayal_risk"
-    }
-  },
-  "narrativeSuggestions": {
-    "internalConflict": "Character's core internal conflict",
-    "externalConflict": "Character's external conflict",
-    "growthOpportunities": ["growth opportunity 1", "growth opportunity 2"],
-    "sceneTriggers": ["scene that triggers specific response 1", "scene 2"]
-  },
-  "suggestedEnhancements": {
-    "newTraits": ["suggested new trait 1"],
-    "newGoals": ["suggested new goal 1"],
-    "backstoryFragments": ["suggested backstory fragment 1"],
-    "dialogueTraits": ["suggested dialogue style 1"]
-  }
+  "relationshipDynamics": { "otherCharacter": { "dynamicType": "ally|rival|mentor|protégé|enemy|unknown", "powerBalance": "dominant|submissive|equal|shifting", "tension": "cooperating|conflicting|neutral|betrayal_risk" } },
+  "narrativeSuggestions": { "internalConflict": "...", "externalConflict": "...", "growthOpportunities": ["..."], "sceneTriggers": ["..."] },
+  "suggestedEnhancements": { "newTraits": ["..."], "newGoals": ["..."], "backstoryFragments": ["..."], "dialogueTraits": ["..."] }
 }
 
-Note:
-- Output JSON only, no other text
-- All numbers must be 1-10
-- If insufficient data, use "insufficient_data" with reasonable defaults
-- Use the World Knowledge Dictionary to understand skill/trauma meanings`
+Note: Output JSON only, no other text. All numbers must be 1-10.`
 
     try {
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLMJson<DeepenedCharacterProfile>({
         prompt,
+        callType: "character_deepening",
+        temperature: 0.5,
+        useRetry: true,
       })
 
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (match) {
-        const analysis = JSON.parse(match[0])
+      const analysis = result.data
+      log.info("character_deepened", {
+        name: character.name,
+        attachmentStyle: analysis.psychologicalProfile?.attachmentStyle,
+        arcDirection: analysis.characterArc?.arcDirection,
+      })
 
-        log.info("character_deepened", {
-          name: character.name,
-          attachmentStyle: analysis.psychologicalProfile?.attachmentStyle,
-          arcDirection: analysis.characterArc?.arcDirection,
-        })
-
-        return {
-          name: character.name,
-          psychologicalProfile: this.fillDefaults(analysis.psychologicalProfile),
-          characterArc: this.fillArcDefaults(analysis.characterArc),
-          relationshipDynamics: analysis.relationshipDynamics || {},
-          narrativeSuggestions: this.fillNarrativeDefaults(analysis.narrativeSuggestions),
-          suggestedEnhancements: this.fillEnhancementDefaults(analysis.suggestedEnhancements),
-        }
+      return {
+        name: character.name,
+        psychologicalProfile: this.fillDefaults(analysis.psychologicalProfile),
+        characterArc: this.fillArcDefaults(analysis.characterArc),
+        relationshipDynamics: analysis.relationshipDynamics || {},
+        narrativeSuggestions: this.fillNarrativeDefaults(analysis.narrativeSuggestions),
+        suggestedEnhancements: this.fillEnhancementDefaults(analysis.suggestedEnhancements),
       }
     } catch (e) {
       log.error("character_deepening_failed", { name: character.name, error: String(e) })
@@ -229,23 +195,21 @@ Note:
   }
 
   /**
-   * 跨角色分析 - 分析角色之间的关系动态
+   * Cross-character analysis - analyze relationship dynamics between characters
    */
   private async crossCharacterAnalysis(profiles: Record<string, DeepenedCharacterProfile>): Promise<void> {
-    const languageModel = await getNovelLanguageModel()
-
     const profilesText = Object.entries(profiles)
       .map(([name, p]) => `${name}: ${p.psychologicalProfile.coreFear}, ${p.psychologicalProfile.coreDesire}`)
       .join("\n")
 
-    const prompt = `分析这些角色之间的关系动态和潜在冲突：
+    const prompt = `Analyze the relationship dynamics and potential conflicts between these characters:
 
 ${profilesText}
 
-基于他们的核心恐惧和欲望，推断他们之间的互动模式。
-输出 JSON：
+Based on their core fears and desires, infer their interaction patterns.
+Output JSON:
 {
-  "角色A-角色B": {
+  "characterA-characterB": {
     "dynamicType": "ally|rival|mentor|protégé|love|enemy|unknown",
     "powerBalance": "dominant|submissive|equal|shifting",
     "tension": "cooperating|conflicting|neutral|betrayal_risk"
@@ -253,31 +217,30 @@ ${profilesText}
 }`
 
     try {
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLMJson<Record<string, { dynamicType: string; powerBalance: string; tension: string }>>({
         prompt,
+        callType: "cross_character_analysis",
+        temperature: 0.5,
+        useRetry: true,
       })
+      const dynamics = result.data
 
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (match) {
-        const dynamics = JSON.parse(match[0]) as Record<string, any>
-
-        // 更新每个角色的关系动态
-        for (const [key, value] of Object.entries(dynamics)) {
-          const [charA, charB] = key.split("-")
-          if (profiles[charA] && charB) {
-            profiles[charA].relationshipDynamics[charB] = {
-              dynamicType: value.dynamicType || "unknown",
-              powerBalance: value.powerBalance || "equal",
-              tension: value.tension || "neutral",
-            }
+      for (const [key, value] of Object.entries(dynamics)) {
+        const parts = key.split("-")
+        const charA = parts[0]
+        const charB = parts.slice(1).join("-")
+        if (profiles[charA] && charB) {
+          profiles[charA].relationshipDynamics[charB] = {
+            dynamicType: (value.dynamicType || "unknown") as any,
+            powerBalance: (value.powerBalance || "equal") as any,
+            tension: (value.tension || "neutral") as any,
           }
-          if (profiles[charB] && charA) {
-            profiles[charB].relationshipDynamics[charA] = {
-              dynamicType: value.dynamicType || "unknown",
-              powerBalance: value.powerBalance || "equal",
-              tension: value.tension || "neutral",
-            }
+        }
+        if (profiles[charB] && charA) {
+          profiles[charB].relationshipDynamics[charA] = {
+            dynamicType: (value.dynamicType || "unknown") as any,
+            powerBalance: (value.powerBalance || "equal") as any,
+            tension: (value.tension || "neutral") as any,
           }
         }
       }

@@ -767,14 +767,17 @@ function validatePartialConfig(partial: Record<string, any>): Partial<NovelEngin
  * This is called when no explicit config is provided
  */
 export async function inferConfigFromPrompt(promptContent: string): Promise<Partial<NovelEngineConfig>> {
-  const { getNovelLanguageModel } = await import("./model")
-  const { generateText } = await import("ai")
+  const { callLLMJson } = await import("./llm-wrapper")
 
   try {
-    const model = await getNovelLanguageModel()
-
-    const result = await generateText({
-      model,
+    const result = await callLLMJson<{
+      difficulty: string
+      storyType: string
+      thematicReflectionInterval: number
+      customTraumaTags: Record<string, string>
+      customEmotionTypes: Record<string, string>
+      reasoning: string
+    }>({
       prompt: `Analyze this story prompt and suggest optimal novel engine configuration.
 
 Story Prompt:
@@ -795,22 +798,16 @@ Output JSON only, no explanation:
   "customEmotionTypes": { "KEY": "EmotionName" },
   "reasoning": "Brief explanation of choices"
 }`,
+      callType: "config_inference",
+      temperature: 0.5,
+      useRetry: true,
     })
 
-    const text = result.text.trim()
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-
-    if (!jsonMatch) {
-      log.warn("llm_config_inference_no_json", { text: text.slice(0, 100) })
-      return {}
-    }
-
-    const parsed = JSON.parse(jsonMatch[0])
-    const config = validatePartialConfig(parsed)
+    const config = validatePartialConfig(result.data)
 
     log.info("llm_config_inferred", {
       config,
-      reasoning: parsed.reasoning,
+      reasoning: result.data.reasoning,
     })
 
     return config || {}
