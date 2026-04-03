@@ -4,6 +4,7 @@ import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
 import { getProceduralWorldDbPath } from "./novel-config"
+import { callLLMJson, type LLMJsonCallOptions } from "./llm-wrapper"
 
 const log = Log.create({ service: "procedural-world" })
 
@@ -51,6 +52,37 @@ export const RegionSchema = z.object({
 
 export type RegionType = z.infer<typeof RegionTypeSchema>
 export type Region = z.infer<typeof RegionSchema>
+
+// ============================================================================
+// Ecology Data Models (opt-in via enableEcology config)
+// ============================================================================
+
+export const EcoEntitySchema = z.object({
+  name: z.string(),
+  adaptation: z.string(),
+  role: z.enum(["Producer", "Consumer", "Apex Predator", "Herbivore", "Decomposer", "Omnivore"]),
+  resourceValue: z.array(z.string()),
+})
+
+export type EcoEntity = z.infer<typeof EcoEntitySchema>
+
+export const EcologicalProfileSchema = z.object({
+  // Physical skeleton (math-based)
+  climateZone: z.string(),
+  temperature: z.number(),
+  precipitation: z.number(),
+  elevation: z.number(),
+  humidityFactor: z.number(),
+  // LLM-generated ecology (only when enableEcology = true)
+  microClimate: z.string().optional(),
+  uniqueFlora: z.array(EcoEntitySchema).optional(),
+  uniqueFauna: z.array(EcoEntitySchema).optional(),
+  ecologicalThreats: z.array(z.string()).optional(),
+  // Narrative hooks generated from ecology
+  narrativeHooks: z.array(z.string()).optional(),
+})
+
+export type EcologicalProfile = z.infer<typeof EcologicalProfileSchema>
 
 export interface WorldGenerationConfig {
   seed: number
@@ -117,6 +149,9 @@ export class ProceduralWorldGenerator {
 
     // Generate connections between regions
     this.generateConnections(regions)
+
+    // Generate ecology for all regions (physical always, LLM opt-in)
+    this.generateEcology(regions)
 
     // Generate history if enabled
     if (this.config.enableHistory) {
@@ -389,6 +424,304 @@ export class ProceduralWorldGenerator {
     }
 
     return conflicts
+  }
+
+  // ============================================================================
+  // Ecology Layer (opt-in via config.enableEcology)
+  // ============================================================================
+
+  /**
+   * Generate ecology data for all regions with concurrency and neighbor awareness.
+   * Step 1: Calculate physical environment (math-based, always runs, serial)
+   * Step 2: Generate unique ecology via LLM (concurrent, neighbor-aware, opt-in)
+   * Step 3: Apply ecology impact to resources/dangers (always runs, serial)
+   */
+  private async generateEcology(regions: Region[]): Promise<void> {
+    if (regions.length === 0) return
+
+    log.info("generating_ecology", { regionCount: regions.length, llmEnabled: this.config.enableEcology })
+
+    // Step 1: Physical environment calculation (serial, zero cost)
+    const physicalDataMap = new Map<string, ReturnType<typeof this.calculatePhysicalEnvironment>>()
+    for (const region of regions) {
+      const physicalData = this.calculatePhysicalEnvironment(region)
+      physicalDataMap.set(region.id, physicalData)
+    }
+
+    // Step 2: LLM ecology generation (concurrent, with neighbor awareness)
+    const ecologyResults = this.config.enableEcology
+      ? await this.generateEcologyConcurrent(regions, physicalDataMap)
+      : new Map<string, EcologicalProfile | null>()
+
+    // Step 3: Merge data and apply impact (serial)
+    for (const region of regions) {
+      const physicalData = physicalDataMap.get(region.id)!
+      const ecologicalProfile = ecologyResults.get(region.id) || null
+
+      region.metadata = {
+        ...region.metadata,
+        ...physicalData,
+        ecology: ecologicalProfile || {
+          microClimate: undefined,
+          uniqueFlora: [],
+          uniqueFauna: [],
+          ecologicalThreats: [],
+          narrativeHooks: [],
+        },
+      }
+
+      this.applyEcologyImpact(region, physicalData, ecologicalProfile)
+    }
+
+    const successCount = Array.from(ecologyResults.values()).filter(Boolean).length
+    log.info("ecology_generation_complete", {
+      llmGenerated: this.config.enableEcology,
+      successCount,
+      failureCount: regions.length - successCount,
+    })
+  }
+
+  /**
+   * Generate ecology concurrently with batch control and neighbor awareness.
+   * Uses Promise.allSettled to ensure individual failures don't crash the world.
+   * Max concurrency: 5 (avoids API rate limits).
+   */
+  private async generateEcologyConcurrent(
+    regions: Region[],
+    physicalDataMap: Map<string, ReturnType<typeof this.calculatePhysicalEnvironment>>,
+  ): Promise<Map<string, EcologicalProfile | null>> {
+    const results = new Map<string, EcologicalProfile | null>()
+    const MAX_CONCURRENCY = 5
+
+    // Pre-compute neighbor summaries for all regions
+    const neighborMap = this.buildNeighborSummaries(regions)
+
+    // Process in batches to control concurrency
+    for (let i = 0; i < regions.length; i += MAX_CONCURRENCY) {
+      const batch = regions.slice(i, i + MAX_CONCURRENCY)
+      const promises = batch.map(async (region) => {
+        const physicalData = physicalDataMap.get(region.id)!
+        const neighbors = neighborMap.get(region.id) || []
+        return this.callEcologyGeneratorLLM(region, physicalData, neighbors)
+      })
+
+      const settled = await Promise.allSettled(promises)
+      for (let j = 0; j < settled.length; j++) {
+        const region = batch[j]
+        const result = settled[j]
+        if (result.status === "fulfilled") {
+          results.set(region.id, result.value)
+        } else {
+          log.warn("ecology_generation_failed_for_region", {
+            region: region.name,
+            error: result.reason,
+          })
+          results.set(region.id, null)
+        }
+      }
+    }
+
+    return results
+  }
+
+  /**
+   * Build lightweight neighbor summaries for all regions.
+   * Each region gets 1-2 nearest neighbors with their climate zone and type.
+   */
+  private buildNeighborSummaries(regions: Region[]): Map<string, string[]> {
+    const neighborMap = new Map<string, string[]>()
+
+    for (const region of regions) {
+      const neighbors = this.findNearestRegions(region, regions, 2)
+      const summaries = neighbors.map((n) => {
+        const climate = (n.metadata?.climateZone as string) || "unknown"
+        return `${n.name} (${n.type}, ${climate})`
+      })
+      neighborMap.set(region.id, summaries)
+    }
+
+    return neighborMap
+  }
+
+  /**
+   * Calculate physical environment based on region coordinates.
+   * Pure math — zero LLM calls, < 1ms per region.
+   */
+  private calculatePhysicalEnvironment(region: Region): {
+    climateZone: string
+    temperature: number
+    precipitation: number
+    elevation: number
+    humidityFactor: number
+    latitudeFactor: number
+    physicalFlags: { isCoastal: boolean; isMountainous: boolean }
+  } {
+    const { x, y } = region.coordinates
+    const mapSize = this.config.mapSize
+
+    // Latitude factor: 0 (center/temperate) → 1 (poles/polar)
+    const latitudeFactor = Math.abs(y - mapSize / 2) / (mapSize / 2)
+    // Longitude/humidity factor: 0 (arid) → 1 (humid)
+    const humidityFactor = x / mapSize
+    // Elevation: 30% chance of high elevation
+    const elevation = this.seededRandom() > 0.7 ? 1 : 0
+
+    let climateZone: string
+    let temperature: number
+
+    if (latitudeFactor > 0.8 || elevation === 1) {
+      climateZone = elevation === 1 ? "Alpine" : "Polar"
+      temperature = 10 - (latitudeFactor * 10)
+    } else if (latitudeFactor > 0.5) {
+      climateZone = "Temperate"
+      temperature = 50 - (latitudeFactor * 20)
+    } else {
+      climateZone = "Tropical"
+      temperature = 80
+    }
+
+    // Precipitation: humidity + temperature-driven evaporation
+    const precipitation = Math.min(100, (humidityFactor * 50) + (temperature / 2))
+
+    return {
+      climateZone,
+      temperature: Math.round(temperature),
+      precipitation: Math.round(precipitation),
+      elevation,
+      humidityFactor: Math.round(humidityFactor * 100) / 100,
+      latitudeFactor: Math.round(latitudeFactor * 100) / 100,
+      physicalFlags: {
+        isCoastal: x > mapSize * 0.8 || x < mapSize * 0.1,
+        isMountainous: elevation === 1,
+      },
+    }
+  }
+
+  /**
+   * Generate unique ecology data via LLM with neighbor awareness.
+   * Opt-in: only runs when config.enableEcology = true.
+   * Uses callLLMJson for unified calling with retry, tracing, and JSON parsing.
+   */
+  private async callEcologyGeneratorLLM(
+    region: Region,
+    physicalData: ReturnType<typeof this.calculatePhysicalEnvironment>,
+    neighborSummaries: string[],
+  ): Promise<EcologicalProfile | null> {
+    const schemaDesc = `{
+  "microClimate": "descriptive name like 'Misty Canopy' or 'Scorching Dunes'",
+  "uniqueFlora": [
+    { "name": "...", "adaptation": "...", "role": "Producer|Consumer|Apex Predator|Herbivore|Decomposer|Omnivore", "resourceValue": ["..."] }
+  ],
+  "uniqueFauna": [
+    { "name": "...", "adaptation": "...", "role": "...", "resourceValue": ["..."] }
+  ],
+  "ecologicalThreats": ["threat1", "threat2"],
+  "narrativeHooks": ["hook1: tension with neighbor", "hook2: resource conflict"]
+}`
+
+    const neighborContext =
+      neighborSummaries.length > 0
+        ? `\nNeighboring Regions:\n${neighborSummaries.map((n) => `  - ${n}`).join("\n")}\n\nNeighbor Compatibility Rules:\n- Ensure your ecosystem is compatible with OR forms a logical contrast to your neighbors (e.g., "arid rocky wasteland" as the edge of a "rainforest").\n- NEVER generate completely unrelated extreme environments next to each other (e.g., "polar ice field" next to "tropical jungle").\n- If a neighbor is wealthy or fertile, consider generating narrative hooks about envy, raids, or trade.`
+        : ""
+
+    const prompt = `You are a World Ecology Simulator for a Fantasy RPG.
+Based on the Physical Data and neighboring regions, generate a unique ecosystem.
+Do NOT use generic Earth names. Be creative but logical.${neighborContext}
+
+Physical Data:
+- Climate: ${physicalData.climateZone}
+- Temperature: ${physicalData.temperature}°F
+- Precipitation: ${physicalData.precipitation}/100
+- Elevation: ${physicalData.elevation === 1 ? "Highland" : "Lowland"}
+- Coastal: ${physicalData.physicalFlags.isCoastal ? "Yes" : "No"}
+
+Rules:
+- If Cold: Flora should be hardy, Fauna should have insulation.
+- If Wet: Flora should be dense, Fauna could be amphibious.
+- If Dry: Flora should be sparse, Fauna should be drought-resistant.
+- Generate 2-3 Unique Flora and 2-3 Unique Fauna.
+- Generate 1-3 narrative hooks based on ecology (e.g., resource disputes, migration paths, border conflicts).
+
+Output valid JSON only.`
+
+    try {
+      const result = await callLLMJson<EcologicalProfile>({
+        prompt,
+        callType: "ecology_generation",
+        temperature: 0.8, // Higher temperature for creative world-building
+        schemaDescription: schemaDesc,
+        useRetry: true,
+      })
+
+      log.info("ecology_generated_llm", {
+        region: region.name,
+        floraCount: result.data.uniqueFlora?.length || 0,
+        faunaCount: result.data.uniqueFauna?.length || 0,
+        hookCount: result.data.narrativeHooks?.length || 0,
+      })
+      return result.data
+    } catch (error) {
+      log.warn("ecology_llm_failed", { region: region.name, error: String(error) })
+      return null
+    }
+  }
+
+  /**
+   * Apply ecology data back to region resources and dangers.
+   * Creates the feedback loop: ecology → resources → story generation.
+   */
+  private applyEcologyImpact(
+    region: Region,
+    physicalData: ReturnType<typeof this.calculatePhysicalEnvironment>,
+    ecologicalProfile: EcologicalProfile | null,
+  ): void {
+    const newResources = new Set<string>(region.resources || [])
+    const newDangers = new Set<string>(region.dangers || [])
+
+    // Impact from physical environment
+    const climate = physicalData.climateZone as string
+    if (climate === "Polar") {
+      newResources.add("ice")
+      newResources.add("frost-resistant herbs")
+      if (region.type === "village" || region.type === "town") {
+        newDangers.add("frostbite")
+        newDangers.add("blizzard")
+      }
+    } else if (climate === "Tropical") {
+      newResources.add("exotic fruits")
+      newResources.add("medicinal plants")
+      if (region.type === "village" || region.type === "town") {
+        newDangers.add("insect swarm")
+        newDangers.add("tropical disease")
+      }
+    } else if (climate === "Alpine") {
+      newResources.add("rare minerals")
+      newDangers.add("rockslide")
+    }
+
+    // Impact from LLM-generated ecology
+    if (ecologicalProfile) {
+      if (ecologicalProfile.uniqueFlora) {
+        for (const plant of ecologicalProfile.uniqueFlora) {
+          plant.resourceValue.forEach((v) => newResources.add(v))
+        }
+      }
+      if (ecologicalProfile.uniqueFauna) {
+        for (const animal of ecologicalProfile.uniqueFauna) {
+          animal.resourceValue.forEach((v) => newResources.add(v))
+        }
+      }
+      if (ecologicalProfile.ecologicalThreats) {
+        ecologicalProfile.ecologicalThreats.forEach((t) => newDangers.add(t))
+      }
+      // Narrative hooks from ecology → region dangers
+      if (ecologicalProfile.narrativeHooks) {
+        ecologicalProfile.narrativeHooks.forEach((hook) => newDangers.add(hook))
+      }
+    }
+
+    region.resources = Array.from(newResources)
+    region.dangers = Array.from(newDangers)
   }
 
   getRegion(id: string): Region | undefined {

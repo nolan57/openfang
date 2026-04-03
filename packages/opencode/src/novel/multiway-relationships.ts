@@ -1,7 +1,6 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLMJson } from "./llm-wrapper"
 import type { DeepenedCharacterProfile } from "./character-deepener"
 import { memoize } from "./performance"
 import type { GraphNode, GraphEdge } from "./story-knowledge-graph"
@@ -404,9 +403,13 @@ export class AsyncGroupManagementService implements IAsyncGroupManagementService
   refineGroupWithLLM(groupId: string, currentDescription: string, chapter: number): void {
     queueMicrotask(async () => {
       try {
-        const languageModel = await getNovelLanguageModel()
-        const result = await generateText({
-          model: languageModel,
+        const result = await callLLMJson<{
+          cohesion: number
+          conflictLevel: number
+          dominantTrait: string
+          narrativeRole: string
+          sharedGoals: string[]
+        }>({
           prompt: `Analyze and refine this group's dynamics and metadata.
 
 Group Description: ${currentDescription}
@@ -414,18 +417,17 @@ Current Chapter: ${chapter}
 
 Output JSON:
 {"cohesion":0-100,"conflictLevel":0-100,"dominantTrait":"string","narrativeRole":"string","sharedGoals":["goal1","goal2"]}`,
+          callType: "group_refinement",
+          temperature: 0.3,
+          useRetry: true,
         })
 
-        const match = result.text.match(/\{[\s\S]*\}/)
-        if (match) {
-          const data = JSON.parse(match[0])
-          await this.updateGroupMetadata(groupId, {
-            ...data,
-            refinedChapter: chapter,
-            refinedAt: Date.now(),
-          })
-          log.info("group_refined", { groupId, chapter })
-        }
+        await this.updateGroupMetadata(groupId, {
+          ...result.data,
+          refinedChapter: chapter,
+          refinedAt: Date.now(),
+        })
+        log.info("group_refined", { groupId, chapter })
       } catch (error) {
         log.warn("group_refinement_failed", { groupId, error: String(error) })
       }

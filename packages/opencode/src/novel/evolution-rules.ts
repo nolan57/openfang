@@ -1,7 +1,6 @@
 import { Log } from "../util/log"
-import { generateText } from "ai"
+import { callLLMJson } from "./llm-wrapper"
 import { getTraumaTags, getSkillCategories, getCharacterStatus } from "./types"
-import { getNovelLanguageModel } from "./model"
 import { createPromptBuilder, type StoryTone } from "./dynamic-prompt"
 import { novelConfigManager } from "./novel-config"
 import type { DeepenedCharacterProfile } from "./character-deepener"
@@ -181,11 +180,11 @@ export class EvolutionRulesEngine {
         })
         .build()
 
-      const languageModel = await getNovelLanguageModel()
-
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLMJson<{ event: string }>({
         prompt,
+        callType: "chaos_event_generation",
+        temperature: 0.9,
+        useRetry: true,
       })
 
       chaosEvent.narrativeDirection =
@@ -195,7 +194,7 @@ export class EvolutionRulesEngine {
             ? `Negative Impact (${chaosEvent.magnitude})`
             : `Neutral Impact (${chaosEvent.magnitude})`
 
-      chaosEvent.generatedEvent = result.text.trim()
+      chaosEvent.generatedEvent = result.data.event || result.text.trim()
 
       chaosEvent.structuredEvent = await this.extractStructuredEvent(chaosEvent.generatedEvent, storyContext.characters)
 
@@ -221,7 +220,8 @@ export class EvolutionRulesEngine {
     characters: string[],
   ): Promise<{ type: string; targets: string[] } | null> {
     try {
-      const prompt = `Analyze this story event and extract structured information.
+      const result = await callLLMJson<{ type: string; targets: string[] }>({
+        prompt: `Analyze this story event and extract structured information.
 
 Event: ${eventText.substring(0, 500)}
 
@@ -235,21 +235,15 @@ Output JSON only:
 {
   "type": "event type",
   "targets": ["character1", "character2"]
-}`
-
-      const languageModel = await getNovelLanguageModel()
-      const result = await generateText({
-        model: languageModel,
-        prompt,
+}`,
+        callType: "structured_event_extraction",
+        temperature: 0.2,
+        useRetry: false, // Lightweight extraction, no need for retry
       })
 
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (match) {
-        const parsed = JSON.parse(match[0])
-        return {
-          type: parsed.type || "unknown",
-          targets: Array.isArray(parsed.targets) ? parsed.targets : [],
-        }
+      return {
+        type: result.data.type || "unknown",
+        targets: Array.isArray(result.data.targets) ? result.data.targets : [],
       }
     } catch (error) {
       log.warn("structured_event_extraction_failed", { error: String(error) })
@@ -290,20 +284,17 @@ Output JSON only:
         prompt += `\n\n=== Character Psychological Profiles ===\n${characterContext}\n\nWhen evaluating skill awards and trauma triggers, consider each character's core fear and desire. A character is more likely to gain skills related to their core desire and receive trauma related to their core fear.`
       }
 
-      const languageModel = await getNovelLanguageModel()
-
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLMJson<{
+        skill_awards?: Array<{ character_name: string; skill_name: string; skill_category: string; reason_in_story: string }>
+        trauma_awards?: Array<{ character_name: string; trauma_name: string; trauma_tags: string[]; severity: number; reason_in_story: string }>
+      }>({
         prompt,
+        callType: "state_evaluation",
+        temperature: 0.3,
+        useRetry: true,
       })
 
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (!match) {
-        log.warn("llm_no_json_in_response")
-        return { skills: [], traumas: [] }
-      }
-
-      const evaluation = JSON.parse(match[0])
+      const evaluation = result.data
 
       const skillAwards: SkillAward[] = (evaluation.skill_awards || []).map((award: any) => ({
         characterName: award.character_name,

@@ -2,12 +2,10 @@ import { z } from "zod"
 import { readFile, writeFile, access, mkdir } from "fs/promises"
 import { resolve, dirname } from "path"
 import { Log } from "../util/log"
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLM, callLLMJson } from "./llm-wrapper"
 import { Instance } from "../project/instance"
 import { memoize } from "./performance"
 import { getPatternsDirPath, getSkillsPath } from "./novel-config"
-import { callLLM } from "./llm-wrapper"
 import { Skill } from "../skill/skill"
 
 const log = Log.create({ service: "pattern-miner-enhanced" })
@@ -361,8 +359,6 @@ export class EnhancedPatternMiner {
     characters: Record<string, any>,
     chapter: number,
   ): Promise<Archetype[]> {
-    const languageModel = await getNovelLanguageModel()
-
     const charSummary = Object.entries(characters)
       .map(([name, char]) => `${name}: ${JSON.stringify(char.traits || [])}, stress: ${char.stress || 0}`)
       .join("\n")
@@ -387,15 +383,26 @@ For each character that clearly embodies an archetype, output:
 Output JSON array. If no clear archetypes, output empty array.`
 
     try {
-      const result = await generateText({ model: languageModel, prompt })
-      const match = result.text.match(/\[[\s\S]*\]/)
-      if (!match) return []
-
-      const extracted = JSON.parse(match[0])
+      const result = await callLLMJson<
+        Array<{
+          characterName: string
+          archetypeType: string
+          description: string
+          traits: string[]
+          narrativeRole: string
+        }>
+      >({
+        prompt,
+        callType: "archetype_extraction",
+        temperature: 0.5,
+        useRetry: true,
+      })
+      const extracted = result.data
       const newArchetypes: Archetype[] = []
 
       for (const item of extracted) {
-        const id = `archetype_${item.characterName}_${item.archetypeType}`
+        const archetypeTypeEnum = item.archetypeType as Archetype["type"]
+        const id = `archetype_${item.characterName}_${archetypeTypeEnum}`
         const existing = this.archetypes.get(id)
 
         if (existing) {
@@ -404,8 +411,8 @@ Output JSON array. If no clear archetypes, output empty array.`
         } else {
           const archetype: Archetype = {
             id,
-            name: `${item.characterName} as ${item.archetypeType}`,
-            type: item.archetypeType,
+            name: `${item.characterName} as ${archetypeTypeEnum}`,
+            type: archetypeTypeEnum,
             description: item.description,
             traits: item.traits || [],
             narrative_role: item.narrativeRole,
@@ -428,8 +435,6 @@ Output JSON array. If no clear archetypes, output empty array.`
   }
 
   async extractPlotTemplates(storySegment: string, chapter: number, fullStory: string): Promise<PlotTemplate[]> {
-    const languageModel = await getNovelLanguageModel()
-
     const prompt = `Analyze this story segment in context of the full narrative. Identify if it follows a classic plot structure.
 
 Previous Story Summary:
@@ -455,18 +460,30 @@ Identify the plot structure being used. Output:
 If unclear, output a basic structure that best fits.`
 
     try {
-      const result = await generateText({ model: languageModel, prompt })
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (!match) return []
-
-      const extracted = JSON.parse(match[0])
+      const result = await callLLMJson<{
+        structureType: string
+        currentStage: string
+        stages: Array<{ name: string; description: string; narrativeBeats: string[] }>
+        themeCompatibility: string[]
+      }>({
+        prompt,
+        callType: "plot_template_extraction",
+        temperature: 0.3,
+        useRetry: true,
+      })
+      const extracted = result.data
       const id = `template_${extracted.structureType}_${chapter}`
+      const structureEnum = extracted.structureType as PlotTemplate["structure"]
 
       const template: PlotTemplate = {
         id,
         name: extracted.structureType.replace(/_/g, " "),
-        structure: extracted.structureType,
-        stages: extracted.stages || [],
+        structure: structureEnum,
+        stages: (extracted.stages || []).map((s) => ({
+          name: s.name,
+          description: s.description,
+          narrative_beats: s.narrativeBeats || [],
+        })),
         theme_compatibility: extracted.themeCompatibility,
         flexibility: 50,
         usage_count: 1,
@@ -484,8 +501,6 @@ If unclear, output a basic structure that best fits.`
   }
 
   async extractMotifs(storySegment: string, chapter: number): Promise<Motif[]> {
-    const languageModel = await getNovelLanguageModel()
-
     const prompt = `Analyze this story segment for recurring motifs, symbols, or thematic elements.
 
 Story Segment:
@@ -504,14 +519,25 @@ Identify motifs. Output JSON array:
 Focus on elements that could recur and evolve throughout the story.`
 
     try {
-      const result = await generateText({ model: languageModel, prompt })
-      const match = result.text.match(/\[[\s\S]*\]/)
-      if (!match) return []
-
-      const extracted = JSON.parse(match[0])
+      const result = await callLLMJson<
+        Array<{
+          name: string
+          type: string
+          description: string
+          significance: number
+          context: string
+        }>
+      >({
+        prompt,
+        callType: "motif_extraction",
+        temperature: 0.5,
+        useRetry: true,
+      })
+      const extracted = result.data
       const newMotifs: Motif[] = []
 
       for (const item of extracted) {
+        const motifTypeEnum = item.type as Motif["type"]
         const id = `motif_${item.name.toLowerCase().replace(/\s+/g, "_")}`
         const existing = this.motifs.get(id)
 
@@ -528,7 +554,7 @@ Focus on elements that could recur and evolve throughout the story.`
           const motif: Motif = {
             id,
             name: item.name,
-            type: item.type,
+            type: motifTypeEnum,
             description: item.description,
             occurrences: [
               {

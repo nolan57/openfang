@@ -5,7 +5,7 @@ export {
   type TriadPattern, type GraphReader, type IRelationshipViewService, type IAsyncGroupManagementService,
   type GroupDynamicsResult, type MultiWayRelationship,
 } from "./multiway-relationships"
-export { ProceduralWorldGenerator, type Region, type RegionType, type WorldGenerationConfig } from "./procedural-world"
+export { ProceduralWorldGenerator, type Region, type RegionType, type WorldGenerationConfig, type EcoEntity, type EcologicalProfile, EcoEntitySchema, EcologicalProfileSchema } from "./procedural-world"
 export { memoize, debounce, throttle, batch, lazy, rateLimit } from "./performance"
 export { NovelConfig } from "../config/novel-config"
 export { StateExtractor, stateExtractor } from "./state-extractor"
