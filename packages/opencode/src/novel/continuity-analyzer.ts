@@ -1,5 +1,4 @@
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLMJson } from "./llm-wrapper"
 import { Log } from "../util/log"
 import { getVisualConfig, type VisualConfig } from "./config"
 import type { VisualPanelSpec } from "./types"
@@ -177,44 +176,25 @@ Use common sense:
     const hasPrevious = context.previousSegment !== null && context.previousSegment.length > 0
     const hasPreviousPanels = context.previousPanels.length > 0
 
-    // Build user prompt with context
     const userPrompt = this.buildUserPrompt(currentSegment, context)
 
     try {
-      const languageModel = await getNovelLanguageModel()
-
-      const result = await generateText({
-        model: languageModel,
-        system: this.systemPrompt,
+      const result = await callLLMJson<ContinuityAnalysis>({
         prompt: userPrompt,
-        temperature: 0.3, // Low temperature for consistent analysis
+        system: this.systemPrompt,
+        callType: "continuity_analysis",
+        temperature: 0.3,
+        useRetry: true,
       })
-
-      // Parse JSON response
-      const text = result.text.trim()
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-
-      if (!jsonMatch) {
-        log.warn("continuity_analysis_no_json", { response: text.slice(0, 200) })
-        return this.createFallbackAnalysis(currentSegment, hasPrevious, hasPreviousPanels)
-      }
-
-      const analysis: ContinuityAnalysis = JSON.parse(jsonMatch[0])
-
-      // Validate analysis
-      if (!this.validateAnalysis(analysis)) {
-        log.warn("continuity_analysis_invalid", { analysis })
-        return this.createFallbackAnalysis(currentSegment, hasPrevious, hasPreviousPanels)
-      }
 
       log.info("continuity_analyzed", {
-        isContinuous: analysis.timeContext.isContinuousWithPrevious,
-        sameLocation: analysis.locationContext.isSameLocation,
-        shouldMaintainOutfit: analysis.llmJudgement.shouldMaintainOutfit,
-        confidence: analysis.llmJudgement.confidence,
+        isContinuous: result.data.timeContext.isContinuousWithPrevious,
+        sameLocation: result.data.locationContext.isSameLocation,
+        shouldMaintainOutfit: result.data.llmJudgement.shouldMaintainOutfit,
+        confidence: result.data.llmJudgement.confidence,
       })
 
-      return analysis
+      return result.data
     } catch (error) {
       log.error("continuity_analysis_failed", { error: String(error) })
       return this.createFallbackAnalysis(currentSegment, hasPrevious, hasPreviousPanels)

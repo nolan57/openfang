@@ -1,6 +1,5 @@
 import { Log } from "../util/log"
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLM, callLLMJson } from "./llm-wrapper"
 
 const log = Log.create({ service: "relationship-analyzer" })
 
@@ -113,9 +112,6 @@ export class RelationshipAnalyzer {
       characterCount: Object.keys(characters).length,
     })
 
-    const languageModel = await getNovelLanguageModel()
-
-    // 构建关系摘要
     const relationshipSummary = this.buildRelationshipSummary(characters)
 
     const prompt = `You are a relationship dynamics expert. Analyze the relationships between these characters.
@@ -148,10 +144,10 @@ Analyze each pair of characters and output:
 Output JSON:
 {
   "relationships": {
-    "CharacterA-CharacterB": { ... }
+    "CharacterA-CharacterB": { "dynamicType": "...", "powerBalance": "...", "tension": "...", "stage": "...", "coreConflict": "...", "sharedHistory": "...", "developmentPotential": { "direction": "...", "catalysts": ["..."], "obstacles": ["..."] }, "narrativeHooks": { "conflictOpportunities": ["..."], "bondingOpportunities": ["..."], "betrayalSetup": ["..."] } }
   },
   "groupDynamics": [
-    { "factionName": "...", "members": [...], "alliances": [...], "conflicts": [...] }
+    { "factionName": "...", "members": ["..."], "alliances": ["..."], "conflicts": ["..."] }
   ],
   "narrativeSuggestions": {
     "relationshipFocus": "...",
@@ -161,16 +157,16 @@ Output JSON:
 }`
 
     try {
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLMJson<RelationshipAnalysisResult>({
         prompt,
+        callType: "relationship_analysis",
+        temperature: 0.3,
+        useRetry: true,
       })
 
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (match) {
-        const analysis = JSON.parse(match[0])
+      const analysis = result.data
 
-        // Add LLM-driven group dynamics analysis
+      // Add LLM-driven group dynamics analysis
         let groupDynamicsResult = {
           summary: "No significant group dynamics detected.",
           factions: [] as Faction[],
@@ -217,7 +213,6 @@ Output JSON:
           ...analysis,
           groupDynamics: groupDynamicsResult,
         }
-      }
     } catch (e) {
       log.error("relationship_analysis_failed", { error: String(e) })
     }
@@ -241,8 +236,6 @@ Output JSON:
     relationshipShift: "strengthened" | "weakened" | "transformed" | "stable"
     reasoning: string
   }> {
-    const languageModel = await getNovelLanguageModel()
-
     const prompt = `Analyze how this event affects the relationship between ${characterA} and ${characterB}.
 
 CURRENT STATE:
@@ -266,20 +259,23 @@ OUTPUT JSON:
 }`
 
     try {
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLMJson<{
+        newTrust: number
+        newHostility: number
+        newDynamic: string
+        relationshipShift: "strengthened" | "weakened" | "transformed" | "stable"
+        reasoning: string
+      }>({
         prompt,
+        callType: "relationship_change",
+        temperature: 0.3,
+        useRetry: true,
       })
-
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (match) {
-        return JSON.parse(match[0])
-      }
+      return result.data
     } catch (e) {
       log.warn("relationship_change_analysis_failed", { error: String(e) })
     }
 
-    // Default: no change
     return {
       newTrust: currentState.trust,
       newHostility: currentState.hostility,
@@ -299,13 +295,11 @@ OUTPUT JSON:
     branchPoint: string
     options: {
       choice: string
-      characters: string[] // 涉及的角色
+      characters: string[]
       relationshipImpact: string
       rationale: string
     }[]
   }> {
-    const languageModel = await getNovelLanguageModel()
-
     const relationshipSummary = this.buildRelationshipSummary(characters)
 
     const prompt = `Based on the current relationships, suggest 2-3 story branches that focus on relationship dynamics.
@@ -315,46 +309,39 @@ ${relationshipSummary}
 
 ${currentFocus ? `Current focus: ${currentFocus}` : ""}
 
-Generate branches that:
-- Explore relationship tension or development
-- Involve multiple characters
-- Create interesting narrative possibilities
+Generate branches that explore relationship tension or development, involve multiple characters, and create interesting narrative possibilities.
 
 Output JSON:
 {
   "branchPoint": "The key relationship moment",
   "options": [
-    {
-      "choice": "What happens",
-      "characters": ["CharacterA", "CharacterB"],
-      "relationshipImpact": "How this affects the relationship",
-      "rationale": "Why this is interesting"
-    }
+    { "choice": "What happens", "characters": ["CharacterA", "CharacterB"], "relationshipImpact": "How this affects the relationship", "rationale": "Why this is interesting" }
   ]
 }`
 
     try {
-      const result = await generateText({
-        model: languageModel,
+      const result = await callLLMJson<{
+        branchPoint: string
+        options: Array<{ choice: string; characters: string[]; relationshipImpact: string; rationale: string }>
+      }>({
         prompt,
+        callType: "relationship_branches",
+        temperature: 0.5,
+        useRetry: true,
       })
-
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (match) {
-        return JSON.parse(match[0])
-      }
+      return result.data
     } catch (e) {
       log.warn("relationship_branch_generation_failed", { error: String(e) })
     }
 
     return {
-      branchPoint: "角色互动时刻",
+      branchPoint: "Character interaction moment",
       options: [
         {
-          choice: "角色之间进行深入对话",
+          choice: "Characters engage in deep dialogue",
           characters: [],
-          relationshipImpact: "加深了解",
-          rationale: "促进关系发展",
+          relationshipImpact: "Deepens understanding",
+          rationale: "Promotes relationship development",
         },
       ],
     }
@@ -454,22 +441,19 @@ Respond ONLY with a JSON object in this exact format:
 }`
 
     try {
-      const result = await generateText({
-        model: await getNovelLanguageModel(),
+      const result = await callLLMJson<{
+        factions: any[]
+        interFactionRelations: any[]
+      }>({
         prompt,
+        callType: "group_dynamics",
+        temperature: 0.3,
+        useRetry: true,
       })
 
-      const jsonMatch = result.text.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) {
-        log.warn("no_json_in_group_dynamics_response")
-        return { factions: [], interFactionRelations: [] }
-      }
-
-      const parsed = JSON.parse(jsonMatch[0])
-
       return {
-        factions: Array.isArray(parsed.factions) ? parsed.factions : [],
-        interFactionRelations: Array.isArray(parsed.interFactionRelations) ? parsed.interFactionRelations : [],
+        factions: Array.isArray(result.data.factions) ? result.data.factions : [],
+        interFactionRelations: Array.isArray(result.data.interFactionRelations) ? result.data.interFactionRelations : [],
       }
     } catch (error) {
       log.warn("llm_group_dynamics_failed", { error: String(error) })

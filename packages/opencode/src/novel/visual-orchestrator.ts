@@ -3,8 +3,7 @@ import { writeFile, mkdir } from "fs/promises"
 import { resolve, join } from "path"
 import { getPanelsPath } from "./novel-config"
 import { buildPanelSpecWithHybridEngine, initVisualPromptEngineer } from "./visual-prompt-engineer"
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLMJson } from "./llm-wrapper"
 import { ContinuityAnalyzer } from "./continuity-analyzer"
 import type { VisualPanelSpec } from "./types"
 
@@ -328,66 +327,14 @@ export async function saveVisualPanels(panels: VisualPanelSpec[], chapterCount: 
  */
 export async function planPanelSegments(storySegment: string, maxPanels: number): Promise<PanelPlan> {
   try {
-    const languageModel = await getNovelLanguageModel()
-
-    const result = await generateText({
-      model: languageModel,
-      system: `You are an expert visual director for comic generation.
-Your task is to analyze a story segment and plan optimal visual panels.
-
-Rules:
-1. Determine the ideal number of panels (1-${maxPanels}) based on scene complexity
-2. Identify key visual moments, emotional turning points, and action beats
-3. Each panel should represent a distinct visual moment
-4. Consider pacing: action scenes may need more panels, quiet moments fewer
-5. Ensure character continuity across panels
-
-Output JSON format only:
-{
-  "panelCount": number,
-  "segments": [
-    {
-      "startIndex": number,
-      "endIndex": number,
-      "description": "string - the text segment for this panel",
-      "keyMoment": "string - what visual moment this captures",
-      "emotions": ["emotion1", "emotion2"],
-      "characters": ["char1", "char2"]
-    }
-  ]
-}`,
-      prompt: `Analyze this story segment and plan visual panels (max ${maxPanels}):
-
-${storySegment}
-
-Return JSON with panelCount and segments array.`,
+    const result = await callLLMJson<PanelPlan>({
+      prompt: `Analyze this story segment and plan visual panels (max ${maxPanels}):\n\n${storySegment}\n\nReturn JSON with panelCount and segments array.`,
+      system: `You are an expert visual director for comic generation. Plan optimal visual panels. Rules: determine panel count (1-${maxPanels}), identify key visual moments, ensure character continuity. Output JSON only.`,
+      callType: "panel_planning",
+      temperature: 0.3,
+      useRetry: true,
     })
-
-    const text = result.text.trim()
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-
-    if (!jsonMatch) {
-      log.warn("llm_panel_plan_no_json", { response: text.slice(0, 200) })
-      return fallbackPanelPlan(storySegment, maxPanels)
-    }
-
-    const plan: PanelPlan = JSON.parse(jsonMatch[0])
-
-    // Validate plan
-    if (!plan.panelCount || !Array.isArray(plan.segments) || plan.segments.length === 0) {
-      log.warn("llm_panel_plan_invalid", { plan })
-      return fallbackPanelPlan(storySegment, maxPanels)
-    }
-
-    // Ensure panelCount matches segments length
-    plan.panelCount = plan.segments.length
-
-    log.info("llm_panel_plan_success", {
-      panelCount: plan.panelCount,
-      segments: plan.segments.length,
-    })
-
-    return plan
+    return result.data
   } catch (error) {
     log.error("llm_panel_plan_failed", { error: String(error) })
     return fallbackPanelPlan(storySegment, maxPanels)
@@ -451,44 +398,25 @@ async function fallbackPanelPlan(storySegment: string, maxPanels: number): Promi
  */
 async function analyzeSegmentWithLLM(text: string): Promise<PanelPlan["segments"][number]> {
   try {
-    const languageModel = await getNovelLanguageModel()
-
-    const result = await generateText({
-      model: languageModel,
-      system: `You are a literary analyst. Extract key information from story segments.
-
-Tasks:
-1. Identify character names (people mentioned in the text)
-2. Detect emotions (what emotions are expressed or implied)
-3. Summarize the key visual moment
-
-Output JSON format only:
-{
-  "characters": ["name1", "name2"],
-  "emotions": ["emotion1", "emotion2"],
-  "keyMoment": "Brief description of the key visual moment"
-}
-
-Guidelines:
-- Characters: Extract names of people (ignore pronouns like "he", "she")
-- Emotions: Both explicit (angry, sad) and implied (tense, hopeful)
-- Key moment: What would you see in a comic panel of this scene?`,
+    const result = await callLLMJson<{
+      characters: string[]
+      emotions: string[]
+      keyMoment: string
+    }>({
       prompt: `Analyze this story segment:\n\n${text.substring(0, 500)}`,
+      system: `Extract character names, emotions, and key visual moment from text. Output JSON with characters (names), emotions (list), keyMoment (brief description).`,
+      callType: "segment_analysis",
+      temperature: 0.3,
+      useRetry: true,
     })
 
-    const jsonText = result.text.trim()
-    const jsonMatch = jsonText.match(/\{[\s\S]*\}/)
-
-    if (jsonMatch) {
-      const analysis = JSON.parse(jsonMatch[0])
-      return {
-        startIndex: 0,
-        endIndex: 1,
-        description: text,
-        keyMoment: analysis.keyMoment || "Scene moment",
-        emotions: Array.isArray(analysis.emotions) ? analysis.emotions : [],
-        characters: Array.isArray(analysis.characters) ? analysis.characters : [],
-      }
+    return {
+      startIndex: 0,
+      endIndex: 1,
+      description: text,
+      keyMoment: result.data.keyMoment || "Scene moment",
+      emotions: Array.isArray(result.data.emotions) ? result.data.emotions : [],
+      characters: Array.isArray(result.data.characters) ? result.data.characters : [],
     }
   } catch (error) {
     log.warn("segment_llm_analysis_failed", { error: String(error) })

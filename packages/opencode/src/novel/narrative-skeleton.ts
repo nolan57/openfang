@@ -1,9 +1,8 @@
 import { readFile, writeFile } from "fs/promises"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
-import { generateText } from "ai"
+import { callLLMJson } from "./llm-wrapper"
 import { Log } from "../util/log"
-import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
 import { getNarrativeSkeletonPath } from "./novel-config"
 
@@ -405,8 +404,6 @@ export async function createNarrativeSkeleton(
   log.info("creating_narrative_skeleton", { theme, tone, promptLength: initialPrompt.length })
 
   try {
-    const languageModel = await getNovelLanguageModel()
-
     let systemPrompt = `You are an expert literary architect specializing in epic narrative structures.
 Your task is to create a comprehensive narrative skeleton for a long-form story.
 
@@ -486,38 +483,19 @@ Generate a JSON structure with this exact format:
       } ${metaLearnerContext.pacingPreference ? `with ${metaLearnerContext.pacingPreference} pacing` : ""}.`
     }
 
-    const result = await generateText({
-      model: languageModel,
-      system: systemPrompt,
+    const result = await callLLMJson<NarrativeSkeleton>({
       prompt: userPrompt,
+      system: systemPrompt,
+      callType: "narrative_skeleton_creation",
+      temperature: 0.7,
+      useRetry: true,
     })
 
-    const text = result.text.trim()
-    log.info("llm_skeleton_output", { textLength: text.length, preview: text.slice(0, 500) })
-
-    let jsonText = text
-    const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
-    if (codeBlockMatch) {
-      jsonText = codeBlockMatch[1].trim()
-    } else {
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-      if (jsonMatch) {
-        jsonText = jsonMatch[0]
-      }
-    }
-
-    log.info("extracted_json", { jsonLength: jsonText.length, preview: jsonText.slice(0, 500) })
-
-    let skeleton: NarrativeSkeleton
-    try {
-      skeleton = JSON.parse(jsonText)
-    } catch (parseError) {
-      log.error("json_parse_failed", {
-        error: String(parseError),
-        jsonPreview: jsonText.slice(0, 1000),
-      })
-      return createFallbackSkeleton(theme, tone, initialPrompt)
-    }
+    const skeleton = result.data
+    log.info("llm_skeleton_output", {
+      storyLines: skeleton.storyLines?.length || 0,
+      motifs: Object.keys(skeleton.thematicMotifs || {}).length,
+    })
 
     skeleton.createdAt = Date.now()
     skeleton.lastUpdated = Date.now()

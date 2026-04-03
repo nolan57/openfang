@@ -2,8 +2,7 @@ import { z } from "zod"
 import { readFile, writeFile, access, mkdir } from "fs/promises"
 import { resolve, dirname } from "path"
 import { Log } from "../util/log"
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLMJson } from "./llm-wrapper"
 import { Instance } from "../project/instance"
 import type { Motif } from "./pattern-miner-enhanced"
 import { getMotifTrackingPath } from "./novel-config"
@@ -295,8 +294,6 @@ export class MotifTracker {
     characters: Record<string, any>,
     chapter: number,
   ): Promise<MotifEvolution[]> {
-    const languageModel = await getNovelLanguageModel()
-
     const motifContext = motifs
       .filter((m) => m.strength > 30)
       .map((m) => `${m.name}: ${m.description} (strength: ${m.strength}%)`)
@@ -327,44 +324,30 @@ CHAPTER: ${chapter}
 For each motif that has evolved or relates to characters, output:
 {
   "evolutions": [
-    {
-      "motifName": "name",
-      "fromState": "previous state",
-      "toState": "new state",
-      "triggerEvent": "what caused the change",
-      "characterInvolved": "character name if applicable",
-      "emotionalContext": "emotional context",
-      "thematicSignificance": 1-10
-    }
+    { "motifName": "name", "fromState": "previous state", "toState": "new state", "triggerEvent": "what caused the change", "characterInvolved": "character name", "emotionalContext": "emotional context", "thematicSignificance": 1-10 }
   ],
   "correlations": [
-    {
-      "motifName": "name",
-      "characterName": "character",
-      "correlationStrength": 0-100,
-      "arcPhase": "denial|resistance|exploration|integration|mastery",
-      "impactType": "positive|negative|transformative|neutral",
-      "description": "how this motif relates to this character's arc"
-    }
+    { "motifName": "name", "characterName": "character", "correlationStrength": 0-100, "arcPhase": "denial|resistance|exploration|integration|mastery", "impactType": "positive|negative|transformative|neutral", "description": "how this motif relates to this character's arc" }
   ],
   "variations": [
-    {
-      "parentMotifName": "parent motif",
-      "variationName": "new variation name",
-      "description": "description",
-      "differences": "how it differs from parent"
-    }
+    { "parentMotifName": "parent motif", "variationName": "new variation name", "description": "description", "differences": "how it differs from parent" }
   ]
 }
 
 Output JSON. If no evolution/correlation, use empty arrays.`
 
     try {
-      const result = await generateText({ model: languageModel, prompt })
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (!match) return []
-
-      const data = JSON.parse(match[0])
+      const result = await callLLMJson<{
+        evolutions?: Array<{ motifName: string; fromState: string; toState: string; triggerEvent: string; characterInvolved: string; emotionalContext: string; thematicSignificance: number }>
+        correlations?: Array<{ motifName: string; characterName: string; correlationStrength: number; arcPhase: string; impactType: string; description: string }>
+        variations?: Array<{ parentMotifName: string; variationName: string; description: string; differences: string }>
+      }>({
+        prompt,
+        callType: "motif_evolution",
+        temperature: 0.5,
+        useRetry: true,
+      })
+      const data = result.data
       const newEvolutions: MotifEvolution[] = []
 
       for (const ev of data.evolutions || []) {
@@ -445,8 +428,8 @@ Output JSON. If no evolution/correlation, use empty arrays.`
           motifId: motif.id,
           characterName: corr.characterName,
           correlationStrength: corr.correlationStrength,
-          arcPhase: corr.arcPhase,
-          impactType: corr.impactType,
+          arcPhase: corr.arcPhase as any,
+          impactType: corr.impactType as any,
           description: corr.description,
           chapters: [chapter],
         }

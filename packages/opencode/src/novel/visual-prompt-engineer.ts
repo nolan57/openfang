@@ -1,6 +1,5 @@
 import { Log } from "../util/log"
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLMJson } from "./llm-wrapper"
 import {
   loadVisualConfig,
   getVisualConfig,
@@ -230,37 +229,31 @@ async function callLLMForPromptEngineering(
   }
 
   try {
-    const languageModel = await getNovelLanguageModel()
-
-    const result = await generateText({
-      model: languageModel,
-      system: buildPromptEngineerSystemPrompt(),
+    const result = await callLLMJson<{
+      refinedVisualPrompt: string
+      refinedNegativePrompt: string
+      detectedAction?: string
+      artisticNotes?: string
+      confidenceScore?: number
+    }>({
       prompt: buildPromptEngineerUserPrompt(context),
+      system: buildPromptEngineerSystemPrompt(),
+      callType: "visual_prompt_engineering",
+      temperature: 0.3,
+      useRetry: true,
     })
 
-    const text = result.text.trim()
-
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      log.warn("llm_no_json_found", { response: text.slice(0, 200) })
-      return null
-    }
-
-    const parsed = JSON.parse(jsonMatch[0])
-
-    // Validate required fields
-    if (!parsed.refinedVisualPrompt || typeof parsed.refinedVisualPrompt !== "string") {
+    if (!result.data.refinedVisualPrompt) {
       log.warn("llm_missing_visual_prompt")
       return null
     }
 
     return {
-      refinedVisualPrompt: parsed.refinedVisualPrompt,
-      refinedNegativePrompt: parsed.refinedNegativePrompt || "",
-      detectedAction: parsed.detectedAction,
-      artisticNotes: parsed.artisticNotes,
-      confidenceScore: typeof parsed.confidenceScore === "number" ? parsed.confidenceScore : 0.8,
+      refinedVisualPrompt: result.data.refinedVisualPrompt,
+      refinedNegativePrompt: result.data.refinedNegativePrompt || "",
+      detectedAction: result.data.detectedAction,
+      artisticNotes: result.data.artisticNotes,
+      confidenceScore: typeof result.data.confidenceScore === "number" ? result.data.confidenceScore : 0.8,
     }
   } catch (error) {
     log.error("llm_call_failed", { error: String(error) })

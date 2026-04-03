@@ -1,7 +1,6 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { generateText } from "ai"
-import { getNovelLanguageModel } from "./model"
+import { callLLMJson } from "./llm-wrapper"
 
 const log = Log.create({ service: "relationship-inertia" })
 
@@ -228,8 +227,6 @@ export class RelationshipInertiaManager {
     characters: Record<string, any>,
     currentChapter: number,
   ): Promise<PlotHook[]> {
-    const languageModel = await getNovelLanguageModel()
-
     const relContext = Object.entries(relationships)
       .slice(0, 10)
       .map(([key, rel]) => {
@@ -253,7 +250,7 @@ ${charContext}
 
 CURRENT CHAPTER: ${currentChapter}
 
-Generate plot hooks that leverage relationship dynamics. Output JSON:
+Generate 3-5 character-driven plot hooks. Output JSON:
 {
   "hooks": [
     {
@@ -266,27 +263,32 @@ Generate plot hooks that leverage relationship dynamics. Output JSON:
       "suggestedChapterRange": { "min": N, "max": N }
     }
   ]
-}
-
-Generate 3-5 hooks that are:
-- Character-driven (based on relationship dynamics)
-- Dramatically interesting
-- Thematically relevant
-- Actionable within a reasonable chapter range`
+}`
 
     try {
-      const result = await generateText({ model: languageModel, prompt })
-      const match = result.text.match(/\{[\s\S]*\}/)
-      if (!match) return []
+      const result = await callLLMJson<{
+        hooks: Array<{
+          type: string
+          characters: string[]
+          description: string
+          triggerConditions: string[]
+          narrativeImpact: string
+          tensionPotential: number
+          suggestedChapterRange: { min: number; max: number }
+        }>
+      }>({
+        prompt,
+        callType: "plot_hook_generation",
+        temperature: 0.6,
+        useRetry: true,
+      })
 
-      const data = JSON.parse(match[0])
       const newHooks: PlotHook[] = []
-
-      for (const hook of data.hooks || []) {
+      for (const hook of result.data.hooks || []) {
         const id = `hook_${hook.type}_${Date.now()}`
         const plotHook: PlotHook = {
           id,
-          type: hook.type,
+          type: hook.type as any,
           characters: hook.characters,
           description: hook.description,
           triggerConditions: hook.triggerConditions || [],

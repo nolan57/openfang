@@ -1,9 +1,8 @@
 import { readFile, writeFile, readdir } from "fs/promises"
 import { resolve, dirname, join } from "path"
 import { mkdir } from "fs/promises"
-import { generateText } from "ai"
+import { callLLMJson } from "./llm-wrapper"
 import { Log } from "../util/log"
-import { getNovelLanguageModel } from "./model"
 import { Instance } from "../project/instance"
 import { getSummariesPath, getReflectionsPath, getStoryBiblePath } from "./novel-config"
 
@@ -138,8 +137,6 @@ async function analyzeThematicElements(
   fullStory: string,
   theme: string,
 ): Promise<ThematicReflection["analysis"]> {
-  const languageModel = await getNovelLanguageModel()
-
   const contextText = `
 THEME: ${theme}
 
@@ -155,82 +152,26 @@ Your task is to conduct a rigorous thematic analysis of an ongoing long-form nar
 
 ANALYSIS FRAMEWORK:
 
-1. THEMATIC CONSISTENCY
-   - Evaluate how well recent events serve the core theme
-   - Identify thematic drift or dilution
-   - Score 1-10 (10 = perfect thematic alignment)
-
-2. IMAGERY EVOLUTION
-   - Track recurring images, symbols, and motifs
-   - Assess how they have evolved and deepened
-   - Identify opportunities for visual/thematic reinforcement
-
-3. CHARACTER ARCS
-   - For each major character, assess their arc progression
-   - Evaluate alignment between personal journey and thematic exploration
-   - Identify stagnant or rushed development
-
-4. NARRATIVE PACING
-   - Assess tension curve and rhythm
-   - Identify pacing issues (rushed, dragged, uneven)
-   - Recommend adjustments for optimal engagement
-
-5. PHILOSOPHICAL DEPTH
-   - What profound questions does the story raise?
-   - What insights has it offered?
-   - What areas remain unexplored?
-
-OUTPUT STRICT JSON with this structure:
-{
-  "thematicConsistency": {
-    "score": 1-10,
-    "assessment": "detailed analysis",
-    "evidence": ["specific example 1", "specific example 2"]
-  },
-  "imageryEvolution": {
-    "recurringImages": ["image 1", "image 2"],
-    "evolution": "how imagery has developed",
-    "recommendations": ["suggestion 1", "suggestion 2"]
-  },
-  "characterArcs": [
-    {
-      "character": "Name",
-      "arcProgression": "description",
-      "alignmentWithTheme": "analysis",
-      "recommendations": ["suggestion 1"]
-    }
-  ],
-  "narrativePacing": {
-    "assessment": "analysis",
-    "tensionCurve": "description",
-    "recommendations": ["suggestion 1"]
-  },
-  "philosophicalDepth": {
-    "questionsRaised": ["question 1"],
-    "insightsOffered": ["insight 1"],
-    "unexploredAreas": ["area 1"]
-  }
-}
+1. THEMATIC CONSISTENCY (score 1-10)
+2. IMAGERY EVOLUTION (recurring images, evolution, recommendations)
+3. CHARACTER ARCS (per-character assessment)
+4. NARRATIVE PACING (tension curve, recommendations)
+5. PHILOSOPHICAL DEPTH (questions raised, insights, unexplored areas)
 
 Be specific, citing actual events and patterns. Balance praise with constructive critique.`
 
-  const result = await generateText({
-    model: languageModel,
-    system: systemPrompt,
-    prompt: contextText,
-  })
-
-  const text = result.text.trim()
-  const jsonMatch = text.match(/\{[\s\S]*\}/)
-
-  if (jsonMatch) {
-    try {
-      const analysis = JSON.parse(jsonMatch[0])
-      log.info("thematic_analysis_completed")
-      return analysis
-    } catch (parseError) {
-      log.error("analysis_json_parse_failed", { error: String(parseError) })
-    }
+  try {
+    const result = await callLLMJson<ThematicReflection["analysis"]>({
+      prompt: contextText,
+      system: systemPrompt,
+      callType: "thematic_analysis",
+      temperature: 0.3,
+      useRetry: true,
+    })
+    log.info("thematic_analysis_completed")
+    return result.data
+  } catch (parseError) {
+    log.error("analysis_parse_failed", { error: String(parseError) })
   }
 
   return {
