@@ -23,6 +23,6 @@ export { BranchStorage, branchStorage, type BranchRecord, type BranchStorageConf
 export { MotifTracker, motifTracker, type MotifEvolution, type MotifCharacterCorrelation, type MotifVariation } from "./motif-tracker"
 export { CharacterLifecycleManager, characterLifecycleManager, type CharacterLifecycle, type CharacterLifeStage, type CharacterStatus, type LifeEvent, type LifecycleConfig } from "./character-lifecycle"
 export { EndGameDetector, endGameDetector, type CompletionCriterion, type EndGameReport, type StoryMetricsType } from "./end-game-detection"
-export { FactionDetector, factionDetector, type Faction, type FactionMember, type FactionDetectionResult } from "./faction-detector"
 export { RelationshipInertiaManager, relationshipInertiaManager, type RelationshipInertia, type PlotHook, type InertiaConfig } from "./relationship-inertia"
+export { MultiThreadNarrativeExecutor, multiThreadNarrativeExecutor, type NarrativeThread, type ThreadSynchronization, type MultiThreadConfig, type LLMClient, type ReconciliationPlan, type SemanticConflict } from "./multi-thread-narrative"
 export * from "./types"

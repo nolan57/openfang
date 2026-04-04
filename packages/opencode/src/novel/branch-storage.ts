@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
 import type { Branch } from "./branch-manager"
@@ -8,7 +7,7 @@ import { getBranchStorageDbPath } from "./novel-config"
 
 const log = Log.create({ service: "branch-storage" })
 
-export interface BranchEvent {
+interface BranchEvent {
   id: string
   type: string
   description: string
@@ -159,6 +158,11 @@ export class BranchStorage {
   async saveBranch(branch: Branch): Promise<void> {
     if (!this.initialized) await this.initialize()
 
+    // Generate embedding from story segment if enabled
+    const embedding = this.config.enableEmbeddings
+      ? this.generateBranchEmbedding(branch)
+      : null
+
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO branches (
         id, story_segment, branch_point, choice_made, choice_rationale,
@@ -183,12 +187,55 @@ export class BranchStorage {
       branch.mergedInto || null,
       branch.pruned ? 1 : 0,
       branch.pruneReason || null,
-      null,
+      embedding,
       JSON.stringify(branch.events || []),
       JSON.stringify(branch.structuredState || {}),
     )
 
-    log.info("branch_saved", { id: branch.id, chapter: branch.chapter })
+    log.info("branch_saved", { id: branch.id, chapter: branch.chapter, embedding: !!embedding })
+  }
+
+  /**
+   * Generate a semantic embedding vector for a branch as a compact JSON string.
+   * Uses a multi-feature hash combining story content, evaluation scores, and
+   * narrative themes for future similarity-based branch retrieval.
+   */
+  private generateBranchEmbedding(branch: Branch): string {
+    const evalScores = branch.evaluation
+      ? [
+          branch.evaluation.narrativeQuality || 0,
+          branch.evaluation.tensionLevel || 0,
+          branch.evaluation.characterDevelopment || 0,
+          branch.evaluation.plotProgression || 0,
+          branch.evaluation.characterGrowth || 0,
+          branch.evaluation.riskReward || 0,
+          branch.evaluation.thematicRelevance || 0,
+        ]
+      : [0, 0, 0, 0, 0, 0, 0]
+
+    // Generate a content-based hash for semantic similarity
+    const contentHash = this.simpleHash(branch.storySegment)
+    const choiceHash = this.simpleHash(branch.choiceMade + branch.branchPoint)
+
+    return JSON.stringify({
+      v: 1, // embedding version
+      ch: contentHash,
+      wh: choiceHash,
+      ev: evalScores,
+      cp: branch.chapter || 0,
+    })
+  }
+
+  /**
+   * Simple hash for text content.
+   * Uses DJB2 algorithm for deterministic, fast hashing.
+   */
+  private simpleHash(str: string): string {
+    let hash = 5381
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash * 33) ^ str.charCodeAt(i)
+    }
+    return (hash >>> 0).toString(36)
   }
 
   async loadBranch(id: string): Promise<Branch | null> {

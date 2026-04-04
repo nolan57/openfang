@@ -1,9 +1,7 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
-import type { CharacterState } from "../types/novel-state"
 import { getStoryMemoryDbPath } from "./novel-config"
 
 const log = Log.create({ service: "story-world-memory" })

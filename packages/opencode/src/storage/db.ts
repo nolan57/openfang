@@ -114,39 +114,106 @@ function storeEmbeddingDim(sqlite: BunDatabase, dim: number): void {
 }
 
 /**
+ * Clear existing vector tables to prepare for dimension change.
+ * This is called when a dimension mismatch is detected to prevent
+ * mixing vectors of different dimensions (which would cause search errors).
+ *
+ * Tables cleaned:
+ * 1. vec_vector_memory (sqlite-vec virtual table)
+ * 2. vector_memory (drizzle table - embeddings cleared, metadata preserved)
+ * 3. knowledge_nodes (embeddings cleared, node data preserved)
+ * 4. vector_sync_meta (reset to force full re-sync on next init)
+ */
+function clearVectorTables(sqlite: BunDatabase, logger: typeof log): void {
+  try {
+    // Drop the vec virtual table (safe - it's virtual, will be recreated on next init)
+    sqlite.exec("DROP TABLE IF EXISTS vec_vector_memory")
+    logger.info("vec_vector_memory_dropped", { reason: "dimension_mismatch_cleanup" })
+  } catch (error) {
+    logger.debug("drop_vec_table_failed", { error: String(error) })
+  }
+
+  try {
+    // Drop FTS table (references old vector_memory rowids)
+    sqlite.exec("DROP TABLE IF EXISTS vector_memory_fts")
+    logger.info("vector_memory_fts_dropped", { reason: "dimension_mismatch_cleanup" })
+  } catch (error) {
+    logger.debug("drop_fts_table_failed", { error: String(error) })
+  }
+
+  try {
+    // Clear embedding column from knowledge_nodes (preserves node data)
+    sqlite.exec("UPDATE knowledge_nodes SET embedding = NULL")
+    logger.info("knowledge_nodes_embeddings_cleared", { reason: "dimension_mismatch_cleanup" })
+  } catch (error) {
+    logger.debug("clear_knowledge_nodes_embeddings_failed", { error: String(error) })
+  }
+
+  try {
+    // Clear vector_memory entries (they will be re-created during sync)
+    sqlite.exec("DELETE FROM vector_memory")
+    logger.info("vector_memory_cleared", { reason: "dimension_mismatch_cleanup" })
+  } catch (error) {
+    logger.debug("clear_vector_memory_failed", { error: String(error) })
+  }
+
+  try {
+    // Reset sync metadata to force full re-sync on next init
+    sqlite.exec(`DELETE FROM vector_sync_meta WHERE id = 'sync_state'`)
+    logger.info("vector_sync_meta_reset", { reason: "dimension_mismatch_cleanup" })
+  } catch (error) {
+    logger.debug("reset_sync_meta_failed", { error: String(error) })
+  }
+}
+
+/**
  * Validate and initialize vector dimensions
  * This should be called during database initialization
  *
  * Logic:
- * 1. If database has stored dimension, use it (preserve existing vectors)
- * 2. Otherwise use default (fresh database)
- *
- * Note: Environment variable EMBEDDING_DIM is no longer supported.
- * Use opencode.jsonc embedding.dimensions to configure.
+ * 1. If database has stored dimension that matches default, use it
+ * 2. If stored dimension differs from default, clear old vectors and update to default
+ * 3. Otherwise use default (fresh database)
  */
 function validateVectorDimensions(sqlite: BunDatabase, logger: typeof log): number {
   const storedDim = getStoredEmbeddingDim(sqlite)
-  const configuredDim = undefined // Environment variable support removed
+  const defaultDim = DEFAULT_EMBEDDING_DIM
 
   logger.debug("vector_dimension_check", {
-    configured: configuredDim,
     stored: storedDim,
-    hasExplicitConfig: false,
+    default: defaultDim,
   })
 
-  // If no dimension stored yet, this is a fresh database
+  // Fresh database - store the default dimension
   if (storedDim === undefined) {
-    const dimToUse = DEFAULT_EMBEDDING_DIM
     logger.info("initializing_vector_dimension", {
-      dimension: dimToUse,
+      dimension: defaultDim,
       source: "default",
     })
-    storeEmbeddingDim(sqlite, dimToUse)
-    return dimToUse
+    storeEmbeddingDim(sqlite, defaultDim)
+    return defaultDim
   }
 
-  // Use stored dimension to preserve existing vectors
-  logger.info("vector_dimension_using_stored", {
+  // Stored dimension differs from default - clear old vectors and migrate
+  // Old vectors are incompatible (384 vs 1536), keeping them would cause search errors
+  if (storedDim !== defaultDim) {
+    logger.warn("vector_dimension_mismatch_corrected", {
+      stored: storedDim,
+      corrected: defaultDim,
+      source: "default",
+      action: "clearing_old_vectors",
+    })
+
+    // Clear old vector tables to prevent dimension mismatch errors
+    clearVectorTables(sqlite, logger)
+
+    // Update stored dimension
+    storeEmbeddingDim(sqlite, defaultDim)
+    return defaultDim
+  }
+
+  // Stored dimension matches default - all good
+  logger.info("vector_dimension_validated", {
     dimension: storedDim,
     source: "database",
   })

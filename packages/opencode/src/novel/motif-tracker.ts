@@ -3,7 +3,6 @@ import { readFile, writeFile, access, mkdir } from "fs/promises"
 import { resolve, dirname } from "path"
 import { Log } from "../util/log"
 import { callLLMJson } from "./llm-wrapper"
-import { Instance } from "../project/instance"
 import type { Motif } from "./pattern-miner-enhanced"
 import { getMotifTrackingPath } from "./novel-config"
 

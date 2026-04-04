@@ -1,10 +1,9 @@
 import { Log } from "../util/log"
-import { getNovelLanguageModel } from "./model"
-import { generateText } from "ai"
 import { BranchManager } from "./branch-manager"
 import { EnhancedPatternMiner } from "./pattern-miner-enhanced"
 import { MotifTracker } from "./motif-tracker"
 import { StoryKnowledgeGraph } from "./story-knowledge-graph"
+import { StoryWorldMemory } from "./story-world-memory"
 
 const log = Log.create({ service: "novel-observability" })
 
@@ -94,9 +93,20 @@ export class NovelObservability {
   private metricsHistory: Array<{ timestamp: number; metrics: NovelMetrics }> = []
   private errorCounts: Map<string, number> = new Map()
   private generationTimes: number[] = []
+  private extractionTimes: number[] = []
 
   private static readonly MAX_TRACE_EVENTS = 1000
   private static readonly MAX_METRICS_HISTORY = 100
+
+  /**
+   * Record a state extraction duration for performance tracking.
+   */
+  recordExtractionTime(durationMs: number): void {
+    this.extractionTimes.push(durationMs)
+    if (this.extractionTimes.length > 100) {
+      this.extractionTimes.shift()
+    }
+  }
 
   startTrace(type: TraceEvent["type"], metadata: Record<string, unknown> = {}): string {
     const id = `trace_${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -155,16 +165,48 @@ export class NovelObservability {
     patternMiner: EnhancedPatternMiner,
     motifTracker: MotifTracker,
     knowledgeGraph: StoryKnowledgeGraph,
+    storyWorldMemory: StoryWorldMemory,
     characters: Record<string, any>,
     relationships: Record<string, any>,
+    chapterCount: number = 1,
   ): Promise<NovelMetrics> {
     const branchStats = branchManager.getStats()
     const patternStats = patternMiner.getStats()
     const graphStats = await knowledgeGraph.getStats()
+    const memoryStats = await storyWorldMemory.getStats()
 
     const activeCharacters = Object.values(characters).filter((c: any) => c.status === "active").length
 
     const motifStats = motifTracker.getStats()
+
+    // Faction count from knowledge graph groups
+    let factionCount = 0
+    try {
+      const groups = await knowledgeGraph.getAllGroups()
+      factionCount = groups.length
+    } catch {
+      factionCount = 0
+    }
+
+    // Inconsistency count from knowledge graph detection
+    let inconsistencyCount = 0
+    try {
+      for (const charId of Object.keys(characters)) {
+        const issues = await knowledgeGraph.detectInconsistency(charId)
+        inconsistencyCount += issues.length
+      }
+    } catch {
+      inconsistencyCount = 0
+    }
+
+    // Memory distribution by level
+    const memoryDistribution = {
+      sentence: memoryStats.byLevel?.sentence ?? 0,
+      scene: memoryStats.byLevel?.scene ?? 0,
+      chapter: memoryStats.byLevel?.chapter ?? 0,
+      arc: memoryStats.byLevel?.arc ?? 0,
+      story: memoryStats.byLevel?.story ?? 0,
+    }
 
     const metrics: NovelMetrics = {
       // Branch metrics
@@ -177,7 +219,7 @@ export class NovelObservability {
       // Pattern metrics
       totalPatterns: patternStats.patterns + patternStats.archetypes + patternStats.motifs,
       activePatterns: patternStats.avgStrength > 50 ? patternStats.patterns : 0,
-      patternDiscoveryRate: patternStats.patterns / Math.max(1, this.getCurrentChapter()),
+      patternDiscoveryRate: patternStats.patterns / Math.max(1, chapterCount),
       avgPatternStrength: patternStats.avgStrength,
 
       // Character metrics
@@ -187,7 +229,7 @@ export class NovelObservability {
 
       // Relationship metrics
       totalRelationships: Object.keys(relationships).length,
-      factionCount: 0, // TODO: get from faction detector
+      factionCount,
       relationshipStabilityScore: this.calculateRelationshipStability(relationships),
 
       // Motif metrics
@@ -196,27 +238,23 @@ export class NovelObservability {
       thematicConsistencyScore: motifStats.avgStrength || 50,
 
       // Memory metrics
-      totalMemories: 0, // TODO: get from story memory
-      memoryDistribution: {
-        sentence: 0,
-        scene: 0,
-        chapter: 0,
-        arc: 0,
-        story: 0,
-      },
+      totalMemories: memoryStats.total,
+      memoryDistribution,
 
       // Knowledge graph metrics
       totalNodes: graphStats.totalNodes,
       totalEdges: graphStats.totalEdges,
       graphDensity: graphStats.totalEdges / Math.max(1, (graphStats.totalNodes * (graphStats.totalNodes - 1)) / 2),
-      inconsistencyCount: 0, // TODO: detect inconsistencies
+      inconsistencyCount,
 
       // Performance metrics
       avgGenerationTime:
         this.generationTimes.length > 0
           ? this.generationTimes.reduce((a, b) => a + b, 0) / this.generationTimes.length
           : 0,
-      avgExtractionTime: 0, // TODO: track
+      avgExtractionTime: this.extractionTimes.length > 0
+        ? this.extractionTimes.reduce((a, b) => a + b, 0) / this.extractionTimes.length
+        : 0,
       errorRate: this.calculateErrorRate(),
     }
 
@@ -390,11 +428,6 @@ export class NovelObservability {
     const totalEvents = this.traceEvents.size
 
     return totalEvents > 0 ? totalErrors / totalEvents : 0
-  }
-
-  private getCurrentChapter(): number {
-    // TODO: Get from orchestrator state
-    return 1
   }
 }
 

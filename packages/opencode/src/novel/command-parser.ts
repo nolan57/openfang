@@ -3,7 +3,6 @@ import { readFile, writeFile, readdir, stat } from "fs/promises"
 import { resolve, join } from "path"
 import { EvolutionOrchestrator, loadDynamicPatterns } from "./orchestrator"
 import { enhancedPatternMiner } from "./pattern-miner-enhanced"
-import { Instance } from "../project/instance"
 import {
   getStoryBiblePath,
   getDynamicPatternsPath,

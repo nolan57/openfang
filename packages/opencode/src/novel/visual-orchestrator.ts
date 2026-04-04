@@ -1,5 +1,5 @@
 import { Log } from "../util/log"
-import { writeFile, mkdir } from "fs/promises"
+import { writeFile, mkdir, readFile, readdir } from "fs/promises"
 import { resolve, join } from "path"
 import { getPanelsPath } from "./novel-config"
 import { buildPanelSpecWithHybridEngine, initVisualPromptEngineer } from "./visual-prompt-engineer"
@@ -62,6 +62,30 @@ interface PanelPlan {
   }>
 }
 
+/**
+ * Cached panel from previous chapter generation.
+ */
+interface CachedPanel {
+  id: string
+  contentHash: string
+  panelSpec: VisualPanelSpec
+}
+
+// ============================================================================
+// HASH UTILITY
+// ============================================================================
+
+/**
+ * DJB2 hash for deterministic content hashing.
+ */
+function djb2Hash(str: string): string {
+  let hash = 5381
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i)
+  }
+  return (hash >>> 0).toString(36)
+}
+
 // ============================================================================
 // MAIN EXPORT: GENERATE VISUAL PANELS
 // ============================================================================
@@ -79,7 +103,7 @@ export async function generateVisualPanels(
   options: VisualOrchestratorOptions = {},
 ): Promise<VisualPanelSpec[]> {
   const panelStart = Date.now()
-  const { maxPanels = 4, defaultStyle = "realistic", verbose = false } = options
+  const { maxPanels, defaultStyle = "realistic", verbose = false } = options
 
   log.info("visual_panel_generation_start", {
     chapterCount: input.chapterCount,
@@ -103,16 +127,15 @@ export async function generateVisualPanels(
       durationMs: Date.now() - extractStart,
     })
 
-    // 【修改】即使没有角色，也生成场景面板
+    // If no characters, generate scene-only panels
     if (characterStates.length === 0) {
       log.warn("no_characters_found_generating_scene_panels", {
         chapterCount: input.chapterCount,
         storySegmentLength: input.storySegment.length,
       })
 
-      // 降级：生成纯场景/环境面板，使用相同的风格配置
       const sceneStart = Date.now()
-      const scenePanels = await generateSceneOnlyPanels(input, maxPanels, defaultStyle)
+      const scenePanels = await generateSceneOnlyPanels(input, maxPanels ?? 4, defaultStyle)
       log.info("scene_only_panels_generated", {
         count: scenePanels.length,
         durationMs: Date.now() - sceneStart,
@@ -121,15 +144,34 @@ export async function generateVisualPanels(
       return scenePanels
     }
 
+    // IMPROVEMENT #2: Dynamic pacing control based on tone
+    const dynamicMaxPanels = calculateDynamicPanelCount(input.storySegment, input.narrativeSkeleton?.tone, maxPanels ?? 4)
+
     // Split story into segments using LLM-driven planning
     const planStart = Date.now()
-    const plan = await planPanelSegments(input.storySegment, maxPanels)
+    const plan = await planPanelSegments(input.storySegment, dynamicMaxPanels, input.narrativeSkeleton?.tone)
     const panelCount = plan.segments.length
 
     log.info("panel_segments_planned", {
       plannedPanels: panelCount,
+      tone: input.narrativeSkeleton?.tone,
+      dynamicMaxPanels,
       durationMs: Date.now() - planStart,
     })
+
+    // IMPROVEMENT #1: Shot List Caching — load previous panels for reuse
+    const cachedPanels = await loadCachedPanels(input.chapterCount, input.storySegment)
+    const cachedByHash = new Map<string, VisualPanelSpec>()
+    for (const cached of cachedPanels) {
+      cachedByHash.set(cached.contentHash, cached.panelSpec)
+    }
+
+    if (cachedPanels.length > 0) {
+      log.info("shot_cache_loaded", {
+        cachedPanels: cachedPanels.length,
+        chapterCount: input.chapterCount,
+      })
+    }
 
     // Get global style from narrative skeleton
     const globalStyle = input.narrativeSkeleton?.tone || defaultStyle
@@ -140,108 +182,146 @@ export async function generateVisualPanels(
     const panels: VisualPanelSpec[] = []
 
     for (let i = 0; i < panelCount; i++) {
-      const panelGenStart = Date.now()
-      const segment = plan.segments[i]
-      const panelText = segment.description
+      // IMPROVEMENT #3: Per-panel error boundary
+      try {
+        const panelGenStart = Date.now()
+        const segment = plan.segments[i]
+        const panelText = segment.description
 
-      // Get main character for this panel
-      const mainChar = characterStates[0]
+        // Get main character for this panel
+        const mainChar = characterStates[0]
 
-      // 【NEW】Analyze continuity with previous panels
-      const continuityStart = Date.now()
-      const continuity = await continuityAnalyzer.analyze(panelText, {
-        previousSegment: i > 0 ? plan.segments[i - 1].description : null,
-        previousPanels: panels.slice(-3),
-        chapterContext: {
-          chapterCount: input.chapterCount,
-          totalPanelsGenerated: panels.length,
-        },
-      })
-      const continuityDuration = Date.now() - continuityStart
+        // Compute content hash for caching
+        const contentHash = djb2Hash(`${panelText}|${mainChar.name}|${mainChar.outfit}`)
 
-      log.info("continuity_analyzed", {
-        panelIndex: i,
-        shouldMaintainOutfit: continuity.llmJudgement.shouldMaintainOutfit,
-        confidence: Math.round(continuity.llmJudgement.confidence * 100),
-        durationMs: continuityDuration,
-      })
+        // Check cache first
+        const cachedPanel = cachedByHash.get(contentHash)
+        if (cachedPanel) {
+          const reused = { ...cachedPanel, panelIndex: i }
+          panels.push(reused)
+          log.info("panel_reused_from_cache", {
+            panelIndex: i,
+            contentHash,
+            durationMs: Date.now() - panelGenStart,
+          })
+          continue
+        }
 
-      // Build psychological profiles for all characters
-      const characterPsychologicalProfiles: Record<string, { coreFear?: string; attachmentStyle?: string }> = {}
-      for (const char of characterStates) {
-        // Note: In a full implementation, this would come from character-deepener
-        // For now, we extract from character state if available
-        if ((char as any).psychologicalProfile) {
-          characterPsychologicalProfiles[char.name] = {
-            coreFear: (char as any).psychologicalProfile.coreFear,
-            attachmentStyle: (char as any).psychologicalProfile.attachmentStyle,
+        // Analyze continuity with previous panels
+        const continuityStart = Date.now()
+        const continuity = await continuityAnalyzer.analyze(panelText, {
+          previousSegment: i > 0 ? plan.segments[i - 1].description : null,
+          previousPanels: panels.slice(-3),
+          chapterContext: {
+            chapterCount: input.chapterCount,
+            totalPanelsGenerated: panels.length,
+          },
+        })
+        const continuityDuration = Date.now() - continuityStart
+
+        log.info("continuity_analyzed", {
+          panelIndex: i,
+          shouldMaintainOutfit: continuity.llmJudgement.shouldMaintainOutfit,
+          confidence: Math.round(continuity.llmJudgement.confidence * 100),
+          durationMs: continuityDuration,
+        })
+
+        // Build psychological profiles for all characters
+        const characterPsychologicalProfiles: Record<string, { coreFear?: string; attachmentStyle?: string }> = {}
+        for (const char of characterStates) {
+          if ((char as any).psychologicalProfile) {
+            characterPsychologicalProfiles[char.name] = {
+              coreFear: (char as any).psychologicalProfile.coreFear,
+              attachmentStyle: (char as any).psychologicalProfile.attachmentStyle,
+            }
           }
         }
+
+        // Use outfit from continuity analysis if maintaining
+        const outfitDetails =
+          continuity.llmJudgement.shouldMaintainOutfit && panels.length > 0
+            ? panels[panels.length - 1].character?.outfitDetails || mainChar.outfit
+            : continuity.llmJudgement.outfitDescription || mainChar.outfit
+
+        // Build context for hybrid engine
+        const context = {
+          beat: {
+            description: panelText,
+            action: undefined as string | undefined,
+            emotion: mainChar.emotions?.[0]?.type,
+            location: undefined as string | undefined,
+            timeOfDay: "day" as const,
+            tone: "narrative" as const,
+          },
+          character: {
+            name: mainChar.name,
+            emotionalState: mainChar.emotions?.[0]?.type,
+            currentAction: undefined as string | undefined,
+            outfitDetails,
+            injuryDetails: mainChar.injuries,
+            visualDescription: mainChar.visualDescription,
+          },
+          camera: {
+            shot: "medium" as const,
+            angle: "eye-level" as const,
+            movement: "static" as const,
+            depthOfField: "shallow" as const,
+          },
+          globalStyle,
+          globalTheme,
+          characterPsychologicalProfiles:
+            Object.keys(characterPsychologicalProfiles).length > 0 ? characterPsychologicalProfiles : undefined,
+          previousPanels: panels.slice(-3),
+          continuity: {
+            analysis: continuity,
+            instruction: continuityAnalyzer.extractInstruction(continuity),
+          },
+        }
+
+        // Use hybrid engine
+        const { panel, detectedAction } = await buildPanelSpecWithHybridEngine(context, i)
+
+        // Embed continuity metadata in panel
+        panel.character = context.character
+        panel.beat = context.beat
+        panel.continuity = context.continuity
+        // Embed content hash for future cache lookup
+        panel.notes = `${panel.notes || ""} [hash:${contentHash}]`
+
+        const panelDuration = Date.now() - panelGenStart
+
+        log.info("panel_generated", {
+          index: i + 1,
+          action: detectedAction,
+          durationMs: panelDuration,
+          outfitMaintained: continuity.llmJudgement.shouldMaintainOutfit,
+          cacheHit: false,
+        })
+
+        panels.push(panel)
+      } catch (error) {
+        // IMPROVEMENT #3: Per-panel error boundary — generate placeholder and continue
+        log.error("single_panel_generation_failed", {
+          panelIndex: i,
+          error: String(error),
+          segmentDescription: plan.segments[i]?.description?.slice(0, 100),
+        })
+
+        // Generate a placeholder panel so we don't break the whole chapter
+        const placeholder: VisualPanelSpec = createPlaceholderPanel(
+          plan.segments[i]?.description || "Scene transition",
+          i,
+          globalStyle,
+          characterStates[0],
+        )
+        panels.push(placeholder)
       }
-
-      // 【MODIFIED】Use outfit from continuity analysis if maintaining
-      const outfitDetails =
-        continuity.llmJudgement.shouldMaintainOutfit && panels.length > 0
-          ? panels[panels.length - 1].character?.outfitDetails || mainChar.outfit
-          : continuity.llmJudgement.outfitDescription || mainChar.outfit
-
-      // Build context for hybrid engine with enhanced narrative information
-      const context = {
-        beat: {
-          description: panelText,
-          action: undefined, // Will be detected by LLM or fallback
-          emotion: mainChar.emotions?.[0]?.type,
-          location: undefined,
-          timeOfDay: "day",
-          tone: "narrative",
-        },
-        character: {
-          name: mainChar.name,
-          emotionalState: mainChar.emotions?.[0]?.type,
-          currentAction: undefined, // Will be detected by LLM or fallback
-          outfitDetails,
-          injuryDetails: mainChar.injuries,
-          visualDescription: mainChar.visualDescription,
-        },
-        camera: {
-          shot: "medium" as const,
-          angle: "eye-level" as const,
-          movement: "static" as const,
-          depthOfField: "shallow" as const,
-        },
-        globalStyle,
-        globalTheme,
-        characterPsychologicalProfiles:
-          Object.keys(characterPsychologicalProfiles).length > 0 ? characterPsychologicalProfiles : undefined,
-        previousPanels: panels.slice(-3), // Last 3 panels for continuity
-        // 【NEW】Continuity context
-        continuity: {
-          analysis: continuity,
-          instruction: continuityAnalyzer.extractInstruction(continuity),
-        },
-      }
-
-      // Use hybrid engine
-      const { panel, detectedAction } = await buildPanelSpecWithHybridEngine(context, i)
-      const panelDuration = Date.now() - panelGenStart
-
-      // 【NEW】Embed continuity metadata in panel
-      panel.character = context.character
-      panel.beat = context.beat
-      panel.continuity = context.continuity
-
-      log.info("panel_generated", {
-        index: i + 1,
-        action: detectedAction,
-        durationMs: panelDuration,
-        outfitMaintained: continuity.llmJudgement.shouldMaintainOutfit,
-      })
-
-      panels.push(panel)
     }
 
     log.info("visual_panels_generated", {
       count: panels.length,
+      cachedCount: panels.filter((p) => p.notes?.includes("reused")).length,
+      placeholderCount: panels.filter((p) => p.id.startsWith("placeholder_")).length,
       totalDurationMs: Date.now() - panelStart,
     })
 
@@ -261,6 +341,7 @@ export async function generateVisualPanels(
 
 /**
  * Saves visual panels to a JSON file for later processing.
+ * Also stores a content hash index for shot list caching.
  *
  * @param panels - Array of panel specs to save
  * @param chapterCount - Current chapter number
@@ -275,6 +356,7 @@ export async function saveVisualPanels(panels: VisualPanelSpec[], chapterCount: 
   }
 
   const fileName = `chapter_${chapterCount.toString().padStart(3, "0")}_panels.json`
+  const indexFileName = `chapter_${chapterCount.toString().padStart(3, "0")}_hash_index.json`
 
   try {
     const panelsDir = getPanelsPath()
@@ -297,12 +379,33 @@ export async function saveVisualPanels(panels: VisualPanelSpec[], chapterCount: 
       ),
     )
 
+    // Save hash index for shot list caching
+    const hashIndex: Array<{ contentHash: string; panelIndex: number; panelId: string }> = []
+    for (const p of panels) {
+      if (p.notes?.includes("[hash:")) {
+        const match = p.notes.match(/\[hash:([a-z0-9]+)\]/)
+        if (match?.[1]) {
+          hashIndex.push({
+            contentHash: match[1],
+            panelIndex: p.panelIndex,
+            panelId: p.id,
+          })
+        }
+      }
+    }
+
+    if (hashIndex.length > 0) {
+      const indexPath = resolve(panelsDir, indexFileName)
+      await writeFile(indexPath, JSON.stringify({ chapter: chapterCount, hashIndex }, null, 2))
+    }
+
     const saveDuration = Date.now() - saveStart
     log.info("visual_panels_saved", {
       fileName,
       panelCount: panels.length,
       path: filePath,
       chapterCount,
+      hashIndexCount: hashIndex.length,
       durationMs: saveDuration,
     })
     return filePath
@@ -318,18 +421,157 @@ export async function saveVisualPanels(panels: VisualPanelSpec[], chapterCount: 
 }
 
 // ============================================================================
+// SHOT LIST CACHING (IMPROVEMENT #1)
+// ============================================================================
+
+/**
+ * Loads cached panels from previous chapter generations.
+ * Reads the hash index file and returns panels whose content hash
+ * matches the current story segments.
+ */
+async function loadCachedPanels(chapterCount: number, storySegment: string): Promise<CachedPanel[]> {
+  try {
+    const panelsDir = getPanelsPath()
+    const files = await readdir(panelsDir).catch((): string[] => [])
+    const hashIndexFiles = files.filter((f) => f.endsWith("_hash_index.json"))
+
+    if (hashIndexFiles.length === 0) {
+      return []
+    }
+
+    const cachedPanels: CachedPanel[] = []
+
+    // Load the most recent hash index (previous chapter)
+    const latestIndexFile = hashIndexFiles.sort().reverse()[0]
+    if (!latestIndexFile) return []
+
+    const indexPath = resolve(panelsDir, latestIndexFile)
+    const indexContent = await readFile(indexPath, "utf-8")
+    const indexData = JSON.parse(indexContent)
+
+    // Load the corresponding panels file
+    const panelsFile = latestIndexFile.replace("_hash_index.json", "_panels.json")
+    const panelsPath = resolve(panelsDir, panelsFile)
+
+    if (!files.includes(panelsFile)) {
+      return []
+    }
+
+    const panelsContent = await readFile(panelsPath, "utf-8")
+    const panelsData = JSON.parse(panelsContent)
+
+    // Map hashes to panel specs
+    for (const entry of indexData.hashIndex || []) {
+      const panel = panelsData.panels?.find((p: VisualPanelSpec) => p.panelIndex === entry.panelIndex)
+      if (panel) {
+        cachedPanels.push({
+          id: entry.panelId,
+          contentHash: entry.contentHash,
+          panelSpec: panel,
+        })
+      }
+    }
+
+    return cachedPanels
+  } catch (error) {
+    log.warn("shot_cache_load_failed", { error: String(error) })
+    return []
+  }
+}
+
+// ============================================================================
+// DYNAMIC PACING CONTROL (IMPROVEMENT #2)
+// ============================================================================
+
+/**
+ * Calculates dynamic panel count based on story tone and content.
+ *
+ * Rules:
+ * - Action/tension scenes: 1 panel per ~50 characters (more panels, close-ups)
+ * - Narrative/descriptive scenes: 1 panel per ~150 characters (fewer panels, wide shots)
+ * - Horror/suspense: 1 panel per ~80 characters
+ * - Falls back to default maxPanels if tone is unrecognized
+ */
+function calculateDynamicPanelCount(storySegment: string, tone?: string, maxPanels?: number): number {
+  const charLength = storySegment.length
+  const defaultMax = maxPanels ?? 4
+
+  if (!tone) return defaultMax
+
+  const toneLower = tone.toLowerCase()
+
+  let charsPerPanel: number
+  if (toneLower.includes("action") || toneLower.includes("thriller") || toneLower.includes("battle")) {
+    charsPerPanel = 50 // Dense panels for action
+  } else if (toneLower.includes("horror") || toneLower.includes("suspense") || toneLower.includes("mystery")) {
+    charsPerPanel = 80 // Moderate for tension
+  } else if (toneLower.includes("romance") || toneLower.includes("slice-of-life") || toneLower.includes("calm")) {
+    charsPerPanel = 150 // Sparse for narrative
+  } else {
+    return defaultMax
+  }
+
+  const calculatedPanels = Math.ceil(charLength / charsPerPanel)
+  return Math.min(calculatedPanels, defaultMax + 2) // Allow slight override of max
+}
+
+// ============================================================================
+// PLACEHOLDER PANEL (IMPROVEMENT #3)
+// ============================================================================
+
+/**
+ * Creates a placeholder panel when LLM generation fails.
+ * Ensures "some image is better than no image."
+ */
+function createPlaceholderPanel(
+  fallbackDescription: string,
+  index: number,
+  style: string,
+  character?: VisualCharacterState,
+): VisualPanelSpec {
+  return {
+    id: `placeholder_${index}_${Date.now()}`,
+    panelIndex: index,
+    camera: {
+      shot: "medium",
+      angle: "eye-level",
+      movement: "static",
+      depthOfField: "shallow",
+    },
+    lighting: "natural",
+    composition: "rule-of-thirds",
+    visualPrompt: `Scene: ${fallbackDescription.slice(0, 200)}`,
+    negativePrompt: "blurry, low quality, distorted, watermark, text",
+    controlNetSignals: {
+      poseReference: null,
+      depthReference: null,
+      characterRefUrl: character ? `mock://chars/placeholder/ref.png` : null,
+    },
+    styleModifiers: [style, "placeholder", "generated as fallback"],
+    notes: `Placeholder panel — original generation failed. Scene intent: ${fallbackDescription.slice(0, 100)}`,
+  }
+}
+
+// ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
 /**
  * LLM-driven panel segment planning.
  * Analyzes the complete story segment to determine optimal panel count and content.
+ * Incorporates tone-based density adjustments.
  */
-export async function planPanelSegments(storySegment: string, maxPanels: number): Promise<PanelPlan> {
+export async function planPanelSegments(
+  storySegment: string,
+  maxPanels: number,
+  tone?: string,
+): Promise<PanelPlan> {
+  const toneContext = tone ? `\nTone: ${tone}. Adjust panel density accordingly — action scenes need more panels, narrative scenes need fewer.` : ""
+
   try {
     const result = await callLLMJson<PanelPlan>({
-      prompt: `Analyze this story segment and plan visual panels (max ${maxPanels}):\n\n${storySegment}\n\nReturn JSON with panelCount and segments array.`,
-      system: `You are an expert visual director for comic generation. Plan optimal visual panels. Rules: determine panel count (1-${maxPanels}), identify key visual moments, ensure character continuity. Output JSON only.`,
+      prompt: `Analyze this story segment and plan visual panels (max ${maxPanels}):${toneContext}\n\n${storySegment}\n\nReturn JSON with panelCount and segments array.`,
+      system: `You are an expert visual director for comic generation. Plan optimal visual panels. Rules: determine panel count (1-${maxPanels}), identify key visual moments, ensure character continuity.${tone ? ` Tone is "${tone}" — adjust panel density: action/tension scenes need more panels (close-ups), calm/narrative scenes need fewer panels (wide shots).` : ""} Output JSON only.`,
       callType: "panel_planning",
       temperature: 0.3,
       useRetry: true,

@@ -140,6 +140,9 @@ export class EvolutionRulesEngine {
       recentEvents: string[]
       themes?: string[]
       plotHook?: string
+      relationshipInstability?: string
+      activeMotifs?: string
+      activeArchetypes?: string
     },
     storyTone?: StoryTone,
   ): Promise<ChaosEvent> {
@@ -169,6 +172,18 @@ export class EvolutionRulesEngine {
         ? `\nPLOT HOOK TO INCORPORATE:\n${storyContext.plotHook}\n\nIMPORTANT: This plot hook represents a pending narrative thread. The chaos event should naturally weave in or address this hook. This is a strong narrative direction — prioritize it over generic events.`
         : ""
 
+      const relationshipInstabilitySection = storyContext.relationshipInstability
+        ? `\n${storyContext.relationshipInstability}\n\nNARRATIVE IMPERATIVE: The chaos event MUST amplify or address these unstable relationships. This is not optional — the story tension demands it.`
+        : ""
+
+      const activeMotifsSection = storyContext.activeMotifs
+        ? `\n${storyContext.activeMotifs}\n\nThe chaos event should AMPLIFY or SUBVERT these motifs. If amplifying, make them more prominent. If subverting, create irony by inverting their meaning.`
+        : ""
+
+      const activeArchetypesSection = storyContext.activeArchetypes
+        ? `\n${storyContext.activeArchetypes}\n\nThe chaos event should TEST these character archetypes. Force the hero to face their deepest fear, the mentor to doubt their wisdom, the shadow to reveal their humanity.`
+        : ""
+
       const prompt = promptBuilder
         .withVariables({
           IMPACT: impactLabel,
@@ -177,6 +192,9 @@ export class EvolutionRulesEngine {
           CHARACTERS: storyContext.characters.join(", "),
           RECENT_EVENTS: storyContext.recentEvents.join("\n") || "None",
           PLOT_HOOK: plotHookSection,
+          RELATIONSHIP_INSTABILITY: relationshipInstabilitySection,
+          ACTIVE_MOTIFS: activeMotifsSection,
+          ACTIVE_ARCHETYPES: activeArchetypesSection,
         })
         .build()
 

@@ -38,7 +38,6 @@ import { MotifTracker, motifTracker } from "./motif-tracker"
 import { EnhancedPatternMiner, enhancedPatternMiner } from "./pattern-miner-enhanced"
 import { CharacterLifecycleManager, characterLifecycleManager } from "./character-lifecycle"
 import { EndGameDetector, endGameDetector } from "./end-game-detection"
-import { FactionDetector, factionDetector } from "./faction-detector"
 import { RelationshipInertiaManager, relationshipInertiaManager, type PlotHook } from "./relationship-inertia"
 import { RelationshipViewService, AsyncGroupManagementService, type TriadPattern, type GraphReader } from "./multiway-relationships"
 import { ProceduralWorldGenerator, type Region } from "./procedural-world"
@@ -50,6 +49,11 @@ import {
   DEFAULT_LEARNING_BRIDGE_CONFIG,
   type ImprovementSuggestion,
 } from "./novel-learning-bridge"
+import {
+  MultiThreadNarrativeExecutor,
+  type NarrativeThread,
+  type MultiThreadConfig as MultiThreadNarrativeConfig,
+} from "./multi-thread-narrative"
 
 const log = Log.create({ service: "novel-orchestrator" })
 
@@ -183,6 +187,10 @@ export interface OrchestratorConfig {
   configManager?: NovelConfigManager
   visualPanelsEnabled?: boolean
   learningBridgeConfig?: Partial<LearningBridgeConfig>
+  /** Enable multi-thread narrative generation (parallel POV storylines) */
+  multiThreadEnabled?: boolean
+  /** Configuration for multi-thread execution */
+  multiThreadConfig?: Partial<MultiThreadNarrativeConfig>
 }
 
 export class EvolutionOrchestrator {
@@ -198,7 +206,6 @@ export class EvolutionOrchestrator {
   private motifTracker: MotifTracker
   private characterLifecycleManager: CharacterLifecycleManager
   private endGameDetector: EndGameDetector
-  private factionDetector: FactionDetector
   private relationshipInertiaManager: RelationshipInertiaManager
   private learningBridgeManager: NovelLearningBridgeManager
   private learningBridgeInitialized: boolean = false
@@ -216,6 +223,10 @@ export class EvolutionOrchestrator {
   private asyncGroupService: AsyncGroupManagementService
   /** Procedural world generator for story setting and locations */
   private proceduralWorld: ProceduralWorldGenerator | null = null
+  /** Multi-thread narrative executor for parallel POV storylines */
+  private multiThreadNarrative: MultiThreadNarrativeExecutor | null = null
+  /** Whether multi-thread mode is enabled */
+  private multiThreadEnabled: boolean = false
 
   // Dimension 3: LRU cache for context building (avoids redundant re-computation within same chapter)
   private contextCache: {
@@ -224,6 +235,23 @@ export class EvolutionOrchestrator {
     graphContext: string
     graphWarnings: Array<{ type: string; description: string; severity: "low" | "medium" | "high" }>
     graphActiveCharacters: string[]
+  } | null = null
+
+  // Relationship instability cache (populated by non-blocking microtask, consumed by next chapter's prompt)
+  private cachedRelationshipAnalysis: {
+    chapter: number
+    triadCount: number
+    unstableCount: number
+    tensionLevel: number
+    unstableTriads: Array<{
+      characters: [string, string, string]
+      pattern: string
+      description: string
+      baselineStability: number
+      deviationScore: number
+      interventionLevel: "nudge" | "warning" | "critical"
+    }>
+    groups?: Array<{ id: string; name: string; memberIds: string[] }>
   } | null = null
 
   constructor(config: OrchestratorConfig = {}) {
@@ -249,7 +277,6 @@ export class EvolutionOrchestrator {
     this.motifTracker = motifTracker
     this.characterLifecycleManager = characterLifecycleManager
     this.endGameDetector = endGameDetector
-    this.factionDetector = factionDetector
     this.relationshipInertiaManager = relationshipInertiaManager
     this.enhancedPatternMiner = enhancedPatternMiner
     // Initialize stateless relationship services
@@ -261,6 +288,16 @@ export class EvolutionOrchestrator {
     this.visualPanelsEnabled = config.visualPanelsEnabled !== undefined ? config.visualPanelsEnabled : true
     this.configManager = config.configManager || novelConfigManager
     this.learningBridgeManager = new NovelLearningBridgeManager(config.learningBridgeConfig)
+    this.multiThreadEnabled = config.multiThreadEnabled !== undefined ? config.multiThreadEnabled : false
+    if (this.multiThreadEnabled) {
+      this.multiThreadNarrative = new MultiThreadNarrativeExecutor(config.multiThreadConfig || {})
+      log.info("multi_thread_narrative_initialized", {
+        maxThreads: config.multiThreadConfig?.maxActiveThreads ?? 5,
+        syncInterval: config.multiThreadConfig?.syncInterval ?? 3,
+        llmConflictDetection: config.multiThreadConfig?.enableLLMConflictDetection ?? true,
+        llmArbitration: config.multiThreadConfig?.enableLLMArbitration ?? true,
+      })
+    }
   }
 
   /**
@@ -282,6 +319,11 @@ export class EvolutionOrchestrator {
         customCharacterStatus: this.configManager.getCustomCharacterStatus(),
       })
 
+      // Wire stateAuditor as the default FactValidator for the state extractor.
+      // This enables comprehensive fact-checking of LLM-extracted state changes
+      // using the auditor's consistency rules (stress ranges, duplicate skills, etc.).
+      this.wireFactValidator()
+
       await this.storyWorldMemory.initialize()
       await this.storyKnowledgeGraph.initialize()
       await this.branchStorage.initialize()
@@ -298,6 +340,7 @@ export class EvolutionOrchestrator {
         branches: "branches.db",
         motif: "motif-tracking/",
         learningBridge: this.learningBridgeInitialized,
+        factValidator: "stateAuditor",
       })
     } catch (error) {
       log.error("advanced_modules_init_failed", { error: String(error) })
@@ -311,6 +354,51 @@ export class EvolutionOrchestrator {
       log.error("advanced_modules_init_status", initStatus)
 
       throw new Error(`Advanced modules initialization failed: ${String(error)}`)
+    }
+  }
+
+  /**
+   * Wire the stateAuditor as the global FactValidator.
+   * Enables the state-extractor's fact validation extension point.
+   */
+  private wireFactValidator(): void {
+    const auditor = stateAuditor
+
+    globalThis.factValidator = {
+      validateExtractedState: async (updates: any, currentState: any): Promise<{
+        isValid: boolean
+        flags: Array<{ type: string; description: string; severity: "low" | "medium" | "high" }>
+        corrections: Array<{ field: string; originalValue: any; correctedValue: any; reason: string }>
+      }> => {
+        const warnings = auditor.checkConsistency(currentState)
+
+        if (warnings.length === 0) {
+          return { isValid: true, flags: [], corrections: [] }
+        }
+
+        const flags = warnings.map((w: string) => ({
+          type: "consistency_warning",
+          description: w,
+          severity: "medium" as const,
+        }))
+
+        const corrections: Array<{ field: string; originalValue: any; correctedValue: any; reason: string }> = []
+
+        // Auto-correct stress out-of-range
+        for (const [charName, char] of Object.entries(currentState.characters || {})) {
+          const c = char as any
+          if (c.stress !== undefined) {
+            if (c.stress < 0) {
+              corrections.push({ field: `characters.${charName}.stress`, originalValue: c.stress, correctedValue: 0, reason: "stress cannot be negative" })
+            }
+            if (c.stress > 100) {
+              corrections.push({ field: `characters.${charName}.stress`, originalValue: c.stress, correctedValue: 100, reason: "stress cannot exceed 100" })
+            }
+          }
+        }
+
+        return { isValid: false, flags, corrections }
+      },
     }
   }
 
@@ -400,61 +488,46 @@ export class EvolutionOrchestrator {
       getAllGroups: async () => {
         return this.storyKnowledgeGraph.getAllGroups()
       },
-    }
-  }
+      getRelationshipHistory: async (charA: string, charB: string, fromChapter: number, toChapter: number) => {
+        // Query relationship edges from story state history
+        // For now, use the branch history as the historical record
+        const edges: import("./story-knowledge-graph").GraphEdge[] = []
+        const relKey = `${charA}-${charB}`
+        const relKeyReverse = `${charB}-${charA}`
 
-  /**
-   * Event-driven relationship instability analysis.
-   * Uses RelationshipViewService for pure computation (no side effects).
-   */
-  private async analyzeRelationshipInstability(currentChapter: number): Promise<void> {
-    const edgeCount = await this.storyKnowledgeGraph.getEdgeCountForChapter(currentChapter)
-    const charCount = Object.keys(this.storyState.characters).length
-
-    // Only analyze if there are enough relationships to form triads
-    if (charCount < 3 || edgeCount < 2) return
-
-    try {
-      const charNames = Object.keys(this.storyState.characters)
-      const triads = await this.relationshipViewService.detectTriads(charNames, currentChapter)
-
-      const unstableTriads = triads.filter((t: TriadPattern) => t.pattern === "unstable" || t.pattern === "competitive")
-      if (unstableTriads.length > 0) {
-        log.info("relationship_instability_detected", {
-          chapter: currentChapter,
-          totalTriads: triads.length,
-          unstableTriads: unstableTriads.length,
-          patterns: unstableTriads.map((t: TriadPattern) => `${t.characters.join(", ")}: ${t.pattern}`).join("; "),
-        })
-
-        // Store instability markers in story state for visual orchestrator to consume
-        this.storyState.relationshipInstability = {
-          chapter: currentChapter,
-          triadCount: triads.length,
-          unstableCount: unstableTriads.length,
-          tensionLevel: triads.length > 0 ? unstableTriads.length / triads.length : 0,
-        }
-      }
-
-      // Every 5 chapters or when edge count is high, discover active groups asynchronously
-      if (currentChapter % 5 === 0 || edgeCount > 5) {
-        queueMicrotask(async () => {
-          try {
-            const groups = await this.relationshipViewService.discoverActiveGroups(30, currentChapter)
-            if (groups.length > 0) {
-              log.info("active_groups_discovered", { count: groups.length, chapter: currentChapter })
-              // Refine first group with LLM asynchronously
-              if (groups[0]) {
-                this.asyncGroupService.refineGroupWithLLM(groups[0].id, `${groups[0].name}: ${groups[0].memberIds.join(", ")}`, currentChapter)
-              }
-            }
-          } catch (error) {
-            log.warn("async_group_discovery_failed", { error: String(error) })
+        // Search through branch history for relationship state at different chapters
+        for (const branch of this.storyState.branchHistory) {
+          if (!branch.stateAfter) continue
+          const rel = branch.stateAfter.relationships?.[relKey] || branch.stateAfter.relationships?.[relKeyReverse]
+          if (rel && typeof rel.trust === "number" && branch.stateAfter.chapterCount >= fromChapter && branch.stateAfter.chapterCount <= toChapter) {
+            edges.push({
+              id: `edge_history_${relKey}_${branch.stateAfter.chapterCount}`,
+              source: charA,
+              target: charB,
+              type: "knows",
+              strength: rel.trust,
+              chapter: branch.stateAfter.chapterCount,
+            })
           }
-        })
-      }
-    } catch (error) {
-      log.warn("relationship_instability_analysis_failed", { error: String(error) })
+        }
+
+        // Also check current state if it falls within the range
+        if (this.storyState.chapterCount >= fromChapter && this.storyState.chapterCount <= toChapter) {
+          const rel = this.storyState.relationships?.[relKey] || this.storyState.relationships?.[relKeyReverse]
+          if (rel && typeof rel.trust === "number") {
+            edges.push({
+              id: `edge_current_${relKey}`,
+              source: charA,
+              target: charB,
+              type: "knows",
+              strength: rel.trust,
+              chapter: this.storyState.chapterCount,
+            })
+          }
+        }
+
+        return edges
+      },
     }
   }
 
@@ -1284,6 +1357,9 @@ Output JSON:
       characters: string[]
       recentEvents: string[]
       plotHook?: string
+      relationshipInstability?: string
+      activeMotifs?: string
+      activeArchetypes?: string
     } = {
       currentStory: promptContent,
       characters: Object.keys(this.storyState.characters || {}),
@@ -1291,6 +1367,30 @@ Output JSON:
     }
     if (activePlotHook) {
       chaosContext.plotHook = `PLOT HOOK TO ADDRESS: ${activePlotHook.type} — ${activePlotHook.description}. Characters involved: ${activePlotHook.characters.join(", ")}. Narrative impact: ${activePlotHook.narrativeImpact}. Weave this into the chaos event naturally.`
+    }
+
+    // Inject active motifs into chaos context — chaos should amplify or subvert them
+    const activeMotifs = this.enhancedPatternMiner.getActiveMotifs()
+    if (activeMotifs.length > 0) {
+      chaosContext.activeMotifs = `ACTIVE MOTIFS TO AMPLIFY OR SUBVERT:\n${activeMotifs.map((m) => `- ${m.name}: ${m.description}`).join("\n")}`
+    }
+
+    // Inject active archetypes into chaos context — chaos should test character archetypes
+    const activeArchetypes = this.enhancedPatternMiner.getActiveArchetypes()
+    if (activeArchetypes.length > 0) {
+      chaosContext.activeArchetypes = `CHARACTER ARCHETYPES TO TEST:\n${activeArchetypes.map((a) => `- ${a.name} (${a.type}): ${a.narrative_role}`).join("\n")}`
+    }
+
+    // Inject cached relationship instability from previous chapter's analysis
+    if (this.cachedRelationshipAnalysis && this.cachedRelationshipAnalysis.unstableTriads.length > 0) {
+      const triadDescriptions = this.cachedRelationshipAnalysis.unstableTriads
+        .map((t) => `${t.characters.join("↔")} (${t.pattern}): ${t.description}`)
+        .join("\n")
+      chaosContext.relationshipInstability = `⚠️ CRITICAL RELATIONSHIP INSTABILITY (from previous chapter analysis):
+The following relationships are on the verge of collapse and MUST create narrative tension in this chapter:
+${triadDescriptions}
+Overall tension level: ${(this.cachedRelationshipAnalysis.tensionLevel * 100).toFixed(0)}%
+Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedRelationshipAnalysis.triadCount}`
     }
 
     const chaosEventWithDetail = await EvolutionRulesEngine.generateChaosEventWithLLM(chaosEvent, chaosContext)
@@ -1381,15 +1481,67 @@ Output JSON:
       console.log()
     }
 
-    // Inject memory and graph context into the prompt for LLM consumption
-    const enrichedPromptContent =
-      memoryContext || graphConstraintContext
-        ? `${promptContent}
+    // Inject memory, graph context, and relationship instability into the prompt
+    let enrichedPromptContent = promptContent
+    const contextParts: string[] = []
 
-=== STORY MEMORY CONTEXT ===
-${memoryContext}
-${graphConstraintContext}`
-        : promptContent
+    if (memoryContext) {
+      contextParts.push(`=== STORY MEMORY CONTEXT ===\n${memoryContext}`)
+    }
+    if (graphConstraintContext) {
+      contextParts.push(graphConstraintContext)
+    }
+
+    // Inject cached relationship instability as a narrative constraint
+    if (this.cachedRelationshipAnalysis && this.cachedRelationshipAnalysis.unstableTriads.length > 0) {
+      const criticalTriads = this.cachedRelationshipAnalysis.unstableTriads.filter(
+        (t) => t.interventionLevel === "critical",
+      )
+      const warningTriads = this.cachedRelationshipAnalysis.unstableTriads.filter(
+        (t) => t.interventionLevel === "warning",
+      )
+      const nudgeTriads = this.cachedRelationshipAnalysis.unstableTriads.filter(
+        (t) => t.interventionLevel === "nudge",
+      )
+
+      const lines: string[] = [
+        `=== RELATIONSHIP INSTABILITY (Narrative Constraint) ===`,
+        `Overall tension: ${(this.cachedRelationshipAnalysis.tensionLevel * 100).toFixed(0)}%`,
+      ]
+
+      // CRITICAL: MUST be addressed
+      if (criticalTriads.length > 0) {
+        const criticalLines = criticalTriads.map(
+          (t) => `  ⚠️ MUST: ${t.description}`,
+        )
+        lines.push(`\nCRITICAL — These relationships demand immediate narrative action:`)
+        lines.push(...criticalLines)
+      }
+
+      // WARNING: SHOULD be addressed
+      if (warningTriads.length > 0) {
+        const warningLines = warningTriads.map(
+          (t) => `  SHOULD: ${t.description}`,
+        )
+        lines.push(`\nWARNING — These relationships are deteriorating and should be addressed:`)
+        lines.push(...warningLines)
+      }
+
+      // NUDGE: background atmosphere
+      if (nudgeTriads.length > 0) {
+        const nudgeLines = nudgeTriads.map(
+          (t) => `  ${t.description}`,
+        )
+        lines.push(`\nBACKGROUND — Subtle relationship undercurrents:`)
+        lines.push(...nudgeLines)
+      }
+
+      contextParts.push(lines.join("\n"))
+    }
+
+    if (contextParts.length > 0) {
+      enrichedPromptContent = `${promptContent}\n\n${contextParts.join("\n\n")}`
+    }
 
     this.log(`   Parsing prompt...`)
     const elements = await this.parsePromptWithLLM(enrichedPromptContent)
@@ -1608,14 +1760,50 @@ ${graphConstraintContext}`
 
     // Analyze and evolve patterns using EnhancedPatternMiner
     // Extracts archetypes, plot templates, motifs, and auto-generates skills
+    let patternResults: { archetypes: any[]; templates: any[]; motifs: any[] } | null = null
     try {
-      const patternResults = await this.enhancedPatternMiner.onTurn({
+      patternResults = await this.enhancedPatternMiner.onTurn({
         storySegment,
         characters: this.storyState.characters,
         chapter: this.storyState.chapterCount,
         fullStory: this.storyState.fullStory || "",
       })
       this.log(`   Pattern mining completed: ${patternResults.archetypes.length} archetypes, ${patternResults.templates.length} templates, ${patternResults.motifs.length} motifs`)
+
+      // Wire patterns to learning bridge vector index
+      if (this.learningBridgeInitialized) {
+        const vectorBridge = this.learningBridgeManager.getVectorBridge()
+        if (vectorBridge) {
+          for (const archetype of patternResults.archetypes) {
+            await vectorBridge.indexPattern({
+              id: archetype.id,
+              name: archetype.name,
+              description: archetype.description,
+              category: "archetype",
+              strength: archetype.strength,
+              decay_rate: 0.1,
+              occurrences: 1,
+              cross_story_valid: false,
+              metadata: { type: archetype.type, traits: archetype.traits },
+              last_reinforced: archetype.last_reinforced,
+            }).catch(() => { /* best effort */ })
+          }
+          for (const motif of patternResults.motifs) {
+            await vectorBridge.indexPattern({
+              id: motif.id,
+              name: motif.name,
+              description: motif.description,
+              category: "motif",
+              strength: motif.strength,
+              decay_rate: motif.decay_rate,
+              occurrences: motif.occurrences.length,
+              cross_story_valid: false,
+              metadata: { type: motif.type, evolution: motif.evolution },
+              last_reinforced: motif.occurrences.length > 0 ? motif.occurrences[motif.occurrences.length - 1].chapter * 1000 : 0,
+            }).catch(() => { /* best effort */ })
+          }
+        }
+      }
     } catch (error) {
       log.warn("enhanced_pattern_mining_failed", { error: String(error) })
     }
@@ -1685,6 +1873,19 @@ ${graphConstraintContext}`
         }
       }
       this.log(`   Updated knowledge graph`)
+
+      // Wire knowledge graph nodes to learning bridge
+      if (this.learningBridgeInitialized) {
+        const knowledgeBridge = this.learningBridgeManager.getKnowledgeBridge()
+        if (knowledgeBridge) {
+          for (const charName of Object.keys(this.storyState.characters)) {
+            const node = await this.storyKnowledgeGraph.findNodeByName("character", charName).catch(() => null)
+            if (node) {
+              await knowledgeBridge.syncNode(node).catch(() => { /* best effort */ })
+            }
+          }
+        }
+      }
     } catch (error) {
       log.warn("knowledge_graph_update_failed", { error: String(error) })
     }
@@ -1738,19 +1939,50 @@ ${graphConstraintContext}`
       log.warn("relationship_inertia_update_failed", { error: String(error) })
     }
 
-    // 5. Detect factions (every 5 chapters)
+    // 5. Faction detection via async group management (every 5 chapters)
+    // Uses AsyncGroupManagementService for non-blocking LLM-driven faction creation
+    // instead of the old synchronous factionDetector.
     if (this.storyState.chapterCount % 5 === 0) {
       try {
-        const factionResult = this.factionDetector.detectFactions(
-          this.storyState.characters,
-          this.storyState.relationships,
-          this.storyState.chapterCount,
-        )
-        if (factionResult.factions.length > 0) {
-          this.log(`   Detected ${factionResult.factions.length} factions`)
+        const charNames = Object.keys(this.storyState.characters)
+        if (charNames.length >= 2) {
+          // Non-blocking: trigger group creation and LLM refinement in background
+          queueMicrotask(async () => {
+            try {
+              // Step 1: Discover active groups via read service
+              const groups = await this.relationshipViewService.discoverActiveGroups(30, this.storyState.chapterCount)
+              if (groups.length === 0) return
+
+              // Step 2: Create group concept(s) in knowledge graph via write service
+              const group = groups[0]
+              const groupDescription = `${group.type} (cohesion: ${group.cohesion}/100, conflict: ${group.conflictLevel}/100, dominant: ${group.dominantMember || "none"})`
+              const groupId = await this.asyncGroupService.createGroupConcept(
+                group.name,
+                group.memberIds,
+                groupDescription,
+                this.storyState.chapterCount,
+              )
+
+              // Step 3: Trigger LLM refinement (non-blocking, uses queueMicrotask internally)
+              this.asyncGroupService.refineGroupWithLLM(
+                groupId,
+                `${group.name}: ${groupDescription}`,
+                this.storyState.chapterCount,
+              )
+
+              log.info("faction_detected_via_async_group", {
+                groupId,
+                name: group.name,
+                memberCount: group.memberIds.length,
+                chapter: this.storyState.chapterCount,
+              })
+            } catch (error) {
+              log.warn("async_faction_detection_failed", { error: String(error) })
+            }
+          })
         }
       } catch (error) {
-        log.warn("faction_detection_failed", { error: String(error) })
+        log.warn("faction_queue_creation_failed", { error: String(error) })
       }
     }
 
@@ -1776,14 +2008,18 @@ ${graphConstraintContext}`
     }
 
     // 7. Analyze motifs (using motif-tracker)
-    if (this.storyState.chapterCount % 3 === 0 && this.patterns.length > 0) {
+    // Pass the actual motifs mined by enhancedPatternMiner, NOT this.patterns
+    // (this.patterns is loaded from dynamic-patterns.json which is a different file)
+    const minedMotifs = patternResults?.motifs || []
+    if (this.storyState.chapterCount % 3 === 0 && minedMotifs.length > 0) {
       try {
         await this.motifTracker.analyzeMotifEvolution(
-          this.patterns,
+          minedMotifs,
           storySegment,
           this.storyState.characters,
           this.storyState.chapterCount,
         )
+        this.log(`   Motif evolution analysis completed for ${minedMotifs.length} motifs`)
       } catch (error) {
         log.warn("motif_analysis_failed", { error: String(error) })
       }
@@ -1791,19 +2027,77 @@ ${graphConstraintContext}`
 
     // === END ADVANCED MODULES INTEGRATION ===
 
-    // ── Event-Driven Relationship Instability Analysis ──
-    // Instead of fixed chapter polling, this triggers when relationship edges
-    // change frequently within a chapter (e.g., "鸿门宴" chapter with dramatic relationship shifts)
-    try {
-      const nextChapter = this.storyState.chapterCount
-      await this.analyzeRelationshipInstability(nextChapter)
-      if ((this.storyState as any).relationshipInstability) {
-        const instability = (this.storyState as any).relationshipInstability
-        this.log(`   Relationship instability: ${instability.unstableCount}/${instability.triadCount} triads unstable (tension: ${(instability.tensionLevel * 100).toFixed(0)}%)`)
+    // === MULTI-THREAD NARRATIVE INTEGRATION ===
+    // When multi-thread mode is enabled, manages parallel POV storylines
+    // with automatic conflict detection and LLM-driven arbitration.
+    if (this.multiThreadEnabled && this.multiThreadNarrative) {
+      try {
+        await this.executeMultiThreadCycle(storySegment, promptContent)
+      } catch (error) {
+        log.warn("multi_thread_cycle_failed", { error: String(error) })
       }
-    } catch (error) {
-      log.warn("relationship_instability_check_failed", { error: String(error) })
     }
+    // === END MULTI-THREAD NARRATIVE INTEGRATION ===
+
+    // ── Event-Driven Relationship Instability Analysis (NON-BLOCKING) ──
+    // Instead of blocking the main loop, runs analysis in a microtask.
+    // Results are cached and injected into the NEXT chapter's prompt.
+    queueMicrotask(async () => {
+      const edgeCount = await this.storyKnowledgeGraph.getEdgeCountForChapter(this.storyState.chapterCount)
+      const charCount = Object.keys(this.storyState.characters).length
+
+      if (charCount < 3 || edgeCount < 2) return
+
+      try {
+        const charNames = Object.keys(this.storyState.characters)
+        const triads = await this.relationshipViewService.detectTriads(charNames, this.storyState.chapterCount)
+
+        // Filter by intervention level: only surface triads that actually deviate from baseline
+        const notableTriads = triads.filter(
+          (t: TriadPattern) => t.deviationScore > 10, // Skip triads with negligible deviation
+        )
+
+        if (notableTriads.length > 0) {
+          const criticalCount = notableTriads.filter((t) => t.interventionLevel === "critical").length
+          const warningCount = notableTriads.filter((t) => t.interventionLevel === "warning").length
+          const nudgeCount = notableTriads.filter((t) => t.interventionLevel === "nudge").length
+          log.info("relationship_instability_detected", {
+            chapter: this.storyState.chapterCount,
+            totalTriads: triads.length,
+            notableTriads: notableTriads.length,
+            critical: criticalCount,
+            warning: warningCount,
+            nudge: nudgeCount,
+          })
+        }
+
+        // Cache the analysis for the next chapter's prompt
+        this.cachedRelationshipAnalysis = {
+          chapter: this.storyState.chapterCount,
+          triadCount: triads.length,
+          unstableCount: notableTriads.length,
+          tensionLevel: triads.length > 0 ? notableTriads.length / triads.length : 0,
+          unstableTriads: notableTriads.map((t: TriadPattern) => ({
+            characters: t.characters,
+            pattern: t.pattern,
+            description: t.description,
+            baselineStability: t.baselineStability,
+            deviationScore: t.deviationScore,
+            interventionLevel: t.interventionLevel,
+          })),
+        }
+
+        // Also store in story state for visual orchestrator
+        this.storyState.relationshipInstability = {
+          chapter: this.storyState.chapterCount,
+          triadCount: triads.length,
+          unstableCount: notableTriads.length,
+          tensionLevel: this.cachedRelationshipAnalysis.tensionLevel,
+        }
+      } catch (error) {
+        log.warn("async_relationship_instability_failed", { error: String(error) })
+      }
+    })
 
     const currentTurn = this.storyState.turnCount || 0
     const reflectionInterval = this.configManager.getThematicReflectionInterval()
@@ -1969,6 +2263,9 @@ If a field is not mentioned, use empty string or empty array.`
 
       const skeletonContext = this.buildSkeletonContextForChapter(currentChapter)
 
+      // NEW: Build context from dynamically mined patterns (archetypes, motifs, plot templates)
+      const patternContext = this.buildPatternContext()
+
       // Detect language from prompt [LANGUAGE: ...] tag
       const languageMatch = promptContent.match(/\[LANGUAGE:\s*([^\]]+)\]/i)
       const specifiedLanguage = languageMatch ? languageMatch[1].trim() : null
@@ -2002,14 +2299,16 @@ Rules:
 - Chapter length: ${lengthInstruction}
 - INCORPORATE the chaos event naturally into the narrative
 - ALIGN with the narrative skeleton and thematic motifs provided
+- EMBODY the active character archetypes — let characters fulfill their mythic roles
+- REINFORCE the active narrative motifs — weave recurring imagery, symbols, and themes throughout
+- Follow the active plot template stages for structural coherence
 - Prioritize: character development, emotional resonance, plot progression, and immersive descriptions`
 
       const userPrompt = `Story Context (previous chapters):
 ${previousStory.slice(-2000)}
 
 Established Characters: ${characterInfo}
-${skeletonContext}
-
+${skeletonContext}${patternContext}
 === RETRIEVED MEMORY CONTEXT ===
 ${promptContent.includes("=== STORY MEMORY CONTEXT ===") ? promptContent.split("=== STORY MEMORY CONTEXT ===")[1].split("Prompt/Timing:")[0] : ""}
 
@@ -2038,6 +2337,58 @@ Write Chapter ${currentChapter}:`
 
     // Fallback
     return this.generateFallback(elements)
+  }
+
+  /**
+   * Build context from dynamically mined patterns (archetypes, motifs, plot templates).
+   * This is the missing feedback loop that injects pattern mining results back
+   * into the story generation prompt, enabling the engine to "learn its own style."
+   */
+  private buildPatternContext(): string {
+    const parts: string[] = []
+
+    // Active archetypes (characters embodying mythic roles)
+    const archetypes = this.enhancedPatternMiner.getActiveArchetypes()
+    if (archetypes.length > 0) {
+      parts.push("\n=== Active Character Archetypes (embody these mythic roles) ===")
+      for (const a of archetypes) {
+        parts.push(`- **${a.name}** (${a.type}): ${a.description}`)
+        if (a.traits.length > 0) parts.push(`  Traits: ${a.traits.join(", ")}`)
+        if (a.narrative_role) parts.push(`  Role: ${a.narrative_role}`)
+      }
+    }
+
+    // Active motifs (recurring imagery, symbols, themes)
+    const motifs = this.enhancedPatternMiner.getActiveMotifs()
+    if (motifs.length > 0) {
+      parts.push("\n=== Active Narrative Motifs (weave these recurring elements into the narrative) ===")
+      for (const m of motifs) {
+        const occCount = m.occurrences.length
+        const evolutionNote = m.evolution && m.evolution.length > 0
+          ? ` (evolved: ${m.evolution[m.evolution.length - 1].to_state})`
+          : ""
+        parts.push(`- **${m.name}** (${m.type}): ${m.description}${evolutionNote} [appeared ${occCount} times, strength: ${m.strength}%]`)
+      }
+    }
+
+    // Active plot templates (structural patterns matched to current story)
+    const templates = this.enhancedPatternMiner.getPlotTemplates()
+    if (templates.length > 0) {
+      parts.push("\n=== Active Plot Templates (align story structure with these templates) ===")
+      for (const t of templates) {
+        parts.push(`- **${t.name}** (${t.structure}): ${t.theme_compatibility?.join(", ") || "general"} [used ${t.usage_count} times]`)
+        // Show current stage beats if available
+        const currentStage = t.stages?.[Math.min(t.usage_count, t.stages.length - 1)]
+        if (currentStage) {
+          parts.push(`  Current stage: ${currentStage.name} — ${currentStage.description}`)
+          if (currentStage.narrative_beats.length > 0) {
+            parts.push(`  Beats: ${currentStage.narrative_beats.join("; ")}`)
+          }
+        }
+      }
+    }
+
+    return parts.length > 0 ? parts.join("\n") + "\n" : ""
   }
 
   private buildSkeletonContextForChapter(chapter: number): string {
@@ -2624,6 +2975,202 @@ If no clear characters are found, return an empty array [].`
     } catch (error) {
       log.error("summary_save_failed", { error: String(error) })
     }
+  }
+
+  // ========================================================================
+  // MULTI-THREAD NARRATIVE METHODS
+  // ========================================================================
+
+  /**
+   * Execute the multi-thread narrative cycle for the current chapter.
+   *
+   * Flow:
+   * 1. Ensure threads exist for each POV character in the narrative skeleton
+   * 2. Advance each thread with the current chapter's story data
+   * 3. Detect and resolve conflicts between threads
+   * 4. Generate a unified narrative summary from all threads
+   */
+  private async executeMultiThreadCycle(
+    storySegment: string,
+    promptContent: string,
+  ): Promise<void> {
+    if (!this.multiThreadNarrative) return
+
+    const currentChapter = this.storyState.chapterCount
+
+    // Step 1: Ensure threads exist for POV characters
+    await this.ensureMultiThreadSetup(promptContent)
+
+    // Step 2: Collect key events and character data for this chapter
+    const keyEvents = this.storyState.world?.events?.slice(-5) || []
+    const charactersInScene = Object.keys(this.storyState.characters).filter(
+      (name) => {
+        const char = this.storyState.characters[name]
+        return char && char.status !== "deceased" && char.status !== "dead"
+      },
+    )
+
+    // Step 3: Advance each active thread with the current chapter data
+    const threads = this.multiThreadNarrative.getActiveThreads()
+    if (threads.length === 0) {
+      // No threads yet — create a default thread for the main narrative
+      const defaultThread = this.multiThreadNarrative.createThread(
+        "Main Narrative",
+        Object.keys(this.storyState.characters)[0] || "Protagonist",
+        5,
+      )
+      await this.multiThreadNarrative.advanceThread(defaultThread.id, {
+        summary: storySegment.slice(0, 500),
+        events: keyEvents,
+        characters: charactersInScene,
+        location: this.storyState.world?.location,
+      })
+      this.log(`   Multi-thread: created default thread "${defaultThread.name}"`)
+      return
+    }
+
+    // If only one thread, advance it directly
+    if (threads.length === 1) {
+      const thread = threads[0]
+      await this.multiThreadNarrative.advanceThread(thread.id, {
+        summary: storySegment.slice(0, 500),
+        events: keyEvents,
+        characters: charactersInScene,
+        location: this.storyState.world?.location,
+      })
+      this.log(`   Multi-thread: advanced "${thread.name}" to chapter ${thread.currentChapter}`)
+      return
+    }
+
+    // Multiple threads: advance all, then check for conflicts
+    const advancedThreads: NarrativeThread[] = []
+    for (const thread of threads) {
+      // Distribute characters across threads based on POV
+      const threadChars = charactersInScene.filter((charName) => {
+        const povChar = thread.povCharacter.toLowerCase()
+        return (
+          charName.toLowerCase() === povChar ||
+          charName.toLowerCase().includes(povChar) ||
+          povChar.includes(charName.toLowerCase())
+        )
+      })
+
+      // If POV character is not in this scene, skip advancing this thread
+      if (threadChars.length === 0 && charactersInScene.length > 0) {
+        this.log(`   Multi-thread: "${thread.name}" skipped (POV character not in scene)`)
+        continue
+      }
+
+      try {
+        const advanced = await this.multiThreadNarrative.advanceThread(thread.id, {
+          summary: storySegment.slice(0, 500),
+          events: keyEvents,
+          characters: threadChars.length > 0 ? threadChars : charactersInScene.slice(0, 2),
+          location: this.storyState.world?.location,
+        })
+        advancedThreads.push(advanced)
+        this.log(`   Multi-thread: advanced "${thread.name}" to chapter ${advanced.currentChapter}`)
+      } catch (error) {
+        log.warn("multi_thread_advance_failed", {
+          threadId: thread.id,
+          threadName: thread.name,
+          error: String(error),
+        })
+      }
+    }
+
+    // Step 4: Report on thread status
+    const threadReport = this.multiThreadNarrative.getThreadReport()
+    this.log(`   Multi-thread report:\n${threadReport}`)
+
+    // Step 5: Check circuit breaker health
+    const circuitStatus = this.multiThreadNarrative.getCircuitBreakerStatus()
+    if (circuitStatus.state !== "closed") {
+      log.warn("multi_thread_circuit_breaker_alert", {
+        state: circuitStatus.state,
+        failureCount: circuitStatus.failureCount,
+        recoveryWindowRemaining: circuitStatus.recoveryWindowRemaining
+          ? `${Math.round(circuitStatus.recoveryWindowRemaining / 1000)}s`
+          : "N/A",
+      })
+    }
+  }
+
+  /**
+   * Ensure multi-thread setup is ready — create threads for each POV character
+   * defined in the narrative skeleton's story lines.
+   */
+  private async ensureMultiThreadSetup(promptContent: string): Promise<void> {
+    if (!this.multiThreadNarrative) return
+
+    const existingThreads = this.multiThreadNarrative.getActiveThreads()
+    if (existingThreads.length > 0) return // Already set up
+
+    // Derive POV characters from narrative skeleton story lines
+    const skeleton = this.storyState.narrativeSkeleton
+    if (skeleton && skeleton.storyLines && skeleton.storyLines.length > 0) {
+      for (let i = 0; i < skeleton.storyLines.length; i++) {
+        const storyLine = skeleton.storyLines[i]
+        // Use storyLine name as thread name, extract a character name if possible
+        const povCharacter = this.extractPovCharacter(storyLine.name, promptContent)
+        const priority = Math.max(1, 10 - i) // Earlier story lines get higher priority
+
+        const thread = this.multiThreadNarrative!.createThread(
+          storyLine.name,
+          povCharacter,
+          priority,
+        )
+        this.log(`   Multi-thread: created thread "${storyLine.name}" (POV: ${povCharacter}, priority: ${priority})`)
+      }
+
+      // Set convergence between consecutive threads
+      const allThreads = this.multiThreadNarrative.getActiveThreads()
+      for (let i = 0; i < allThreads.length - 1; i++) {
+        if (allThreads[i] && allThreads[i + 1]) {
+          this.multiThreadNarrative.setConvergence(allThreads[i].id, allThreads[i + 1].id)
+        }
+      }
+
+      this.log(`   Multi-thread: created ${allThreads.length} threads from narrative skeleton`)
+    }
+  }
+
+  /**
+   * Extract a POV character name from a story line name and prompt content.
+   * Falls back to the first character mentioned in the prompt.
+   */
+  private extractPovCharacter(storyLineName: string, promptContent: string): string {
+    // Try to find character names from story state
+    const knownChars = Object.keys(this.storyState.characters)
+    for (const char of knownChars) {
+      if (storyLineName.toLowerCase().includes(char.toLowerCase())) {
+        return char
+      }
+    }
+
+    // Try to find character names in the prompt
+    for (const char of knownChars) {
+      if (promptContent.includes(char)) {
+        return char
+      }
+    }
+
+    // Fallback: use story line name as character name
+    return storyLineName.split(/\s+/).pop() || storyLineName
+  }
+
+  /**
+   * Get multi-thread narrative executor instance (for external access / CLI).
+   */
+  getMultiThreadNarrative(): MultiThreadNarrativeExecutor | null {
+    return this.multiThreadNarrative
+  }
+
+  /**
+   * Check if multi-thread mode is enabled.
+   */
+  isMultiThreadEnabled(): boolean {
+    return this.multiThreadEnabled
   }
 }
 

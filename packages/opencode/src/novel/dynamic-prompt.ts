@@ -1,4 +1,3 @@
-import { z } from "zod"
 import { Log } from "../util/log"
 import type { PromptStyle } from "./novel-config"
 

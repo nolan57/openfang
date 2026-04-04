@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo)",
+      "Bash(\" 2>/dev/null)\")",
+      "Bash(\" 2>/dev/null) rows\")",
+      "Bash(sqlite3 *)",
+      "Bash(ls *)"
+    ]
+  },
+  "$version": 3
+}

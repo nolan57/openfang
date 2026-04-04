@@ -7,6 +7,7 @@ import { Skill } from "@/skill/skill"
 import { bootstrap } from "../bootstrap"
 import { loadLayeredConfig, extractConfigFromPrompt } from "@/novel/novel-config"
 import process from "process"
+import type { MultiThreadConfig } from "@/novel"
 
 let orchestrator: EvolutionOrchestrator | null = null
 let orchestratorArgs: any = null
@@ -14,7 +15,15 @@ let orchestratorArgs: any = null
 async function getOrchestrator(args?: any): Promise<EvolutionOrchestrator> {
   if (!orchestrator || orchestratorArgs !== args) {
     const visualPanelsEnabled = args?.visualPanels !== false
-    orchestrator = new EvolutionOrchestrator({ visualPanelsEnabled })
+    const multiThreadEnabled = args?.multiThread === true
+    const multiThreadConfig: Partial<MultiThreadConfig> | undefined = args?.multiThreadMaxThreads
+      ? { maxActiveThreads: args.multiThreadMaxThreads }
+      : undefined
+    orchestrator = new EvolutionOrchestrator({
+      visualPanelsEnabled,
+      multiThreadEnabled,
+      multiThreadConfig,
+    })
     orchestratorArgs = args
     await orchestrator.loadState()
   }
@@ -268,6 +277,16 @@ export const NovelCommand: CommandModule = {
               type: "boolean",
               default: false,
               describe: "Enable LLM config inference",
+            })
+            .option("multi-thread", {
+              type: "boolean",
+              default: false,
+              describe: "Enable multi-thread narrative generation (parallel POV storylines)",
+            })
+            .option("multi-thread-max-threads", {
+              type: "number",
+              default: 5,
+              describe: "Maximum number of active threads for multi-thread narrative",
             }),
         handleStart,
       )
@@ -284,6 +303,16 @@ export const NovelCommand: CommandModule = {
             .option("no-visual-panels", {
               type: "boolean",
               describe: "Disable visual panel generation",
+            })
+            .option("multi-thread", {
+              type: "boolean",
+              default: false,
+              describe: "Enable multi-thread narrative generation (parallel POV storylines)",
+            })
+            .option("multi-thread-max-threads", {
+              type: "number",
+              default: 5,
+              describe: "Maximum number of active threads for multi-thread narrative",
             }),
         handleContinue,
       )

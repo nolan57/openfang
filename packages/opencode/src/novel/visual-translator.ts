@@ -1,4 +1,5 @@
 import { Log } from "../util/log"
+import { callLLMJson } from "./llm-wrapper"
 import {
   loadVisualConfig,
   getVisualConfig,
@@ -323,9 +324,11 @@ export function translateActionToCamera(
   let mapping = cfg.actions[normalizedAction]
 
   if (!mapping) {
-    // Try keyword matching
+    // One-way containment: config key must contain the input action.
+    // E.g., config key "fight" matches input "intense fight" but not vice versa,
+    // avoiding false matches like "talk" matching "walk".
     const actionKeys = Object.keys(cfg.actions)
-    const keywordMatch = actionKeys.find((key) => normalizedAction.includes(key) || key.includes(normalizedAction))
+    const keywordMatch = actionKeys.find((key) => key.includes(normalizedAction))
     if (keywordMatch) {
       mapping = cfg.actions[keywordMatch]
     }
@@ -453,36 +456,14 @@ export function getMovementSpecificNegatives(movement: string): string[] {
 }
 
 // ============================================================================
-// DEPRECATED: Legacy Functions (Kept for backward compatibility)
-// ============================================================================
-
-/**
- * @deprecated Use generateDeterministicVisualHash instead.
- */
-function generateVisualHash(characterName: string, panelIndex: number): string {
-  let hash = 0
-  const str = `${characterName}-${panelIndex}-${Date.now()}`
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = (hash << 5) - hash + char
-    hash = hash & hash
-  }
-  return Math.abs(hash).toString(36)
-}
-
-/**
- * @deprecated Use generateStableCharacterRefUrl instead.
- */
-export function generateCharacterRefUrl(characterName: string, panelIndex: number): string {
-  const visualHash = generateVisualHash(characterName, panelIndex)
-  return `mock://chars/${visualHash}/ref.png`
-}
-
-// ============================================================================
 // TYPE DEFINITIONS
 // ============================================================================
 
-export interface LiteraryBeat {
+/**
+ * Internal type for beat-level visual translation input.
+ * Use the canonical types from ./types.ts for external consumers.
+ */
+interface LiteraryBeat {
   text: string
   emotion?: string
   emotionIntensity?: number
@@ -493,7 +474,11 @@ export interface LiteraryBeat {
   timeOfDay?: string
 }
 
-export interface CharacterState {
+/**
+ * Internal type for character visual state during translation.
+ * Use the canonical types from ./types.ts for external consumers.
+ */
+interface CharacterState {
   name: string
   status?: string
   stress?: number
@@ -505,7 +490,11 @@ export interface CharacterState {
   injuries?: string
 }
 
-export interface PanelSpecInput {
+/**
+ * Internal input type for panel spec assembly.
+ * Not exported — consumers should construct the object shape inline.
+ */
+interface PanelSpecInput {
   beat: LiteraryBeat
   characters: CharacterState[]
   scene: {
@@ -717,6 +706,11 @@ export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec {
     movement: camera.movement,
   })
 
+  // Generate deterministic panel ID using DJB2 hash of canonical input
+  const charNames = characters.map((c) => c.name).join(",")
+  const canonicalInput = `${panelIndex}|${beat.text.slice(0, 100)}|${charNames}`
+  const contentHash = djb2Hash(canonicalInput)
+
   const controlNetSignals: ControlNetSignals = {
     poseReference: characters.length > 0 ? characterRefs[0] : null,
     depthReference: scene.location ? `mock://loc/${scene.location.replace(/\s+/g, "-")}/depth.png` : null,
@@ -726,7 +720,7 @@ export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec {
   }
 
   return {
-    id: `panel-${panelIndex}-${Date.now()}`,
+    id: `panel-${panelIndex}-${contentHash}`,
     panelIndex,
     camera,
     lighting,
@@ -789,7 +783,357 @@ function detectActionFromConfig(text: string): string {
   return "emotional"
 }
 
-export function translateStoryToPanels(
+// ============================================================================
+// HYBRID SPLITTING: Rule-based Pre-Segmentation + LLM Semantic Refinement
+// ============================================================================
+
+/**
+ * Raw chunk from rule-based pre-segmentation.
+ */
+interface RawChunk {
+  text: string
+  isHardCut: boolean // true if split at markdown separator or chapter heading
+  index: number
+}
+
+/**
+ * Phase 1: Rule-based Pre-Segmentation
+ * Handles physical-level separators to prevent LLM context overflow.
+ *
+ * Priority:
+ * 1. Markdown separators (---, ***, \n\n*\n\n) — "Hard Cut" (scene transition)
+ * 2. Chapter/section headings (# Chapter 2, ## Scene) — "Hard Cut"
+ * 3. Paragraph breaks (\n\n) — "Soft Cut"
+ * 4. Sentence boundaries (。 ！ ？ . ! ?) — fallback soft split
+ */
+function ruleBasedPreSegmentation(text: string): RawChunk[] {
+  const chunks: RawChunk[] = []
+  let chunkIndex = 0
+
+  // Strategy 1: Split at markdown scene separators (hard cuts)
+  const hardSeparatorPattern = /\n\s*(?:---|\*\*\*|\*\s*\*)\s*\n/gi
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  // First pass: split at hard separators
+  const hardSegments = text.split(hardSeparatorPattern)
+  for (let i = 0; i < hardSegments.length; i++) {
+    const segment = hardSegments[i]?.trim()
+    if (!segment) continue
+
+    // Strategy 2: Within each hard segment, check for chapter headings
+    const headingPattern = /^(#{1,3}\s+.+)$/gm
+    const headingMatches = [...segment.matchAll(headingPattern)]
+
+    if (headingMatches.length > 0) {
+      // Split at headings
+      const parts = segment.split(headingPattern)
+      let currentPart = ""
+      for (const part of parts) {
+        if (!part) continue
+        if (/^#{1,3}\s+/.test(part)) {
+          // This is a heading — flush previous as a chunk
+          if (currentPart.trim()) {
+            chunks.push({ text: currentPart.trim(), isHardCut: true, index: chunkIndex++ })
+          }
+          currentPart = part.trim()
+        } else {
+          currentPart += (currentPart ? "\n" : "") + part
+        }
+      }
+      if (currentPart.trim()) {
+        chunks.push({ text: currentPart.trim(), isHardCut: true, index: chunkIndex++ })
+      }
+    } else {
+      // Strategy 3: Split at paragraph breaks
+      const paragraphs = segment.split(/\n\s*\n/)
+      const mergedParagraphs: string[] = []
+      let current = ""
+      const cfg = getConfig()
+      const minLen = cfg.panel_generation.min_sentence_length
+
+      for (const para of paragraphs) {
+        const trimmed = para.trim()
+        if (!trimmed) continue
+        if (current.length + trimmed.length > 500 && current.length >= minLen) {
+          mergedParagraphs.push(current)
+          current = trimmed
+        } else {
+          current += (current ? " " : "") + trimmed
+        }
+      }
+      if (current.trim()) {
+        mergedParagraphs.push(current.trim())
+      }
+
+      if (mergedParagraphs.length <= 1 && segment.length > 300) {
+        // Strategy 4: Fall back to sentence-level splitting
+        const splitPattern = new RegExp(cfg.panel_generation.sentence_split_pattern)
+        const sentences = segment
+          .split(splitPattern)
+          .filter((s) => s.trim().length >= minLen)
+
+        if (sentences.length > 1) {
+          const maxSentencesPerChunk = Math.ceil(sentences.length / Math.max(1, Math.floor(sentences.length / 3)))
+          let sentenceChunk = ""
+          let sentenceCount = 0
+          for (const sentence of sentences) {
+            sentenceChunk += sentence
+            sentenceCount++
+            if (sentenceCount >= maxSentencesPerChunk || sentenceChunk.length > 400) {
+              if (sentenceChunk.trim()) {
+                chunks.push({ text: sentenceChunk.trim(), isHardCut: i > 0, index: chunkIndex++ })
+              }
+              sentenceChunk = ""
+              sentenceCount = 0
+            }
+          }
+          if (sentenceChunk.trim()) {
+            chunks.push({ text: sentenceChunk.trim(), isHardCut: i > 0, index: chunkIndex++ })
+          }
+        } else {
+          chunks.push({ text: segment.trim(), isHardCut: i > 0, index: chunkIndex++ })
+        }
+      } else {
+        for (const para of mergedParagraphs) {
+          if (para.trim()) {
+            chunks.push({ text: para.trim(), isHardCut: i > 0, index: chunkIndex++ })
+          }
+        }
+      }
+    }
+  }
+
+  // Fallback: if no chunks were created, split the entire text by sentences
+  if (chunks.length === 0) {
+    const cfg = getConfig()
+    const splitPattern = new RegExp(cfg.panel_generation.sentence_split_pattern)
+    const sentences = text
+      .split(splitPattern)
+      .filter((s) => s.trim().length >= cfg.panel_generation.min_sentence_length)
+
+    const minLen = cfg.panel_generation.min_sentence_length
+    let current = ""
+    for (const sentence of sentences) {
+      current += sentence
+      if (current.length >= minLen * 2 || current.length > 300) {
+        chunks.push({ text: current.trim(), isHardCut: false, index: chunkIndex++ })
+        current = ""
+      }
+    }
+    if (current.trim()) {
+      chunks.push({ text: current.trim(), isHardCut: false, index: chunkIndex++ })
+    }
+  }
+
+  log.info("rule_based_segmentation", {
+    totalChunks: chunks.length,
+    hardCuts: chunks.filter((c) => c.isHardCut).length,
+    softCuts: chunks.filter((c) => !c.isHardCut).length,
+  })
+
+  return chunks
+}
+
+/**
+ * LLM-based semantic refinement of raw chunks.
+ * Merges related chunks, adjusts camera framing, and ensures narrative continuity.
+ *
+ * Fallback: if LLM fails, returns one panel per raw chunk.
+ */
+async function refineChunksWithLLM(
+  chunks: RawChunk[],
+  context: {
+    characters: CharacterState[]
+    location?: string
+    timeOfDay?: string
+    tone?: string
+    style?: string
+  },
+  maxPanels: number,
+): Promise<VisualPanelSpec[]> {
+  const panels: VisualPanelSpec[] = []
+
+  // If chunks are few enough, process all at once
+  if (chunks.length <= maxPanels) {
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i]
+      const spec = assemblePanelSpec({
+        beat: {
+          text: chunk.text,
+          action: detectActionFromConfig(chunk.text),
+          tone: context.tone,
+          location: context.location,
+          timeOfDay: context.timeOfDay,
+        },
+        characters: context.characters,
+        scene: {
+          location: context.location,
+          timeOfDay: context.timeOfDay,
+          tone: context.tone,
+          style: context.style,
+        },
+        panelIndex: i,
+      })
+      panels.push(spec)
+    }
+    return panels
+  }
+
+  // If too many chunks, use LLM to merge semantically related ones
+  try {
+    const chunkTexts = chunks.map((c, i) => `[${i}] ${c.text.slice(0, 200)}${c.isHardCut ? " [HARD CUT]" : ""}`).join("\n")
+
+    const result = await callLLMJson<{
+      merges: Array<{ chunkIndices: number[]; reason: string }>
+    }>({
+      prompt: `You are an experienced cinematographer. Group the following text chunks into cinematic panels.
+
+PRINCIPLES:
+1. Action-Reaction Unity: "He shouted: 'Look!'" and "She turned to look" should be ONE panel.
+2. Emotion Matching: Intense action → close-up panels. Descriptive passages → wide/long panels.
+3. Montage Merge: Monotonous processes ("walked down hall", "sat in car") → ONE panel.
+4. Scene Isolation: Time skip or location change → MUST start a new panel.
+
+TEXT CHUNKS:
+${chunkTexts}
+
+Target: Create approximately ${maxPanels} panels by merging related chunks.
+
+Output JSON only:
+{"merges": [{"chunkIndices": [0,1,2], "reason": "same scene, continuous action"}]}`,
+      callType: "panel_semantic_refinement",
+      temperature: 0.2,
+      useRetry: true,
+    })
+
+    const merges = result.data.merges
+    if (!Array.isArray(merges) || merges.length === 0) {
+      throw new Error("Invalid LLM merge response")
+    }
+
+    // Apply merges
+    const usedIndices = new Set<number>()
+    let panelIndex = 0
+
+    for (const merge of merges) {
+      if (!merge.chunkIndices || merge.chunkIndices.length === 0) continue
+      const mergedText = merge.chunkIndices
+        .map((idx: number) => chunks[idx]?.text)
+        .filter(Boolean)
+        .join("\n")
+
+      if (mergedText.trim()) {
+        const spec = assemblePanelSpec({
+          beat: {
+            text: mergedText.trim(),
+            action: detectActionFromConfig(mergedText),
+            tone: context.tone,
+            location: context.location,
+            timeOfDay: context.timeOfDay,
+          },
+          characters: context.characters,
+          scene: {
+            location: context.location,
+            timeOfDay: context.timeOfDay,
+            tone: context.tone,
+            style: context.style,
+          },
+          panelIndex: panelIndex++,
+        })
+        panels.push(spec)
+      }
+
+      for (const idx of merge.chunkIndices) {
+        usedIndices.add(idx)
+      }
+    }
+
+    // Handle unused chunks (LLM missed some)
+    for (let i = 0; i < chunks.length; i++) {
+      if (!usedIndices.has(i)) {
+        const chunk = chunks[i]
+        const spec = assemblePanelSpec({
+          beat: {
+            text: chunk.text,
+            action: detectActionFromConfig(chunk.text),
+            tone: context.tone,
+            location: context.location,
+            timeOfDay: context.timeOfDay,
+          },
+          characters: context.characters,
+          scene: {
+            location: context.location,
+            timeOfDay: context.timeOfDay,
+            tone: context.tone,
+            style: context.style,
+          },
+          panelIndex: panelIndex++,
+        })
+        panels.push(spec)
+      }
+    }
+
+    return panels
+  } catch (error) {
+    log.error("llm_semantic_refinement_failed", { error: String(error) })
+    // Fallback: one panel per chunk
+    return fallbackStoryToPanels(chunks, context)
+  }
+}
+
+/**
+ * Fallback panel generation when LLM semantic refinement fails.
+ * Creates basic panels from raw chunks without LLM merging.
+ */
+function fallbackStoryToPanels(
+  chunks: RawChunk[],
+  context: {
+    characters: CharacterState[]
+    location?: string
+    timeOfDay?: string
+    tone?: string
+    style?: string
+  },
+): VisualPanelSpec[] {
+  const panels: VisualPanelSpec[] = []
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i]
+    const spec = assemblePanelSpec({
+      beat: {
+        text: chunk.text,
+        action: detectActionFromConfig(chunk.text),
+        tone: context.tone,
+        location: context.location,
+        timeOfDay: context.timeOfDay,
+      },
+      characters: context.characters,
+      scene: {
+        location: context.location,
+        timeOfDay: context.timeOfDay,
+        tone: context.tone,
+        style: context.style,
+      },
+      panelIndex: i,
+    })
+    panels.push(spec)
+  }
+
+  log.warn("fallback_panel_generation", { panelCount: panels.length })
+  return panels
+}
+
+/**
+ * Translates story text into visual panels using hybrid splitting logic.
+ *
+ * Pipeline:
+ * 1. Rule-based Pre-Segmentation: Splits at markdown separators, chapter headings,
+ *    paragraph breaks, and sentence boundaries.
+ * 2. LLM Semantic Refinement: Merges related chunks, adjusts camera framing,
+ *    and ensures narrative continuity. Falls back to rule-based if LLM fails.
+ */
+export async function translateStoryToPanels(
   storyText: string,
   characterStates: CharacterState[],
   options: {
@@ -799,50 +1143,27 @@ export function translateStoryToPanels(
     timeOfDay?: string
     tone?: string
   } = {},
-): VisualPanelSpec[] {
+): Promise<VisualPanelSpec[]> {
   const cfg = getConfig()
-  const panels: VisualPanelSpec[] = []
 
-  // Use config for sentence splitting
-  const splitPattern = new RegExp(cfg.panel_generation.sentence_split_pattern)
-  const sentences = storyText
-    .split(splitPattern)
-    .filter((s) => s.trim().length >= cfg.panel_generation.min_sentence_length)
+  // Phase 1: Rule-based Pre-Segmentation
+  const rawChunks = ruleBasedPreSegmentation(storyText)
 
-  const panelCount = options.panelCount ?? Math.min(sentences.length, cfg.panel_generation.default_count)
-  const clampedCount = Math.max(cfg.panel_generation.min_count, Math.min(panelCount, cfg.panel_generation.max_count))
-
-  const step = Math.max(1, Math.floor(sentences.length / clampedCount))
-
-  for (let i = 0; i < clampedCount; i++) {
-    const startIdx = i * step
-    const endIdx = Math.min(startIdx + step, sentences.length)
-    const panelText = sentences.slice(startIdx, endIdx).join("。")
-
-    const beat: LiteraryBeat = {
-      text: panelText,
-      action: detectActionFromConfig(panelText),
-      tone: options.tone,
-      location: options.location,
-      timeOfDay: options.timeOfDay,
-    }
-
-    const spec = assemblePanelSpec({
-      beat,
-      characters: characterStates,
-      scene: {
-        location: options.location,
-        timeOfDay: options.timeOfDay,
-        tone: options.tone,
-        style: options.style,
-      },
-      panelIndex: i,
-    })
-
-    panels.push(spec)
+  if (rawChunks.length === 0) {
+    return []
   }
 
-  return panels
+  const maxPanels = options.panelCount ?? Math.min(rawChunks.length, cfg.panel_generation.default_count)
+  const clampedCount = Math.max(cfg.panel_generation.min_count, Math.min(maxPanels, cfg.panel_generation.max_count))
+
+  // Phase 2: LLM Semantic Refinement (with fallback)
+  return refineChunksWithLLM(rawChunks, {
+    characters: characterStates,
+    location: options.location,
+    timeOfDay: options.timeOfDay,
+    tone: options.tone,
+    style: options.style,
+  }, clampedCount)
 }
 
 // ============================================================================

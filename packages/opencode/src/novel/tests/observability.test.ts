@@ -4,6 +4,7 @@ import { BranchManager } from "../branch-manager"
 import { EnhancedPatternMiner } from "../pattern-miner-enhanced"
 import { MotifTracker } from "../motif-tracker"
 import { StoryKnowledgeGraph } from "../story-knowledge-graph"
+import { StoryWorldMemory } from "../story-world-memory"
 
 describe("NovelObservability", () => {
   let observability: NovelObservability
@@ -11,6 +12,7 @@ describe("NovelObservability", () => {
   let patternMiner: EnhancedPatternMiner
   let motifTracker: MotifTracker
   let knowledgeGraph: StoryKnowledgeGraph
+  let storyWorldMemory: StoryWorldMemory
 
   beforeEach(() => {
     observability = new NovelObservability()
@@ -18,6 +20,7 @@ describe("NovelObservability", () => {
     patternMiner = new EnhancedPatternMiner()
     motifTracker = new MotifTracker()
     knowledgeGraph = new StoryKnowledgeGraph()
+    storyWorldMemory = new StoryWorldMemory()
   })
 
   test("startTrace creates trace event", () => {
@@ -77,6 +80,7 @@ describe("NovelObservability", () => {
       patternMiner,
       motifTracker,
       knowledgeGraph,
+      storyWorldMemory,
       { alice: { status: "active", stress: 50 } },
       { "alice-bob": { trust: 50 } },
     )
@@ -92,6 +96,7 @@ describe("NovelObservability", () => {
       patternMiner,
       motifTracker,
       knowledgeGraph,
+      storyWorldMemory,
       {},
       {},
     )
@@ -134,6 +139,7 @@ describe("NovelObservability", () => {
       patternMiner,
       motifTracker,
       knowledgeGraph,
+      storyWorldMemory,
       {},
       {},
     )
@@ -158,7 +164,7 @@ describe("NovelObservability", () => {
   })
 
   test("getMetricsHistory returns history", async () => {
-    await observability.collectMetrics(branchManager, patternMiner, motifTracker, knowledgeGraph, {}, {})
+    await observability.collectMetrics(branchManager, patternMiner, motifTracker, knowledgeGraph, storyWorldMemory, {}, {})
 
     const history = observability.getMetricsHistory()
 

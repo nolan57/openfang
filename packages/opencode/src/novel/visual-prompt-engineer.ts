@@ -10,7 +10,6 @@ import {
 } from "./config"
 import {
   prioritizeAndTruncatePrompt,
-  generateDeterministicVisualHash,
   generateStableCharacterRefUrl,
   translateEmotionToVisuals,
   translateActionToCamera,
@@ -19,7 +18,6 @@ import {
   selectAtmosphericEffects,
   getShotSpecificNegatives,
   getMovementSpecificNegatives,
-  type CharacterState,
   type CharacterStateSnapshot,
 } from "./visual-translator"
 import type { VisualGenerationContext, LLMPromptEngineeringResult, VisualPanelSpec, CameraSpec } from "./types"

@@ -3,8 +3,6 @@ import { readFile, writeFile, access, mkdir } from "fs/promises"
 import { resolve, dirname } from "path"
 import { Log } from "../util/log"
 import { callLLM, callLLMJson } from "./llm-wrapper"
-import { Instance } from "../project/instance"
-import { memoize } from "./performance"
 import { getPatternsDirPath, getSkillsPath } from "./novel-config"
 import { Skill } from "../skill/skill"
 

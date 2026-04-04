@@ -1,6 +1,5 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { Instance } from "../project/instance"
 import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
 import { getStoryGraphDbPath } from "./novel-config"

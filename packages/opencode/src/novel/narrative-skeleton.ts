@@ -3,7 +3,6 @@ import { resolve, dirname } from "path"
 import { mkdir } from "fs/promises"
 import { callLLMJson } from "./llm-wrapper"
 import { Log } from "../util/log"
-import { Instance } from "../project/instance"
 import { getNarrativeSkeletonPath } from "./novel-config"
 
 const log = Log.create({ service: "narrative-skeleton" })

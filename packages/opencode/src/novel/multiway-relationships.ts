@@ -37,6 +37,12 @@ export interface GroupDynamicsResult {
   stability: number
   dominantMember: string | null
   fractureRisks: string[]
+  /** Long-term historical stability baseline (0-100) */
+  baselineStability: number
+  /** Deviation from historical baseline — "mutation index" (0-100) */
+  deviationScore: number
+  /** Dynamic intervention level for orchestrator consumption */
+  interventionLevel: "nudge" | "warning" | "critical"
 }
 
 export interface TriadPattern {
@@ -44,6 +50,12 @@ export interface TriadPattern {
   pattern: "stable" | "unstable" | "mediated" | "competitive"
   balance: number
   description: string
+  /** Long-term historical stability baseline (0-100) */
+  baselineStability: number
+  /** Deviation from historical baseline — "mutation index" (0-100) */
+  deviationScore: number
+  /** Dynamic intervention level for orchestrator consumption */
+  interventionLevel: "nudge" | "warning" | "critical"
 }
 
 export interface MultiWayRelationship {
@@ -74,6 +86,8 @@ export interface GraphReader {
   addMemberToGroup(groupId: string, characterId: string, role: string, chapter: number): Promise<GraphEdge>
   getGroupMembers(groupId: string): Promise<GraphNode[]>
   getAllGroups(): Promise<GraphNode[]>
+  /** Fetch historical relationship edges for a pair of characters across a chapter range */
+  getRelationshipHistory?(charA: string, charB: string, fromChapter: number, toChapter: number): Promise<GraphEdge[]>
 }
 
 // ============================================================================
@@ -139,13 +153,18 @@ export class RelationshipViewService implements IRelationshipViewService {
   /**
    * Analyze group dynamics for given characters.
    * Pure computation — reads from graph, returns result, no side effects.
+   *
+   * UPGRADE: Includes inertia-based deviation analysis.
+   * Computes historical baseline stability and calculates deviation score
+   * to distinguish "chronic enemies" (stable low trust) from "sudden betrayal"
+   * (sharp drop from high trust).
    */
   async analyzeGroupDynamics(
     characterIds: string[],
     chapter: number,
   ): Promise<GroupDynamicsResult> {
     if (characterIds.length < 2) {
-      return { cohesion: 0, powerBalance: "egalitarian", conflictLevel: 0, stability: 0, dominantMember: null, fractureRisks: [] }
+      return { cohesion: 0, powerBalance: "egalitarian", conflictLevel: 0, stability: 0, dominantMember: null, fractureRisks: [], baselineStability: 0, deviationScore: 0, interventionLevel: "nudge" }
     }
 
     const relationships = this._relationshipsFromState(characterIds)
@@ -166,7 +185,7 @@ export class RelationshipViewService implements IRelationshipViewService {
     }
 
     if (edges.length === 0) {
-      return { cohesion: 0, powerBalance: "fragmented", conflictLevel: 50, stability: 0, dominantMember: null, fractureRisks: ["No relationships defined"] }
+      return { cohesion: 0, powerBalance: "fragmented", conflictLevel: 50, stability: 0, dominantMember: null, fractureRisks: ["No relationships defined"], baselineStability: 0, deviationScore: 0, interventionLevel: "nudge" }
     }
 
     const avgTrust = edges.reduce((s, v) => s + v, 0) / edges.length
@@ -176,6 +195,38 @@ export class RelationshipViewService implements IRelationshipViewService {
     const cohesion = Math.max(0, Math.min(100, avgTrust + 50))
     const conflictLevel = Math.max(0, Math.min(100, 100 - cohesion + Math.sqrt(variance) * 0.5))
     const stability = Math.max(0, Math.min(100, cohesion - Math.sqrt(variance) * 0.3))
+
+    // ── Inertia Filter: compute historical baseline ──
+    const historicalStabilities: number[] = []
+    const historyWindow = 5 // chapters to look back
+
+    for (let i = 0; i < characterIds.length; i++) {
+      for (let j = i + 1; j < characterIds.length; j++) {
+        const charA = characterIds[i]
+        const charB = characterIds[j]
+        const pastEdges = await this.graph.getRelationshipHistory?.(
+          charA, charB,
+          Math.max(1, chapter - historyWindow),
+          chapter - 1,
+        ) ?? []
+        if (pastEdges.length > 0) {
+          historicalStabilities.push(
+            pastEdges.reduce((sum, e) => sum + e.strength, 0) / pastEdges.length,
+          )
+        }
+      }
+    }
+
+    // Historical baseline: average trust converted to 0-100 scale
+    const baselineStability = historicalStabilities.length > 0
+      ? Math.max(0, Math.min(100, historicalStabilities.reduce((s, v) => s + v, 0) / historicalStabilities.length + 50))
+      : stability // No history: current value is the baseline
+
+    // Deviation: how far current stability diverges from historical norm
+    const deviationScore = Math.abs(stability - baselineStability)
+
+    // Dynamic intervention level
+    const interventionLevel = this._calculateInterventionLevel(deviationScore, stability)
 
     let powerBalance: GroupDynamicsResult["powerBalance"] = "egalitarian"
     if (variance > 500) powerBalance = "fragmented"
@@ -197,7 +248,7 @@ export class RelationshipViewService implements IRelationshipViewService {
     if (variance > 1000) fractureRisks.push(`High relationship variance (${variance.toFixed(0)}) — group is fragmented`)
     if (minTrust < -50) fractureRisks.push(`Critical hostility detected (trust=${minTrust}) — group at risk of collapse`)
 
-    return { cohesion, powerBalance, conflictLevel, stability, dominantMember, fractureRisks }
+    return { cohesion, powerBalance, conflictLevel, stability, dominantMember, fractureRisks, baselineStability, deviationScore, interventionLevel }
   }
 
   /**
@@ -278,7 +329,14 @@ export class RelationshipViewService implements IRelationshipViewService {
   }
 
   /**
-   * Detect triad relationship patterns.
+   * Detect triad relationship patterns with inertia-based filtering.
+   *
+   * UPGRADE: Instead of treating all "unstable" triads equally, this method
+   * computes a historical baseline stability and calculates the deviation score
+   * to distinguish "chronic enemies" (stable low trust) from "sudden betrayal"
+   * (sharp deviation from high-trust baseline).
+   *
+   * Returns all triads with baselineStability, deviationScore, and interventionLevel.
    */
   async detectTriads(
     characterIds: string[],
@@ -289,6 +347,7 @@ export class RelationshipViewService implements IRelationshipViewService {
 
     const relationships = this._relationshipsFromState(characterIds)
     const triads: TriadPattern[] = []
+    const historyWindow = 5 // chapters to look back
 
     for (let i = 0; i < characterIds.length; i++) {
       for (let j = i + 1; j < characterIds.length; j++) {
@@ -300,17 +359,69 @@ export class RelationshipViewService implements IRelationshipViewService {
 
           if (ab === undefined || bc === undefined || ac === undefined) continue
 
+          const currentStability = this._calculateTriadStability(ab, bc, ac)
           const pattern = this._classifyTriadPattern(ab, bc, ac)
           const balance = this._calculateBalance(ab, bc, ac)
-          const description = this._generateTriadDescription(trio, pattern, ab, bc, ac, profiles)
 
-          triads.push({ characters: trio, pattern, balance, description })
+          // ── Step A: Fetch historical baseline ──
+          const historicalValues: number[] = []
+          for (const [charA, charB] of [
+            [trio[0], trio[1]],
+            [trio[1], trio[2]],
+            [trio[0], trio[2]],
+          ] as [string, string][]) {
+            const pastEdges = await this.graph.getRelationshipHistory?.(
+              charA, charB,
+              Math.max(1, chapter - historyWindow),
+              chapter - 1,
+            ) ?? []
+            if (pastEdges.length > 0) {
+              historicalValues.push(
+                ...pastEdges.map((e) => e.strength),
+              )
+            }
+          }
+
+          // Historical average trust (raw, -100 to 100 scale)
+          const historicalAvgTrust = historicalValues.length > 0
+            ? historicalValues.reduce((s, v) => s + v, 0) / historicalValues.length
+            : (currentStability - 50) // No history: derive from current
+          const historicalAvgStability = Math.max(0, Math.min(100, historicalAvgTrust + 50))
+
+          // ── Step B: Calculate deviation (Inertia Filter) ──
+          const deviationScore = Math.abs(currentStability - historicalAvgStability)
+
+          // ── Step C: Determine intervention level ──
+          const interventionLevel = this._calculateInterventionLevel(deviationScore, currentStability)
+
+          // Generate description that reflects the deviation context
+          const description = this._generateTriadDescriptionWithIntervention(
+            trio, pattern, ab, bc, ac,
+            { baselineStability: historicalAvgStability, deviationScore, interventionLevel },
+            profiles,
+          )
+
+          triads.push({
+            characters: trio,
+            pattern,
+            balance,
+            description,
+            baselineStability: historicalAvgStability,
+            deviationScore,
+            interventionLevel,
+          })
         }
       }
     }
 
     if (triads.length > 0) {
-      log.info("triads_detected", { count: triads.length, chapter })
+      log.info("triads_detected", {
+        count: triads.length,
+        chapter,
+        critical: triads.filter((t) => t.interventionLevel === "critical").length,
+        warning: triads.filter((t) => t.interventionLevel === "warning").length,
+        nudge: triads.filter((t) => t.interventionLevel === "nudge").length,
+      })
     }
 
     return triads
@@ -330,6 +441,93 @@ export class RelationshipViewService implements IRelationshipViewService {
     return result
   }
 
+  /**
+   * Calculate a triad's current stability on a 0-100 scale.
+   * Maps raw trust values (-100 to 100) to stability (0 = volatile, 100 = solid).
+   */
+  private _calculateTriadStability(ab: number, bc: number, ac: number): number {
+    const avgTrust = (ab + bc + ac) / 3
+    const positive = [ab, bc, ac].filter((v) => v > 0).length
+    // Factor 1: average trust mapped to 0-100
+    const trustComponent = Math.max(0, Math.min(100, avgTrust + 50))
+    // Factor 2: agreement bonus (all same sign = more stable)
+    const agreementBonus = positive === 3 || positive === 0 ? 20 : 0
+    return Math.max(0, Math.min(100, trustComponent + agreementBonus))
+  }
+
+  /**
+   * Calculate dynamic intervention level based on deviation from baseline
+   * and current stability.
+   *
+   * Level 1 — "nudge" (micro-perturbation):
+   *   deviationScore > 20 but currentStability > 40
+   *   Meaning: Relationship has fluctuations but hasn't ruptured.
+   *
+   * Level 2 — "warning":
+   *   deviationScore > 40 and currentStability < 50
+   *   Meaning: Significant deviation from norm, relationship deteriorating.
+   *
+   * Level 3 — "critical":
+   *   deviationScore > 60 and currentStability < 20
+   *   Meaning: Catastrophic trust collapse, complete departure from historical pattern.
+   */
+  private _calculateInterventionLevel(
+    deviationScore: number,
+    currentStability: number,
+  ): "nudge" | "warning" | "critical" {
+    if (deviationScore > 60 && currentStability < 20) return "critical"
+    if (deviationScore > 40 && currentStability < 50) return "warning"
+    if (deviationScore > 20) return "nudge"
+    return "nudge"
+  }
+
+  /**
+   * Generate a triad description that reflects the deviation context.
+   * Different intervention levels produce different urgency descriptions.
+   */
+  private _generateTriadDescriptionWithIntervention(
+    characters: [string, string, string],
+    pattern: TriadPattern["pattern"],
+    ab: number,
+    bc: number,
+    ac: number,
+    context: { baselineStability: number; deviationScore: number; interventionLevel: string },
+    profiles?: Record<string, DeepenedCharacterProfile>,
+  ): string {
+    const [a, b, c] = characters
+    const { baselineStability, deviationScore, interventionLevel } = context
+
+    // Critical: emphasize the catastrophic deviation
+    if (interventionLevel === "critical") {
+      return `⚠️ CRITICAL: Catastrophic collapse in ${a} ↔ ${b} ↔ ${c}! Stability dropped to ${Math.round(100 - deviationScore)}% from baseline ${Math.round(baselineStability)}%. This is a critical deviation from their historical relationship — immediate narrative attention required.`
+    }
+
+    // Warning: emphasize the shift
+    if (interventionLevel === "warning") {
+      return `Unusual friction between ${a}, ${b}, and ${c}. Their dynamic is shifting away from the established norm (baseline: ${Math.round(baselineStability)}%, current: ${Math.round(100 - deviationScore)}%). Narrative tension building.`
+    }
+
+    // Nudge: standard descriptions with mild tension note
+    if (deviationScore > 20) {
+      const baseDescriptions: Record<TriadPattern["pattern"], string> = {
+        stable: `${a}, ${b}, and ${c} maintain their alliance, though ${a} seems slightly distant from ${b} — a minor tension in their usual rapport.`,
+        unstable: `${a}, ${b}, and ${c} navigate a tense dynamic. The relationship is fluctuating within expected bounds.`,
+        mediated: `${b} mediates between ${a} and ${c}. Some strain detectable, but the mediation structure holds.`,
+        competitive: `${a}, ${b}, and ${c} continue their competition. Minor shifts in alignment detected.`,
+      }
+      return baseDescriptions[pattern] || `Complex dynamics between ${a}, ${b}, and ${c} — slight fluctuations from baseline.`
+    }
+
+    // No significant deviation: standard descriptions
+    const descriptions: Record<TriadPattern["pattern"], string> = {
+      stable: `${a}, ${b}, and ${c} form a stable alliance with mutual trust.`,
+      unstable: `${a}, ${b}, and ${c} have a tense dynamic with conflicting interests.`,
+      mediated: `${b} mediates between ${a} and ${c} who have unresolved tension.`,
+      competitive: `${a}, ${b}, and ${c} are in competition, with only one positive relationship.`,
+    }
+    return descriptions[pattern] || `Complex relationship between ${a}, ${b}, and ${c}.`
+  }
+
   private _classifyTriadPattern(ab: number, bc: number, ac: number): TriadPattern["pattern"] {
     const positive = [ab, bc, ac].filter((v) => v > 0).length
     if (positive === 3) return "stable"
@@ -341,24 +539,6 @@ export class RelationshipViewService implements IRelationshipViewService {
   private _calculateBalance(ab: number, bc: number, ac: number): number {
     const product = ab * bc * ac
     return product > 0 ? 100 - Math.abs(product / 100) : 100 - Math.abs(product / 100)
-  }
-
-  private _generateTriadDescription(
-    characters: [string, string, string],
-    pattern: TriadPattern["pattern"],
-    ab: number,
-    bc: number,
-    ac: number,
-    profiles?: Record<string, DeepenedCharacterProfile>,
-  ): string {
-    const [a, b, c] = characters
-    const descriptions: Record<TriadPattern["pattern"], string> = {
-      stable: `${a}, ${b}, and ${c} form a stable alliance with mutual trust.`,
-      unstable: `${a}, ${b}, and ${c} have a tense dynamic with conflicting interests.`,
-      mediated: `${b} mediates between ${a} and ${c} who have unresolved tension.`,
-      competitive: `${a}, ${b}, and ${c} are in competition, with only one positive relationship.`,
-    }
-    return descriptions[pattern] || `Complex relationship between ${a}, ${b}, and ${c}.`
   }
 }
 
@@ -460,6 +640,7 @@ const noopGraphReader: GraphReader = {
   addMemberToGroup: async () => ({ id: "", source: "", target: "", type: "memberOf", strength: 0, chapter: 0 } as GraphEdge),
   getGroupMembers: async () => [],
   getAllGroups: async () => [],
+  getRelationshipHistory: async () => [],
 }
 
 export const relationshipViewService = new RelationshipViewService(noopGraphReader)
