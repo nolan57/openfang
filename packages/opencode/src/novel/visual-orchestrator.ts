@@ -556,10 +556,180 @@ function createPlaceholderPanel(
 // HELPER FUNCTIONS
 // ============================================================================
 
+// ============================================================================
+// PHASE 1: RULE-BASED PRE-SEGMENTATION (fused from visual-translator)
+// Handles physical-level separators to prevent LLM context overflow.
+// Priority: markdown separators → chapter headings → paragraph breaks → sentences
+// ============================================================================
+
+/**
+ * Raw chunk from rule-based pre-segmentation.
+ */
+interface RawSegment {
+  text: string
+  isHardCut: boolean // true if split at markdown separator or chapter heading
+  index: number
+}
+
+/**
+ * Rule-based pre-segmentation: splits story text at natural boundaries.
+ *
+ * Priority:
+ * 1. Markdown separators (---, ***, \n\n*\n\n) — "Hard Cut" (scene transition)
+ * 2. Chapter/section headings (# Chapter 2, ## Scene) — "Hard Cut"
+ * 3. Paragraph breaks (\n\n) — "Soft Cut" (merge if short)
+ * 4. Sentence boundaries (。 ！ ？ . ! ?) — fallback
+ */
+function ruleBasedPreSegmentation(text: string): RawSegment[] {
+  const chunks: RawSegment[] = []
+  let chunkIndex = 0
+
+  // Strategy 1: Split at markdown scene separators (hard cuts)
+  const hardSeparatorPattern = /\n\s*(?:---|\*\*\*|\*\s*\*)\s*\n/gi
+  const hardSegments = text.split(hardSeparatorPattern)
+
+  for (let i = 0; i < hardSegments.length; i++) {
+    const segment = hardSegments[i]?.trim()
+    if (!segment) continue
+
+    // Strategy 2: Within each hard segment, check for chapter headings
+    const headingPattern = /^(#{1,3}\s+.+)$/gm
+    const headingMatches = [...segment.matchAll(headingPattern)]
+
+    if (headingMatches.length > 0) {
+      // Split at headings
+      const parts = segment.split(headingPattern)
+      let currentPart = ""
+      for (const part of parts) {
+        if (!part) continue
+        if (/^#{1,3}\s+/.test(part)) {
+          if (currentPart.trim()) {
+            chunks.push({ text: currentPart.trim(), isHardCut: true, index: chunkIndex++ })
+          }
+          currentPart = part.trim()
+        } else {
+          currentPart += (currentPart ? "\n" : "") + part
+        }
+      }
+      if (currentPart.trim()) {
+        chunks.push({ text: currentPart.trim(), isHardCut: true, index: chunkIndex++ })
+      }
+    } else {
+      // Strategy 3: Split at paragraph breaks, merge short ones
+      const paragraphs = segment.split(/\n\s*\n/)
+      const mergedParagraphs: string[] = []
+      let current = ""
+      const minLen = 100
+
+      for (const para of paragraphs) {
+        const trimmed = para.trim()
+        if (!trimmed) continue
+        if (current.length + trimmed.length > 500 && current.length >= minLen) {
+          mergedParagraphs.push(current)
+          current = trimmed
+        } else {
+          current += (current ? " " : "") + trimmed
+        }
+      }
+      if (current.trim()) {
+        mergedParagraphs.push(current.trim())
+      }
+
+      if (mergedParagraphs.length <= 1 && segment.length > 300) {
+        // Strategy 4: Fall back to sentence-level splitting
+        const sentences = segment.split(/([。！？.!?]+)/)
+        const sentenceGroups: string[] = []
+        let buf = ""
+        for (const part of sentences) {
+          if (/[。！？.!?]+/.test(part)) {
+            buf += part
+            sentenceGroups.push(buf)
+            buf = ""
+          } else {
+            buf += part
+          }
+        }
+        if (buf.trim()) sentenceGroups.push(buf)
+
+        const validSentences = sentenceGroups.filter((s) => s.trim().length >= 10)
+        if (validSentences.length > 1) {
+          const maxPerChunk = Math.ceil(validSentences.length / Math.max(1, Math.floor(validSentences.length / 3)))
+          let sentenceChunk = ""
+          let sentenceCount = 0
+          for (const sentence of validSentences) {
+            sentenceChunk += sentence
+            sentenceCount++
+            if (sentenceCount >= maxPerChunk || sentenceChunk.length > 400) {
+              if (sentenceChunk.trim()) {
+                chunks.push({ text: sentenceChunk.trim(), isHardCut: i > 0, index: chunkIndex++ })
+              }
+              sentenceChunk = ""
+              sentenceCount = 0
+            }
+          }
+          if (sentenceChunk.trim()) {
+            chunks.push({ text: sentenceChunk.trim(), isHardCut: i > 0, index: chunkIndex++ })
+          }
+        } else {
+          chunks.push({ text: segment.trim(), isHardCut: i > 0, index: chunkIndex++ })
+        }
+      } else {
+        for (const para of mergedParagraphs) {
+          if (para.trim()) {
+            chunks.push({ text: para.trim(), isHardCut: i > 0, index: chunkIndex++ })
+          }
+        }
+      }
+    }
+  }
+
+  // Fallback: if no chunks were created
+  if (chunks.length === 0) {
+    const sentences = text.split(/([。！？.!?]+)/)
+    const sentenceGroups: string[] = []
+    let buf = ""
+    for (const part of sentences) {
+      if (/[。！？.!?]+/.test(part)) {
+        buf += part
+        sentenceGroups.push(buf)
+        buf = ""
+      } else {
+        buf += part
+      }
+    }
+    if (buf.trim()) sentenceGroups.push(buf)
+
+    const validSentences = sentenceGroups.filter((s) => s.trim().length >= 10)
+    let current = ""
+    for (const sentence of validSentences) {
+      current += sentence
+      if (current.length >= 200 || current.length > 300) {
+        chunks.push({ text: current.trim(), isHardCut: false, index: chunkIndex++ })
+        current = ""
+      }
+    }
+    if (current.trim()) {
+      chunks.push({ text: current.trim(), isHardCut: false, index: chunkIndex++ })
+    }
+  }
+
+  log.info("rule_based_segmentation", {
+    totalChunks: chunks.length,
+    hardCuts: chunks.filter((c) => c.isHardCut).length,
+    softCuts: chunks.filter((c) => !c.isHardCut).length,
+  })
+
+  return chunks
+}
+
+// ============================================================================
+// PHASE 2 + 3: LLM PANEL PLANNING (original, enhanced with hard cut awareness)
+// ============================================================================
+
 /**
  * LLM-driven panel segment planning.
- * Analyzes the complete story segment to determine optimal panel count and content.
- * Incorporates tone-based density adjustments.
+ * Uses rule-based pre-segmentation (Phase 1) to identify natural boundaries,
+ * then LLM plans optimal panels respecting hard cut markers.
  */
 export async function planPanelSegments(
   storySegment: string,
@@ -568,6 +738,40 @@ export async function planPanelSegments(
 ): Promise<PanelPlan> {
   const toneContext = tone ? `\nTone: ${tone}. Adjust panel density accordingly — action scenes need more panels, narrative scenes need fewer.` : ""
 
+  // Phase 1: Rule-based pre-segmentation to identify natural boundaries
+  const rawChunks = ruleBasedPreSegmentation(storySegment)
+
+  // If rule-based found clear boundaries (2+ chunks), use them directly
+  // But if it found only 1 chunk, let LLM decide the panel count
+  if (rawChunks.length >= 2 && rawChunks.length <= maxPanels) {
+    const segments = await Promise.all(
+      rawChunks.map(async (chunk) => {
+        const analysis = await analyzeSegmentWithLLM(chunk.text)
+        return {
+          ...analysis,
+          startIndex: chunk.index,
+          endIndex: chunk.index,
+          isHardCut: chunk.isHardCut,
+        } as PanelPlan["segments"][number] & { isHardCut: boolean }
+      }),
+    )
+
+    // Remove isHardCut from the final result (it was only for internal use)
+    const cleanSegments = segments.map(({ isHardCut: _, ...rest }) => rest)
+
+    return {
+      panelCount: cleanSegments.length,
+      segments: cleanSegments,
+    }
+  }
+
+  // If rule-based produced too many chunks, use LLM to merge semantically related ones
+  if (rawChunks.length > maxPanels) {
+    const merged = await mergeChunksWithLLM(rawChunks, maxPanels)
+    return merged
+  }
+
+  // Fallback: use original LLM-only approach
   try {
     const result = await callLLMJson<PanelPlan>({
       prompt: `Analyze this story segment and plan visual panels (max ${maxPanels}):${toneContext}\n\n${storySegment}\n\nReturn JSON with panelCount and segments array.`,
@@ -581,6 +785,158 @@ export async function planPanelSegments(
     log.error("llm_panel_plan_failed", { error: String(error) })
     return fallbackPanelPlan(storySegment, maxPanels)
   }
+}
+
+/**
+ * Merges related raw chunks using LLM to stay within maxPanels limit.
+ *
+ * Optimized prompt engineering:
+ * - Structured input with metadata (word count, dialogue/action/emotion detection)
+ * - Concise, specific merge/split rules
+ * - Visual continuity constraints (location/time changes prevent merging)
+ */
+async function mergeChunksWithLLM(
+  rawChunks: RawSegment[],
+  maxPanels: number,
+): Promise<PanelPlan> {
+  try {
+    // Structured input: build chunk list with metadata for LLM context
+    const chunkList = rawChunks
+      .map((c, i) => {
+        const words = c.text.split(/\s+/).length
+        const sentences = c.text.split(/[.!?。！？]/).filter(Boolean).length
+        return {
+          index: i,
+          text: c.text.slice(0, 200),
+          isHardCut: c.isHardCut,
+          words,
+          sentences,
+          hasDialogue: /[""].+[""]/.test(c.text),
+          hasAction: /(跑|跳|打|说|看|转|冲|追|ran|jumped|hit|said|looked|turned|ran|chased|punched)/i.test(c.text),
+          hasEmotion: /(高兴|愤怒|悲伤|兴奋|恐惧|害怕|紧张|happy|angry|sad|excited|frightened|nervous|joy)/i.test(c.text),
+        }
+      })
+
+    const chunkFormatted = chunkList
+      .map((c) =>
+        `[${c.index}]${c.isHardCut ? " [HARD CUT]" : ""} (${c.words}w, ${c.sentences}s${c.hasDialogue ? ", dialogue" : ""}${c.hasAction ? ", action" : ""}${c.hasEmotion ? ", emotion" : ""})\n${c.text}`,
+      )
+      .join("\n\n")
+
+    const prompt = `You are an expert cinematographer. Merge ${chunkList.length} story chunks into ~${maxPanels} visual panels.
+
+MERGE RULES:
+- SAME SCENE: Same setting + same characters → MERGE
+- ACTION-REACTION: "He said" + "She replied" → MERGE
+- DIALOGUE BLOCK: Full conversation → MERGE
+- MONTAGE: Monotonous processes (walking, driving) → MERGE
+
+KEEP SEPARATE IF:
+- Location changes
+- Time jumps (hours/days later)
+- [HARD CUT] marker present → NEVER merge with others
+- Character outfits change significantly
+
+CHUNKS:
+${chunkFormatted}
+
+Output JSON only:
+{"merges": [{"chunkIndices": [0,1], "reason": "character dialogue exchange"}]}`
+
+    const result = await callLLMJson<{
+      merges: Array<{ chunkIndices: number[]; reason: string }>
+    }>({
+      prompt,
+      callType: "panel_semantic_refinement_v2",
+      temperature: 0.2,
+      useRetry: true,
+    })
+
+    const merges = result.data.merges
+    if (!Array.isArray(merges) || merges.length === 0) {
+      throw new Error("Invalid LLM merge response")
+    }
+
+    // Apply merges
+    const usedIndices = new Set<number>()
+    const segments: PanelPlan["segments"] = []
+
+    for (const merge of merges) {
+      if (!merge.chunkIndices || merge.chunkIndices.length === 0) continue
+      const mergedText = merge.chunkIndices
+        .map((idx: number) => rawChunks[idx]?.text)
+        .filter(Boolean)
+        .join("\n")
+
+      if (mergedText.trim()) {
+        const analysis = await analyzeSegmentWithLLM(mergedText.trim())
+        segments.push(analysis)
+      }
+
+      for (const idx of merge.chunkIndices) {
+        usedIndices.add(idx)
+      }
+    }
+
+    // Handle unused chunks
+    for (let i = 0; i < rawChunks.length; i++) {
+      if (!usedIndices.has(i)) {
+        const analysis = await analyzeSegmentWithLLM(rawChunks[i].text)
+        segments.push(analysis)
+      }
+    }
+
+    return {
+      panelCount: segments.length,
+      segments,
+    }
+  } catch (error) {
+    log.warn("llm_merge_failed_fallback", { error: String(error) })
+    return fallbackMergeChunks(rawChunks, maxPanels)
+  }
+}
+
+/**
+ * Improved fallback merge strategy: distributes chunks evenly across maxPanels,
+ * preserving metadata-aware grouping instead of simple truncation.
+ */
+function fallbackMergeChunks(rawChunks: RawSegment[], maxPanels: number): PanelPlan {
+  const segments: PanelPlan["segments"] = []
+
+  if (rawChunks.length <= maxPanels) {
+    // Each chunk gets its own panel — use analyzeSegmentWithLLM for quality
+    // But since this is a fallback (LLM failed), we skip LLM and use simple descriptions
+    for (let i = 0; i < rawChunks.length; i++) {
+      segments.push({
+        startIndex: i,
+        endIndex: i,
+        description: rawChunks[i].text.slice(0, 100),
+        keyMoment: rawChunks[i].isHardCut ? "scene transition" : "story moment",
+        emotions: [],
+        characters: [],
+      })
+    }
+    return { panelCount: segments.length, segments }
+  }
+
+  // Distribute chunks evenly across panels
+  const chunksPerPanel = Math.ceil(rawChunks.length / maxPanels)
+  for (let i = 0; i < maxPanels; i++) {
+    const startIdx = i * chunksPerPanel
+    const endIdx = Math.min(startIdx + chunksPerPanel, rawChunks.length)
+    const mergedText = rawChunks.slice(startIdx, endIdx).map((c) => c.text).join("\n")
+
+    segments.push({
+      startIndex: startIdx,
+      endIndex: endIdx - 1,
+      description: mergedText.slice(0, 100),
+      keyMoment: rawChunks[startIdx]?.isHardCut ? "scene transition" : "story moment",
+      emotions: [],
+      characters: [],
+    })
+  }
+
+  return { panelCount: segments.length, segments }
 }
 
 /**

@@ -9,8 +9,6 @@ import {
   validateWorldState,
   withRetry,
   RetryConfig,
-  createCorrelationId,
-  createCorrelationContext,
 } from "../validation"
 
 describe("validation", () => {
@@ -235,20 +233,5 @@ describe("withRetry", () => {
     } catch (e) {
       expect(attempts).toBe(3) // Initial + 2 retries
     }
-  })
-})
-
-describe("correlation", () => {
-  test("createCorrelationId returns unique ids", () => {
-    const id1 = createCorrelationId()
-    const id2 = createCorrelationId()
-    expect(id1).not.toBe(id2)
-  })
-
-  test("createCorrelationContext creates context", () => {
-    const ctx = createCorrelationContext("test-operation")
-    expect(ctx.operation).toBe("test-operation")
-    expect(ctx.correlationId).toBeDefined()
-    expect(ctx.timestamp).toBeGreaterThan(0)
   })
 })

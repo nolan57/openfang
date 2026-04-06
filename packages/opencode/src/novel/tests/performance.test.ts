@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "bun:test"
-import { memoize, clearMemoCache, getMemoStats, debounce, throttle, batch, lazy } from "./performance"
+import { memoize, clearMemoCache, getMemoStats, debounce, throttle, batch, lazy } from "../performance"
 
 describe("memoize", () => {
   beforeEach(() => {

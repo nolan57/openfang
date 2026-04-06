@@ -6,9 +6,9 @@ import {
   NovelImprovementApi,
   NovelLearningBridgeManager,
   DEFAULT_LEARNING_BRIDGE_CONFIG,
-} from "./novel-learning-bridge"
-import type { MemoryEntry } from "./story-world-memory"
-import type { GraphNode } from "./story-knowledge-graph"
+} from "../novel-learning-bridge"
+import type { MemoryEntry } from "../story-world-memory"
+import type { GraphNode } from "../story-knowledge-graph"
 
 describe("NovelVectorBridge", () => {
   let bridge: NovelVectorBridge

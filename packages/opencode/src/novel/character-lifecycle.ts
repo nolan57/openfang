@@ -130,7 +130,7 @@ export class CharacterLifecycleManager {
     initialAge: number = 0,
     lifeStage?: CharacterLifeStage,
   ): CharacterLifecycle {
-    const stage = lifeStage || this.calculateLifeStage(initialAge)
+    const stage = lifeStage || this.calcLifeStage(initialAge)
 
     const lifecycle: CharacterLifecycle = {
       characterId,
@@ -176,7 +176,7 @@ export class CharacterLifecycleManager {
 
       // Check for life stage transition
       const oldStage = lifecycle.lifeStage
-      const newStage = this.calculateLifeStage(newAge)
+      const newStage = this.calcLifeStage(newAge)
 
       if (oldStage !== newStage) {
         lifecycle.lifeStage = newStage
@@ -372,7 +372,7 @@ export class CharacterLifecycleManager {
     return lifecycle?.lifeEvents || []
   }
 
-  calculateLifeStage(age: number): CharacterLifeStage {
+  private calcLifeStage(age: number): CharacterLifeStage {
     if (age < 3) return "infant"
     if (age < 12) return "child"
     if (age < 18) return "adolescent"
@@ -381,24 +381,6 @@ export class CharacterLifecycleManager {
     if (age < 70) return "middle_aged"
     if (age < 100) return "elder"
     return "ancient"
-  }
-
-  generateNewCharacter(context: { plotNeed?: string; existingCharacters?: string[]; currentSetting?: string }): {
-    characterId: string
-    lifecycle: CharacterLifecycle
-    rationale: string
-  } {
-    const characterId = `char_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const age = Math.floor(Math.random() * 60) + 10
-    const lifeStage = this.calculateLifeStage(age)
-
-    const lifecycle = this.registerCharacter(characterId, this.currentChapter, age, lifeStage)
-
-    const rationale = `Generated new character ${characterId} (${lifeStage}, age ${age.toFixed(0)})`
-
-    log.info("new_character_generated", { characterId, age, lifeStage, context: context.plotNeed })
-
-    return { characterId, lifecycle, rationale }
   }
 
   getLifecycleReport(): string {

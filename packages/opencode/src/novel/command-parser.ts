@@ -12,21 +12,6 @@ import {
 } from "./novel-config"
 import { Plugin } from "../plugin"
 import { PluginRecovery } from "../plugin/recovery"
-import { z } from "zod"
-
-const StoryFeedbackSchema = z.object({
-  storyId: z.string(),
-  rating: z.number().min(1).max(10),
-  comments: z.string().optional(),
-  suggestions: z.array(z.string()).optional(),
-  submittedAt: z.number().optional(),
-})
-
-type StoryFeedback = z.infer<typeof StoryFeedbackSchema>
-
-async function submitFeedbackToMetaLearner(feedback: StoryFeedback): Promise<void> {
-  console.log(` Submitting feedback to MetaLearner: ${feedback.storyId} (rating: ${feedback.rating}/10)`)
-}
 
 async function fileExists(filePath: string): Promise<boolean> {
   try {
@@ -398,35 +383,6 @@ Exported: ${new Date().toISOString()}
       break
     }
 
-    case "/feedback": {
-      if (!args[0]) {
-        console.log("× Usage: /feedback <feedback.json>")
-        break
-      }
-
-      const filePath = args[0]
-      const safePath = resolveSafePath(cwd, filePath)
-
-      if (!(await fileExists(safePath))) {
-        console.log(`× File not found: ${filePath}`)
-        break
-      }
-
-      try {
-        const content = await readFile(safePath, "utf-8")
-        const feedbackData = JSON.parse(content)
-        const feedback = StoryFeedbackSchema.parse(feedbackData)
-
-        await submitFeedbackToMetaLearner(feedback)
-
-        console.log("✓ Feedback submitted successfully!")
-        console.log(` Thank you for rating the story: ${feedback.rating}/10`)
-      } catch (error) {
-        console.log(`× Failed to submit feedback: ${String(error)}`)
-      }
-      break
-    }
-
     case "/plugin": {
       const action = args[0] as string
       const pluginName = args[1] as string
@@ -646,7 +602,6 @@ Examples:
   /patterns         Show discovered narrative patterns
   /reset            Reset story state
   /architect        Open web-based Prompt Architect wizard
-  /feedback <file>  Submit story feedback (JSON format)
   /plugin [action] [name]
                     Plugin management:
                     - /plugin list: Show all plugins status

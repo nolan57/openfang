@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { planPanelSegments } from "./visual-orchestrator"
+import { planPanelSegments } from "../visual-orchestrator"
 
 describe("LLM-driven Panel Segmentation", () => {
   const simpleStory = "林默站在雨中。他看着前方的建筑。门缓缓打开。"

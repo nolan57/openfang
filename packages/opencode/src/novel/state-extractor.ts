@@ -581,6 +581,141 @@ Each field should be 1-3 concise sentences.`
       }
     }
 
+    // ========================================================================
+    // CONTEXTUAL VALIDATION — inlined from deleted *WithContext functions
+    // These checks ensure LLM-extracted state changes are narratively consistent.
+    // ========================================================================
+
+    // 1. Dead characters cannot gain skills or trauma
+    for (const [charName, charUpdate] of Object.entries(validated.characters || {})) {
+      const currentChar = currentState.characters?.[charName]
+      const currentStatus = (currentChar?.status as string)?.toLowerCase() || "active"
+
+      if (currentStatus === "deceased" || currentStatus === "dead") {
+        const update = charUpdate as CharacterUpdate
+        if (update.newSkill) {
+          auditFlags.push({
+            type: "IMPOSSIBLE_CHANGE",
+            description: `Dead character '${charName}' cannot gain skill '${update.newSkill.name}'`,
+            corrected: true,
+            correction: `Skill '${update.newSkill.name}' removed`,
+          })
+          delete (update as any).newSkill
+          correctionsApplied++
+        }
+        if (update.newTrauma) {
+          auditFlags.push({
+            type: "IMPOSSIBLE_CHANGE",
+            description: `Dead character '${charName}' cannot receive new trauma`,
+            corrected: true,
+            correction: `Trauma '${update.newTrauma.name}' removed`,
+          })
+          delete (update as any).newTrauma
+          correctionsApplied++
+        }
+      }
+    }
+
+    // 2. Relationship updates require both characters to exist
+    for (const [relKey, relUpdate] of Object.entries(updates.relationships || {})) {
+      const [charA, charB] = relKey.split("-")
+      const existsA = currentState.characters?.[charA]
+      const existsB = currentState.characters?.[charB]
+
+      if (!existsA) {
+        auditFlags.push({
+          type: "IMPOSSIBLE_CHANGE",
+          description: `Relationship '${relKey}' references non-existent character '${charA}'`,
+          corrected: true,
+          correction: `Relationship update for '${relKey}' removed`,
+        })
+        delete (validated.relationships as any)?.[relKey]
+        correctionsApplied++
+      }
+      if (!existsB) {
+        auditFlags.push({
+          type: "IMPOSSIBLE_CHANGE",
+          description: `Relationship '${relKey}' references non-existent character '${charB}'`,
+          corrected: true,
+          correction: `Relationship update for '${relKey}' removed`,
+        })
+        delete (validated.relationships as any)?.[relKey]
+        correctionsApplied++
+      }
+    }
+
+    // 3. Completed goals should not be reactivated
+    for (const [charName, charUpdate] of Object.entries(validated.characters || {})) {
+      const update = charUpdate as CharacterUpdate
+      const currentChar = currentState.characters?.[charName]
+
+      if (update.goals && currentChar?.goals) {
+        for (const goal of update.goals) {
+          const existingGoal = currentChar.goals.find((g: any) => g.type === goal.type)
+          if (existingGoal && existingGoal.status === "completed" && goal.status === "active") {
+            auditFlags.push({
+              type: "IMPOSSIBLE_CHANGE",
+              description: `Completed goal '${goal.type}' for '${charName}' reactivated`,
+              corrected: true,
+              correction: `Goal '${goal.type}' status reset to 'completed'`,
+            })
+            // Override the reactivation
+            for (const g of update.goals) {
+              if (g.type === goal.type) {
+                g.status = "completed"
+              }
+            }
+            correctionsApplied++
+          }
+        }
+      }
+    }
+
+    // 4. Trauma severity should match stress level
+    for (const [charName, charUpdate] of Object.entries(validated.characters || {})) {
+      const update = charUpdate as CharacterUpdate
+      const currentChar = currentState.characters?.[charName]
+      const currentStress = currentChar?.stress || 0
+
+      if (update.newTrauma && update.newTrauma.severity > 7 && currentStress < 50) {
+        auditFlags.push({
+          type: "IMPOSSIBLE_CHANGE",
+          description: `High severity trauma (${update.newTrauma.severity}) for '${charName}' with low stress (${currentStress})`,
+          corrected: false,
+        })
+      }
+
+      if (update.newTrauma && update.newTrauma.severity >= 5 && currentStress < 30) {
+        auditFlags.push({
+          type: "IMPOSSIBLE_CHANGE",
+          description: `Moderate trauma (${update.newTrauma.severity}) for '${charName}' without significant stress event`,
+          corrected: false,
+        })
+      }
+    }
+
+    // 5. Skill inflation — too many skills in short time
+    for (const [charName, charUpdate] of Object.entries(validated.characters || {})) {
+      const update = charUpdate as CharacterUpdate
+      const currentChar = currentState.characters?.[charName]
+
+      if (update.newSkill && currentChar?.skills) {
+        const currentTurn = currentState.chapterCount || 0
+        const recentSkills = currentChar.skills.filter((s: any) => {
+          const acquiredTurn = s.acquiredTurn || 0
+          return currentTurn - acquiredTurn < 3
+        })
+
+        if (recentSkills.length >= 2) {
+          auditFlags.push({
+            type: "INFLATION",
+            description: `${charName} gained ${recentSkills.length} skills in recent turns; new skill '${update.newSkill.name}' may be inflation`,
+            corrected: false,
+          })
+        }
+      }
+    }
+
     // NEW: Perform comprehensive fact validation if factValidator is available
     if (typeof globalThis.factValidator !== "undefined") {
       try {

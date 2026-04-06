@@ -235,29 +235,6 @@ Use common sense:
   }
 
   /**
-   * Validates the analysis result
-   */
-  private validateAnalysis(analysis: ContinuityAnalysis): boolean {
-    // Check required fields
-    if (!analysis.timeContext || !analysis.locationContext || !analysis.narrativeContext || !analysis.llmJudgement) {
-      return false
-    }
-
-    // Check confidence is in valid range
-    if (analysis.llmJudgement.confidence < 0 || analysis.llmJudgement.confidence > 1) {
-      return false
-    }
-
-    // Check timePassed is valid enum
-    const validTimePassed = ["immediately", "minutes", "hours", "days", "weeks", "unknown"]
-    if (!validTimePassed.includes(analysis.timeContext.timePassed)) {
-      return false
-    }
-
-    return true
-  }
-
-  /**
    * Creates a fallback analysis when LLM fails
    */
   private createFallbackAnalysis(

@@ -5,7 +5,8 @@
       "Bash(\" 2>/dev/null)\")",
       "Bash(\" 2>/dev/null) rows\")",
       "Bash(sqlite3 *)",
-      "Bash(ls *)"
+      "Bash(ls *)",
+      "Read(//home/urio/Documents/opencode/packages/opencode/src/cli/cmd/**)"
     ]
   },
   "$version": 3

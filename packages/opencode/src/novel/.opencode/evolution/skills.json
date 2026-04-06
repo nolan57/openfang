@@ -388,6 +388,7 @@
     "status": "draft"
   },
   {
+    "id": "215806da-35ea-4f30-a560-6cf09eb30fc4",
     "name": "auto-read-task",
     "description": "Auto-generated skill for 分析 learning 模块哪些代码文件是处理自动生成skills的",
     "content": "# 分析 learning 模块哪些代码文件是处理自动生成skills的\n\n## Description\n\nAuto-generated skill for: 分析 learning 模块哪些代码文件是处理自动生成skills的\n\n## Triggers\n\nThis skill activates when:\n- Working with read operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-03-28\n",
@@ -396,8 +397,23 @@
       "skills"
     ],
     "sessionID": "ses_2cd684489ffeXpfPdDFTmAa8KI",
-    "id": "215806da-35ea-4f30-a560-6cf09eb30fc4",
     "createdAt": 1774670482198,
+    "status": "draft"
+  },
+  {
+    "name": "auto-read-task",
+    "description": "Auto-generated skill for Please analyze this codebase and create an AGENTS.md file containing:\n1. Build/lint/test commands - ",
+    "content": "# Please analyze this codebase and create an AGENTS.\n\n## Description\n\nAuto-generated skill for: Please analyze this codebase and create an AGENTS.md file containing:\n1. Build/lint/test commands - especially for running a single test\n2. Code style guidelines including imports, formatting, types, naming conventions, error handling, etc.\n\nThe file you create will be given to agentic coding agents (such as yourself) that operate in this repository. Make it about 150 lines long.\nIf there are Cursor rules (in .cursor/rules/ or .cursorrules) or Copilot rules (in .github/copilot-instructions.md), make sure to include them.\n\nIf there's already an AGENTS.md, improve it if it's located in /home/urio/Documents/opencode continue\n\n## Triggers\n\nThis skill activates when:\n- Working with read operations\n- Working with glob operations\n\n## Actions\n\n1. Analyze the task requirements\n2. Execute relevant tool calls\n3. Verify results\n\n## Notes\n\nGenerated from session analysis on 2026-04-05\n",
+    "triggerPatterns": [
+      "please",
+      "analyze",
+      "this",
+      "codebase",
+      "create"
+    ],
+    "sessionID": "ses_2a1d897baffem4HTxE8PH0okxD",
+    "id": "1544adb2-315e-495d-8383-9f98180e1375",
+    "createdAt": 1775401384383,
     "status": "draft"
   }
 ]

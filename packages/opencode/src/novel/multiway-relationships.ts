@@ -625,23 +625,6 @@ Output JSON:
 }
 
 // ============================================================================
-// Default exports (with no-op graph reader for standalone use)
+// Default exports: Interfaces and Classes only
+// Users (orchestrator) create instances with a real GraphReader
 // ============================================================================
-
-const noopGraphReader: GraphReader = {
-  getCharacterNames: async () => [],
-  getCharacterIdByName: async () => null,
-  getRelationshipsForCharacters: async () => [],
-  getEdgeCountForChapter: async () => 0,
-  getAllCharacters: async () => [],
-  getActiveCharacters: async () => [],
-  findNodeByName: async () => null,
-  addGroup: async () => ({ id: "", type: "group", name: "", firstAppearance: 0, status: "active" } as GraphNode),
-  addMemberToGroup: async () => ({ id: "", source: "", target: "", type: "memberOf", strength: 0, chapter: 0 } as GraphEdge),
-  getGroupMembers: async () => [],
-  getAllGroups: async () => [],
-  getRelationshipHistory: async () => [],
-}
-
-export const relationshipViewService = new RelationshipViewService(noopGraphReader)
-export const asyncGroupManagementService = new AsyncGroupManagementService(noopGraphReader)

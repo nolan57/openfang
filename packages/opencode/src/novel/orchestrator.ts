@@ -83,6 +83,11 @@ interface StoryBranch {
   selected: boolean
   events?: Array<{ id: string; type: string; description: string }>
   structuredState?: Record<string, any>
+  createdAt?: number
+  chapter?: number
+  parentId?: string
+  pruned?: boolean
+  pruneReason?: string
 }
 
 interface CurrentChapter {
@@ -270,7 +275,10 @@ export class EvolutionOrchestrator {
     this.stateExtractor = new StateExtractor()
     this.relationshipAnalyzer = new RelationshipAnalyzer()
     this.characterDeepener = new CharacterDeepener()
-    this.branchManager = new BranchManager()
+    this.branchManager = new BranchManager({
+      maxBranches: novelConfigManager.getDifficultyPreset().branchConfig.maxBranches,
+      minQualityThreshold: novelConfigManager.getDifficultyPreset().branchConfig.minQualityThreshold,
+    })
     this.storyWorldMemory = storyWorldMemory
     this.storyKnowledgeGraph = storyKnowledgeGraph
     this.branchStorage = branchStorage
@@ -1259,10 +1267,46 @@ Output JSON:
   }
 
   /**
-   * Get available branches for current chapter
+   * Get available branches for current chapter.
+   * Uses BranchManager's tree structure for organized display.
    */
   getAvailableBranches(): StoryBranch[] {
+    // First try BranchManager's in-memory data
+    const managedBranches = this.branchManager.getAllBranches()
+    if (managedBranches.length > 0) {
+      return managedBranches.filter((b: Branch) => b.chapter === this.storyState.chapterCount + 1 && !b.pruned) as unknown as StoryBranch[]
+    }
+    // Fallback to storyState branch history
     return this.storyState.branchHistory.filter((b) => b.id.startsWith(`branch_${this.storyState.chapterCount}`))
+  }
+
+  /**
+   * Get branch tree structure from BranchManager.
+   * Returns hierarchical view of all branches grouped by parent.
+   */
+  getBranchTree(): Record<string, StoryBranch[]> {
+    const tree = this.branchManager.getBranchTree()
+    // Convert Map to plain object for serialization
+    const result: Record<string, StoryBranch[]> = {}
+    for (const [parentId, branches] of tree) {
+      result[parentId || 'root'] = branches as unknown as StoryBranch[]
+    }
+    return result
+  }
+
+  /**
+   * Get the path from root to a specific branch.
+   * Useful for time travel / alternate timeline navigation.
+   */
+  getBranchPath(branchId: string): StoryBranch[] {
+    return this.branchManager.getBranchPath(branchId) as unknown as StoryBranch[]
+  }
+
+  /**
+   * Get branch statistics from BranchManager.
+   */
+  getBranchStats() {
+    return this.branchManager.getStats()
   }
 
   async loadState(): Promise<void> {
@@ -1379,6 +1423,26 @@ Output JSON:
     const activeArchetypes = this.enhancedPatternMiner.getActiveArchetypes()
     if (activeArchetypes.length > 0) {
       chaosContext.activeArchetypes = `CHARACTER ARCHETYPES TO TEST:\n${activeArchetypes.map((a) => `- ${a.name} (${a.type}): ${a.narrative_role}`).join("\n")}`
+    }
+
+    // Inject procedural world context — chaos events can trigger regional conflicts
+    if (this.proceduralWorld) {
+      const allRegions = this.proceduralWorld.getAllRegions()
+      const currentChapterRegions = allRegions.slice(0, 5)
+      if (currentChapterRegions.length > 0) {
+        const worldContext = currentChapterRegions
+          .map((r) => `- ${r.name} (${r.type}): ${r.description?.slice(0, 100)}${r.dangers?.length ? ` [Dangers: ${r.dangers.slice(0, 2).join(", ")}]` : ""}`)
+          .join("\n")
+        chaosContext.recentEvents = [
+          ...chaosContext.recentEvents,
+          `WORLD CONTEXT:\n${worldContext}`,
+        ]
+      }
+      const conflicts = (this.storyState as any).proceduralConflicts || []
+      if (conflicts.length > 0) {
+        const conflictList = conflicts.slice(0, 3).map((c: any) => `- ${c.description || c.type}`).join("\n")
+        chaosContext.recentEvents.push(`REGIONAL CONFLICTS TO EXPLORE:\n${conflictList}`)
+      }
     }
 
     // Inject cached relationship instability from previous chapter's analysis
@@ -1568,11 +1632,13 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
       })
       this.log(`   Selected: ${selectedBranch.choiceMade}`)
 
-      // Store branches in branch storage
+      // Store branches in branch storage and BranchManager
       try {
+        const branchIds: string[] = []
         for (const branch of allBranches) {
-          await this.branchStorage.saveBranch({
-            id: branch.id || `branch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          const branchId = branch.id || `branch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          const branchData = {
+            id: branchId,
             storySegment: branch.storySegment,
             branchPoint: branch.branchPoint,
             choiceMade: branch.choiceMade,
@@ -1582,13 +1648,46 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
             selected: branch === selectedBranch,
             createdAt: Date.now(),
             chapter: this.storyState.chapterCount + 1,
+            parentId: this.storyState.currentBranchId || undefined,
             events: branch.events || [],
             structuredState: branch.structuredState || {},
-          })
+          }
+
+          // Persist to SQLite
+          await this.branchStorage.saveBranch(branchData)
+
+          // Register in BranchManager for scoring, pruning, and similarity detection
+          this.branchManager.addBranch(branchData)
+          branchIds.push(branchId)
         }
-        this.log(`   Stored ${allBranches.length} branches`)
+
+        // Auto-merge similar branches to prevent combinatorial explosion
+        const merged = this.branchManager.autoMergeSimilarBranches(0.5)
+        const mergedCount = merged.filter((r) => r.merged).length
+        if (mergedCount > 0) {
+          this.log(`   Auto-merged ${mergedCount} similar branch(es)`)
+        }
+
+        // Prune low-quality branches based on config thresholds
+        const pruned = this.branchManager.pruneBranches(
+          this.storyState.chapterCount + 1,
+        )
+        if (pruned.length > 0) {
+          this.log(`   Pruned ${pruned.length} low-quality branch(s)`)
+          // Sync pruned status to storage
+          for (const branch of pruned) {
+            try {
+              await this.branchStorage.updateBranch(branch.id, { pruned: true, pruneReason: "low_quality" })
+            } catch {
+              // Non-critical: storage sync shouldn't block story
+            }
+          }
+        }
+
+        const stats = this.branchManager.getStats()
+        this.log(`   Branch management: ${stats.total} total, ${stats.active} active, ${stats.pruned} pruned, ${stats.merged} merged, avg score: ${stats.avgScore?.toFixed(1) || 'N/A'}`)
       } catch (error) {
-        log.warn("branch_storage_failed", { error: String(error) })
+        log.warn("branch_management_failed", { error: String(error) })
       }
 
       // Update state from selected branch
@@ -2020,6 +2119,32 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
           this.storyState.chapterCount,
         )
         this.log(`   Motif evolution analysis completed for ${minedMotifs.length} motifs`)
+
+        // Export motif evolutions to knowledge graph for motif-character correlation
+        try {
+          const graphData = this.motifTracker.exportToKnowledgeGraph()
+          for (const node of graphData.nodes) {
+            await this.storyKnowledgeGraph.addNode({
+              type: node.type as any,
+              name: node.name,
+              properties: node.data,
+              firstAppearance: this.storyState.chapterCount,
+              status: "active" as any,
+            }).catch(() => {})
+          }
+          for (const edge of graphData.edges) {
+            await this.storyKnowledgeGraph.addEdge({
+              source: edge.source,
+              target: edge.target,
+              type: edge.type as any,
+              strength: edge.weight * 100,
+              chapter: this.storyState.chapterCount,
+            }).catch(() => {})
+          }
+          this.log(`   Motif data synced to knowledge graph: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`)
+        } catch (error) {
+          log.debug("motif_graph_sync_failed", { error: String(error) })
+        }
       } catch (error) {
         log.warn("motif_analysis_failed", { error: String(error) })
       }
@@ -2187,6 +2312,33 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
       panelCount: this.visualPanelsEnabled ? 0 : 0,
     })
     this.log(`   [DEBUG] Chapter ${this.storyState.chapterCount} completed in ${totalDuration}ms`)
+
+    // Collect observability metrics (if advanced modules are initialized)
+    if (this.advancedModulesInitialized) {
+      try {
+        const metrics = await novelObservability.collectMetrics(
+          this.branchManager,
+          enhancedPatternMiner,
+          this.motifTracker,
+          this.storyKnowledgeGraph,
+          this.storyWorldMemory,
+          this.storyState.characters,
+          this.storyState.relationships || {},
+          this.storyState.chapterCount,
+        )
+
+        const healthReport = await novelObservability.generateHealthReport(metrics)
+        if (healthReport.overall !== "healthy") {
+          log.warn("novel_health_warning", {
+            score: healthReport.score,
+            overall: healthReport.overall,
+            issues: healthReport.issues.length,
+          })
+        }
+      } catch (error) {
+        log.debug("observability_collection_failed", { error: String(error) })
+      }
+    }
 
     return storySegment
   }

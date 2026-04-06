@@ -70,13 +70,17 @@ async function handleStart(args: any) {
 
     const loops = (args.loops as number) || 1
     const visualPanelsEnabled = !args.noVisualPanels && args.visualPanels !== false
+    const branchesEnabled = args.branches !== false && !args.noBranches
+    const branchCount = (args.branchCount as number) || 3
     console.log(` Visual panels: ${visualPanelsEnabled ? "enabled" : "disabled"}`)
+    console.log(` Multi-branch generation: ${branchesEnabled ? `enabled (${branchCount} branches)` : "disabled"}`)
     console.log(` Running ${loops} self-evolution loop(s)...\n`)
 
-    // Create engine with visual panels setting
+    // Create engine with branch settings
     orchestrator = new EvolutionOrchestrator({
       configManager,
       visualPanelsEnabled,
+      branchOptions: branchCount,
     })
     orchestratorArgs = args
     await orchestrator.loadState()
@@ -87,7 +91,7 @@ async function handleStart(args: any) {
           console.log(`\n--- Loop ${i + 1}/${loops} ---`)
           await enhancedPatternMiner.onTurn({ storySegment: promptContent, characters: {}, chapter: 1, fullStory: promptContent })
         }
-        const result = await orchestrator.runNovelCycle(promptContent)
+        const result = await orchestrator.runNovelCycle(promptContent, branchesEnabled)
         console.log(`\n ✓ Loop ${i + 1} complete!`)
         console.log("Preview:", result.substring(0, 150) + "...")
       }
@@ -110,16 +114,22 @@ async function handleStart(args: any) {
 async function handleContinue(args?: any) {
   await bootstrap(process.cwd(), async () => {
     const visualPanelsEnabled = !args?.noVisualPanels && args?.visualPanels !== false
+    const branchesEnabled = args?.branches !== false && !args?.noBranches
+    const branchCount = args?.branchCount || 3
     console.log(` Visual panels: ${visualPanelsEnabled ? "enabled" : "disabled"}`)
+    console.log(` Multi-branch generation: ${branchesEnabled ? `enabled (${branchCount} branches)` : "disabled"}`)
 
-    orchestrator = new EvolutionOrchestrator({ visualPanelsEnabled })
+    orchestrator = new EvolutionOrchestrator({
+      visualPanelsEnabled,
+      branchOptions: branchCount,
+    })
     orchestratorArgs = args
     await orchestrator.loadState()
 
     const state = orchestrator.getState()
     console.log(`Continuing from Chapter ${state.chapterCount}: ${state.currentChapter || "Untitled"}`)
     try {
-      const result = await orchestrator.runNovelCycle("Continue the story from the current state.")
+      const result = await orchestrator.runNovelCycle("Continue the story from the current state.", branchesEnabled)
       console.log("\n ✓ Next chapter generated!")
       console.log("Preview:", result.substring(0, 150) + "...")
     } finally {
@@ -228,6 +238,111 @@ async function handlePatterns() {
   })
 }
 
+async function handleBranches() {
+  await bootstrap(process.cwd(), async () => {
+    const engine = await getOrchestrator()
+    try {
+      const branches = engine.getAvailableBranches()
+      const tree = engine.getBranchTree()
+
+      if (branches.length === 0) {
+        console.log("  (No branches available yet — run with --branches to enable multi-branch generation)")
+        return
+      }
+
+      console.log(`\n  Story Branches (${branches.length} available):\n`)
+      console.log("  ─" .repeat(60))
+
+      for (const branch of branches) {
+        const selected = branch.selected ? " ✓" : ""
+        const status = branch.pruned ? " [pruned]" : ""
+        console.log(`\n  ${branch.id}${selected}${status}`)
+        console.log(`    Choice: ${branch.choiceMade}`)
+        console.log(`    Branch point: ${branch.branchPoint}`)
+        console.log(`    Quality: ${branch.evaluation?.narrativeQuality?.toFixed(1) || 'N/A'}/10`)
+        if (branch.evaluation) {
+          const e = branch.evaluation
+          console.log(`    Tension: ${e.tensionLevel?.toFixed(1)}/10 | Character: ${e.characterDevelopment?.toFixed(1)}/10 | Plot: ${e.plotProgression?.toFixed(1)}/10`)
+        }
+      }
+
+      // Show tree structure
+      const treeKeys = Object.keys(tree)
+      if (treeKeys.length > 0) {
+        console.log(`\n\n  Branch Tree:\n`)
+        for (const parentId of treeKeys) {
+          const children = tree[parentId]
+          console.log(`  Parent: ${parentId}`)
+          for (const child of children) {
+            const marker = child.selected ? " ← current" : ""
+            console.log(`    └─ ${child.id}: ${child.choiceMade.slice(0, 60)}...${marker}`)
+          }
+        }
+      }
+    } finally {
+      await engine.dispose()
+    }
+  })
+}
+
+async function handleSwitchBranch(args: any) {
+  await bootstrap(process.cwd(), async () => {
+    const engine = await getOrchestrator()
+    try {
+      const branchId = args.branchId as string
+      const success = await engine.switchBranch(branchId)
+
+      if (success) {
+        const state = engine.getState()
+        console.log(` ✓ Switched to branch: ${branchId}`)
+        console.log(`   Chapter: ${state.chapterCount}`)
+        console.log(`   Characters: ${Object.keys(state.characters || {}).join(", ") || "none"}`)
+      } else {
+        console.error(` × Branch not found: ${branchId}`)
+        console.log("  Available branches:")
+        const branches = engine.getAvailableBranches()
+        for (const b of branches) {
+          console.log(`    ${b.id}: ${b.choiceMade.slice(0, 60)}...`)
+        }
+      }
+    } finally {
+      await engine.dispose()
+    }
+  })
+}
+
+async function handleBranchStats() {
+  await bootstrap(process.cwd(), async () => {
+    const engine = await getOrchestrator()
+    try {
+      const stats = engine.getBranchStats()
+      const state = engine.getState()
+
+      console.log("\n  Branch Statistics:\n")
+      console.log(`  Total branches:     ${stats.total}`)
+      console.log(`  Active branches:    ${stats.active}`)
+      console.log(`  Pruned branches:    ${stats.pruned}`)
+      console.log(`  Merged branches:    ${stats.merged}`)
+      console.log(`  Selected branches:  ${stats.selected}`)
+      console.log(`  Average score:      ${stats.avgScore?.toFixed(1) || 'N/A'}/10`)
+      console.log(`  Current chapter:    ${state.chapterCount}`)
+      console.log(`  Current branch:     ${state.currentBranchId || "none"}`)
+
+      // Show branch history
+      const history = state.branchHistory || []
+      if (history.length > 0) {
+        console.log(`\n  Branch History (${history.length} entries):\n`)
+        for (const entry of history.slice(-10)) {
+          const marker = entry.id === state.currentBranchId ? " ← current" : ""
+          console.log(`  ${entry.id}: ${entry.choiceMade?.slice(0, 50) || 'unknown'}${marker}`)
+        }
+      }
+    } finally {
+      await engine.dispose()
+    }
+  })
+}
+
 async function handleReset() {
   await bootstrap(process.cwd(), async () => {
     const engine = await getOrchestrator()
@@ -287,6 +402,20 @@ export const NovelCommand: CommandModule = {
               type: "number",
               default: 5,
               describe: "Maximum number of active threads for multi-thread narrative",
+            })
+            .option("branches", {
+              type: "boolean",
+              default: true,
+              describe: "Enable multi-branch story generation (LLM generates multiple paths, selects best)",
+            })
+            .option("no-branches", {
+              type: "boolean",
+              describe: "Disable multi-branch story generation (single linear path)",
+            })
+            .option("branch-count", {
+              type: "number",
+              default: 3,
+              describe: "Number of branches to generate per chapter (default: 3)",
             }),
         handleStart,
       )
@@ -313,6 +442,20 @@ export const NovelCommand: CommandModule = {
               type: "number",
               default: 5,
               describe: "Maximum number of active threads for multi-thread narrative",
+            })
+            .option("branches", {
+              type: "boolean",
+              default: true,
+              describe: "Enable multi-branch story generation (LLM generates multiple paths, selects best)",
+            })
+            .option("no-branches", {
+              type: "boolean",
+              describe: "Disable multi-branch story generation (single linear path)",
+            })
+            .option("branch-count", {
+              type: "number",
+              default: 3,
+              describe: "Number of branches to generate per chapter (default: 3)",
             }),
         handleContinue,
       )
@@ -353,6 +496,19 @@ export const NovelCommand: CommandModule = {
       )
       .command("patterns", "Display discovered narrative patterns", handlePatterns)
       .command("reset", "Reset story state and start fresh", handleReset)
+      .command("branches", "List all story branches and their tree structure", handleBranches)
+      .command(
+        "switch <branchId>",
+        "Switch to a different branch (time travel / alternate timeline)",
+        (yargs) =>
+          yargs.positional("branchId", {
+            type: "string",
+            demandOption: true,
+            describe: "Branch ID to switch to",
+          }),
+        handleSwitchBranch,
+      )
+      .command("branch-stats", "Display branch statistics and health", handleBranchStats)
       .demandCommand(1, "")
   },
   handler: async () => {
