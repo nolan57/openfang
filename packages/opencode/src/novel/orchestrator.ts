@@ -1255,7 +1255,9 @@ Output JSON:
     // Save current state before switching
     const currentBranch = this.storyState.branchHistory.find((b) => b.id === this.storyState.currentBranchId)
     if (currentBranch) {
-      currentBranch.stateAfter = { ...this.storyState }
+      // Create a snapshot without branchHistory to avoid cyclic references
+      const { branchHistory, ...stateRest } = this.storyState
+      currentBranch.stateAfter = { ...stateRest, branchHistory: [] }
     }
 
     // Switch to selected branch state
@@ -1333,9 +1335,22 @@ Output JSON:
       }
     }
 
+    // Create a serializable copy of state that excludes branchHistory from nested stateAfter objects
+    // This prevents cyclic references: storyState → branchHistory → branch.stateAfter → storyState → ...
+    const stateToSave = { ...this.storyState }
+    if (stateToSave.branchHistory) {
+      stateToSave.branchHistory = stateToSave.branchHistory.map((branch) => ({
+        ...branch,
+        stateAfter: branch.stateAfter ? (() => {
+          const { branchHistory: _, ...rest } = branch.stateAfter as any
+          return { ...rest, branchHistory: [] }
+        })() : branch.stateAfter,
+      }))
+    }
+
     const path = resolve(getStoryBiblePath())
     await mkdir(dirname(path), { recursive: true })
-    await writeFile(path, JSON.stringify(this.storyState, null, 2))
+    await writeFile(path, JSON.stringify(stateToSave, null, 2))
     log.info("state_saved", { chapter: this.storyState.chapterCount })
   }
 
