@@ -206,7 +206,7 @@ export const EvolutionSummarySchema = z.object({
   auditFlags: z
     .array(
       z.object({
-        type: z.enum(["SKILL_IN_FAILURE", "MISSING_TRAUMA", "INFLATION", "IMPOSSIBLE_CHANGE"]),
+        type: z.enum(["SKILL_IN_FAILURE", "MISSING_TRAUMA", "INFLATION", "IMPOSSIBLE_CHANGE", "STRESS_OVERFLOW"]),
         description: z.string(),
         corrected: z.boolean().default(false),
       }),

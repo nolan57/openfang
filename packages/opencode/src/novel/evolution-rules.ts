@@ -474,7 +474,7 @@ Output JSON only:
       deception: skillCategories.DECEPTION,
       mental: skillCategories.ANALYSIS,
       analysis: skillCategories.ANALYSIS,
-      deduction: skillCategories.DEDUUTION,
+      deduction: skillCategories.DEDUCTION,
       intuition: skillCategories.INTUITION,
       technical: skillCategories.HACKING,
       hacking: skillCategories.HACKING,
