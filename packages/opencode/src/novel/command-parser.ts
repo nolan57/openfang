@@ -4,6 +4,7 @@ import { resolve, join } from "path"
 import { EvolutionOrchestrator, loadDynamicPatterns } from "./orchestrator"
 import { enhancedPatternMiner } from "./pattern-miner-enhanced"
 import { storyKnowledgeGraph } from "./story-knowledge-graph"
+import { storyWorldMemory } from "./story-world-memory"
 import {
   getStoryBiblePath,
   getDynamicPatternsPath,
@@ -967,6 +968,94 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
         console.log("  search     - Search nodes by name")
         console.log("  node       - View node details and connections")
         console.log("  integrity  - Run consistency checks")
+      }
+      break
+    }
+
+    case "/memory": {
+      await storyWorldMemory.initialize()
+      const subCommand = args[0] || "stats"
+
+      if (subCommand === "stats") {
+        const stats = await storyWorldMemory.getStats()
+        console.log(`\n💾 Story World Memory Statistics`)
+        console.log("═".repeat(60))
+        console.log(`  Total Memories: ${stats.total}`)
+        console.log(`  Avg Significance: ${stats.avgSignificance.toFixed(1)}`)
+        console.log(`\n  Memories by Level:`)
+        for (const [level, count] of Object.entries(stats.byLevel)) {
+          console.log(`    ${level}: ${count}`)
+        }
+      } else if (subCommand === "chapter") {
+        const chapterNum = parseInt(args[1])
+        if (!chapterNum) {
+          console.log("× Usage: /memory chapter <number>")
+          break
+        }
+        const memories = await storyWorldMemory.getMemoriesByChapter(chapterNum)
+        console.log(`\n📖 Memories for Chapter ${chapterNum} (${memories.length} entries)`)
+        console.log("─".repeat(60))
+        if (memories.length === 0) {
+          console.log("  (No memories found for this chapter)")
+        } else {
+          for (const m of memories) {
+            console.log(`  [${m.level}] ${m.content.substring(0, 100)}...`)
+            console.log(`    Chars: ${m.characters.join(", ")}`)
+          }
+        }
+      } else if (subCommand === "character") {
+        const charName = args.slice(1).join(" ")
+        if (!charName) {
+          console.log("× Usage: /memory character <name>")
+          break
+        }
+        const memories = await storyWorldMemory.getMemoriesByCharacter(charName)
+        console.log(`\n👤 Memories for "${charName}" (${memories.length} entries)`)
+        console.log("─".repeat(60))
+        if (memories.length === 0) {
+          console.log("  (No memories found)")
+        } else {
+          for (const m of memories.slice(0, 10)) {
+            console.log(`  [Ch.${m.chapter}] ${m.content.substring(0, 80)}...`)
+          }
+        }
+      } else if (subCommand === "search") {
+        const query = args.slice(1).join(" ")
+        if (!query) {
+          console.log("× Usage: /memory search <keyword>")
+          break
+        }
+        // SQLite LIKE search on content
+        await storyWorldMemory.initialize()
+        const stmt = (storyWorldMemory as any).db.prepare(`
+          SELECT * FROM memory_entries WHERE content LIKE ? ORDER BY significance DESC LIMIT 20
+        `)
+        const rows = stmt.all(`%${query}%`)
+        console.log(`\n🔍 Search Results for "${query}" (${rows.length} entries)`)
+        console.log("─".repeat(60))
+        if (rows.length === 0) {
+          console.log("  (No matches found)")
+        } else {
+          const MemoryEntrySchema = (await import("./story-world-memory")).MemoryEntrySchema
+          for (const r of rows) {
+             try {
+               const m = MemoryEntrySchema.parse({
+                 id: r.id, level: r.level, content: r.content, chapter: r.chapter, scene: r.scene,
+                 characters: JSON.parse(r.characters), locations: JSON.parse(r.locations),
+                 events: JSON.parse(r.events), themes: JSON.parse(r.themes),
+                 emotions: r.emotions ? JSON.parse(r.emotions) : [],
+                 significance: r.significance, createdAt: r.created_at, parent_id: r.parent_id, embeddings: r.embeddings, metadata: r.metadata ? JSON.parse(r.metadata) : {}
+               })
+               console.log(`  [Ch.${m.chapter}] ${m.content.substring(0, 100)}...`)
+             } catch { /* ignore parse errors */ }
+          }
+        }
+      } else {
+        console.log("× Usage: /memory <stats|chapter|character|search>")
+        console.log("\n  stats      - Show memory statistics")
+        console.log("  chapter    - View memories for a specific chapter")
+        console.log("  character  - View memories related to a character")
+        console.log("  search     - Search memory content by keyword")
       }
       break
     }

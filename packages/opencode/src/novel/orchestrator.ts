@@ -2280,6 +2280,38 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
         this.storyState.narrativeSkeleton?.theme ? [this.storyState.narrativeSkeleton.theme] : [],
       )
       this.log(`   Stored chapter ${this.storyState.chapterCount} in story memory`)
+
+      // Auto-generate Arc Summary every 10 chapters to maintain long-term coherence
+      const ARC_INTERVAL = 10
+      if (this.storyState.chapterCount > 0 && this.storyState.chapterCount % ARC_INTERVAL === 0) {
+        this.log(`   Generating Arc Summary for chapters ${this.storyState.chapterCount - ARC_INTERVAL + 1}-${this.storyState.chapterCount}...`)
+        try {
+          const memories = await this.storyWorldMemory.getMemoriesByChapter(this.storyState.chapterCount)
+          const recentChaptersMemories = await this.storyWorldMemory.getMemoriesByChapter(this.storyState.chapterCount - ARC_INTERVAL + 1)
+          
+          // Combine context
+          const context = [...recentChaptersMemories, ...memories].slice(0, 15).map(m => 
+            `[Ch.${m.chapter}] ${m.content}`
+          ).join("\n")
+
+          const arcResult = await callLLM({
+            prompt: `You are a Literary Editor. Summarize the following story arc (chapters ${this.storyState.chapterCount - ARC_INTERVAL + 1} to ${this.storyState.chapterCount}) into a high-level summary.\n\nRecent Chapters Context:\n${context}\n\nOutput requirements:\n1. Main Plot progression (what major goals were achieved/failed?)\n2. Character Arcs (who changed significantly?)\n3. Emerging Themes\n4. Unresolved Cliffhangers\n\nSummary (200-300 words):`,
+            callType: "arc_summary_generation",
+          })
+
+          await this.storyWorldMemory.storeArcSummary(
+            `Arc_${Math.floor(this.storyState.chapterCount / ARC_INTERVAL)}`,
+            arcResult.text.trim(),
+            this.storyState.chapterCount - ARC_INTERVAL + 1,
+            this.storyState.chapterCount,
+            Object.keys(this.storyState.characters),
+            this.storyState.narrativeSkeleton?.theme ? [this.storyState.narrativeSkeleton.theme] : [],
+          )
+          this.log(`   Arc Summary stored successfully`)
+        } catch (error) {
+          log.warn("arc_summary_generation_failed", { error: String(error) })
+        }
+      }
     } catch (error) {
       log.warn("story_memory_store_failed", { error: String(error) })
     }
