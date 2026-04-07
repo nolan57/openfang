@@ -289,6 +289,95 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       break
     }
 
+    case "/lifecycle": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+
+      const charName = args[0]
+      if (charName) {
+        // Show specific character's lifecycle
+        const lifecycle = orchestrator.lifecycleManager.getLifecycle(charName)
+        if (!lifecycle) {
+          console.log(`× No lifecycle data for character: ${charName}`)
+          break
+        }
+
+        console.log(`\n Character Lifecycle: ${lifecycle.characterId}`)
+        console.log("═".repeat(70))
+        console.log(`  Status: ${lifecycle.status}`)
+        console.log(`  Life Stage: ${lifecycle.lifeStage}`)
+        console.log(`  Age: ${lifecycle.currentAge.toFixed(0)} years`)
+        console.log(`  Birth Chapter: ${lifecycle.birthChapter}`)
+        if (lifecycle.deathChapter) {
+          console.log(`  Death Chapter: ${lifecycle.deathChapter}`)
+        }
+        console.log(`  Total Events: ${lifecycle.lifeEvents.length}`)
+        if (lifecycle.transformations.length > 0) {
+          console.log(`  Transformations: ${lifecycle.transformations.length}`)
+        }
+
+        console.log("\n Life Events:")
+        console.log("─".repeat(70))
+        for (const event of lifecycle.lifeEvents) {
+          console.log(`  Ch.${event.chapter} [${event.type}] ${event.description}`)
+        }
+
+        if (lifecycle.legacy && Object.keys(lifecycle.legacy).length > 0) {
+          console.log("\n Legacy:")
+          if (lifecycle.legacy.achievements?.length) {
+            console.log(`  Achievements: ${lifecycle.legacy.achievements.join(", ")}`)
+          }
+          if (lifecycle.legacy.reputation) {
+            console.log(`  Reputation: ${lifecycle.legacy.reputation}`)
+          }
+          if (lifecycle.legacy.children?.length) {
+            console.log(`  Children: ${lifecycle.legacy.children.join(", ")}`)
+          }
+        }
+      } else {
+        // Show full lifecycle report
+        console.log("\n Character Lifecycle Report")
+        console.log("═".repeat(70))
+
+        const active = orchestrator.lifecycleManager.getActiveCharacters()
+        const deceased = orchestrator.lifecycleManager.getDeceasedCharacters()
+
+        console.log(`\n Active Characters (${active.length}):`)
+        console.log("─".repeat(70))
+        if (active.length === 0) {
+          console.log("  (No active characters)")
+        } else {
+          for (const lc of active.sort((a, b) => a.currentAge - b.currentAge)) {
+            console.log(`  - **${lc.characterId}** (${lc.lifeStage}, age ${lc.currentAge.toFixed(0)})`)
+            console.log(`    Status: ${lc.status}`)
+            console.log(`    Events: ${lc.lifeEvents.length}`)
+            if (lc.transformations.length > 0) {
+              console.log(`    Transformations: ${lc.transformations.length}`)
+            }
+          }
+        }
+
+        if (deceased.length > 0) {
+          console.log(`\n Deceased Characters (${deceased.length}):`)
+          console.log("─".repeat(70))
+          for (const lc of deceased) {
+            console.log(`  - **${lc.characterId}** (died Ch.${lc.deathChapter})`)
+            const deathEvent = lc.lifeEvents.find((e) => e.type === "death")
+            if (deathEvent) {
+              console.log(`    Cause: ${deathEvent.description}`)
+            }
+          }
+        }
+
+        if (active.length === 0 && deceased.length === 0) {
+          console.log("  (No lifecycle data available. Generate some chapters first.)")
+        }
+
+        console.log("\n💡 Use /lifecycle <name> to view detailed lifecycle for a specific character")
+      }
+      break
+    }
+
     case "/export": {
       const format = args[0] || "md"
       if (!["md", "json"].includes(format)) {

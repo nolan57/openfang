@@ -65,13 +65,13 @@ CLI (novel start/continue)
 | `exportToKnowledgeGraph()` | motif-tracker.ts:464 | ~20 | Only called in tests. Knowledge graph sync should happen in orchestrator. |
 | `getHooksForCharacters()` | relationship-inertia.ts:338 | ~10 | Only called in tests. `getActiveHooks()` is the actual production API. |
 | `getPlotHooksReport()` | relationship-inertia.ts:342 | ~15 | Only called in tests. |
-| **Entire `branch-manager.ts`** | branch-manager.ts | ~350 | 🔴 **Entire class dead.** Orchestrator creates `new BranchManager()` then **never calls a single method.** Branch storage handles all persistence. |
-| Unused singleton: `branchManager` | branch-manager.ts:350 | ~5 | Never imported by any production file. |
+| ~~**Entire `branch-manager.ts`**~~ | ~~branch-manager.ts~~ | ~~350~~ | ✅ **NOW ACTIVE** - BranchManager fully integrated in orchestrator.ts:1814-1866 (addBranch, autoMergeSimilarBranches, pruneBranches, getStats) |
+| Unused singleton: `branchManager` | branch-manager.ts:350 | ~5 | Never imported by production files; orchestrator creates its own instance |
 | Unused singletons: `relationshipViewService`, `asyncGroupManagementService` | multiway-relationships.ts:646-647 | ~10 | Created with `noopGraphReader`. Broken by design. |
 | Unused singleton: `proceduralWorldGenerator` | procedural-world.ts:827 | ~5 | Orchestrator creates its own instance. |
 | Unused singleton: `characterDeepener` | character-deepener.ts:518 | ~5 | Orchestrator creates its own instance. |
 | Unused singleton: `relationshipAnalyzer` | relationship-analyzer.ts:481 | ~5 | Orchestrator creates its own instance. |
-| **Subtotal** | | **~730 lines** | |
+| **Subtotal** | | **~380 lines** (was ~730) | |
 
 ---
 
@@ -135,8 +135,8 @@ These are exported from `index.ts` but have no external callers. They pollute th
 | **observability `collectMetrics()` wiring** | Only called in tests | Call it in orchestrator's `runNovelCycle()` after each chapter. Log health score. | 🔴 **CRITICAL** — Without production calls, observability is a 435-line test fixture. |
 | **`novelObservability.start/endGenerationTiming()`** | Defined but never called | Wrap story generation in orchestrator with timing calls. | 🟡 Important for performance monitoring. |
 | **CLI `/health` command** | observability exports exist but no consumer | Add `handleHealth()` to novel.ts CLI that calls `collectMetrics()` + `generateHealthReport()` and prints results. | 🟡 User-visible value. |
-| **branch auto-merge into saveState()** | `autoMergeSimilarBranches()` defined, never called | After saving state every N chapters, run auto-merge to prevent branch explosion. (But first: BranchManager is entirely dead — see below.) | 🟡 **DEPENDS** on whether BranchManager is revived or deleted. |
-| **branch querying into CLI `/branches`** | `getBranchTree()` etc. defined, never called | Add CLI command. But again, depends on BranchManager fate. | 🟡 Nice-to-have. |
+| ~~**branch auto-merge into saveState()**~~ | ~~`autoMergeSimilarBranches()` defined, never called~~ | ✅ **ALREADY INTEGRATED** - autoMergeSimilarBranches() called in orchestrator.ts:1844 | ✅ **DONE** |
+| **branch querying into CLI `/branches`** | `getBranchTree()` etc. defined, available via orchestrator APIs | Add CLI command to expose BranchManager tree structure. | 🟡 Nice-to-have. |
 | **`enrichBeatWithVisuals()` as public API** | Defined, zero callers | Expose as simple wrapper around `assemblePanelSpec()`. Useful for plugins/real-time visual gen. | 🟢 Niche value. Low priority. |
 
 ---
@@ -148,7 +148,7 @@ These are exported from `index.ts` but have no external callers. They pollute th
 | **`resolveVisualSpec()` in config-loader.ts** (~200 lines) | Core of a sophisticated visual strategy system (layered overrides + thematic voting + dynamic weight calculation). Never called because visual-prompt-engineer.ts uses a simpler hardcoded+config hybrid instead. Two competing visual strategy systems. | **Extract strategy layers into visual-prompt-engineer.ts as optional enhancement:** (1) Extract dynamic weight calculation for motif-influenced visuals; (2) Extract override condition checking; (3) Simplify voting — it's over-engineered; (4) Make it an "advanced mode" toggleable via config. **Delete** `resolveVisualSpec()`, `reloadVisualConfig()`, `clearConfigCache()` from config-loader.ts after extraction. | 🟡 Medium — current system works, this would make it smarter. |
 | **`validation.ts` *WithContext functions** (~200 lines) | Five granular validation functions with zero callers. The state extractor uses schema validation (`RawStateUpdate`) but not these context-aware validators. | **Integrate into state extractor's validation pipeline:** After schema validation, call `validateCharacterUpdateWithContext()` for each character update and `validateRelationshipUpdateWithContext()` for each relationship change. This provides targeted corrections that schema validation can't. If integration is too invasive, delete them. | 🟡 Medium — valuable but requires careful integration. |
 | **`translateStoryToPanels()` + visual-translator pipeline** (~400 lines) | Has a superior hybrid splitting strategy (rule-based pre-segmentation + LLM semantic refinement) compared to visual-orchestrator's simpler `planPanelSegments()`. But nobody calls it. | **Merge into visual-orchestrator.ts:** Adopt `ruleBasedPreSegmentation()` as the default splitter. Adopt `refineChunksWithLLM()` as the LLM refinement strategy. Delete `translateStoryToPanels()` and the simpler `planPanelSegments()` from visual-orchestrator. Keep `assemblePanelSpec()` as shared panel assembly. | 🔴 **HIGH** — Two competing pipelines is architectural debt. Unify them. |
-| **`BranchManager` class** (~350 lines) | Imported and instantiated by orchestrator, then **zero methods called.** Branch persistence is handled by `branchStorage` alone. The entire class is dead. | **Decision point:** (A) **Delete** — if branching isn't a core engine goal; (B) **Integrate** — wire `createBranch()`, `selectBranch()`, `pruneBranches()` into orchestrator if multi-path fiction is a goal. My assessment: **DELETE for now.** The branch storage handles history recording adequately. Branch management can be added later if needed. | 🔴 Delete. 350 lines of zero-value code. |
+| ~~**`BranchManager` class**~~ (~350 lines) | ~~Imported and instantiated by orchestrator, then **zero methods called.**~~ | ✅ **FULLY INTEGRATED** - BranchManager is now actively used in orchestrator.ts:1814-1866 for multi-branch story management. Methods called: addBranch(), autoMergeSimilarBranches(), pruneBranches(), getStats(). Architecture: BranchManager (in-memory scoring/pruning/merging) + BranchStorage (SQLite persistence). | ✅ **KEEP** - Core engine component |
 
 ---
 
@@ -158,7 +158,7 @@ These are exported from `index.ts` but have no external callers. They pollute th
 |------|-----------|-------------|--------|
 | **procedural-world data → story prompts** | World is generated at start, stored in state, but never used in generation | Inject regional context into chaos events ("current region: X, nearby dangers: Y"). Add world history to narrative context for LLM. Use regional conflicts as chaos event seeds. | ~30 lines |
 | **novel-learning-bridge Phase 1** | Manager is initialized, bridges exist, no data flow | After `enhancedPatternMiner.onTurn()`, call `novelVectorBridge.indexPattern()` to sync patterns to learning system vector store. | ~20 lines |
-| **motif-tracker → knowledge graph** | `analyzeMotifEvolution()` is called, `exportToKnowledgeGraph()` is not | After motif analysis, call `exportToKnowledgeGraph()` and sync nodes to `storyKnowledgeGraph`. Enables motif-character correlation queries. | ~10 lines |
+| ~~**motif-tracker → knowledge graph**~~ | ~~`analyzeMotifEvolution()` is called, `exportToKnowledgeGraph()` is not~~ | ✅ **ALREADY INTEGRATED** - exportToKnowledgeGraph() called in orchestrator.ts:2140, nodes/edges synced to storyKnowledgeGraph | ✅ **DONE** |
 | **relationship-inertia → chaos events** | `generatePlotHooks()` is called, hooks are stored, but not injected into chaos | Add active plot hooks to chaos event context in `generateChaosEventWithLLM()`. Hooks become narrative prompts. | ~10 lines |
 | **CLI `/completion` command** | `checkCompletion()` is called internally, but user can't query progress | Add CLI command that calls `checkCompletion()` and prints criteria progress. | ~15 lines |
 | **CLI `/hooks` command** | `getActiveHooks()` is called, hooks available but not visible | Add CLI command to show current plot hooks. | ~10 lines |
@@ -180,52 +180,74 @@ These are exported from `index.ts` but have no external callers. They pollute th
 | `assemblePanelSpec()`, `translateEmotionToVisuals()`, `translateActionToCamera()` | Core visual pipeline |
 | `withRetry()`, `RetryConfig` | Used by llm-wrapper |
 | `characterDeepener.deepenCharacter()` | Called per character per chapter |
+| `characterDeepener.deepenCharacterFromLifecycle()` | ✅ **NOW ACTIVE** - used when lifecycle data available |
 | `relationshipAnalyzer.analyzeAllRelationships()` | Called per chapter |
 | `motifTracker.analyzeMotifEvolution()` | Called per chapter |
 | `relationshipInertiaManager.generatePlotHooks()`, `getActiveHooks()`, `getInertia()`, `triggerHook()` | All actively used |
-| `characterLifecycleManager.setCurrentChapter()`, `getLifecycle()`, `registerCharacter()`, `recordDeath()` | Actively used |
+| `characterLifecycleManager.setCurrentChapter()`, `getLifecycle()`, `registerCharacter()`, `recordDeath()` | ✅ Actively used |
+| `characterLifecycleManager.advanceTime()` | ✅ **NOW ACTIVE** - character aging every chapter |
+| `characterLifecycleManager.addLifeEvent()` | ✅ **NOW ACTIVE** - trauma, skills, transformations recorded |
+| `characterLifecycleManager.recordTransformation()` | ✅ **NOW ACTIVE** - status changes tracked |
+| `characterLifecycleManager.recordLegacy()` | 🟡 Available but not yet called - future enhancement |
+| `characterLifecycleManager.exportToJson()` / `importFromJson()` | ✅ **NOW ACTIVE** - lifecycle persistence |
 | `endGameDetector.updateStoryMetrics()`, `checkCompletion()` | Actively used |
 | `branchStorage` (initialize, saveBranch, close) | Actively used by orchestrator |
+| `branchManager` (addBranch, autoMergeSimilarBranches, pruneBranches, getStats) | ✅ Actively used in orchestrator.ts:1814-1866 |
 | Deprecated aliases (`TRAUMA_TAGS`, `SKILL_CATEGORIES`, `CHARACTER_STATUS`) | Properly marked `@deprecated` |
 
 ---
 
-## BranchManager — Detailed Analysis
+## ~~BranchManager — Detailed Analysis~~ — **OUTDATED**
 
-This is the most significant finding. The evidence:
+**⚠️ This section is from an older analysis and is no longer accurate.**
+
+### Current Status (Updated)
+
+BranchManager has been **fully integrated** into the orchestrator's multi-branch story management pipeline.
+
+**Evidence of Active Usage (orchestrator.ts:1814-1866):**
 
 ```typescript
-// orchestrator.ts — imports BranchManager
-import { BranchManager, type Branch } from "./branch-manager"    // Line 32
+// 1. Register branches in BranchManager for scoring/pruning
+this.branchManager.addBranch(branchData)
 
-// Creates an instance
-this.branchManager = new BranchManager()                          // Line 273
+// 2. Auto-merge similar branches to prevent combinatorial explosion
+const merged = this.branchManager.autoMergeSimilarBranches(0.5)
 
-// And then... NOTHING.
+// 3. Prune low-quality branches based on config thresholds
+const pruned = this.branchManager.pruneBranches(this.storyState.chapterCount + 1)
+
+// 4. Get statistics for logging
+const stats = this.branchManager.getStats()
 ```
 
-Grep for `this\.branchManager[^=]` (any method call on the instance): **zero matches** in orchestrator.ts.
+**Active Methods:**
+- ✅ `addBranch()` — orchestrator.ts:1839
+- ✅ `autoMergeSimilarBranches()` — orchestrator.ts:1844
+- ✅ `pruneBranches()` — orchestrator.ts:1851
+- ✅ `getStats()` — orchestrator.ts:1866
+- ✅ `getAllBranches()` — orchestrator.ts:1433 (via getAvailableBranches)
+- ✅ `getBranchTree()` — orchestrator.ts:1446
+- ✅ `getBranchPath()` — orchestrator.ts:1460
 
-Grep for `branchManager\.` across ALL .ts files (outside definitions and imports):
-- `observability.ts:164` — parameter type declaration only
-- `observability.ts:173` — `branchManager.getStats()` called inside `collectMetrics()`
-- `tests/` — test files only
+**Architecture:**
+- **BranchManager**: In-memory branch scoring, pruning, and merging (fast operations)
+- **BranchStorage**: SQLite persistence (long-term storage)
+- **Sync**: Pruned status synced from BranchManager → BranchStorage via `updateBranch()`
 
-Since `collectMetrics()` itself is never called in production, the BranchManager is entirely dead.
+**What BranchManager Actually Does:**
+- `addBranch()` — register new branch for tracking
+- `autoMergeSimilarBranches()` — merge branches with >50% similarity
+- `pruneBranches()` — remove branches below quality threshold
+- `getStats()` — total/active/pruned/merged counts + average score
+- `getBranchTree()` — hierarchical branch view
+- `getBranchPath()` — trace branch ancestry
 
-**What BranchManager would do if it were alive:**
-- `createBranch()` — create alternative story paths
-- `selectBranch()` — switch to a different branch
-- `pruneBranches()` — remove low-quality branches
-- `getStats()` — branch statistics
-- `getBranchTree()` — branch hierarchy
-- `mergeBranches()` — combine similar branches
+**What Handles Branch Persistence:**
+- `branchStorage` — handles `initialize()`, `saveBranch()`, `updateBranch()`, `close()`
+- Both systems work together: BranchManager (memory) + BranchStorage (disk)
 
-**What actually handles branch persistence:**
-- `branchStorage` (singleton from branch-storage.ts) — handles `initialize()`, `saveBranch()`, `close()`
-- The orchestrator calls `this.branchStorage.saveBranch()` at line 1574 and `this.branchStorage.close()` at line 2932
-
-**Verdict: DELETE.** 350 lines of code that serve zero purpose. The storage layer handles all needed functionality.
+**Verdict: ✅ KEEP** — 350 lines of valuable branch management code. Core engine component.
 
 ---
 

@@ -23,13 +23,13 @@ These modules are directly imported and used by `orchestrator.ts` in the main st
 | Module                       | Line  | Purpose                                | Integration Point                          |
 | ---------------------------- | ----- | -------------------------------------- | ------------------------------------------ |
 | **llm-wrapper.ts**           | 31    | Unified LLM interface with retry logic | All LLM calls                              |
-| **branch-manager.ts**        | 32    | Branch scoring and selection           | `generateBranches()`, `selectBestBranch()` |
+| **branch-manager.ts**        | 32    | Branch scoring, pruning & merging      | `addBranch()`, `autoMergeSimilarBranches()`, `pruneBranches()`, `getStats()` |
 | **observability.ts**         | 33    | Performance tracing & monitoring       | Wrapped around all phases                  |
 | **story-world-memory.ts**    | 34    | Hierarchical memory system             | Context management                         |
 | **story-knowledge-graph.ts** | 35    | Knowledge graph for story entities     | Long-term context                          |
 | **branch-storage.ts**        | 36    | Persistent branch storage              | Database backend                           |
-| **motif-tracker.ts**         | 37    | Motif evolution tracking               | Per-chapter analysis                       |
-| **character-lifecycle.ts**   | 38    | Character lifecycle management         | Character creation/exit                    |
+| **motif-tracker.ts**         | 37    | Motif evolution tracking               | Per-chapter analysis + knowledge graph sync |
+| **character-lifecycle.ts**   | 38    | Character lifecycle management         | Character creation/exit, aging, life events, persistence |
 | **end-game-detection.ts**    | 39    | Story completion detection             | Early exit logic                           |
 | **faction-detector.ts**      | 40    | Faction formation detection            | Group dynamics                             |
 | **relationship-inertia.ts**  | 41    | Relationship stability                 | Plot hook generation                       |

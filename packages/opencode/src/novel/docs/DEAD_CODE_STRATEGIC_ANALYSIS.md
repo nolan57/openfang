@@ -201,24 +201,21 @@ Each dead code item is evaluated against these goals.
 
 ---
 
-## 7. branch-manager.ts / branch-storage.ts — Dead Exports
+## 7. ~~branch-manager.ts~~ / branch-storage.ts — ~~Dead Exports~~ — **OUTDATED**
 
-### Branch querying functions (`getEventsByBranchId`, `getBranchTree`, `getBranchPath`) — 🟡 INTEGRATE
-- **Engine value:** **MEDIUM** — Useful for:
-  - CLI `/branches` command to explore alternative story paths
-  - Export functionality to show branch history
-  - Time travel feature (revert to a previous branch point)
-- **Action:** Wire into CLI as `/branches` and `/time-travel <branch-id>` commands.
+**⚠️ This section is from an older analysis. BranchManager is now FULLY INTEGRATED.**
 
-### `autoMergeSimilarBranches()`, `mergeBranches()`, `detectSimilarBranches()` — 🟡 INTEGRATE
-- **Engine value:** **HIGH** — Automatic branch management is core to the branching fiction goal:
-  - Prevent branch explosion (too many divergent paths)
-  - Auto-merge branches that converge on similar narrative outcomes
-  - Keep the story focused
-- **Action:** Wire into orchestrator's `saveState()` — run auto-merge every N chapters.
+### ~~Branch querying functions~~ — ✅ **NOW ACTIVE**
+- `getEventsByBranchId()`, `getBranchTree()`, `getBranchPath()` all actively used via orchestrator APIs
+- Available for CLI `/branches` command through orchestrator.getBranchTree()
 
-### Branch storage exports (`loadBranchesByEventType`, `loadBranchTree`, `exportToJson`, `importFromJson`) — 🟡 INTEGRATE
-- **Engine value:** **MEDIUM** — Useful for branch analysis and export.
+### ~~`autoMergeSimilarBranches()`, `mergeBranches()`, `detectSimilarBranches()`~~ — ✅ **NOW ACTIVE**
+- **ALREADY INTEGRATED** - autoMergeSimilarBranches() called in orchestrator.ts:1844
+- Runs every chapter after branch generation
+- Prevents branch explosion automatically
+
+### Branch storage exports — 🟡 INTEGRATE (unchanged)
+- `loadBranchesByEventType`, `loadBranchTree`, `exportToJson`, `importFromJson` — still useful for CLI export features
 - **Action:** Wire into `/export branches` CLI command.
 
 ### `BranchEvent` type — 🔴 DELETE
@@ -301,12 +298,10 @@ Novel Engine → Pattern Mining → NovelVectorBridge → Learning System Vector
 
 ## 10. motif-tracker.ts, relationship-inertia.ts, end-game-detection.ts
 
-### `motifTracker.exportToKnowledgeGraph()` — 🟡 INTEGRATE
-- **Engine value:** **MEDIUM** — Exporting motif evolution data to the knowledge graph would:
-  - Track how motifs correlate with character development
-  - Enable querying "which characters are associated with motif X?"
-  - Support thematic analysis with graph-based insights
-- **Action:** Wire into orchestrator's post-analysis pipeline. Call after `motifTracker.analyzeMotifEvolution()`.
+### ~~`motifTracker.exportToKnowledgeGraph()`~~ — ✅ **ALREADY INTEGRATED**
+- **ALREADY WIRED** - exportToKnowledgeGraph() called in orchestrator.ts:2140
+- Nodes and edges synced to storyKnowledgeGraph after motif analysis
+- Enables motif-character correlation queries
 
 ### `relationshipInertiaManager.getHooksForCharacters()`, `getPlotHooksReport()` — 🟡 INTEGRATE
 - **Engine value:** **MEDIUM** — Plot hooks are the engine's way of suggesting narrative direction:
@@ -455,17 +450,17 @@ Prompt → ProceduralWorldGenerator → Inject into story generation prompt → 
 |------|--------|--------------|
 | `enrichBeatWithVisuals()` → expose as public single-beat API | ~5 lines | **MEDIUM** — Simpler visual generation |
 | narrative-skeleton standalone functions → use in orchestrator | ~20 lines | **MEDIUM** — Better encapsulation |
-| branch-manager auto-merge → wire into saveState() | ~10 lines | **HIGH** — Prevent branch explosion |
+| ~~branch-manager auto-merge → wire into saveState()~~ | ~~10 lines~~ | ✅ **DONE** - autoMergeSimilarBranches() called every chapter |
 | branch querying → CLI `/branches` command | ~30 lines | **MEDIUM** — Branch exploration |
 | observability exports → CLI `/health`, `/metrics` commands | ~40 lines | **MEDIUM** — Engine monitoring |
-| motif-tracker → exportToKnowledgeGraph | ~10 lines | **MEDIUM** — Motif-character correlation |
+| ~~motif-tracker → exportToKnowledgeGraph~~ | ~~10 lines~~ | ✅ **DONE** — Already wired |
 | relationship-inertia → CLI `/hooks` command + chaos injection | ~30 lines | **MEDIUM** — Plot hook suggestions |
 | end-game-detection → CLI `/completion` command | ~20 lines | **MEDIUM** — Story progress tracking |
 | performance.ts → rateLimit/throttle → wire into production | ~20 lines | **HIGH** — API rate limiting |
 | procedural-world → inject world data into story prompts | ~30 lines | **MEDIUM-HIGH** — Geographic context |
 | novel-learning-bridge → Phase 1: sync patterns to vector store | ~20 lines | **HIGH** — Self-evolving capability |
 | llm-wrapper → callLLMWithTracing → wire into observability | ~10 lines | **MEDIUM** — LLM tracing |
-| **Subtotal** | **~245 lines** | |
+| **Subtotal** | **~235 lines** (was ~245) | |
 
 ### 🟢 KEEP (valuable, no action needed)
 
@@ -513,7 +508,7 @@ Prompt → ProceduralWorldGenerator → Inject into story generation prompt → 
 17. 🟡 Add CLI `/search-patterns` command
 
 ### Phase 8 — Remaining Integration (Week 5-6, ~100 lines)
-18. 🟡 Wire motif-tracker → knowledge graph
+18. ~~🟡 Wire motif-tracker → knowledge graph~~ — ✅ **DONE**
 19. 🟡 Wire relationship-inertia → CLI `/hooks`
 20. 🟡 Wire end-game-detection → CLI `/completion`
 21. 🟡 Wire narrative-skeleton functions into orchestrator

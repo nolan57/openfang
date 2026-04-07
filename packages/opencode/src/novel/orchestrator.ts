@@ -595,6 +595,37 @@ Output JSON only:
   }
 
   /**
+   * Calculate initial age for a character based on available clues.
+   * Uses traits, notes, and life stage hints to estimate age.
+   */
+  private calculateCharacterAge(character: Record<string, any>): number {
+    const notes = (character.notes || "").toLowerCase()
+    const traits = (character.traits || []).map((t: string) => t.toLowerCase())
+
+    // Check for age-related keywords in notes
+    if (notes.includes("child") || notes.includes("young") || notes.includes("boy") || notes.includes("girl")) {
+      return 10 + Math.floor(Math.random() * 8) // 10-17
+    }
+    if (notes.includes("elder") || notes.includes("old") || notes.includes("ancient")) {
+      return 60 + Math.floor(Math.random() * 30) // 60-89
+    }
+    if (notes.includes("adult") || notes.includes("man") || notes.includes("woman")) {
+      return 20 + Math.floor(Math.random() * 20) // 20-39
+    }
+
+    // Check for age-related traits
+    if (traits.some((t: string) => ["youthful", "naive", "inexperienced"].includes(t))) {
+      return 15 + Math.floor(Math.random() * 10) // 15-24
+    }
+    if (traits.some((t: string) => ["wise", "experienced", "weathered"].includes(t))) {
+      return 45 + Math.floor(Math.random() * 30) // 45-74
+    }
+
+    // Default age for adults
+    return 25
+  }
+
+  /**
    * Build a GraphReader adapter for relationship services.
    * Provides read access to story state and knowledge graph.
    */
@@ -1477,6 +1508,9 @@ Output JSON:
       }
       this.patterns = await loadDynamicPatterns()
       await this.initializeCharacterDeepener()
+
+      // Load character lifecycle data
+      await this.loadLifecycleState()
     } catch {
       log.info("no_existing_state")
     }
@@ -1508,6 +1542,47 @@ Output JSON:
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, JSON.stringify(stateToSave, null, 2))
     log.info("state_saved", { chapter: this.storyState.chapterCount })
+
+    // Save character lifecycle data
+    try {
+      await this.saveLifecycleState()
+    } catch (error) {
+      log.warn("lifecycle_state_save failed", { error: String(error) })
+    }
+  }
+
+  /**
+   * Save character lifecycle data to a separate file.
+   * Called after saveState to persist lifecycle information.
+   */
+  private async saveLifecycleState(): Promise<void> {
+    const lifecycleDir = resolve(getStoryBiblePath(), "..", "lifecycle")
+    await mkdir(lifecycleDir, { recursive: true })
+
+    const lifecycleData = this.characterLifecycleManager.exportToJson()
+    const path = resolve(lifecycleDir, "character_lifecycles.json")
+    await writeFile(path, JSON.stringify(lifecycleData, null, 2))
+    log.info("lifecycle_state_saved", { characterCount: lifecycleData.lifecycles.length })
+  }
+
+  /**
+   * Load character lifecycle data from file.
+   * Called during loadState to restore lifecycle information.
+   */
+  private async loadLifecycleState(): Promise<void> {
+    try {
+      const lifecycleDir = resolve(getStoryBiblePath(), "..", "lifecycle")
+      const path = resolve(lifecycleDir, "character_lifecycles.json")
+
+      if (await fileExists(path)) {
+        const content = await readFile(path, "utf-8")
+        const data = JSON.parse(content)
+        this.characterLifecycleManager.importFromJson(data)
+        log.info("lifecycle_state_loaded", { characterCount: data.lifecycles?.length || 0 })
+      }
+    } catch (error) {
+      log.debug("lifecycle_state_load_failed", { error: String(error) })
+    }
   }
 
   /**
@@ -1914,7 +1989,7 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
     // ── Character Psychology Deepening ──
     // Activate the character deepener to perform Big Five, Attachment Theory,
     // and Character Arc analysis on all established characters.
-    // This was previously initialized but never actually called.
+    // Uses lifecycle data when available for richer analysis.
     try {
       const charNames = Object.keys(this.storyState.characters).slice(0, 4)
       if (charNames.length > 0) {
@@ -1925,19 +2000,29 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
           const char = this.storyState.characters[charName]
           if (!char) continue
 
-          const profile = await this.characterDeepener.deepenCharacter({
-            name: charName,
-            status: char.status || "active",
-            stress: char.stress || 0,
-            traits: char.traits || [],
-            skills: char.skills || [],
-            trauma: char.trauma || [],
-            secrets: char.secrets || [],
-            clues: char.clues || [],
-            goals: char.goals || [],
-            notes: char.notes || "",
-            relationships: char.relationships || {},
-          })
+          let profile
+          const lifecycle = this.characterLifecycleManager.getLifecycle(charName)
+
+          if (lifecycle && lifecycle.lifeEvents.length > 0) {
+            // Use lifecycle-based deepening for richer analysis
+            this.log(`   Using lifecycle data for ${charName} (${lifecycle.lifeEvents.length} events)`)
+            profile = await this.characterDeepener.deepenCharacterFromLifecycle(lifecycle)
+          } else {
+            // Use standard deepening with current state
+            profile = await this.characterDeepener.deepenCharacter({
+              name: charName,
+              status: char.status || "active",
+              stress: char.stress || 0,
+              traits: char.traits || [],
+              skills: char.skills || [],
+              trauma: char.trauma || [],
+              secrets: char.secrets || [],
+              clues: char.clues || [],
+              goals: char.goals || [],
+              notes: char.notes || "",
+              relationships: char.relationships || {},
+            })
+          }
 
           // Store the psychological profile on the character state
           this.storyState.characters[charName].psychologicalProfile = profile.psychologicalProfile
@@ -2171,14 +2256,98 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
     // 3. Update character lifecycle
     try {
       this.characterLifecycleManager.setCurrentChapter(this.storyState.chapterCount)
+
+      // Advance time for character aging
+      const agingChanges = this.characterLifecycleManager.advanceTime(1)
+      if (agingChanges.length > 0) {
+        this.log(`   Character aging: ${agingChanges.length} character(s) aged`)
+        for (const change of agingChanges) {
+          this.log(`   ${change.characterId}: ${change.changes.join(", ")}`)
+        }
+      }
+
+      // Register new characters and update existing ones
       for (const [charName, char] of Object.entries(this.storyState.characters)) {
         const lifecycle = this.characterLifecycleManager.getLifecycle(charName)
         if (!lifecycle) {
-          this.characterLifecycleManager.registerCharacter(charName, this.storyState.chapterCount, 25)
+          // Calculate initial age based on life stage or default to 25
+          const initialAge = this.calculateCharacterAge(char)
+          this.characterLifecycleManager.registerCharacter(charName, this.storyState.chapterCount, initialAge)
+          this.log(`   Registered new character: ${charName} (age ${initialAge})`)
         }
+
+        // Record death if status changed
         if (char.status === "deceased" || char.status === "dead") {
-          this.characterLifecycleManager.recordDeath(charName, "story event")
+          if (lifecycle?.status !== "dead") {
+            this.characterLifecycleManager.recordDeath(charName, "story event")
+            this.log(`   Character died: ${charName}`)
+          }
         }
+
+        // Record life events from character updates
+        if (lifecycle && char.lifeEvents && Array.isArray(char.lifeEvents)) {
+          for (const event of char.lifeEvents) {
+            if (!event.recorded) {
+              this.characterLifecycleManager.addLifeEvent(charName, {
+                type: event.type || "transformation",
+                chapter: this.storyState.chapterCount,
+                description: event.description || "Life event",
+                impact: event.impact,
+              })
+              event.recorded = true
+            }
+          }
+        }
+
+        // Record trauma as life events
+        if (lifecycle && char.trauma && Array.isArray(char.trauma)) {
+          for (const trauma of char.trauma) {
+            if (!trauma.recorded) {
+              this.characterLifecycleManager.addLifeEvent(charName, {
+                type: "trauma",
+                chapter: this.storyState.chapterCount,
+                description: trauma.name + (trauma.description ? `: ${trauma.description}` : ""),
+                impact: {
+                  stress: trauma.severity ? trauma.severity * 10 : 50,
+                  trauma: {
+                    name: trauma.name,
+                    severity: trauma.severity || 5,
+                    tags: trauma.tags || [],
+                  },
+                },
+              })
+              trauma.recorded = true
+            }
+          }
+        }
+
+        // Record skill gains as life events
+        if (lifecycle && char.skills && Array.isArray(char.skills)) {
+          for (const skill of char.skills) {
+            if (!skill.recorded) {
+              this.characterLifecycleManager.addLifeEvent(charName, {
+                type: "career_change",
+                chapter: this.storyState.chapterCount,
+                description: `Gained skill: ${skill.name}`,
+                impact: {
+                  skillGained: {
+                    name: skill.name,
+                    category: skill.category,
+                    level: skill.level || 1,
+                  },
+                },
+              })
+              skill.recorded = true
+            }
+          }
+        }
+      }
+
+      // Log lifecycle summary
+      const activeCount = this.characterLifecycleManager.getActiveCharacters().length
+      const deceasedCount = this.characterLifecycleManager.getDeceasedCharacters().length
+      if (activeCount > 0 || deceasedCount > 0) {
+        this.log(`   Lifecycle: ${activeCount} active, ${deceasedCount} deceased`)
       }
     } catch (error) {
       log.warn("lifecycle_update_failed", { error: String(error) })
@@ -3233,6 +3402,14 @@ If no clear characters are found, return an empty array [].`
 
   getState(): StoryState {
     return this.storyState
+  }
+
+  /**
+   * Get the character lifecycle manager instance.
+   * Useful for CLI commands and external tools.
+   */
+  get lifecycleManager() {
+    return this.characterLifecycleManager
   }
 
   async reset(): Promise<void> {

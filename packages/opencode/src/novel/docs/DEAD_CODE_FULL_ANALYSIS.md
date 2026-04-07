@@ -129,12 +129,12 @@ These are defined and exported but **never imported by any other file**. They fa
 |--------|------------|-------|
 | `command-parser.ts` | `isSlashCommand()` | Only used internally for command detection |
 | `command-parser.ts` | `listSkills()` | Only used internally |
-| `branch-manager.ts` | `getEventsByBranchId` | Internal branch querying |
-| `branch-manager.ts` | `getBranchTree` | Internal branch querying |
-| `branch-manager.ts` | `getBranchPath` | Internal branch querying |
-| `branch-manager.ts` | `autoMergeSimilarBranches` | Internal branch management |
-| `branch-manager.ts` | `mergeBranches` | Only called by `autoMergeSimilarBranches` |
-| `branch-manager.ts` | `detectSimilarBranches` | Only called by `autoMergeSimilarBranches` |
+| ~~`branch-manager.ts`~~ | ~~`getEventsByBranchId`~~ | ✅ **NOW ACTIVE** - called by orchestrator |
+| ~~`branch-manager.ts`~~ | ~~`getBranchTree`~~ | ✅ **NOW ACTIVE** - called via orchestrator.getBranchTree() |
+| ~~`branch-manager.ts`~~ | ~~`getBranchPath`~~ | ✅ **NOW ACTIVE** - called via orchestrator.getBranchPath() |
+| ~~`branch-manager.ts`~~ | ~~`autoMergeSimilarBranches`~~ | ✅ **NOW ACTIVE** - orchestrator.ts:1844 |
+| ~~`branch-manager.ts`~~ | ~~`mergeBranches`~~ | ✅ **NOW ACTIVE** - called by autoMergeSimilarBranches |
+| ~~`branch-manager.ts`~~ | ~~`detectSimilarBranches`~~ | ✅ **NOW ACTIVE** - called by autoMergeSimilarBranches |
 | `branch-storage.ts` | `loadBranchesByEventType` | Internal storage querying |
 | `branch-storage.ts` | `loadBranchTree` | Internal storage querying |
 | `branch-storage.ts` | `exportToJson` | Internal utility |
@@ -147,7 +147,7 @@ These are defined and exported but **never imported by any other file**. They fa
 |--------|------------|-------|
 | `end-game-detection.ts` | `generateDenouementStructure` | Planned end-game structuring, no caller |
 | `end-game-detection.ts` | `getCriterionProgress` | Progress reporting, no caller |
-| `motif-tracker.ts` | `exportToKnowledgeGraph` | Returns nodes/edges but nobody consumes them |
+| ~~`motif-tracker.ts`~~ | ~~`exportToKnowledgeGraph`~~ | ✅ **NOW ACTIVE** - called in orchestrator.ts:2140, nodes/edges synced to storyKnowledgeGraph |
 | `relationship-inertia.ts` | `getHooksForCharacters` | Only called in tests |
 | `relationship-inertia.ts` | `getPlotHooksReport` | Only called in tests |
 | `story-knowledge-graph.ts` | `detectInconsistency` | Observability has `// TODO: detect inconsistencies` |
@@ -225,7 +225,7 @@ These are defined and exported but **never imported by any other file**. They fa
 
 | Class | Method | File | Details |
 |-------|--------|------|---------|
-| `CharacterDeepener` | `deepenFromLifecycle()` | `character-deepener.ts:489` | Calls `adaptFromLifecycle` internally but never called externally |
+| ~~`CharacterDeepener`~~ | ~~`deepenFromLifecycle()`~~ | ✅ **NOW ACTIVE** - orchestrator prefers this when lifecycle data available |
 | `StoryKnowledgeGraph` | `detectInconsistency()` | `story-knowledge-graph.ts` | Has TODO in observability but never runs |
 | `EvolutionOrchestrator` | `buildGraphReader()` | `orchestrator.ts` | Called internally to create graphReader, but the returned reader's `getRelationshipHistory` is a complex implementation that scans branchHistory — may be expensive and untested in production |
 | `NovelObservability` | `collectMetrics()` getter methods | `observability.ts` | All getter methods on the singleton are never called externally except in tests |
@@ -300,7 +300,7 @@ These singletons are exported but the orchestrator creates its own instances ins
 |-----------|------|---------|
 | `characterDeepener` | `character-deepener.ts:518` | Orchestrator creates `new CharacterDeepener()` with custom config |
 | `relationshipAnalyzer` | `relationship-analyzer.ts:481` | Orchestrator creates `new RelationshipAnalyzer()` |
-| `branchManager` | `branch-manager.ts:350` | Orchestrator creates `new BranchManager()` |
+| ~~`branchManager`~~ | ~~`branch-manager.ts:350`~~ | ✅ **NOTE**: While the singleton is unused, orchestrator creates its own BranchManager instance and actively uses it (addBranch, autoMergeSimilarBranches, pruneBranches, getStats) |
 | `proceduralWorldGenerator` | `procedural-world.ts:827` | Orchestrator creates its own instance with custom config |
 | `relationshipViewService` | `multiway-relationships.ts:646` | Created with `noopGraphReader`; orchestrator creates its own instances |
 | `asyncGroupManagementService` | `multiway-relationships.ts:647` | Created with `noopGraphReader`; orchestrator creates its own instances |
@@ -402,7 +402,7 @@ These files in `docs/` reference modules that no longer exist or describe planne
 | Module | Dead Exports |
 |--------|-------------|
 | `command-parser.ts` | `isSlashCommand`, `listSkills` |
-| `branch-manager.ts` | `getEventsByBranchId`, `getBranchTree`, `getBranchPath`, `autoMergeSimilarBranches`, `mergeBranches`, `detectSimilarBranches` |
+| ~~`branch-manager.ts`~~ | ~~`getEventsByBranchId`, `getBranchTree`, `getBranchPath`, `autoMergeSimilarBranches`, `mergeBranches`, `detectSimilarBranches`~~ — ✅ ALL NOW ACTIVE |
 | `branch-storage.ts` | `loadBranchesByEventType`, `loadBranchTree`, `exportToJson`, `importFromJson`, `BranchEvent` |
 | `llm-wrapper.ts` | `callLLMWithTracing`, `callLLMBatch`, `novelLLM` |
 | `validation.ts` | All `*WithContext` functions, `createCorrelationId`, `createCorrelationContext` |
@@ -429,7 +429,7 @@ These files in `docs/` reference modules that no longer exist or describe planne
 | `command-parser.ts` `/feedback` command | Implement actual submission OR remove command |
 | `observability.ts` 5 TODOs | Wire real metrics OR remove placeholder code |
 | `end-game-detection.ts` dead exports | Implement denouement structure OR remove exports |
-| `motif-tracker.ts` `exportToKnowledgeGraph` | Wire to knowledge graph OR remove |
+| ~~`motif-tracker.ts` `exportToKnowledgeGraph`~~ | ✅ **ALREADY WIRED** - called in orchestrator.ts:2140 |
 | `relationship-inertia.ts` dead exports | Wire to CLI/report OR remove |
 
 ### 🟢 LOW — Technical debt (documented, no urgency)
@@ -452,7 +452,7 @@ These files in `docs/` reference modules that no longer exist or describe planne
 | `evolution-rules.ts` | ✅ Full | ✅ Clean | ✅ Yes | ✅ Healthy |
 | `character-deepener.ts` | ✅ Full | ⚠️ 1 dead method + singleton | ❌ No test | ⚠️ Minor cleanup |
 | `relationship-analyzer.ts` | ✅ Full | ⚠️ Singleton unused | ❌ No test | ⚠️ Minor cleanup |
-| `branch-manager.ts` | ✅ Partial | ⚠️ 6 dead exports | ✅ Yes | 🟡 Review needed |
+| ~~`branch-manager.ts`~~ | ✅ **Full** | ✅ **All exports active** | ✅ Yes | ✅ **Healthy** |
 | `branch-storage.ts` | ✅ Partial | ⚠️ 5 dead exports + embedding column | ✅ Yes | 🟡 Review needed |
 | `visual-orchestrator.ts` | ✅ Full | ✅ Clean | ✅ Yes | ✅ Healthy |
 | `visual-prompt-engineer.ts` | ✅ Full | ⚠️ 1 dead import | ❌ No test | ⚠️ Minor cleanup |
@@ -460,7 +460,7 @@ These files in `docs/` reference modules that no longer exist or describe planne
 | `story-knowledge-graph.ts` | ✅ Partial | ⚠️ 6 dead exports | ✅ Yes | 🟡 Review needed |
 | `story-world-memory.ts` | ✅ Partial | ⚠️ 2 dead imports | ✅ Yes | ⚠️ Minor cleanup |
 | `pattern-miner-enhanced.ts` | ✅ Full | ⚠️ 2 dead imports | ✅ Yes | ⚠️ Minor cleanup |
-| `motif-tracker.ts` | ✅ Partial | ⚠️ 1 dead import + 1 dead export | ✅ Yes | ⚠️ Minor cleanup |
+| ~~`motif-tracker.ts`~~ | ✅ **Full** | ✅ **1 dead import only** | ✅ Yes | ✅ **Healthy** |
 | `relationship-inertia.ts` | ✅ Partial | ⚠️ 2 dead exports | ✅ Yes | 🟡 Review needed |
 | `character-lifecycle.ts` | ✅ Partial | ✅ Clean | ❌ No test | ✅ Healthy |
 | `end-game-detection.ts` | ✅ Partial | ⚠️ 2 dead exports | ❌ No test | 🟡 Review needed |

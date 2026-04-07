@@ -23,7 +23,7 @@
 | `validateSkillWithContext` called by state-extractor.ts | Dead | Active | ❌ Not imported anywhere | 🔴 **DEAD** |
 | `rateLimit/throttle` used in llm-wrapper.ts | Dead | Active | ❌ llm-wrapper.ts imports nothing from performance.ts | 🔴 **DEAD** |
 | `callLLMBatch` used in production | Dead | Active | ❌ Only called in tests/llm-wrapper.test.ts | 🟡 **TEST-ONLY** |
-| `BranchManager` used in orchestrator | Partial | Active | ⚠️ Imported but `this.branchManager.` has **zero method calls** | 🟡 **PARTIALLY DEAD** |
+| `BranchManager` used in orchestrator | ~~Partial~~ | ✅ Active | ✅ Fully integrated: addBranch(), autoMergeSimilarBranches(), pruneBranches(), getStats() all called in orchestrator.ts:1814-1866 | 🟢 **ACTIVE** |
 | `collectMetrics()` called in production | Partial | Active | ❌ Only called in tests/observability.test.ts | 🟡 **TEST-ONLY** |
 | `generateDenouementStructure()` | Dead | Dead | ❌ Only called in tests/phase5.test.ts | 🔴 **DEAD** |
 | `getCriterionProgress()` | Dead | Dead | ❌ Only called in tests/phase5.test.ts | 🔴 **DEAD** |
@@ -95,7 +95,7 @@ The re-review correctly identified that `createNarrativeSkeleton()` and `loadNar
 
 | Item | File | Evidence |
 |------|------|----------|
-| `BranchManager` class | orchestrator.ts:273 | `this.branchManager = new BranchManager()` — but `this.branchManager.` has **zero method calls** in entire file |
+| ~~`BranchManager` class~~ | orchestrator.ts:273 | ✅ **ACTIVE** — `this.branchManager.` has multiple method calls: addBranch(), autoMergeSimilarBranches(), pruneBranches(), getStats() |
 | `novelObservability` | orchestrator.ts:33 | Imported but `novelObservability.` has **zero method calls** in entire file |
 | `branchManager` singleton | branch-manager.ts:350 | Exported, no importers except tests |
 | `relationshipViewService` singleton | multiway-relationships.ts:646 | Created with `noopGraphReader` |
@@ -159,29 +159,49 @@ The re-review correctly identified that `createNarrativeSkeleton()` and `loadNar
 
 ---
 
-## The BranchManager Dead Code Discovery
+## ~~The BranchManager Dead Code Discovery~~ — **OUTDATED: BranchManager is NOW ACTIVE**
 
-This is a significant finding that neither previous analysis caught:
+**⚠️ This section is from an older analysis and is no longer accurate.**
+
+### Current Status (Updated)
+
+The BranchManager class has been **fully integrated** into the orchestrator and is actively used in the multi-branch story generation pipeline.
+
+**Evidence of Active Usage:**
 
 ```typescript
-// orchestrator.ts — imports and creates BranchManager
-import { BranchManager, type Branch } from "./branch-manager"
-// ...
-this.branchManager = new BranchManager()  // Line 273
+// orchestrator.ts:1814-1866 — Multi-branch management pipeline
+// 1. Register branches in BranchManager
+this.branchManager.addBranch(branchData)
+
+// 2. Auto-merge similar branches
+const merged = this.branchManager.autoMergeSimilarBranches(0.5)
+
+// 3. Prune low-quality branches
+const pruned = this.branchManager.pruneBranches(
+  this.storyState.chapterCount + 1,
+)
+
+// 4. Get statistics
+const stats = this.branchManager.getStats()
 ```
 
-But a grep for `this\.branchManager[^=]` (method calls on the instance) returns **only the assignment**. Not a single method of BranchManager is ever called in the orchestrator:
+**Active Methods:**
+- ✅ `addBranch()` — orchestrator.ts:1839
+- ✅ `autoMergeSimilarBranches()` — orchestrator.ts:1844
+- ✅ `pruneBranches()` — orchestrator.ts:1851
+- ✅ `getStats()` — orchestrator.ts:1866
+- ✅ `getAllBranches()` — orchestrator.ts:1433
+- ✅ `getBranchTree()` — orchestrator.ts:1446
+- ✅ `getBranchPath()` — orchestrator.ts:1460
 
-- `branchManager.createBranch()` — **never called**
-- `branchManager.selectBranch()` — **never called**
-- `branchManager.pruneBranches()` — **never called**
-- `branchManager.getStats()` — **never called** (only called by observability, which itself is never called)
+**Architecture:**
+- **BranchManager**: In-memory branch scoring, pruning, and merging (fast operations)
+- **BranchStorage**: SQLite persistence (long-term storage)
+- **Sync**: Pruned status synced from BranchManager → BranchStorage
 
-**The entire BranchManager class is dead code.** The orchestrator imports it, instantiates it, and never uses it. The branch storage (`branchStorage`) handles the actual persistence via `saveBranch()` and `close()`.
-
-This means:
-- `branch-manager.ts` (~350 lines): **Entirely dead** except for type exports
-- All methods: `createBranch`, `selectBranch`, `pruneBranches`, `getStats`, `getBranchTree`, `getBranchPath`, `mergeBranches`, etc. — **all dead**
+**Remaining Dead Code:**
+- `branchManager` singleton (branch-manager.ts:350) — exported but unused; orchestrator creates its own instance
 
 ---
 
@@ -248,7 +268,8 @@ The visual subsystem uses visual-prompt-engineer.ts's simpler hybrid engine inst
 | Delete `initVisualTranslator`, `enrichBeatWithVisuals`, `translateStoryToPanels` | ~260 | Zero — no callers |
 | Delete `resolveVisualSpec`, `reloadVisualConfig`, `clearConfigCache` | ~250 | Zero — only test callers |
 | Delete validation `*WithContext` functions | ~200 | Zero — no callers |
-| Remove BranchManager import/usage from orchestrator | ~350 | Zero — never used |
+| ~~Remove BranchManager import/usage from orchestrator~~ | ~~350~~ | ~~Zero~~ — ✅ **NOW ACTIVE** - DO NOT REMOVE |
 | Remove observability import/usage from orchestrator | ~200 | Zero — never used |
 | Remove 14 unused imports | 14 | Zero |
 | Delete test-only exports from barrel | — | Low — only affects test imports |
+| Delete unused `branchManager` singleton export | 5 | Low — only test imports |
