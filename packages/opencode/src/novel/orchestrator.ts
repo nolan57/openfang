@@ -43,6 +43,7 @@ import { RelationshipViewService, AsyncGroupManagementService, type TriadPattern
 import { ProceduralWorldGenerator, type Region } from "./procedural-world"
 import { WorldBibleKeeper, worldBibleKeeper } from "./world-bible-keeper"
 import { MultiArcArchitect, multiArcArchitect } from "./multi-arc-architect"
+import { dbManager } from "./db/database-manager"
 import { debounce } from "./performance"
 import { initializeCustomTypes } from "./types"
 import {
@@ -3641,6 +3642,7 @@ If no clear characters are found, return an empty array [].`
         this.storyWorldMemory.close()
         this.storyKnowledgeGraph.close()
         this.branchStorage.close()
+        dbManager.closeAll()
         this.advancedModulesInitialized = false
         log.info("orchestrator_disposed")
       }

@@ -1,12 +1,116 @@
 import { z } from "zod"
-import { readFile, writeFile, access, mkdir } from "fs/promises"
-import { resolve, dirname } from "path"
 import { Log } from "../util/log"
 import { callLLM, callLLMJson } from "./llm-wrapper"
-import { getPatternsDirPath, getSkillsPath } from "./novel-config"
+import { getSkillsPath } from "./novel-config"
 import { Skill } from "../skill/skill"
+import { BaseRepository } from "./db/base-repository"
+import { mkdir, writeFile } from "fs/promises"
+import { resolve } from "path"
 
 const log = Log.create({ service: "pattern-miner-enhanced" })
+
+// ... (Keep all existing Schema definitions here) ...
+
+// ============================================================================
+// UNIFIED PATTERN REPOSITORY LAYER
+// ============================================================================
+
+class PatternRepo extends BaseRepository<any> {
+  constructor() {
+    super("patterns", "patterns", ["metadata", "traits", "examples"])
+  }
+  async initDb() {
+    await this.init(`
+      CREATE TABLE IF NOT EXISTS patterns (
+        id TEXT PRIMARY KEY, name TEXT, category TEXT, description TEXT,
+        strength REAL, decay_rate REAL, last_reinforced INTEGER,
+        occurrences INTEGER, cross_story_valid INTEGER, metadata TEXT
+      )
+    `)
+  }
+  async loadAllPatterns() {
+    const rows = await this.selectAll()
+    return rows.map(r => ({...r, lastReinforced: r.last_reinforced, crossStoryValid: !!r.cross_story_valid, metadata: r.metadata || {}, decayRate: r.decay_rate}))
+  }
+  async saveAllPatterns(patterns: any[]) {
+    const rows = patterns.map(p => ({...p, last_reinforced: p.lastReinforced, cross_story_valid: p.crossStoryValid ? 1 : 0, metadata: JSON.stringify(p.metadata || {}), decay_rate: p.decayRate}))
+    await this.upsertMany(rows)
+  }
+}
+
+class ArchetypeRepo extends BaseRepository<any> {
+  constructor() {
+    super("patterns", "archetypes", ["traits", "examples"])
+  }
+  async initDb() {
+    await this.init(`
+      CREATE TABLE IF NOT EXISTS archetypes (
+        id TEXT PRIMARY KEY, name TEXT, type TEXT, description TEXT,
+        traits TEXT, narrative_role TEXT, examples TEXT,
+        strength REAL, decay_rate REAL, last_reinforced INTEGER, occurrences INTEGER
+      )
+    `)
+  }
+  async loadAllArchetypes() {
+    const rows = await this.selectAll()
+    return rows.map(r => ({...r, narrativeRole: r.narrative_role, lastReinforced: r.last_reinforced, decayRate: r.decay_rate, traits: JSON.parse(r.traits || "[]"), examples: JSON.parse(r.examples || "[]")}))
+  }
+  async saveAllArchetypes(archetypes: any[]) {
+    const rows = archetypes.map(a => ({...a, narrative_role: a.narrativeRole, last_reinforced: a.lastReinforced, decay_rate: a.decayRate, traits: JSON.stringify(a.traits), examples: JSON.stringify(a.examples || [])}))
+    await this.upsertMany(rows)
+  }
+}
+
+class PlotTemplateRepo extends BaseRepository<any> {
+  constructor() {
+    super("patterns", "plot_templates", ["stages", "theme_compatibility"])
+  }
+  async initDb() {
+    await this.init(`
+      CREATE TABLE IF NOT EXISTS plot_templates (
+        id TEXT PRIMARY KEY, name TEXT, structure TEXT, stages TEXT,
+        theme_compatibility TEXT, flexibility REAL, usage_count INTEGER, last_used INTEGER
+      )
+    `)
+  }
+  async loadAllTemplates() {
+    const rows = await this.selectAll()
+    return rows.map(r => ({...r, themeCompatibility: JSON.parse(r.theme_compatibility || "[]"), usageCount: r.usage_count, lastUsed: r.last_used}))
+  }
+  async saveAllTemplates(templates: any[]) {
+    const rows = templates.map(t => ({...t, theme_compatibility: JSON.stringify(t.themeCompatibility || []), usage_count: t.usageCount, last_used: t.lastUsed || Date.now()}))
+    await this.upsertMany(rows)
+  }
+}
+
+class MotifDataRepo extends BaseRepository<any> {
+  constructor() {
+    super("patterns", "motifs", ["occurrences", "evolution"])
+  }
+  async initDb() {
+    await this.init(`
+      CREATE TABLE IF NOT EXISTS motifs (
+        id TEXT PRIMARY KEY, name TEXT, type TEXT, description TEXT,
+        occurrences TEXT, evolution TEXT, strength REAL, decay_rate REAL
+      )
+    `)
+  }
+  async loadAllMotifs() {
+    const rows = await this.selectAll()
+    return rows.map(r => ({...r, decayRate: r.decay_rate, occurrences: JSON.parse(r.occurrences || "[]"), evolution: r.evolution ? JSON.parse(r.evolution) : []}))
+  }
+  async saveAllMotifs(motifs: any[]) {
+    const rows = motifs.map(m => ({...m, decay_rate: m.decayRate, occurrences: JSON.stringify(m.occurrences), evolution: JSON.stringify(m.evolution || [])}))
+    await this.upsertMany(rows)
+  }
+}
+
+const patternRepo = new PatternRepo()
+const archetypeRepo = new ArchetypeRepo()
+const plotTemplateRepo = new PlotTemplateRepo()
+const motifDataRepo = new MotifDataRepo()
+
+// ... (Rest of the file continues normally) ...
 
 export const ArchetypeSchema = z.object({
   id: z.string(),
@@ -122,61 +226,6 @@ export type PlotTemplate = z.infer<typeof PlotTemplateSchema>
 export type Motif = z.infer<typeof MotifSchema>
 export type EnhancedPattern = z.infer<typeof EnhancedPatternSchema>
 
-// Lazy-initialized paths
-let PatternsPath: string | null = null
-let EnhancedPatternsPath: string | null = null
-let ArchetypesPath: string | null = null
-let PlotTemplatesPath: string | null = null
-let MotifsPath: string | null = null
-
-function getPatternsPath(): string {
-  if (!PatternsPath) {
-    PatternsPath = getPatternsDirPath()
-  }
-  return PatternsPath
-}
-
-function getEnhancedPatternsPath(): string {
-  if (!EnhancedPatternsPath) {
-    EnhancedPatternsPath = resolve(getPatternsPath(), "enhanced-patterns.json")
-  }
-  return EnhancedPatternsPath
-}
-
-function getArchetypesPath(): string {
-  if (!ArchetypesPath) {
-    ArchetypesPath = resolve(getPatternsPath(), "archetypes.json")
-  }
-  return ArchetypesPath
-}
-
-function getPlotTemplatesPath(): string {
-  if (!PlotTemplatesPath) {
-    PlotTemplatesPath = resolve(getPatternsPath(), "plot-templates.json")
-  }
-  return PlotTemplatesPath
-}
-
-function getMotifsPath(): string {
-  if (!MotifsPath) {
-    MotifsPath = resolve(getPatternsPath(), "motifs.json")
-  }
-  return MotifsPath
-}
-
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path)
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function ensurePatternsDir(): Promise<void> {
-  await mkdir(getPatternsPath(), { recursive: true })
-}
-
 export interface PatternDecayConfig {
   baseDecayRate: number
   reinforcementBoost: number
@@ -204,89 +253,34 @@ export class EnhancedPatternMiner {
   }
 
   async initialize(): Promise<void> {
-    await ensurePatternsDir()
-    await this.loadPatterns()
-  }
+    await patternRepo.initDb()
+    await archetypeRepo.initDb()
+    await plotTemplateRepo.initDb()
+    await motifDataRepo.initDb()
 
-  private async loadPatterns(): Promise<void> {
-    try {
-      if (await fileExists(getEnhancedPatternsPath())) {
-        const content = await readFile(getEnhancedPatternsPath(), "utf-8")
-        const data = JSON.parse(content)
-        for (const pattern of data.patterns || []) {
-          this.patterns.set(pattern.id, pattern)
-        }
-      }
+    const patterns = await patternRepo.loadAllPatterns()
+    const archetypes = await archetypeRepo.loadAllArchetypes()
+    const templates = await plotTemplateRepo.loadAllTemplates()
+    const motifs = await motifDataRepo.loadAllMotifs()
 
-      if (await fileExists(getArchetypesPath())) {
-        const content = await readFile(getArchetypesPath(), "utf-8")
-        const data = JSON.parse(content)
-        for (const archetype of data.archetypes || []) {
-          this.archetypes.set(archetype.id, archetype)
-        }
-      }
+    for (const p of patterns) this.patterns.set(p.id, p)
+    for (const a of archetypes) this.archetypes.set(a.id, a)
+    for (const t of templates) this.plotTemplates.set(t.id, t)
+    for (const m of motifs) this.motifs.set(m.id, m)
 
-      if (await fileExists(getPlotTemplatesPath())) {
-        const content = await readFile(getPlotTemplatesPath(), "utf-8")
-        const data = JSON.parse(content)
-        for (const template of data.templates || []) {
-          this.plotTemplates.set(template.id, template)
-        }
-      }
-
-      if (await fileExists(getMotifsPath())) {
-        const content = await readFile(getMotifsPath(), "utf-8")
-        const data = JSON.parse(content)
-        for (const motif of data.motifs || []) {
-          this.motifs.set(motif.id, motif)
-        }
-      }
-
-      log.info("patterns_loaded", {
-        patterns: this.patterns.size,
-        archetypes: this.archetypes.size,
-        templates: this.plotTemplates.size,
-        motifs: this.motifs.size,
-      })
-    } catch (error) {
-      log.warn("pattern_load_failed", { error: String(error) })
-    }
-  }
-
-  async savePatterns(): Promise<void> {
-    await ensurePatternsDir()
-
-    const patternsData = {
-      patterns: Array.from(this.patterns.values()),
-      lastUpdated: Date.now(),
-      version: "2.0",
-    }
-    await writeFile(getEnhancedPatternsPath(), JSON.stringify(patternsData, null, 2))
-
-    const archetypesData = {
-      archetypes: Array.from(this.archetypes.values()),
-      lastUpdated: Date.now(),
-    }
-    await writeFile(getArchetypesPath(), JSON.stringify(archetypesData, null, 2))
-
-    const templatesData = {
-      templates: Array.from(this.plotTemplates.values()),
-      lastUpdated: Date.now(),
-    }
-    await writeFile(getPlotTemplatesPath(), JSON.stringify(templatesData, null, 2))
-
-    const motifsData = {
-      motifs: Array.from(this.motifs.values()),
-      lastUpdated: Date.now(),
-    }
-    await writeFile(getMotifsPath(), JSON.stringify(motifsData, null, 2))
-
-    log.info("patterns_saved", {
+    log.info("patterns_loaded_from_db", {
       patterns: this.patterns.size,
       archetypes: this.archetypes.size,
       templates: this.plotTemplates.size,
       motifs: this.motifs.size,
     })
+  }
+
+  async savePatterns(): Promise<void> {
+    await patternRepo.saveAllPatterns(Array.from(this.patterns.values()))
+    await archetypeRepo.saveAllArchetypes(Array.from(this.archetypes.values()))
+    await plotTemplateRepo.saveAllTemplates(Array.from(this.plotTemplates.values()))
+    await motifDataRepo.saveAllMotifs(Array.from(this.motifs.values()))
   }
 
   applyDecay(): void {

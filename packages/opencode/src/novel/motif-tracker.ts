@@ -1,22 +1,64 @@
 import { z } from "zod"
-import { readFile, writeFile, access, mkdir } from "fs/promises"
-import { resolve, dirname } from "path"
 import { Log } from "../util/log"
 import { callLLMJson } from "./llm-wrapper"
 import type { Motif } from "./pattern-miner-enhanced"
-import { getMotifTrackingPath } from "./novel-config"
+import { BaseRepository } from "./db/base-repository"
 
 const log = Log.create({ service: "motif-tracker" })
 
-// Lazy-initialized path
-let MotifTrackingPath: string | null = null
+// ============================================================================
+// UNIFIED MOTIF REPOSITORY LAYER (SQLite)
+// ============================================================================
 
-function getTrackingPath(): string {
-  if (!MotifTrackingPath) {
-    MotifTrackingPath = getMotifTrackingPath()
+class MotifEvoRepo extends BaseRepository<any> {
+  constructor() {
+    super("motifs", "evolutions", [])
   }
-  return MotifTrackingPath
+  async initDb() {
+    await this.init(`
+      CREATE TABLE IF NOT EXISTS evolutions (
+        id TEXT PRIMARY KEY, motif_id TEXT, motif_name TEXT,
+        from_state TEXT, to_state TEXT, trigger_event TEXT,
+        trigger_chapter INTEGER, character_involved TEXT,
+        emotional_context TEXT, thematic_significance REAL,
+        timestamp INTEGER
+      )
+    `)
+  }
 }
+
+class MotifCorrRepo extends BaseRepository<any> {
+  constructor() {
+    super("motifs", "correlations", ["chapters"])
+  }
+  async initDb() {
+    await this.init(`
+      CREATE TABLE IF NOT EXISTS correlations (
+        id TEXT PRIMARY KEY, motif_id TEXT, character_name TEXT,
+        correlation_strength REAL, arc_phase TEXT, impact_type TEXT,
+        description TEXT, chapters TEXT
+      )
+    `)
+  }
+}
+
+class MotifVarRepo extends BaseRepository<any> {
+  constructor() {
+    super("motifs", "variations", [])
+  }
+  async initDb() {
+    await this.init(`
+      CREATE TABLE IF NOT EXISTS variations (
+        id TEXT PRIMARY KEY, parent_motif_id TEXT, variation_name TEXT,
+        description TEXT, differences TEXT, chapter INTEGER, strength REAL
+      )
+    `)
+  }
+}
+
+const evoRepo = new MotifEvoRepo()
+const corrRepo = new MotifCorrRepo()
+const varRepo = new MotifVarRepo()
 
 export const MotifEvolutionSchema = z.object({
   motifId: z.string(),
@@ -81,19 +123,6 @@ export interface MotifTrackingData {
   lastUpdated: number
 }
 
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path)
-    return true
-  } catch {
-    return false
-  }
-}
-
-async function ensureDir(): Promise<void> {
-  await mkdir(getTrackingPath(), { recursive: true })
-}
-
 export class MotifTracker {
   private evolutions: Map<string, MotifEvolution[]> = new Map()
   private correlations: Map<string, MotifCharacterCorrelation[]> = new Map()
@@ -106,59 +135,74 @@ export class MotifTracker {
   }
 
   async initialize(): Promise<void> {
-    await ensureDir()
+    await evoRepo.initDb()
+    await corrRepo.initDb()
+    await varRepo.initDb()
     await this.load()
   }
 
   private async load(): Promise<void> {
     try {
-      const path = resolve(getTrackingPath(), "tracking-data.json")
-      if (await fileExists(path)) {
-        const content = await readFile(path, "utf-8")
-        const data: MotifTrackingData = JSON.parse(content)
+      const evolutions = await evoRepo.selectAll()
+      const correlations = await corrRepo.selectAll()
+      const variations = await varRepo.selectAll()
 
-        for (const ev of data.evolutions || []) {
-          const existing = this.evolutions.get(ev.motifId) || []
-          existing.push(ev)
-          this.evolutions.set(ev.motifId, existing)
-        }
-
-        for (const corr of data.correlations || []) {
-          const key = `${corr.motifId}_${corr.characterName}`
-          this.correlations.set(key, [corr])
-        }
-
-        for (const v of data.variations || []) {
-          const existing = this.variations.get(v.parentMotifId) || []
-          existing.push(v)
-          this.variations.set(v.parentMotifId, existing)
-        }
-
-        log.info("motif_tracking_loaded", {
-          evolutions: this.evolutions.size,
-          correlations: this.correlations.size,
-          variations: this.variations.size,
-        })
+      for (const ev of evolutions || []) {
+        const existing = this.evolutions.get(ev.motif_id) || []
+        existing.push(ev)
+        this.evolutions.set(ev.motif_id, existing)
       }
+
+      for (const corr of correlations || []) {
+        const key = `${corr.motif_id}_${corr.character_name}`
+        this.correlations.set(key, [corr])
+      }
+
+      for (const v of variations || []) {
+        const existing = this.variations.get(v.parent_motif_id) || []
+        existing.push(v)
+        this.variations.set(v.parent_motif_id, existing)
+      }
+
+      log.info("motif_tracking_loaded_from_db", {
+        evolutions: this.evolutions.size,
+        correlations: this.correlations.size,
+        variations: this.variations.size,
+      })
     } catch (error) {
       log.warn("motif_tracking_load_failed", { error: String(error) })
     }
   }
 
   async save(): Promise<void> {
-    await ensureDir()
-
-    const data: MotifTrackingData = {
+    const data = {
       evolutions: Array.from(this.evolutions.values()).flat(),
       correlations: Array.from(this.correlations.values()).flat(),
       variations: Array.from(this.variations.values()).flat(),
       lastUpdated: Date.now(),
     }
 
-    const path = resolve(getTrackingPath(), "tracking-data.json")
-    await writeFile(path, JSON.stringify(data, null, 2))
+    await evoRepo.clear()
+    await corrRepo.clear()
+    await varRepo.clear()
 
-    log.info("motif_tracking_saved", {
+    await evoRepo.upsertMany(data.evolutions.map(e => ({
+      motif_id: e.motifId, motif_name: e.motifName, from_state: e.fromState, to_state: e.toState,
+      trigger_event: e.triggerEvent, trigger_chapter: e.triggerChapter, character_involved: e.characterInvolved || null,
+      emotional_context: e.emotionalContext || null, thematic_significance: e.thematicSignificance, timestamp: e.timestamp
+    })))
+    
+    await corrRepo.upsertMany(data.correlations.map(c => ({
+      motif_id: c.motifId, character_name: c.characterName, correlation_strength: c.correlationStrength,
+      arc_phase: c.arcPhase, impact_type: c.impactType, description: c.description, chapters: JSON.stringify(c.chapters || [])
+    })))
+
+    await varRepo.upsertMany(data.variations.map(v => ({
+      parent_motif_id: v.parentMotifId, variation_name: v.variationName, description: v.description,
+      differences: v.differences, chapter: v.chapter, strength: v.strength
+    })))
+
+    log.info("motif_tracking_saved_to_db", {
       evolutions: data.evolutions.length,
       correlations: data.correlations.length,
       variations: data.variations.length,

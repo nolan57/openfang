@@ -102,6 +102,14 @@ export function getMotifTrackingPath(): string {
   return join(getNovelDataDir(), "motif-tracking")
 }
 
+export function getNovelPatternsDbPath(): string {
+  return join(getNovelDataDir(), "data", "patterns.db")
+}
+
+export function getNovelMotifsDbPath(): string {
+  return join(getNovelDataDir(), "data", "motifs.db")
+}
+
 export function getPatternsDirPath(): string {
   return join(getNovelDataDir(), "patterns")
 }
