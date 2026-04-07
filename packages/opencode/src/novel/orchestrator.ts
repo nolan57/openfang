@@ -3548,6 +3548,14 @@ If no clear characters are found, return an empty array [].`
     return this.motifTracker
   }
 
+  /**
+   * Get the relationship view service instance.
+   * Useful for CLI commands and faction/triad analysis.
+   */
+  get factionService() {
+    return this.relationshipViewService
+  }
+
   async reset(): Promise<void> {
     this.storyState = {
       characters: {},

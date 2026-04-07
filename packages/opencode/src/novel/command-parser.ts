@@ -665,6 +665,169 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       break
     }
 
+    case "/threads": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+
+      const multiThread = orchestrator.getMultiThreadNarrative()
+      if (!multiThread) {
+        console.log("× Multi-thread narrative is not initialized. Start with --multi-thread flag.")
+        break
+      }
+
+      const subCommand = args[0] || "status"
+
+      if (subCommand === "status") {
+        const threads = multiThread.getActiveThreads()
+        const report = multiThread.getThreadReport()
+        const circuitStatus = multiThread.getCircuitBreakerStatus()
+
+        console.log(`\n🧵 Multi-Thread Narrative Status`)
+        console.log("═".repeat(70))
+        console.log(`  Enabled: ${orchestrator.isMultiThreadEnabled()}`)
+        console.log(`  Active Threads: ${threads.length}`)
+        console.log(`  Global Chapter: ${multiThread.getGlobalChapter()}`)
+        console.log("")
+
+        if (threads.length > 0) {
+          console.log("  Threads:")
+          console.log("─".repeat(70))
+          for (const thread of threads) {
+            const statusIcon = thread.status === "active" ? "🟢" : thread.status === "merged" ? "🔀" : "⏸️"
+            console.log(`  ${statusIcon} ${thread.name} (POV: ${thread.povCharacter || "none"})`)
+            console.log(`     Chapter: ${thread.currentChapter} | Priority: ${thread.priority}`)
+            console.log(`     Status: ${thread.status}`)
+            if (thread.convergesWith) {
+              console.log(`     Converges with: ${thread.convergesWith}`)
+            }
+            console.log("")
+          }
+        } else {
+          console.log("  (No active threads. Create threads via narrative skeleton or CLI.)")
+        }
+
+        if (circuitStatus.failureCount > 0) {
+          console.log(`\n ⚠️ Circuit Breaker: ${circuitStatus.failureCount} failures`)
+        }
+
+        console.log("\n💡 Usage: /threads <status|create <name> <pov>|advance <name>|report>")
+      } else if (subCommand === "create") {
+        const threadName = args[1]
+        const povCharacter = args[2]
+        if (!threadName || !povCharacter) {
+          console.log("× Usage: /threads create <name> <pov_character>")
+          break
+        }
+
+        const thread = multiThread.createThread(
+          threadName,
+          povCharacter,
+          1,
+        )
+        console.log(`✓ Created thread "${thread.name}" (POV: ${povCharacter})`)
+      } else if (subCommand === "advance") {
+        const threadName = args[1]
+        if (!threadName) {
+          console.log("× Usage: /threads advance <thread_name>")
+          break
+        }
+
+        const threads = multiThread.getActiveThreads()
+        const thread = threads.find((t) => t.name === threadName)
+        if (!thread) {
+          console.log(`× Thread "${threadName}" not found.`)
+          break
+        }
+
+        const advanced = await multiThread.advanceThread(thread.id, {
+          summary: "CLI manual advance",
+          events: [],
+          characters: Object.keys(orchestrator.getState().characters),
+        })
+        console.log(`✓ Advanced "${thread.name}" to chapter ${advanced.currentChapter}`)
+      } else if (subCommand === "report") {
+        const report = multiThread.getThreadReport()
+        console.log(report)
+      } else {
+        console.log("× Usage: /threads <status|create <name> <pov>|advance <name>|report>")
+      }
+      break
+    }
+
+    case "/factions": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+
+      const state = orchestrator.getState()
+      const charNames = Object.keys(state.characters || {})
+
+      if (charNames.length < 3) {
+        console.log("× Need at least 3 characters for faction analysis.")
+        break
+      }
+
+      const subCommand = args[0] || "list"
+
+      if (subCommand === "list") {
+        const groups = await orchestrator.factionService.discoverActiveGroups(30, state.chapterCount)
+
+        console.log(`\n🏛️  Active Factions/Groups (${groups.length})`)
+        console.log("═".repeat(70))
+
+        if (groups.length > 0) {
+          for (const group of groups) {
+            const cohesion = Math.round(group.cohesion * 100)
+            const cohesionBar = "█".repeat(Math.round(cohesion / 10)) + "░".repeat(10 - Math.round(cohesion / 10))
+            console.log(`\n  📁 ${group.name || "Unnamed Group"}`)
+            console.log(`     Members: ${group.memberIds.join(", ")}`)
+            console.log(`     Cohesion: [${cohesionBar}] ${cohesion}%`)
+          }
+        } else {
+          console.log("  (No active factions detected. Relationships are mostly pairwise.)")
+        }
+
+        console.log("\n💡 Usage: /factions <list|triads|tension>")
+      } else if (subCommand === "triads") {
+        console.log(`\n🔺 Detecting relationship triads...`)
+        const triads = await orchestrator.factionService.detectTriads(charNames, state.chapterCount)
+
+        const notableTriads = triads.filter((t) => t.deviationScore > 10)
+        console.log(`  Found ${triads.length} triads, ${notableTriads.length} notable.`)
+
+        if (notableTriads.length > 0) {
+          console.log("\n  Notable Triads:")
+          console.log("─".repeat(70))
+          for (const triad of notableTriads.slice(0, 10)) {
+            const icon = triad.interventionLevel === "critical" ? "🔴" : triad.interventionLevel === "warning" ? "🟡" : "🟢"
+            console.log(`  ${icon} ${triad.characters.join(" ↔ ")} (${triad.pattern})`)
+            console.log(`     Deviation: ${triad.deviationScore.toFixed(0)}% | ${triad.description.substring(0, 80)}...`)
+          }
+        }
+      } else if (subCommand === "tension") {
+        const triads = await orchestrator.factionService.detectTriads(charNames, state.chapterCount)
+        // Calculate average deviation as tension proxy
+        const tensionLevel = triads.length > 0
+          ? triads.reduce((sum, t) => sum + t.deviationScore, 0) / (triads.length * 100)
+          : 0
+
+        const tensionPercent = Math.min(100, Math.round(tensionLevel * 100))
+        const tensionBar = "█".repeat(Math.round(tensionPercent / 10)) + "░".repeat(10 - Math.round(tensionPercent / 10))
+
+        console.log(`\n🌡️  Relationship Tension Level: [${tensionBar}] ${tensionPercent}%`)
+
+        if (tensionPercent >= 70) {
+          console.log("  Status: 🔴 CRITICAL - Major conflicts imminent")
+        } else if (tensionPercent >= 40) {
+          console.log("  Status: 🟡 ELEVATED - Underlying tensions present")
+        } else {
+          console.log("  Status: 🟢 STABLE - Relationships are mostly calm")
+        }
+      } else {
+        console.log("× Usage: /factions <list|triads|tension>")
+      }
+      break
+    }
+
     case "/export": {
       const format = args[0] || "md"
       if (!["md", "json"].includes(format)) {
