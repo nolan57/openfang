@@ -3616,6 +3616,20 @@ If no clear characters are found, return an empty array [].`
     return this.relationshipViewService
   }
 
+  /**
+   * Get the relationship analyzer instance.
+   */
+  get analyzer() {
+    return this.relationshipAnalyzer
+  }
+
+  /**
+   * Get the relationship inertia manager instance.
+   */
+  get inertiaManager() {
+    return this.relationshipInertiaManager
+  }
+
   async reset(): Promise<void> {
     this.storyState = {
       characters: {},

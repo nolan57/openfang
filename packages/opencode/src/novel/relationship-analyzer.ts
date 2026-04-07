@@ -271,7 +271,21 @@ OUTPUT JSON:
         temperature: 0.3,
         useRetry: true,
       })
-      return result.data
+      
+      // 🛡️ Smoothing / Dampening: Prevent extreme swings from single events
+      // Blend the LLM's raw output with the current state (60% new, 40% old)
+      // This simulates "momentum" or "inertia" in relationships
+      const dampeningFactor = 0.6 
+      const smoothedTrust = currentState.trust * (1 - dampeningFactor) + result.data.newTrust * dampeningFactor
+      const smoothedHostility = currentState.hostility * (1 - dampeningFactor) + result.data.newHostility * dampeningFactor
+
+      return {
+        newTrust: Math.round(smoothedTrust),
+        newHostility: Math.round(smoothedHostility),
+        newDynamic: result.data.newDynamic,
+        relationshipShift: result.data.relationshipShift,
+        reasoning: result.data.reasoning,
+      }
     } catch (e) {
       log.warn("relationship_change_analysis_failed", { error: String(e) })
     }

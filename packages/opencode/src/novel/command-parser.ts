@@ -855,6 +855,62 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       break
     }
 
+    case "/relations": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+      const state = orchestrator.getState()
+      const subCommand = args[0] || "list"
+
+      if (subCommand === "list") {
+        const rels = state.relationships || {}
+        const keys = Object.keys(rels)
+        
+        console.log(`\n🤝 Relationship Dynamics (${keys.length} pairs)`)
+        console.log("═".repeat(60))
+        
+        if (keys.length === 0) {
+          console.log("  (No relationships tracked yet)")
+        } else {
+          for (const key of keys.slice(0, 20)) {
+            const r = rels[key]
+            const trust = Math.max(0, Math.min(100, r.trust || 50))
+            const hostility = Math.max(0, Math.min(100, r.hostility || 0))
+            const phase = r.stage || r.phase || "unknown"
+            
+            const trustBar = "█".repeat(Math.round(trust/10)) + "░".repeat(10 - Math.round(trust/10))
+            const hostBar = "█".repeat(Math.round(hostility/10)) + "░".repeat(10 - Math.round(hostility/10))
+            
+            console.log(`  ${key}:`)
+            console.log(`    Trust:    [${trustBar}] ${trust}%`)
+            console.log(`    Hostility: [${hostBar}] ${hostility}%`)
+            console.log(`    Phase: ${phase}`)
+          }
+        }
+      } else if (subCommand === "hooks") {
+        console.log(`\n🪝 Active Plot Hooks`)
+        console.log("─".repeat(60))
+        
+        const hooks = orchestrator.inertiaManager.getActiveHooks()
+        if (hooks.length === 0) {
+          console.log("  (No active hooks. Generate more chapters to build tension.)")
+        } else {
+          for (const hook of hooks.slice(0, 15)) {
+            const tension = Math.round(hook.tensionPotential || 0)
+            const icon = hook.type.includes("betrayal") || hook.type.includes("conflict") || hook.type.includes("rivalry") ? "⚔️" 
+                   : hook.type.includes("alliance") || hook.type.includes("reconciliation") || hook.type.includes("cooperation") ? "🤝" 
+                   : "📜"
+            console.log(`  ${icon} ${hook.characters.join(" ↔ ")} [${hook.type}] (${tension}% tension)`)
+            console.log(`     ${hook.description.substring(0, 80)}...`)
+          }
+        }
+      } else if (subCommand === "smooth") {
+        console.log("Relationship smoothing is now automatic (dampening factor: 0.6)")
+      } else {
+        console.log("× Usage: /relations <list|hooks>")
+      }
+      break
+    }
+
     case "/export": {
       const format = args[0] || "md"
       if (!["md", "json"].includes(format)) {
