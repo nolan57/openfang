@@ -476,6 +476,82 @@ Note:
 - Use the World Knowledge Dictionary to understand skill/trauma meanings`,
     variables: ["CHARACTER_STATE", "SKILL_DICTIONARY", "TRAUMA_DICTIONARY"],
   },
+
+  worldConsistency: {
+    id: "worldConsistency",
+    baseTemplate: `You are the World Archivist for an ongoing epic narrative.
+
+=== CURRENT WORLD BIBLE ===
+{{WORLD_BIBLE}}
+
+=== NEW STORY SEGMENT ===
+{{NEW_SEGMENT}}
+
+=== TASK ===
+Analyze the new story segment against the established world bible:
+
+1. VERIFY CONSISTENCY: Does this contradict any established lore, rules, or facts?
+2. EXTRACT NEW ENTITIES: Identify new locations, factions, artifacts, rules, or concepts.
+3. TRACK REFERENCES: Note which existing entities are referenced.
+
+Output ONLY valid JSON:
+{
+  "status": "consistent" | "conflict" | "uncertain",
+  "conflicts": [{ "type": "lore_contradiction" | "timeline_error" | "character_inconsistency" | "rule_violation", "description": "What contradicts what", "severity": "low" | "medium" | "high" | "critical", "suggestion": "How to resolve" }],
+  "newEntries": [{ "key": "Name", "value": "Description", "category": "location|faction|artifact|rule|historical_event|race|concept", "confidence": 0.0-1.0 }],
+  "referencedEntities": ["entity_id"],
+  "summary": "Brief summary"
+}
+
+Guidelines:
+- Be strict about established rules and historical facts
+- Allow creative expansion that doesn't contradict existing lore
+- Flag anything that changes established world rules`,
+    variables: ["WORLD_BIBLE", "NEW_SEGMENT"],
+  },
+
+  longTermSagaPlanner: {
+    id: "longTermSagaPlanner",
+    baseTemplate: `You are a Master Outliner for a Magnum Opus (epic long-form narrative).
+
+=== GRAND THEME ===
+{{GRAND_THEME}}
+
+=== CURRENT PROGRESS ===
+Chapter: {{CURRENT_CHAPTER}}
+Next chapters to plan: {{NEXT_CHAPTERS_COUNT}}
+Divide into {{ACT_COUNT}} acts.
+
+=== EXISTING PLAN ===
+{{EXISTING_PLAN}}
+
+=== WORLD CONTEXT ===
+{{WORLD_CONTEXT}}
+
+=== TASK ===
+Generate a high-level outline for the next {{NEXT_CHAPTERS_COUNT}} chapters, divided into {{ACT_COUNT}} acts.
+
+Requirements:
+1. Structure into acts with clear thematic goals
+2. Plant 3-5 Chekhov's Guns for future payoffs
+3. Ensure mix of high-tension, medium-development, and low-rest chapters
+4. Set up midpoint reversal and climax logically
+5. Suggest volume structure for the larger saga
+
+Output ONLY valid JSON:
+{
+  "analysis": {
+    "suggestedVolumes": [{ "title": "...", "description": "...", "chapterRange": { "start": N, "end": N }, "thematicFocus": "..." }],
+    "suggestedChekhovsGuns": [{ "description": "...", "suggestedPlantChapter": N, "suggestedPayoffChapter": N }],
+    "pacingAnalysis": { "currentPacing": "too_fast" | "too_slow" | "balanced", "suggestion": "..." },
+    "riskFactors": ["..."],
+    "summary": "..."
+  },
+  "volumes": [{ "id": "volume_1", "title": "...", "description": "...", "chapterRange": { "start": N, "end": N }, "acts": [{ "id": "act_1", "title": "...", "description": "...", "chapterRange": { "start": N, "end": N }, "thematicGoal": "...", "keyEvents": ["..."], "chekhovsGuns": [{ "id": "gun_1", "description": "...", "plantedChapter": N, "payoffChapter": N|null, "status": "planted" }], "midpointReversal": "...", "climax": "..." }], "grandTheme": "...", "majorArcResolution": "...", "status": "planned" }],
+  "chapterPlans": [{ "chapterNumber": N, "title": "...", "keyEvents": ["..."], "thematicGoal": "...", "chekhovsGunsPlanted": ["gun_id"], "chekhovsGunsPayoff": ["gun_id"], "pacing": "high" | "medium" | "low", "notes": "..." }]
+}`,
+    variables: ["GRAND_THEME", "CURRENT_CHAPTER", "NEXT_CHAPTERS_COUNT", "ACT_COUNT", "EXISTING_PLAN", "WORLD_CONTEXT"],
+  },
 }
 
 /**

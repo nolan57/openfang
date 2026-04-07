@@ -43,6 +43,12 @@ export { StoryKnowledgeGraph, storyKnowledgeGraph, type GraphNode, type GraphEdg
 export { StoryWorldMemory, storyWorldMemory, type MemoryEntry, type MemoryLevel, type HierarchicalMemoryConfig } from "./story-world-memory"
 
 // ============================================================================
+// Epic Narrative Modules — World consistency & long-term saga planning
+// ============================================================================
+export { WorldBibleKeeper, worldBibleKeeper, type WorldBibleData, type WorldEntity, type WorldBibleEntry, type WorldConsistencyResult } from "./world-bible-keeper"
+export { MultiArcArchitect, multiArcArchitect, type SagaPlan, type SagaVolume, type SagaAct, type ChapterPlan, type ChekhovsGun } from "./multi-arc-architect"
+
+// ============================================================================
 // Observability — Active: wired into orchestrator's runNovelCycle
 // ============================================================================
 export { novelObservability, NovelObservability, type NovelMetrics, type NovelHealthReport, type TraceEvent } from "./observability"

@@ -6,7 +6,12 @@
       "Bash(\" 2>/dev/null) rows\")",
       "Bash(sqlite3 *)",
       "Bash(ls *)",
-      "Read(//home/urio/Documents/opencode/packages/opencode/src/cli/cmd/**)"
+      "Read(//home/urio/Documents/opencode/packages/opencode/src/cli/cmd/**)",
+      "Bash(bun *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(findstr *)"
     ]
   },
   "$version": 3

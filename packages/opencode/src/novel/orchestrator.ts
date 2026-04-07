@@ -42,6 +42,8 @@ import { EndGameDetector, endGameDetector } from "./end-game-detection"
 import { RelationshipInertiaManager, relationshipInertiaManager, type PlotHook } from "./relationship-inertia"
 import { RelationshipViewService, AsyncGroupManagementService, type TriadPattern, type GraphReader } from "./multiway-relationships"
 import { ProceduralWorldGenerator, type Region } from "./procedural-world"
+import { WorldBibleKeeper, worldBibleKeeper } from "./world-bible-keeper"
+import { MultiArcArchitect, multiArcArchitect } from "./multi-arc-architect"
 import { debounce } from "./performance"
 import { initializeCustomTypes } from "./types"
 import {
@@ -248,6 +250,10 @@ export class EvolutionOrchestrator {
   private multiThreadNarrative: MultiThreadNarrativeExecutor | null = null
   /** Whether multi-thread mode is enabled */
   private multiThreadEnabled: boolean = false
+  /** World bible keeper for lore consistency tracking */
+  private worldBibleKeeper: WorldBibleKeeper
+  /** Multi-arc architect for long-term saga planning */
+  private multiArcArchitect: MultiArcArchitect
 
   // Dimension 3: LRU cache for context building (avoids redundant re-computation within same chapter)
   private contextCache: {
@@ -307,6 +313,9 @@ export class EvolutionOrchestrator {
 
     // Configure high-impact motif event callback
     this.configureMotifTrackerCallback()
+    // Initialize epic narrative modules
+    this.worldBibleKeeper = worldBibleKeeper
+    this.multiArcArchitect = multiArcArchitect
     // Initialize stateless relationship services
     const graphReader = this.buildGraphReader()
     this.relationshipViewService = new RelationshipViewService(graphReader)
@@ -2507,6 +2516,67 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
       }
     }
 
+    // 8. World consistency check (prevent lore contradictions in epic narratives)
+    try {
+      const worldConsistency = await this.worldBibleKeeper.checkConsistency(
+        storySegment,
+        this.storyState.chapterCount,
+      )
+
+      if (worldConsistency.status === "conflict") {
+        const criticalConflicts = worldConsistency.conflicts.filter((c) => c.severity === "high" || c.severity === "critical")
+        if (criticalConflicts.length > 0) {
+          this.log(`   ⚠️ WORLD CONSISTENCY CONFLICTS (${criticalConflicts.length} critical)`)
+          for (const conflict of criticalConflicts) {
+            this.log(`   [${conflict.severity.toUpperCase()}] ${conflict.description}`)
+            this.log(`     Suggestion: ${conflict.suggestion}`)
+          }
+        }
+      }
+
+      if (worldConsistency.newEntries.length > 0) {
+        this.log(`   World bible updated: ${worldConsistency.newEntries.length} new entries`)
+      }
+    } catch (error) {
+      log.warn("world_consistency_check_failed", { error: String(error) })
+    }
+
+    // 9. Long-term saga planning (every 10 chapters or on first chapter)
+    if (this.storyState.chapterCount % 10 === 1 || this.storyState.chapterCount === 1) {
+      try {
+        const config = this.configManager.getConfig()
+        const grandTheme = config.storyType === "theme" ? "Thematic exploration" : "Character-driven narrative"
+
+        this.log(`   Generating long-term saga plan (Ch.${this.storyState.chapterCount}+)...`)
+        const sagaResult = await this.multiArcArchitect.generateLongTermPlan(
+          this.storyState.chapterCount,
+          20, // Plan next 20 chapters
+          grandTheme,
+          3, // 3 acts
+          this.storyState.fullStory?.slice(-3000) || "",
+        )
+
+        if (sagaResult.analysis.riskFactors.length > 0) {
+          this.log(`   ⚠️ Saga planning risks: ${sagaResult.analysis.riskFactors.length}`)
+          for (const risk of sagaResult.analysis.riskFactors.slice(0, 3)) {
+            this.log(`   - ${risk}`)
+          }
+        }
+
+        const overdue = this.multiArcArchitect.getOverdueChekhovsGuns(this.storyState.chapterCount)
+        if (overdue.length > 0) {
+          this.log(`   ⏰ Overdue Chekhov's Guns: ${overdue.length}`)
+          for (const gun of overdue.slice(0, 3)) {
+            this.log(`   - ${gun.description} (planted Ch.${gun.plantedChapter})`)
+          }
+        }
+
+        this.log(`   Long-term saga plan generated: ${sagaResult.plan.volumes.length} volumes, ${sagaResult.chapterPlans.length} chapter plans`)
+      } catch (error) {
+        log.warn("saga_planning_failed", { error: String(error) })
+      }
+    }
+
     // === END ADVANCED MODULES INTEGRATION ===
 
     // === MULTI-THREAD NARRATIVE INTEGRATION ===
@@ -3427,6 +3497,22 @@ If no clear characters are found, return an empty array [].`
    */
   get storage() {
     return this.branchStorage
+  }
+
+  /**
+   * Get the world bible keeper instance.
+   * Useful for CLI commands and lore querying.
+   */
+  get worldBible() {
+    return this.worldBibleKeeper
+  }
+
+  /**
+   * Get the multi-arc architect instance.
+   * Useful for CLI commands and saga planning.
+   */
+  get sagaArchitect() {
+    return this.multiArcArchitect
   }
 
   async reset(): Promise<void> {

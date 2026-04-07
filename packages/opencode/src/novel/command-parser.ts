@@ -9,6 +9,7 @@ import {
   getSkillsPath,
   loadLayeredConfig,
   extractConfigFromPrompt,
+  novelConfigManager,
 } from "./novel-config"
 import { Plugin } from "../plugin"
 import { PluginRecovery } from "../plugin/recovery"
@@ -504,6 +505,111 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
         console.log("  chapter  - Show branches for specific chapter")
         console.log("  history  - Show complete branch history")
         console.log("  export   - Export all branches to JSON")
+      }
+      break
+    }
+
+    case "/world": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+
+      const subCommand = args[0] || "report"
+
+      if (subCommand === "report") {
+        const report = orchestrator.worldBible.generateReport()
+        console.log(report)
+      } else if (subCommand === "entities") {
+        const typeFilter = args[1]
+        const entities = typeFilter
+          ? orchestrator.worldBible.getEntitiesByType(typeFilter as any)
+          : orchestrator.worldBible.getActiveEntities()
+
+        console.log(`\n World Entities (${entities.length}):`)
+        console.log("═".repeat(70))
+        for (const entity of entities) {
+          console.log(`  - **${entity.name}** [${entity.type}] (Ch.${entity.chapterIntroduced})`)
+          console.log(`    ${entity.description.substring(0, 80)}...`)
+        }
+      } else if (subCommand === "consistency") {
+        console.log("× Usage: /world consistency <text> - Check text against world bible")
+      } else {
+        console.log("× Usage: /world <report|entities [type]|consistency>")
+        console.log("\n  report      - Show world bible report")
+        console.log("  entities    - List active entities (optionally filter by type)")
+        console.log("  consistency - Check text for consistency")
+      }
+      break
+    }
+
+    case "/saga": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+
+      const subCommand = args[0] || "report"
+
+      if (subCommand === "report") {
+        const report = orchestrator.sagaArchitect.generateReport()
+        console.log(report)
+      } else if (subCommand === "plan") {
+        const chapters = parseInt(args[1]) || 20
+        const acts = parseInt(args[2]) || 3
+        const config = novelConfigManager.getConfig()
+        const grandTheme = config.storyType === "theme" ? "Thematic exploration" : "Character-driven narrative"
+
+        console.log(`\n Generating long-term saga plan for next ${chapters} chapters...`)
+        const result = await orchestrator.sagaArchitect.generateLongTermPlan(
+          orchestrator.getState().chapterCount,
+          chapters,
+          grandTheme,
+          acts,
+          orchestrator.getState().fullStory?.slice(-3000) || "",
+        )
+
+        console.log(`\n Plan generated:`)
+        console.log(`  Volumes: ${result.plan.volumes.length}`)
+        console.log(`  Chapter plans: ${result.chapterPlans.length}`)
+        console.log(`  Risk factors: ${result.analysis.riskFactors.length}`)
+
+        if (result.chapterPlans.length > 0) {
+          console.log("\n Chapter Plans:")
+          console.log("─".repeat(70))
+          for (const plan of result.chapterPlans.slice(0, 10)) {
+            console.log(`  Ch.${plan.chapterNumber}: ${plan.title} [${plan.pacing}]`)
+            console.log(`    ${plan.thematicGoal}`)
+          }
+        }
+      } else if (subCommand === "guns") {
+        const active = orchestrator.sagaArchitect.getActiveChekhovsGuns()
+        const overdue = orchestrator.sagaArchitect.getOverdueChekhovsGuns(
+          orchestrator.getState().chapterCount,
+        )
+
+        console.log(`\n Chekhov's Guns (${active.length} active, ${overdue.length} overdue):`)
+        console.log("═".repeat(70))
+
+        if (overdue.length > 0) {
+          console.log("\n ⏰ OVERDUE:")
+          for (const gun of overdue) {
+            console.log(`  - ${gun.description} (planted Ch.${gun.plantedChapter})`)
+          }
+        }
+
+        console.log("\n Active:")
+        for (const gun of active.slice(0, 15)) {
+          const statusIcon = gun.status === "planted" ? "🌱" : gun.status === "developing" ? "🌿" : "✅"
+          console.log(`  ${statusIcon} [${gun.status}] ${gun.description} (Ch.${gun.plantedChapter})`)
+        }
+      } else if (subCommand === "export") {
+        const data = orchestrator.sagaArchitect.exportData()
+        const outPath = resolveSafePath(cwd, "saga_plan.json")
+        await writeFile(outPath, JSON.stringify(data, null, 2))
+        console.log(`✓ Exported saga plan to: ${outPath}`)
+      } else {
+        console.log("× Usage: /saga <report|plan [chapters] [acts]|guns|export>")
+        console.log("\n  report  - Show saga plan report")
+        console.log("  plan    - Generate long-term plan (default: 20 chapters, 3 acts)")
+        console.log("  guns    - Show Chekhov's Guns status")
+        console.log("  export  - Export saga plan to JSON")
       }
       break
     }
