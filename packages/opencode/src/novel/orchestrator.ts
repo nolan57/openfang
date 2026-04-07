@@ -249,7 +249,7 @@ export class EvolutionOrchestrator {
   /** Multi-thread narrative executor for parallel POV storylines */
   private multiThreadNarrative: MultiThreadNarrativeExecutor | null = null
   /** Whether multi-thread mode is enabled */
-  private multiThreadEnabled: boolean = false
+  private multiThreadEnabled: boolean = true
   /** World bible keeper for lore consistency tracking */
   private worldBibleKeeper: WorldBibleKeeper
   /** Multi-arc architect for long-term saga planning */
@@ -325,7 +325,7 @@ export class EvolutionOrchestrator {
     this.visualPanelsEnabled = config.visualPanelsEnabled !== undefined ? config.visualPanelsEnabled : true
     this.configManager = config.configManager || novelConfigManager
     this.learningBridgeManager = new NovelLearningBridgeManager(config.learningBridgeConfig)
-    this.multiThreadEnabled = config.multiThreadEnabled !== undefined ? config.multiThreadEnabled : false
+    this.multiThreadEnabled = config.multiThreadEnabled !== undefined ? config.multiThreadEnabled : true
     if (this.multiThreadEnabled) {
       this.multiThreadNarrative = new MultiThreadNarrativeExecutor(config.multiThreadConfig || {})
       log.info("multi_thread_narrative_initialized", {
