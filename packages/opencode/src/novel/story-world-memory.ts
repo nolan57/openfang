@@ -197,15 +197,6 @@ export class StoryWorldMemory {
       metadata: { type: "chapter_summary" },
     })
 
-    // NEW: Notify thematic analyst for integration (if global instance exists)
-    if ((globalThis as any).thematicAnalyst) {
-      try {
-        await (globalThis as any).thematicAnalyst.onChapterSummaryStored(entry)
-      } catch (error) {
-        log.warn("thematic_analyst_notification_failed", { error: String(error) })
-      }
-    }
-
     return entry
   }
 

@@ -5,6 +5,8 @@ import { EvolutionOrchestrator, loadDynamicPatterns } from "./orchestrator"
 import { enhancedPatternMiner } from "./pattern-miner-enhanced"
 import { storyKnowledgeGraph } from "./story-knowledge-graph"
 import { storyWorldMemory } from "./story-world-memory"
+import { getLatestReflectionTurn, loadPreviousReflection } from "./thematic-analyst"
+import { getReflectionsPath } from "./novel-config"
 import {
   getStoryBiblePath,
   getDynamicPatternsPath,
@@ -1057,6 +1059,66 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
         console.log("  character  - View memories related to a character")
         console.log("  search     - Search memory content by keyword")
       }
+      break
+    }
+
+    case "/reflection": {
+      const turnArg = args[0]
+      let turn = 0
+
+      if (turnArg && turnArg !== "latest") {
+        turn = parseInt(turnArg)
+      } else {
+        turn = await getLatestReflectionTurn()
+      }
+
+      if (turn === 0) {
+        console.log("× No thematic reflections found yet. Generate more chapters.")
+        break
+      }
+
+      const reflection = await loadPreviousReflection(turn)
+      if (!reflection) {
+        console.log(`× No reflection found for turn ${turn}`)
+        break
+      }
+
+      console.log(`\n📖 Thematic Reflection - Turn ${reflection.turnNumber}`)
+      console.log("═".repeat(60))
+      console.log(`Theme: ${reflection.theme}`)
+      console.log(`\n📊 Thematic Consistency: ${reflection.analysis.thematicConsistency.score}/10`)
+      console.log(`${reflection.analysis.thematicConsistency.assessment}`)
+      
+      console.log(`\n🎨 Imagery Evolution`)
+      console.log(`  Evolution: ${reflection.analysis.imageryEvolution.evolution}`)
+      
+      console.log(`\n👤 Character Arcs`)
+      for (const arc of reflection.analysis.characterArcs) {
+        console.log(`  ${arc.character}: ${arc.arcProgression}`)
+        console.log(`    Alignment: ${arc.alignmentWithTheme}`)
+      }
+
+      console.log(`\n⚠️ Warnings`)
+      if (reflection.recommendations.warnings.length === 0) {
+        console.log("  None")
+      } else {
+        for (const w of reflection.recommendations.warnings) {
+          console.log(`  - ${w}`)
+        }
+      }
+
+      console.log(`\n📝 Recommendations`)
+      console.log("  Immediate:")
+      if (reflection.recommendations.immediate.length === 0) {
+        console.log("    - None")
+      } else {
+        for (const r of reflection.recommendations.immediate) {
+          console.log(`    - ${r}`)
+        }
+      }
+      
+      const mdPath = resolve(getReflectionsPath(), `reflection_turn_${turn}.md`)
+      console.log(`\n📄 Full report saved to: ${mdPath}`)
       break
     }
 

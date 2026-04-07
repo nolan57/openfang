@@ -16,6 +16,7 @@ import {
   getDynamicPatternsPath,
   getSkillsPath,
   getSummariesPath,
+  getReflectionsPath,
   NovelConfigManager,
 } from "./novel-config"
 import {
@@ -2948,6 +2949,33 @@ If a field is not mentioned, use empty string or empty array.`
       // NEW: Build context from dynamically mined patterns (archetypes, motifs, plot templates)
       const patternContext = this.buildPatternContext()
 
+      // NEW: Inject Thematic Analyst Recommendations for self-correction
+      let thematicGuidance = ""
+      try {
+        const latestTurn = await getLatestReflectionTurn()
+        if (latestTurn > 0) {
+          const reflectionPath = resolve(getReflectionsPath(), `reflection_turn_${latestTurn}.json`)
+          if (await fileExists(reflectionPath)) {
+            const reflectionContent = JSON.parse(await readFile(reflectionPath, "utf-8"))
+            const warnings = reflectionContent.recommendations?.warnings || []
+            const immediate = reflectionContent.recommendations?.immediate || []
+
+            if (warnings.length > 0 || immediate.length > 0) {
+              thematicGuidance = `\n=== LITERARY CRITIC FEEDBACK (Act Now) ===\n`
+              if (warnings.length > 0) {
+                thematicGuidance += `⚠️ CRITICAL WARNINGS:\n${warnings.join("\n")}\n`
+              }
+              if (immediate.length > 0) {
+                thematicGuidance += `📝 IMMEDIATE ACTIONS FOR NEXT CHAPTER:\n${immediate.join("\n")}\n`
+              }
+              thematicGuidance += `Ensure these thematic goals are met in this chapter.`
+            }
+          }
+        }
+      } catch (e) {
+        log.debug("thematic_feedback_load_failed", { error: String(e) })
+      }
+
       // Detect language from prompt [LANGUAGE: ...] tag
       const languageMatch = promptContent.match(/\[LANGUAGE:\s*([^\]]+)\]/i)
       const specifiedLanguage = languageMatch ? languageMatch[1].trim() : null
@@ -2990,7 +3018,7 @@ Rules:
 ${previousStory.slice(-2000)}
 
 Established Characters: ${characterInfo}
-${skeletonContext}${patternContext}
+${skeletonContext}${patternContext}${thematicGuidance}
 === RETRIEVED MEMORY CONTEXT ===
 ${promptContent.includes("=== STORY MEMORY CONTEXT ===") ? promptContent.split("=== STORY MEMORY CONTEXT ===")[1].split("Prompt/Timing:")[0] : ""}
 
