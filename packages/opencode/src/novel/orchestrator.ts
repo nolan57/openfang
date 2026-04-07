@@ -106,6 +106,20 @@ interface StoryState {
   branchHistory: StoryBranch[]
   currentBranchId: string | null
   narrativeSkeleton?: NarrativeSkeleton
+  highImpactMotifEvents?: Array<{
+    eventType: string
+    motifName: string
+    impactScore: number
+    evolution: any
+    recordedAt: number
+  }>
+  pendingMotifChaosEvent?: {
+    motifName: string
+    eventType: string
+    narrativePrompt: string
+    generatedAt: number
+    consumed: boolean
+  }
   [key: string]: any
 }
 
@@ -287,6 +301,9 @@ export class EvolutionOrchestrator {
     this.endGameDetector = endGameDetector
     this.relationshipInertiaManager = relationshipInertiaManager
     this.enhancedPatternMiner = enhancedPatternMiner
+
+    // Configure high-impact motif event callback
+    this.configureMotifTrackerCallback()
     // Initialize stateless relationship services
     const graphReader = this.buildGraphReader()
     this.relationshipViewService = new RelationshipViewService(graphReader)
@@ -407,6 +424,145 @@ export class EvolutionOrchestrator {
 
         return { isValid: false, flags, corrections }
       },
+    }
+  }
+
+  /**
+   * Configure motif tracker with high-impact event callback
+   * This enables the orchestrator to respond when motifs reach critical thematic significance
+   */
+  private configureMotifTrackerCallback(): void {
+    const tracker = this.motifTracker as any
+
+    // Reconfigure with high-impact event handler
+    tracker.config = {
+      ...tracker.config,
+      onHighImpactEvent: async (event: any) => {
+        this.log(`🎭 HIGH IMPACT MOTIF EVENT: ${event.eventType}`, {
+          motif: event.motifName,
+          impactScore: event.impactScore,
+          thematicSignificance: event.evolution.thematicSignificance,
+          chapter: event.evolution.triggerChapter,
+          character: event.evolution.characterInvolved || "N/A",
+        })
+
+        // Store high-impact events in story state for future reference
+        if (!this.storyState.highImpactMotifEvents) {
+          this.storyState.highImpactMotifEvents = []
+        }
+        this.storyState.highImpactMotifEvents.push({
+          ...event,
+          recordedAt: this.storyState.chapterCount,
+        })
+
+        // Generate motif-driven chaos event for next chapter
+        try {
+          const chaosEvent = await this.generateMotifDrivenChaosEvent(event)
+          this.storyState.pendingMotifChaosEvent = {
+            motifName: event.motifName,
+            eventType: event.eventType,
+            narrativePrompt: chaosEvent.narrativePrompt,
+            generatedAt: this.storyState.chapterCount,
+            consumed: false,
+          }
+          this.log(`   🎲 Motif-driven chaos event queued for next chapter`)
+        } catch (error) {
+          log.warn("motif_chaos_event_generation_failed", { error: String(error) })
+        }
+
+        // Trigger special narrative responses based on event type
+        switch (event.eventType) {
+          case "narrative_climax":
+            this.log(`   ⚡ Narrative climax detected! Consider ending or major turning point.`)
+            break
+          case "character_transformation":
+            this.log(`   ✨ Character transformation complete! Arc milestone reached.`)
+            break
+          case "strength_surge":
+            this.log(`   💥 Motif strength surge! Theme becoming dominant.`)
+            break
+          case "thematic_shift":
+            this.log(`   🔄 Thematic shift in progress. Story direction changing.`)
+            break
+        }
+      },
+    }
+
+    log.info("motif_tracker_high_impact_callback_configured")
+  }
+
+  /**
+   * Generate a chaos event driven by motif state
+   * This replaces random dice rolls with thematically coherent narrative events
+   */
+  private async generateMotifDrivenChaosEvent(motifEvent: any): Promise<{
+    narrativePrompt: string
+    event: string
+    category: string
+  }> {
+    const { motifName, eventType, evolution, impactScore } = motifEvent
+    const characters = Object.keys(this.storyState.characters)
+    const involvedChar = evolution.characterInvolved || ""
+
+    const prompt = `Generate a narrative chaos event driven by the motif "${motifName}".
+
+CONTEXT:
+- Motif: ${motifName}
+- Event Type: ${eventType}
+- Impact Score: ${impactScore}
+- Chapter: ${evolution.triggerChapter}
+- Character Involved: ${involvedChar || "N/A"}
+- From State: ${evolution.fromState}
+- To State: ${evolution.toState}
+- Emotional Context: ${evolution.emotionalContext || "N/A"}
+
+ACTIVE CHARACTERS: ${characters.join(", ") || "None"}
+
+Generate a chaos event that:
+1. Directly relates to the "${motifName}" motif theme
+2. Creates narrative tension or resolution based on the motif's evolution
+3. Involves ${involvedChar || "key characters"} if possible
+4. Reflects the emotional context of the motif's transformation
+5. Provides clear narrative direction for the next chapter
+
+Output JSON only:
+{
+  "event": "Brief description of the chaos event (1-2 sentences)",
+  "narrativePrompt": "Detailed prompt for story continuation (3-5 sentences)",
+  "category": "thematic_confrontation" | "revelation" | "betrayal" | "sacrifice" | "transformation" | "convergence"
+}`
+
+    try {
+      const result = await callLLMJson<{
+        event: string
+        narrativePrompt: string
+        category: string
+      }>({
+        prompt,
+        callType: "motif_driven_chaos",
+        temperature: 0.7,
+        useRetry: true,
+      })
+
+      this.log(`   Motif-driven chaos event generated: ${result.data.category}`, {
+        event: result.data.event,
+      })
+
+      return {
+        narrativePrompt: result.data.narrativePrompt,
+        event: result.data.event,
+        category: result.data.category,
+      }
+    } catch (error) {
+      log.error("motif_chaos_llm_failed", { error: String(error) })
+      // Fallback to hardcoded motif-driven event
+      return {
+        narrativePrompt: `The motif "${motifName}" reaches a critical point. ${
+          involvedChar ? `${involvedChar} must face the consequences of "${motifName}".` : "Characters must confront this theme."
+        } Show how this motif transforms the narrative direction.`,
+        event: `"${motifName}" motif forces a confrontation`,
+        category: "thematic_confrontation",
+      }
     }
   }
 
@@ -1426,6 +1582,14 @@ Output JSON:
     }
     if (activePlotHook) {
       chaosContext.plotHook = `PLOT HOOK TO ADDRESS: ${activePlotHook.type} — ${activePlotHook.description}. Characters involved: ${activePlotHook.characters.join(", ")}. Narrative impact: ${activePlotHook.narrativeImpact}. Weave this into the chaos event naturally.`
+    }
+
+    // Inject pending motif-driven chaos event (from previous chapter's high-impact motif event)
+    const pendingMotifChaos = this.storyState.pendingMotifChaosEvent
+    if (pendingMotifChaos && !pendingMotifChaos.consumed) {
+      chaosContext.plotHook = `${chaosContext.plotHook || ""}\n\nMOTIF-DRIVEN CHAOS EVENT (from "${pendingMotifChaos.motifName}" motif):\n${pendingMotifChaos.narrativePrompt}\n\nThis event was generated based on the previous chapter's high-impact motif event (${pendingMotifChaos.eventType}). It MUST be woven into the narrative as the primary driving force for this chapter.`
+      pendingMotifChaos.consumed = true
+      this.log(`   🎲 Motif-driven chaos event injected: ${pendingMotifChaos.motifName}`)
     }
 
     // Inject active motifs into chaos context — chaos should amplify or subvert them
