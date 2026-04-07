@@ -100,7 +100,7 @@ These are exported from `index.ts` but have no external callers. They pollute th
 | `clearMemoCache` | performance.ts | Test-only |
 | `deleteMemoKey` | performance.ts | Test-only |
 | `getMemoStats` | performance.ts | Test-only |
-| `PROMPT_TEMPLATES` | dynamic-prompt.ts | Never imported |
+| ~~`PROMPT_TEMPLATES`~~ | ~~dynamic-prompt.ts~~ | ✅ **NOW ACTIVE** - All 5 templates now used (chaosEvent, stateEvaluation, psychologicalDeepening, branchGeneration) |
 | `BranchEvent` (type) | branch-storage.ts | Type never instantiated |
 
 **Subtotal: 21 barrel exports to remove**

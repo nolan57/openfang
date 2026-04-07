@@ -1,6 +1,8 @@
 import { Log } from "../util/log"
 import { callLLMJson } from "./llm-wrapper"
 import type { CharacterLifecycle } from "./character-lifecycle"
+import { createPromptBuilder } from "./dynamic-prompt"
+import { novelConfigManager } from "./novel-config"
 
 const log = Log.create({ service: "character-deepener" })
 
@@ -104,44 +106,23 @@ export class CharacterDeepener {
     const characterSummary = this.buildCharacterSummary(character)
     const worldKnowledgeDict = this.buildWorldKnowledgeDictionary()
 
-    const prompt = `You are a character psychology expert. Your task is to analyze the character based on their current state data using psychological frameworks.
+    // Use dynamic prompt template for consistency with MetaLearner
+    const config = novelConfigManager.getConfig()
+    const promptBuilder = createPromptBuilder("psychologicalDeepening", config.promptStyle)
 
-=== Character Data ===
-${characterSummary}
+    const { prompt, metadata } = promptBuilder
+      .withVariables({
+        CHARACTER_STATE: `${characterSummary}\n\n${worldKnowledgeDict}`,
+        SKILL_DICTIONARY: worldKnowledgeDict.includes("Skill Dictionary") ? worldKnowledgeDict : "",
+        TRAUMA_DICTIONARY: worldKnowledgeDict.includes("Trauma Dictionary") ? worldKnowledgeDict : "",
+      })
+      .buildWithMetadata()
 
-${worldKnowledgeDict}
-
-=== Analysis Requirements ===
-Use the following psychological frameworks for analysis:
-
-1. **Big Five Personality** - Infer from traits, skills, behavior
-2. **Attachment Theory** - Infer from relationships and trauma
-3. **Trauma Psychology** - Infer psychological impact from trauma and stress
-4. **Maslow's Hierarchy** - Infer core desires from goals
-5. **Defense Mechanisms** - Infer common defense patterns from behavior
-
-=== Output Format (strict JSON) ===
-{
-  "psychologicalProfile": {
-    "bigFiveTraits": { "openness": 1-10, "conscientiousness": 1-10, "extraversion": 1-10, "agreeableness": 1-10, "neuroticism": 1-10 },
-    "attachmentStyle": "secure|anxious|avoidant|disorganized",
-    "coreFear": "One sentence",
-    "coreDesire": "One sentence",
-    "defenseMechanisms": ["mechanism1", "mechanism2"],
-    "copingStrategies": ["strategy1", "strategy2"]
-  },
-  "characterArc": {
-    "currentPhase": "denial|resistance|exploration|integration|mastery",
-    "arcDirection": "growth|decline|complex|stagnation",
-    "potentialBreakthrough": "potential breakthrough point",
-    "potentialBreakdown": "potential breakdown point"
-  },
-  "relationshipDynamics": { "otherCharacter": { "dynamicType": "ally|rival|mentor|protégé|enemy|unknown", "powerBalance": "dominant|submissive|equal|shifting", "tension": "cooperating|conflicting|neutral|betrayal_risk" } },
-  "narrativeSuggestions": { "internalConflict": "...", "externalConflict": "...", "growthOpportunities": ["..."], "sceneTriggers": ["..."] },
-  "suggestedEnhancements": { "newTraits": ["..."], "newGoals": ["..."], "backstoryFragments": ["..."], "dialogueTraits": ["..."] }
-}
-
-Note: Output JSON only, no other text. All numbers must be 1-10.`
+    log.debug("prompt_built_with_metadata", {
+      promptLength: prompt.length,
+      style: (metadata.style as any)?.verbosity,
+      hasTone: !!metadata.tone,
+    })
 
     try {
       const result = await callLLMJson<DeepenedCharacterProfile>({

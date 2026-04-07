@@ -8,6 +8,60 @@ export interface MetaLearner {
 }
 
 /**
+ * Default MetaLearner implementation that uses config-based suggestions.
+ * Can be extended with ML-based learning from user feedback.
+ */
+export class ConfigBasedMetaLearner implements MetaLearner {
+  private chapterCount: number = 0
+  private userRatings: number[] = []
+
+  updateContext(chapterCount: number, userRating?: number): void {
+    this.chapterCount = chapterCount
+    if (userRating !== undefined) {
+      this.userRatings.push(userRating)
+    }
+  }
+
+  getSuggestedPromptStyle(): Partial<PromptStyle> {
+    const style: Partial<PromptStyle> = {}
+
+    // Adjust verbosity based on chapter count
+    if (this.chapterCount > 20) {
+      style.verbosity = "detailed" // Longer stories benefit from more detail
+    } else if (this.chapterCount < 5) {
+      style.verbosity = "concise" // Early chapters should be tighter
+    }
+
+    // Adjust creativity based on user ratings
+    const avgRating = this.userRatings.length > 0
+      ? this.userRatings.reduce((a, b) => a + b, 0) / this.userRatings.length
+      : null
+
+    if (avgRating !== null) {
+      if (avgRating >= 8) {
+        style.creativity = 0.8 // High ratings mean user likes creativity, increase it
+      } else if (avgRating <= 5) {
+        style.creativity = 0.5 // Low ratings mean dial back creativity
+      }
+    }
+
+    return style
+  }
+
+  exportState(): { chapterCount: number; userRatings: number[] } {
+    return {
+      chapterCount: this.chapterCount,
+      userRatings: this.userRatings,
+    }
+  }
+
+  importState(state: { chapterCount: number; userRatings: number[] }): void {
+    this.chapterCount = state.chapterCount
+    this.userRatings = state.userRatings || []
+  }
+}
+
+/**
  * 故事基调配置
  */
 export interface StoryTone {
@@ -313,39 +367,6 @@ Output ONLY the event description (2-4 sentences). No other text.`,
     variables: ["IMPACT", "MAGNITUDE", "STORY_CONTEXT", "CHARACTERS", "RECENT_EVENTS", "PLOT_HOOK"],
   },
 
-  characterAnalysis: {
-    id: "characterAnalysis",
-    baseTemplate: `You are a character psychology expert. Your task is to analyze the character based on their current state data using psychological frameworks.
-
-{{TONE_INSTRUCTIONS}}
-{{STYLE_INSTRUCTIONS}}
-
-Character State:
-{{CHARACTER_STATE}}
-
-Analyze using:
-1. Big Five Personality (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism)
-2. Attachment Theory (Secure, Anxious, Avoidant, Disorganized)
-3. Character Arc Phase (Denial → Resistance → Exploration → Integration → Mastery)
-
-Output Format (strict JSON):
-{
-  "bigFive": {
-    "openness": 0-1,
-    "conscientiousness": 0-1,
-    "extraversion": 0-1,
-    "agreeableness": 0-1,
-    "neuroticism": 0-1
-  },
-  "attachmentStyle": "secure|anxious|avoidant|disorganized",
-  "arcPhase": "denial|resistance|exploration|integration|mastery",
-  "insights": ["Key psychological insights"]
-}
-
-Output only JSON, no other text.`,
-    variables: ["CHARACTER_STATE"],
-  },
-
   branchGeneration: {
     id: "branchGeneration",
     baseTemplate: `You are a master storyteller creating narrative branches.
@@ -460,12 +481,12 @@ Note:
 /**
  * 创建提示词构建器的工厂函数
  */
-export function createPromptBuilder(templateId: string, style?: PromptStyle): DynamicPromptBuilder {
+export function createPromptBuilder(templateId: string, style?: PromptStyle, metaLearner?: MetaLearner): DynamicPromptBuilder {
   const template = PROMPT_TEMPLATES[templateId]
   if (!template) {
     throw new Error(`Unknown template: ${templateId}`)
   }
 
-  log.info("prompt_builder_created", { templateId })
-  return new DynamicPromptBuilder(template.baseTemplate, style)
+  log.info("prompt_builder_created", { templateId, hasMetaLearner: !!metaLearner })
+  return new DynamicPromptBuilder(template.baseTemplate, style, metaLearner)
 }

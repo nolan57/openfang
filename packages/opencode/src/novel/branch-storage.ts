@@ -420,6 +420,258 @@ export class BranchStorage {
     return imported
   }
 
+  /**
+   * Find branches with similar embeddings to the given context.
+   * Uses cosine similarity on the evaluation score vectors and content hashes.
+   * Returns branches sorted by similarity score (highest first).
+   */
+  async findSimilarBranches(
+    context: {
+      storySegment?: string
+      evaluation?: {
+        narrativeQuality: number
+        tensionLevel: number
+        characterDevelopment: number
+        plotProgression: number
+        characterGrowth: number
+        riskReward: number
+        thematicRelevance: number
+      }
+      chapter?: number
+    },
+    limit: number = 5,
+    minSimilarity: number = 0.3,
+  ): Promise<Array<{ branch: Branch; similarity: number }>> {
+    if (!this.initialized) await this.initialize()
+
+    const allBranches = await this.loadAllBranches(false)
+    const branchesWithEmbeddings = allBranches.filter((b) => b.events && b.pruned === false)
+
+    if (branchesWithEmbeddings.length === 0) {
+      return []
+    }
+
+    const contextEmbedding = this.generateBranchEmbedding({
+      id: "context",
+      storySegment: context.storySegment || "",
+      branchPoint: "",
+      choiceMade: "",
+      choiceRationale: "",
+      stateAfter: {},
+      evaluation: context.evaluation,
+      selected: false,
+      createdAt: Date.now(),
+      chapter: context.chapter,
+      events: [],
+      structuredState: {},
+    } as Branch)
+
+    const similarities = branchesWithEmbeddings
+      .map((branch) => {
+        try {
+          const branchEmbedding = (branch as any).embedding || "{}"
+          const similarity = this.calculateEmbeddingSimilarity(contextEmbedding, branchEmbedding)
+          return { branch, similarity }
+        } catch {
+          return { branch, similarity: 0 }
+        }
+      })
+      .filter((x) => x.similarity >= minSimilarity)
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit)
+
+    log.info("similar_branches_found", {
+      total: branchesWithEmbeddings.length,
+      returned: similarities.length,
+      minSimilarity,
+    })
+
+    return similarities
+  }
+
+  /**
+   * Calculate cosine similarity between two embedding vectors.
+   * Compares evaluation scores primarily, with hash matching as bonus.
+   */
+  private calculateEmbeddingSimilarity(embedA: string, embedB: string): number {
+    try {
+      const a = typeof embedA === "string" ? JSON.parse(embedA) : embedA
+      const b = typeof embedB === "string" ? JSON.parse(embedB) : embedB
+
+      if (!a.ev || !b.ev) return 0
+
+      // Cosine similarity on evaluation scores
+      const vecA = a.ev as number[]
+      const vecB = b.ev as number[]
+
+      const dotProduct = vecA.reduce((sum: number, val: number, i: number) => sum + val * (vecB[i] || 0), 0)
+      const magnitudeA = Math.sqrt(vecA.reduce((sum: number, val: number) => sum + val * val, 0))
+      const magnitudeB = Math.sqrt(vecB.reduce((sum: number, val: number) => sum + val * val, 0))
+
+      if (magnitudeA === 0 || magnitudeB === 0) return 0
+
+      const cosineSim = dotProduct / (magnitudeA * magnitudeB)
+
+      // Bonus for same chapter
+      const chapterBonus = a.cp === b.cp ? 0.1 : 0
+
+      // Bonus for content hash match (exact match is rare but significant)
+      const contentBonus = a.ch === b.ch ? 0.2 : 0
+
+      return Math.min(1.0, cosineSim * 0.7 + chapterBonus + contentBonus)
+    } catch {
+      return 0
+    }
+  }
+
+  /**
+   * Get branches from a specific chapter with optional quality filtering.
+   * Useful for reviewing alternative story paths at a given point.
+   */
+  async getBranchesByChapter(
+    chapter: number,
+    options?: {
+      minQuality?: number
+      includePruned?: boolean
+      sortBy?: "quality" | "date" | "similarity"
+    },
+  ): Promise<Branch[]> {
+    if (!this.initialized) await this.initialize()
+
+    let branches = await this.loadBranchesByChapter(chapter)
+
+    if (!options?.includePruned) {
+      branches = branches.filter((b) => !b.pruned)
+    }
+
+    if (options?.minQuality) {
+      branches = branches.filter(
+        (b) =>
+          b.evaluation.narrativeQuality >= options.minQuality! ||
+          b.evaluation.tensionLevel >= options.minQuality! ||
+          b.evaluation.characterDevelopment >= options.minQuality!,
+      )
+    }
+
+    // Sort by requested criteria
+    if (options?.sortBy === "quality") {
+      branches.sort(
+        (a, b) =>
+          b.evaluation.narrativeQuality +
+          b.evaluation.tensionLevel +
+          b.evaluation.characterDevelopment -
+          (a.evaluation.narrativeQuality + a.evaluation.tensionLevel + a.evaluation.characterDevelopment),
+      )
+    } else if (options?.sortBy === "date") {
+      branches.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    }
+
+    return branches
+  }
+
+  /**
+   * Get branch statistics including quality distribution and timeline.
+   */
+  async getDetailedStats(): Promise<{
+    total: number
+    active: number
+    pruned: number
+    merged: number
+    selected: number
+    qualityDistribution: {
+      high: number // >= 7
+      medium: number // 4-6
+      low: number // < 4
+    }
+    chapterRange: { min: number; max: number }
+    avgEvaluation: {
+      narrativeQuality: number
+      tensionLevel: number
+      characterDevelopment: number
+      plotProgression: number
+      characterGrowth: number
+      riskReward: number
+      thematicRelevance: number
+    }
+  }> {
+    const basicStats = await this.getStats()
+    const allBranches = await this.loadAllBranches(true)
+
+    if (allBranches.length === 0) {
+      return {
+        ...basicStats,
+        qualityDistribution: { high: 0, medium: 0, low: 0 },
+        chapterRange: { min: 0, max: 0 },
+        avgEvaluation: {
+          narrativeQuality: 0,
+          tensionLevel: 0,
+          characterDevelopment: 0,
+          plotProgression: 0,
+          characterGrowth: 0,
+          riskReward: 0,
+          thematicRelevance: 0,
+        },
+      }
+    }
+
+    const qualityDist = { high: 0, medium: 0, low: 0 }
+    const chapters: number[] = []
+    const evalSums = {
+      narrativeQuality: 0,
+      tensionLevel: 0,
+      characterDevelopment: 0,
+      plotProgression: 0,
+      characterGrowth: 0,
+      riskReward: 0,
+      thematicRelevance: 0,
+    }
+
+    for (const branch of allBranches) {
+      const avgScore =
+        (branch.evaluation.narrativeQuality +
+          branch.evaluation.tensionLevel +
+          branch.evaluation.characterDevelopment +
+          branch.evaluation.plotProgression +
+          branch.evaluation.characterGrowth +
+          branch.evaluation.riskReward +
+          branch.evaluation.thematicRelevance) /
+        7
+
+      if (avgScore >= 7) qualityDist.high++
+      else if (avgScore >= 4) qualityDist.medium++
+      else qualityDist.low++
+
+      if (branch.chapter) chapters.push(branch.chapter)
+
+      evalSums.narrativeQuality += branch.evaluation.narrativeQuality
+      evalSums.tensionLevel += branch.evaluation.tensionLevel
+      evalSums.characterDevelopment += branch.evaluation.characterDevelopment
+      evalSums.plotProgression += branch.evaluation.plotProgression
+      evalSums.characterGrowth += branch.evaluation.characterGrowth
+      evalSums.riskReward += branch.evaluation.riskReward
+      evalSums.thematicRelevance += branch.evaluation.thematicRelevance
+    }
+
+    const count = allBranches.length
+    return {
+      ...basicStats,
+      qualityDistribution: qualityDist,
+      chapterRange: {
+        min: Math.min(...chapters),
+        max: Math.max(...chapters),
+      },
+      avgEvaluation: {
+        narrativeQuality: evalSums.narrativeQuality / count,
+        tensionLevel: evalSums.tensionLevel / count,
+        characterDevelopment: evalSums.characterDevelopment / count,
+        plotProgression: evalSums.plotProgression / count,
+        characterGrowth: evalSums.characterGrowth / count,
+        riskReward: evalSums.riskReward / count,
+        thematicRelevance: evalSums.thematicRelevance / count,
+      },
+    }
+  }
+
   private recordToBranch(record: BranchRecord): Branch {
     let events: Array<{ id: string; type: string; description: string }> = []
     let structuredState: Record<string, any> = {}

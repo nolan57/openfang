@@ -378,6 +378,136 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       break
     }
 
+    case "/branches": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+
+      const subCommand = args[0] || "stats"
+
+      if (subCommand === "stats") {
+        // Show branch statistics
+        const stats = await orchestrator.storage.getDetailedStats()
+        console.log("\n Branch Statistics")
+        console.log("═".repeat(70))
+        console.log(`  Total Branches: ${stats.total}`)
+        console.log(`  Active: ${stats.active}`)
+        console.log(`  Pruned: ${stats.pruned}`)
+        console.log(`  Merged: ${stats.merged}`)
+        console.log(`  Selected: ${stats.selected}`)
+        console.log(`\n  Quality Distribution:`)
+        console.log(`    High (>=7): ${stats.qualityDistribution.high}`)
+        console.log(`    Medium (4-6): ${stats.qualityDistribution.medium}`)
+        console.log(`    Low (<4): ${stats.qualityDistribution.low}`)
+        console.log(`\n  Chapter Range: ${stats.chapterRange.min} - ${stats.chapterRange.max}`)
+        console.log(`\n  Average Evaluation Scores:`)
+        console.log(`    Narrative Quality: ${stats.avgEvaluation.narrativeQuality.toFixed(1)}/10`)
+        console.log(`    Tension Level: ${stats.avgEvaluation.tensionLevel.toFixed(1)}/10`)
+        console.log(`    Character Development: ${stats.avgEvaluation.characterDevelopment.toFixed(1)}/10`)
+        console.log(`    Plot Progression: ${stats.avgEvaluation.plotProgression.toFixed(1)}/10`)
+        console.log(`    Character Growth: ${stats.avgEvaluation.characterGrowth.toFixed(1)}/10`)
+        console.log(`    Risk/Reward: ${stats.avgEvaluation.riskReward.toFixed(1)}/10`)
+        console.log(`    Thematic Relevance: ${stats.avgEvaluation.thematicRelevance.toFixed(1)}/10`)
+      } else if (subCommand === "tree") {
+        // Show branch tree structure
+        const tree = await orchestrator.storage.loadBranchTree()
+        console.log("\n Branch Tree Structure")
+        console.log("═".repeat(70))
+
+        let branchCount = 0
+        for (const [parentId, branches] of tree) {
+          const parentLabel = parentId || "Root"
+          console.log(`\n  📁 ${parentLabel} (${branches.length} branches)`)
+          console.log("─".repeat(70))
+
+          for (const branch of branches.slice(0, 5)) {
+            const status = branch.selected ? "✓" : branch.pruned ? "✗" : "○"
+            const quality = branch.evaluation.narrativeQuality.toFixed(0)
+            console.log(`    ${status} Ch.${branch.chapter} [Q:${quality}] "${branch.choiceMade.substring(0, 60)}..."`)
+            branchCount++
+          }
+
+          if (branches.length > 5) {
+            console.log(`    ... and ${branches.length - 5} more branches`)
+            branchCount += branches.length - 5
+          }
+        }
+
+        console.log(`\n  Total: ${branchCount} branches across ${tree.size} branch points`)
+      } else if (subCommand === "chapter") {
+        // Show branches for a specific chapter
+        const chapterNum = parseInt(args[1])
+        if (!chapterNum) {
+          console.log("× Usage: /branches chapter <number>")
+          break
+        }
+
+        const branches = await orchestrator.storage.getBranchesByChapter(chapterNum, {
+          sortBy: "quality",
+        })
+
+        if (branches.length === 0) {
+          console.log(`× No branches found for chapter ${chapterNum}`)
+          break
+        }
+
+        console.log(`\n Branches for Chapter ${chapterNum} (${branches.length} total)`)
+        console.log("═".repeat(70))
+
+        for (let i = 0; i < branches.length; i++) {
+          const branch = branches[i]
+          const status = branch.selected ? "✓ SELECTED" : branch.pruned ? "✗ PRUNED" : "○ ACTIVE"
+          console.log(`\n  ${i + 1}. ${status}`)
+          console.log(`     Choice: "${branch.choiceMade}"`)
+          console.log(`     Rationale: ${branch.choiceRationale.substring(0, 100)}...`)
+          console.log(`     Quality: ${branch.evaluation.narrativeQuality}/10`)
+          console.log(`     Tension: ${branch.evaluation.tensionLevel}/10`)
+          console.log(`     Character Dev: ${branch.evaluation.characterDevelopment}/10`)
+        }
+      } else if (subCommand === "history") {
+        // Show complete branch history
+        const allBranches = await orchestrator.storage.loadAllBranches(false)
+        const sorted = allBranches.sort((a, b) => (a.chapter || 0) - (b.chapter || 0))
+
+        if (sorted.length === 0) {
+          console.log("× No branch history found")
+          break
+        }
+
+        console.log(`\n Complete Branch History (${sorted.length} branches)`)
+        console.log("═".repeat(70))
+
+        let currentChapter = 0
+        for (const branch of sorted.slice(0, 50)) {
+          if (branch.chapter !== currentChapter) {
+            currentChapter = branch.chapter || 0
+            console.log(`\n  Chapter ${currentChapter}:`)
+            console.log("─".repeat(70))
+          }
+
+          const status = branch.selected ? "✓" : "○"
+          console.log(`    ${status} "${branch.choiceMade.substring(0, 70)}..." [Q:${branch.evaluation.narrativeQuality.toFixed(0)}]`)
+        }
+
+        if (sorted.length > 50) {
+          console.log(`\n  ... and ${sorted.length - 50} more branches (use /branches export to see all)`)
+        }
+      } else if (subCommand === "export") {
+        // Export all branches to JSON
+        const allBranches = await orchestrator.storage.exportToJson()
+        const outPath = resolveSafePath(cwd, "branch_history.json")
+        await writeFile(outPath, JSON.stringify(allBranches, null, 2))
+        console.log(`✓ Exported ${allBranches.length} branches to: ${outPath}`)
+      } else {
+        console.log("× Usage: /branches <stats|tree|chapter <num>|history|export>")
+        console.log("\n  stats    - Show branch statistics")
+        console.log("  tree     - Show branch tree structure")
+        console.log("  chapter  - Show branches for specific chapter")
+        console.log("  history  - Show complete branch history")
+        console.log("  export   - Export all branches to JSON")
+      }
+      break
+    }
+
     case "/export": {
       const format = args[0] || "md"
       if (!["md", "json"].includes(format)) {

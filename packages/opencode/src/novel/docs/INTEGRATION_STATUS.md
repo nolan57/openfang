@@ -88,7 +88,7 @@ These modules are used by other integrated modules but not directly by orchestra
 | Module                        | Used By                | Purpose                     |
 | ----------------------------- | ---------------------- | --------------------------- |
 | **continuity-analyzer.ts**    | visual-orchestrator.ts | Visual continuity checking  |
-| **dynamic-prompt.ts**         | evolution-rules.ts     | Dynamic prompt construction |
+| **dynamic-prompt.ts**         | evolution-rules.ts, character-deepener.ts, orchestrator.ts | Dynamic prompt construction + MetaLearner |
 | **model.ts**                  | All LLM modules        | LLM provider acquisition    |
 | **validation.ts**             | llm-wrapper.ts         | Retry logic & validation    |
 | **visual-prompt-engineer.ts** | visual-orchestrator.ts | Visual prompt generation    |

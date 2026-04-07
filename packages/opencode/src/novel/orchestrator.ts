@@ -6,6 +6,7 @@ import { StateExtractor } from "./state-extractor"
 import { EvolutionRulesEngine, type ChaosEvent } from "./evolution-rules"
 import { RelationshipAnalyzer } from "./relationship-analyzer"
 import { CharacterDeepener } from "./character-deepener"
+import { createPromptBuilder, ConfigBasedMetaLearner } from "./dynamic-prompt"
 import { mkdir } from "fs/promises"
 import { Instance } from "../project/instance"
 import { stateAuditor } from "../middleware/state-auditor"
@@ -227,6 +228,7 @@ export class EvolutionOrchestrator {
   private endGameDetector: EndGameDetector
   private relationshipInertiaManager: RelationshipInertiaManager
   private learningBridgeManager: NovelLearningBridgeManager
+  private metaLearner: ConfigBasedMetaLearner
   private learningBridgeInitialized: boolean = false
   private lastChaosResult: ChaosResult | null = null
   private branchOptions: number = 3
@@ -301,6 +303,7 @@ export class EvolutionOrchestrator {
     this.endGameDetector = endGameDetector
     this.relationshipInertiaManager = relationshipInertiaManager
     this.enhancedPatternMiner = enhancedPatternMiner
+    this.metaLearner = new ConfigBasedMetaLearner()
 
     // Configure high-impact motif event callback
     this.configureMotifTrackerCallback()
@@ -1051,50 +1054,33 @@ NARRATIVE SUGGESTIONS:
       }
     }
 
+    // Update metaLearner context
+    this.metaLearner.updateContext(this.storyState.chapterCount)
+
     // Step 2: Let LLM analyze the story and generate multiple branches in one call
-    const branchGenerationPrompt = `You are a creative story architect. Analyze the current story state and generate multiple narrative branches.
+    // Use dynamic prompt template for consistency
+    const config = novelConfigManager.getConfig()
+    const promptBuilder = createPromptBuilder("branchGeneration", config.promptStyle, this.metaLearner)
 
-CURRENT STORY STATE:
-${charSummary}
-
-${relationshipContext}
-
-${graphConstraintContext}
-
-RECENT NARRATIVE:
-${baseState.fullStory.slice(-2000)}
-
+    const plotThreads = `
 CHAOS EVENT:
 Roll: ${chaosResult.roll}/6 - ${chaosResult.category}
 Event: ${chaosResult.event}
 ${chaosResult.narrativePrompt}
 
-YOUR TASK:
-Generate ${numBranches} different story continuations. Each should be a distinct narrative path that naturally follows from the current state.
+${relationshipContext}
 
-For each branch, output:
-1. branchPoint: The key decision or turning point
-2. choice: The specific action/decision the protagonist takes
-3. rationale: Why this choice makes sense given the character's state AND relationships
-4. storySegment: The actual story text (300-500 Chinese characters)
+${graphConstraintContext}
+`.trim()
 
-IMPORTANT:
-- Each branch should be DISTINCT and MEANINGFUL
-- Consider character stress, relationships, available clues, and story goals
-- Consider the relationship dynamics - some branches should explore relationship tension
-- Some branches should be risky, others conservative - let your analysis decide
-- The branches should explore different possibilities, not just "win" or "lose"
-
-Output JSON array:
-[
-  {
-    "branchPoint": "...",
-    "choice": "...",
-    "rationale": "...",
-    "storySegment": "..."
-  },
-  ...
-]`
+    const branchGenerationPrompt = promptBuilder
+      .withVariables({
+        BRANCH_COUNT: numBranches.toString(),
+        CURRENT_STATE: charSummary,
+        CHARACTERS: Object.keys(baseState.characters).join(", "),
+        PLOT_THREADS: plotThreads,
+      })
+      .build()
 
     let branchData: any[] = []
 
@@ -1871,8 +1857,31 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
     if (useBranches) {
       // Generate multiple branches and select the best one
       this.log(`   Generating story branches...`)
+
+      // Find similar historical branches for context enrichment
+      let historicalContext = ""
+      try {
+        const currentContext = {
+          storySegment: this.storyState.fullStory?.slice(-2000) || "",
+          chapter: this.storyState.chapterCount,
+        }
+        const similarBranches = await this.branchStorage.findSimilarBranches(currentContext, 3, 0.4)
+
+        if (similarBranches.length > 0) {
+          this.log(`   Found ${similarBranches.length} similar historical branches`)
+          historicalContext = `\n\n=== HISTORICAL SIMILAR BRANCHES ===\n`
+          historicalContext += `The following branches from previous chapters had similar contexts:\n\n`
+          for (const { branch, similarity } of similarBranches) {
+            historicalContext += `- Chapter ${branch.chapter}: "${branch.choiceMade.substring(0, 80)}..." (similarity: ${(similarity * 100).toFixed(0)}%, quality: ${branch.evaluation.narrativeQuality}/10)\n`
+          }
+          historicalContext += `\nConsider building on these successful patterns while avoiding their mistakes.\n`
+        }
+      } catch (error) {
+        log.debug("historical_branch_search_failed", { error: String(error) })
+      }
+
       const { selectedBranch, allBranches } = await this.generateBranches(
-        promptContent,
+        promptContent + historicalContext,
         this.storyState,
         chaosResult,
         this.branchOptions,
@@ -3410,6 +3419,14 @@ If no clear characters are found, return an empty array [].`
    */
   get lifecycleManager() {
     return this.characterLifecycleManager
+  }
+
+  /**
+   * Get the branch storage instance.
+   * Useful for CLI commands and branch querying.
+   */
+  get storage() {
+    return this.branchStorage
   }
 
   async reset(): Promise<void> {

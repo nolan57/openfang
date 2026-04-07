@@ -108,7 +108,7 @@ These `import` statements exist but the imported symbols are never referenced in
 | `branch-storage.ts` | `Instance` (from `../project/instance`) | Remove |
 | `procedural-world.ts` | `Instance` (from `../project/instance`) | Remove |
 | `command-parser.ts` | `Instance` (from `../project/instance`) | Remove |
-| `dynamic-prompt.ts` | `z` (from `zod`) | Remove |
+| ~~`dynamic-prompt.ts`~~ | ~~`z`~~ (from `zod`) | ✅ **FIXED** - removed unused import |
 | `visual-prompt-engineer.ts` | `generateDeterministicVisualHash` (local import) | Remove |
 | `observability.ts` | `getNovelLanguageModel` (from `./model`) | Remove |
 | `observability.ts` | `generateText` (from `ai`) | Remove |
@@ -135,11 +135,14 @@ These are defined and exported but **never imported by any other file**. They fa
 | ~~`branch-manager.ts`~~ | ~~`autoMergeSimilarBranches`~~ | ✅ **NOW ACTIVE** - orchestrator.ts:1844 |
 | ~~`branch-manager.ts`~~ | ~~`mergeBranches`~~ | ✅ **NOW ACTIVE** - called by autoMergeSimilarBranches |
 | ~~`branch-manager.ts`~~ | ~~`detectSimilarBranches`~~ | ✅ **NOW ACTIVE** - called by autoMergeSimilarBranches |
-| `branch-storage.ts` | `loadBranchesByEventType` | Internal storage querying |
-| `branch-storage.ts` | `loadBranchTree` | Internal storage querying |
-| `branch-storage.ts` | `exportToJson` | Internal utility |
-| `branch-storage.ts` | `importFromJson` | Internal utility |
-| `branch-storage.ts` | `BranchEvent` (interface) | Type defined but never consumed |
+| ~~`branch-storage.ts`~~ | ~~`loadBranchesByEventType`~~ | ✅ **NOW ACTIVE** - CLI /branches 查询 |
+| ~~`branch-storage.ts`~~ | ~~`loadBranchTree`~~ | ✅ **NOW ACTIVE** - CLI /branches tree |
+| ~~`branch-storage.ts`~~ | ~~`exportToJson`~~ | ✅ **NOW ACTIVE** - CLI /branches export |
+| ~~`branch-storage.ts`~~ | ~~`importFromJson`~~ | ✅ **NOW ACTIVE** - 数据迁移可用 |
+| ~~`branch-storage.ts`~~ | ~~`findSimilarBranches`~~ | ✅ **NOW ACTIVE** - orchestrator 用于历史上下文 |
+| ~~`branch-storage.ts`~~ | ~~`getBranchesByChapter`~~ | ✅ **NOW ACTIVE** - CLI /branches chapter |
+| ~~`branch-storage.ts`~~ | ~~`getDetailedStats`~~ | ✅ **NOW ACTIVE** - CLI /branches stats |
+| `branch-storage.ts` | `BranchEvent` (interface) | 类型定义但未消费 |
 
 ### 4.2 Planned infrastructure (never used) — Decide: implement or archive
 
@@ -183,7 +186,7 @@ These are defined and exported but **never imported by any other file**. They fa
 | `observability.ts` | `getErrorSummary` | No consumer |
 | `observability.ts` | `getMetricsHistory` | No consumer |
 | `observability.ts` | `getTraceEvents` | No consumer |
-| `dynamic-prompt.ts` | `PROMPT_TEMPLATES` | Exported but never imported |
+| ~~`dynamic-prompt.ts`~~ | ~~`PROMPT_TEMPLATES`~~ | ✅ **NOW ACTIVE** - 5/5 templates now used (psychologicalDeepening, branchGeneration) |
 
 ### 4.3 Deprecated — Keep for backward compatibility, plan removal
 
