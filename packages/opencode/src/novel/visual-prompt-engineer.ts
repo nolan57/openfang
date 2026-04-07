@@ -5,7 +5,6 @@ import {
   getVisualConfig,
   isComplexEmotion,
   isComplexAction,
-  getActionMapping,
   type VisualConfig,
 } from "./config"
 import {
@@ -507,6 +506,9 @@ export async function buildPanelSpecWithHybridEngine(
   // Get style modifiers
   const styleModifiers = context.globalStyle ? selectStyleModifiers(context.globalStyle) : []
 
+  // 【IMPROVEMENT】Implement atmospheric effects based on scene tone to enhance mood
+  const atmosphericEffects = selectAtmosphericEffects(context.beat.tone || "neutral")
+
   // Build ControlNet signals
   const controlNetSignals = {
     poseReference: characterRefUrl,
@@ -531,7 +533,7 @@ export async function buildPanelSpecWithHybridEngine(
     negativePrompt: promptResult.refinedNegativePrompt,
     controlNetSignals,
     styleModifiers,
-    atmosphericEffects: [],
+    atmosphericEffects,
     notes: promptResult.artisticNotes,
     promptVersion: cfg.version,
     hashStrategy: cfg.hash.algorithm,
