@@ -389,10 +389,22 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       const motifStats = orchestrator.motifManager.getStats()
       const relationshipCount = Object.keys(state.relationships || {}).length
       
+      // Calculate narrative skeleton completion
+      const skeleton = state.narrativeSkeleton
+      let skeletonCompletion = 0
+      if (skeleton && skeleton.storyLines.length > 0) {
+        const totalBeats = skeleton.storyLines.reduce((sum, sl) => sum + sl.keyBeats.length, 0)
+        const completedBeats = skeleton.storyLines.reduce((sum, sl) => {
+          const completedIndex = sl.currentBeatIndex || 0
+          return sum + Math.min(completedIndex, sl.keyBeats.length)
+        }, 0)
+        skeletonCompletion = totalBeats > 0 ? Math.round((completedBeats / totalBeats) * 100) : 0
+      }
+      
       orchestrator.detector.updateStoryMetrics({
         totalChapters: state.chapterCount,
-        resolvedArcs: state.narrativeSkeleton?.storyLines?.filter((s: any) => s.status === "completed").length || 0,
-        totalArcs: state.narrativeSkeleton?.storyLines?.length || 1,
+        resolvedArcs: skeleton?.storyLines?.filter((s: any) => s.status === "resolved").length || 0,
+        totalArcs: skeleton?.storyLines?.length || 1,
         thematicCoverage: Math.min(100, Math.round((motifStats.evolutions / 50) * 100)),
         resolvedConflicts: Math.floor(relationshipCount * 0.6),
         totalConflicts: relationshipCount * 2,
@@ -411,6 +423,21 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
         const bar = "█".repeat(filled) + "░".repeat(empty)
         const status = p.met ? " ✅" : " ⏳"
         console.log(`│ ${p.type.padEnd(28)} [${bar}] ${percent}%${status} │`)
+      }
+      
+      // Show narrative skeleton progress
+      if (skeleton && skeletonCompletion > 0) {
+        console.log("\n📖 Narrative Skeleton Progress:")
+        console.log("─".repeat(60))
+        console.log(`  Overall: ${skeletonCompletion}% complete`)
+        for (const sl of skeleton.storyLines) {
+          const slCompletion = sl.keyBeats.length > 0
+            ? Math.round(((sl.currentBeatIndex || 0) / sl.keyBeats.length) * 100)
+            : 0
+          const statusIcon = sl.status === "resolved" ? "✅" : sl.status === "dormant" ? "⏸️" : "🟢"
+          const bar = "█".repeat(Math.round(slCompletion / 10)) + "░".repeat(10 - Math.round(slCompletion / 10))
+          console.log(`  ${statusIcon} ${sl.name.padEnd(20)} [${bar}] ${slCompletion}% (${sl.currentBeatIndex || 0}/${sl.keyBeats.length})`)
+        }
       }
       console.log("╞══════════════════════════════════════════════════════════════╡")
       

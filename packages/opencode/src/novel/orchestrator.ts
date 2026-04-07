@@ -23,7 +23,6 @@ import {
   loadNarrativeSkeleton,
   saveNarrativeSkeleton,
   getNextKeyBeat,
-  getActiveStoryLines,
   getThematicMotifString,
   type NarrativeSkeleton,
 } from "./narrative-skeleton"
@@ -2121,6 +2120,41 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
     }
     this.storyState.fullStory = (this.storyState.fullStory || "") + "\n\n" + storySegment
     this.storyState.timestamps.lastGeneration = Date.now()
+
+    // Update narrative skeleton story line progress
+    try {
+      const skeleton = this.storyState.narrativeSkeleton
+      if (skeleton && skeleton.storyLines.length > 0) {
+        for (const storyLine of skeleton.storyLines) {
+          if (storyLine.status === "active" || storyLine.status === "dormant") {
+            const currentIndex = storyLine.currentBeatIndex || 0
+            // Advance to next beat if current chapter matches the next beat's chapter
+            if (currentIndex < storyLine.keyBeats.length) {
+              const nextBeat = storyLine.keyBeats[currentIndex]
+              if (nextBeat && nextBeat.chapter <= this.storyState.chapterCount) {
+                storyLine.currentBeatIndex = currentIndex + 1
+                this.log(`   Story line "${storyLine.name}" advanced to beat ${storyLine.currentBeatIndex}/${storyLine.keyBeats.length}`)
+
+                // Mark as resolved if all beats completed
+                if (storyLine.currentBeatIndex >= storyLine.keyBeats.length) {
+                  storyLine.status = "resolved"
+                  this.log(`   Story line "${storyLine.name}" resolved!`)
+                }
+              }
+            }
+          }
+        }
+
+        // Save updated skeleton
+        try {
+          await saveNarrativeSkeleton(skeleton)
+        } catch {
+          // Non-critical: skeleton save shouldn't block story
+        }
+      }
+    } catch (error) {
+      log.warn("skeleton_progress_update_failed", { error: String(error) })
+    }
 
     // Ensure characters is an array before iterating
     const characters = Array.isArray(elements.characters) ? elements.characters : []

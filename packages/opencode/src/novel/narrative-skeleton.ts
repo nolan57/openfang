@@ -91,55 +91,6 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
-/**
- * Creates a fallback skeleton when LLM parsing fails.
- * This ensures the novel can continue even if skeleton generation fails.
- */
-function createFallbackSkeleton(theme: string, tone: string, initialPrompt: string): NarrativeSkeleton {
-  log.info("creating_fallback_skeleton", { theme, tone })
-
-  const now = Date.now()
-  const skeleton: NarrativeSkeleton = {
-    theme,
-    tone,
-    initialPrompt,
-    createdAt: now,
-    lastUpdated: now,
-    storyLines: [
-      {
-        name: "Main Story",
-        status: "active",
-        currentBeatIndex: 0,
-        keyBeats: Array.from({ length: 20 }, (_, i) => ({
-          chapter: i + 1,
-          description: `Chapter ${i + 1}: Continue developing the story`,
-          characters: [],
-          thematicRelevance: theme,
-        })),
-      },
-    ],
-    thematicMotifs: {
-      core_theme: {
-        description: theme,
-        chapters: [1, 5, 10, 15, 20],
-        variations: [
-          "Initial introduction",
-          "First development",
-          "Deepening complexity",
-          "Climax expression",
-          "Resolution",
-        ],
-      },
-    },
-  }
-
-  saveNarrativeSkeleton(skeleton).catch((err) => {
-    log.error("fallback_skeleton_save_failed", { error: String(err) })
-  })
-
-  return skeleton
-}
-
 export class NarrativeSkeletonManager {
   private skeleton: NarrativeSkeleton | null = null
 
@@ -175,11 +126,6 @@ export class NarrativeSkeletonManager {
 
     const completedIndex = storyLine.currentBeatIndex !== undefined ? storyLine.currentBeatIndex + 1 : 0
     return Math.round((completedIndex / storyLine.keyBeats.length) * 100)
-  }
-
-  getActiveStoryLines(): StoryLine[] {
-    if (!this.skeleton) return []
-    return this.skeleton.storyLines.filter((sl) => sl.status === "active" || sl.status === "dormant")
   }
 
   getNextKeyBeat(chapter: number): Array<{ storyLine: string; beat: StoryLine["keyBeats"][number] }> {
@@ -568,11 +514,6 @@ export function getNextKeyBeat(
 }> {
   narrativeSkeletonManager.setSkeleton(skeleton)
   return narrativeSkeletonManager.getNextKeyBeat(chapter)
-}
-
-export function getActiveStoryLines(skeleton: NarrativeSkeleton): StoryLine[] {
-  narrativeSkeletonManager.setSkeleton(skeleton)
-  return narrativeSkeletonManager.getActiveStoryLines()
 }
 
 export function getThematicMotifString(skeleton: NarrativeSkeleton): string {
