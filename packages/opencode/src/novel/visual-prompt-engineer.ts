@@ -196,18 +196,21 @@ ${continuityContext}
 ${continuityInstruction}
 
 Task:
-Generate a refined visual prompt and negative prompt suitable for an image generation model.
-- **Visual Clarity**: Be extremely descriptive of visual elements (lighting, pose, texture). Avoid abstract concepts.
-- **Psychological Depth**: Use the psychological subtext to guide facial expression and posture.
+Act as an expert Cinematographer and Prompt Engineer for AI Image Generation.
+Generate a refined visual prompt and negative prompt.
+- **Visual Clarity**: Describe lighting, composition, and textures vividly. Avoid abstract nouns; focus on concrete visual elements.
+- **Psychological Depth**: Use the psychological subtext to guide facial micro-expressions and body language.
+- **Atmosphere**: Use the scene tone to determine atmospheric effects (fog, rain, dust, lighting).
 - **Continuity**: ${continuityInstruction.includes("OUTFIT LOCK") ? "STRICTLY MAINTAIN OUTFIT." : "Maintain outfit unless explicit time jump is mentioned."}
+- **Format**: Midjourney/Stable Diffusion compatible, comma-separated tags.
 - **Max tokens for visual prompt**: ${cfg.prompt_engineering.max_token_limit}
 
 OUTPUT JSON ONLY:
 {
-  "refinedVisualPrompt": "string (High detail, photorealistic/cinematic style)",
+  "refinedVisualPrompt": "string (High detail, cinematic, photorealistic style)",
   "refinedNegativePrompt": "string (Standard quality negatives + scene specific)",
   "detectedAction": "string (fight, chase, conversation, monologue, revelation, romantic, tension, action, emotional)",
-  "artisticNotes": "string (Brief rationale for composition)",
+  "artisticNotes": "string (Brief rationale for composition choices)",
   "confidenceScore": "number (0-1)"
 }`
 }
