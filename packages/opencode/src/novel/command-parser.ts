@@ -3,6 +3,7 @@ import { readFile, writeFile, readdir, stat } from "fs/promises"
 import { resolve, join } from "path"
 import { EvolutionOrchestrator, loadDynamicPatterns } from "./orchestrator"
 import { enhancedPatternMiner } from "./pattern-miner-enhanced"
+import { storyKnowledgeGraph } from "./story-knowledge-graph"
 import {
   getStoryBiblePath,
   getDynamicPatternsPath,
@@ -882,6 +883,91 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       
       console.log(`\n💡 Extraction runs automatically every chapter.`)
       console.log(`   Use /state <charName> to inspect specific character state.`)
+      break
+    }
+
+    case "/graph": {
+      await storyKnowledgeGraph.initialize()
+      const subCommand = args[0] || "stats"
+
+      if (subCommand === "stats") {
+        const stats = await storyKnowledgeGraph.getStats()
+        console.log(`\n🧠 Knowledge Graph Statistics`)
+        console.log("═".repeat(60))
+        console.log(`  Total Nodes: ${stats.totalNodes}`)
+        console.log(`  Total Edges: ${stats.totalEdges}`)
+        console.log(`  Avg Edge Strength: ${stats.avgEdgeStrength.toFixed(1)}`)
+        console.log(`\n  Nodes by Type:`)
+        for (const [type, count] of Object.entries(stats.byType)) {
+          console.log(`    ${type}: ${count}`)
+        }
+      } else if (subCommand === "search") {
+        const query = args.slice(1).join(" ")
+        if (!query) {
+          console.log("× Usage: /graph search <name>")
+          break
+        }
+        const nodes = await storyKnowledgeGraph.searchNodes(query)
+        console.log(`\n🔍 Search Results for "${query}"`)
+        console.log("─".repeat(60))
+        if (nodes.length === 0) {
+          console.log("  (No nodes found)")
+        } else {
+          for (const node of nodes.slice(0, 20)) {
+            const icon = node.type === "character" ? "👤" : node.type === "location" ? "📍" : node.type === "faction" ? "🏰" : "📄"
+            console.log(`  ${icon} [${node.type}] ${node.name} (${node.status})`)
+          }
+        }
+      } else if (subCommand === "node") {
+        const name = args.slice(1).join(" ")
+        if (!name) {
+          console.log("× Usage: /graph node <name>")
+          break
+        }
+        const nodes = await storyKnowledgeGraph.searchNodes(name)
+        if (nodes.length === 0) {
+          console.log(`× Node "${name}" not found`)
+          break
+        }
+        const node = nodes[0]
+        console.log(`\n📋 Node Details: ${node.name}`)
+        console.log("═".repeat(60))
+        console.log(`  Type: ${node.type}`)
+        console.log(`  Status: ${node.status}`)
+        console.log(`  First Appearance: Ch. ${node.firstAppearance}`)
+        if (node.description) console.log(`  Description: ${node.description}`)
+
+        const { edges, nodes: neighbors } = await storyKnowledgeGraph.getNeighbors(node.id)
+        if (neighbors.length > 0) {
+          console.log(`\n  Connections (${neighbors.length}):`)
+          console.log("─".repeat(60))
+          for (const neighbor of neighbors.slice(0, 10)) {
+            const edge = edges.find(e => e.source === neighbor.id || e.target === neighbor.id)
+            const dir = edge?.source === node.id ? "→" : "←"
+            console.log(`    ${dir} [${edge?.type}] ${neighbor.name} (Str: ${edge?.strength})`)
+          }
+        }
+      } else if (subCommand === "integrity") {
+        console.log(`\n🛡️ Running Integrity Check...`)
+        const warnings = await storyKnowledgeGraph.detectAllInconsistencies()
+        if (warnings.length === 0) {
+          console.log("✅ Graph is consistent. No issues found.")
+        } else {
+          console.log(`⚠️ Found ${warnings.length} issue(s):`)
+          console.log("─".repeat(60))
+          for (const w of warnings.slice(0, 20)) {
+            const icon = w.severity === "high" ? "🔴" : w.severity === "medium" ? "🟡" : "🟢"
+            console.log(`  ${icon} [${w.type}] ${w.description}`)
+            if (w.details) console.log(`     Details: ${w.details}`)
+          }
+        }
+      } else {
+        console.log("× Usage: /graph <stats|search|node|integrity>")
+        console.log("\n  stats      - Show graph statistics")
+        console.log("  search     - Search nodes by name")
+        console.log("  node       - View node details and connections")
+        console.log("  integrity  - Run consistency checks")
+      }
       break
     }
 

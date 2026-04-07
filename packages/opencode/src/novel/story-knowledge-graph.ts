@@ -702,6 +702,93 @@ export class StoryKnowledgeGraph {
     return warnings
   }
 
+  /**
+   * Run a comprehensive consistency check across the entire graph.
+   * Checks for dead character interactions, location integrity, and relationship conflicts.
+   */
+  async detectAllInconsistencies(): Promise<
+    Array<{
+      type: string
+      description: string
+      severity: "low" | "medium" | "high"
+      details?: string
+    }>
+  > {
+    const allWarnings: Array<{ type: string; description: string; severity: "low" | "medium" | "high"; details?: string }> = []
+
+    // 1. Check all active characters
+    const characters = await this.getActiveCharacters()
+    const deadCharacters = await this.getNodesByType("character").then((nodes) => nodes.filter((n) => n.status !== "active"))
+
+    const allChars = [...characters, ...deadCharacters]
+    for (const char of allChars) {
+      const warnings = await this.detectInconsistency(char.id)
+      allWarnings.push(...warnings.map((w) => ({ ...w, details: char.name })))
+    }
+
+    // 2. Check Location Integrity
+    // Check for destroyed/inactive locations having recent activity
+    const locations = await this.getNodesByType("location")
+    for (const loc of locations) {
+      if (loc.status === "destroyed" || loc.status === "inactive") {
+        const edges = await this.getEdgesForNode(loc.id)
+        const recentActivity = edges.filter((e) => e.chapter > (loc.lastAppearance || 0))
+        if (recentActivity.length > 0) {
+          allWarnings.push({
+            type: "destroyed_location_activity",
+            description: `Location '${loc.name}' is ${loc.status} but has ${recentActivity.length} recent interactions`,
+            severity: "high",
+            details: loc.name,
+          })
+        }
+      }
+    }
+
+    // 3. Check Relationship Conflicts
+    // Look for strong opposing relationships (e.g., Allied + Opposes)
+    const charNodes = await this.getActiveCharacters()
+    for (const char of charNodes) {
+      const edges = await this.getEdgesForNode(char.id)
+      const targets = new Map<string, GraphEdge[]>()
+
+      for (const edge of edges) {
+        if (edge.type === "knows" || edge.type === "allied_with" || edge.type === "opposes" || edge.type === "kills") {
+          const otherId = edge.source === char.id ? edge.target : edge.source
+          if (!targets.has(otherId)) targets.set(otherId, [])
+          targets.get(otherId)!.push(edge)
+        }
+      }
+
+      for (const [targetId, relEdges] of targets.entries()) {
+        const hasAlliance = relEdges.some((e) => e.type === "allied_with" && e.strength > 60)
+        const hasHostility = relEdges.some((e) => (e.type === "opposes" || e.type === "kills") && e.strength > 60)
+
+        if (hasAlliance && hasHostility) {
+          const targetNode = await this.getNode(targetId)
+          allWarnings.push({
+            type: "relationship_conflict",
+            description: `${char.name} has conflicting strong bonds with ${targetNode?.name || "Unknown"} (Allied vs Opposed)`,
+            severity: "medium",
+            details: `${char.name} <-> ${targetNode?.name || "Unknown"}`,
+          })
+        }
+      }
+    }
+
+    return allWarnings
+  }
+
+  /**
+   * Search nodes by name substring.
+   */
+  async searchNodes(query: string): Promise<GraphNode[]> {
+    if (!this.initialized) await this.initialize()
+
+    const stmt = this.db.prepare(`SELECT * FROM nodes WHERE name LIKE ? ORDER BY type, name`)
+    const rows = stmt.all(`%${query}%`) as any[]
+    return rows.map((r) => this.rowToNode(r))
+  }
+
   async updateNodeStatus(id: string, status: GraphNode["status"], chapter: number): Promise<boolean> {
     if (!this.initialized) await this.initialize()
 
