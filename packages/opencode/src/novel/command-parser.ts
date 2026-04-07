@@ -855,6 +855,36 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       break
     }
 
+    case "/debug-extraction": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+      const state = orchestrator.getState()
+      
+      console.log(`\n🔍 State Extraction Debug Info`)
+      console.log("═".repeat(60))
+      console.log(`  Chapter: ${state.chapterCount}`)
+      console.log(`  Characters Tracked: ${Object.keys(state.characters || {}).length}`)
+      console.log(`  Relationships Tracked: ${Object.keys(state.relationships || {}).length}`)
+      
+      // Since we don't store the last extraction result in state yet,
+      // we'll show the current state summary as a proxy
+      const characters = state.characters || {}
+      const traumaCount = Object.values(characters).reduce((sum: number, c: any) => 
+        sum + (c.trauma?.length || 0), 0)
+      const skillCount = Object.values(characters).reduce((sum: number, c: any) => 
+        sum + (c.skills?.length || 0), 0)
+      const stressCount = Object.values(characters).filter((c: any) => (c.stress || 0) > 0).length
+      
+      console.log(`\n  Tracked Stats:`)
+      console.log(`    - Characters with Stress: ${stressCount}`)
+      console.log(`    - Total Traumas: ${traumaCount}`)
+      console.log(`    - Total Skills: ${skillCount}`)
+      
+      console.log(`\n💡 Extraction runs automatically every chapter.`)
+      console.log(`   Use /state <charName> to inspect specific character state.`)
+      break
+    }
+
     case "/relations": {
       const orchestrator = new EvolutionOrchestrator()
       await orchestrator.loadState()

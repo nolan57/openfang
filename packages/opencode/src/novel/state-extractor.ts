@@ -1,3 +1,4 @@
+import { z } from "zod"
 import { Log } from "../util/log"
 import { callLLM, callLLMJson } from "./llm-wrapper"
 import { Provider } from "../provider/provider"
@@ -145,6 +146,50 @@ interface FactValidator {
 declare global {
   var factValidator: FactValidator | undefined
 }
+
+// ============================================================================
+// ZOD SCHEMAS FOR LLM OUTPUT VALIDATION
+// ============================================================================
+
+const StressEventSchema = z.object({
+  character: z.string(),
+  intensity: z.number().min(1).max(10),
+  cause: z.string(),
+})
+
+const RelationshipChangeSchema = z.object({
+  pair: z.string(),
+  delta: z.number().min(-50).max(50),
+  cause: z.string(),
+})
+
+const KeyEventSchema = z.object({
+  description: z.string(),
+  type: z.enum([
+    "character_death", "skill_acquired", "trauma_inflicted", "betrayal",
+    "alliance_formed", "revelation", "conflict_resolved", "relationship_shift",
+    "goal_completed", "world_event"
+  ]),
+  characters: z.array(z.string()).optional(),
+  impact: z.enum(["low", "medium", "high"]),
+})
+
+const TurnEvaluationSchema = z.object({
+  outcome_type: z.enum(["SUCCESS", "COMPLICATION", "FAILURE", "NEUTRAL"]),
+  challenge_difficulty: z.number().min(1).max(10),
+  stress_events: z.array(StressEventSchema),
+  relationship_changes: z.array(RelationshipChangeSchema),
+  key_events: z.array(KeyEventSchema),
+})
+
+const CombinedExtractionSchema = z.object({
+  evaluation: TurnEvaluationSchema,
+  character_updates: z.array(z.any()).optional(),
+  world_updates: z.any().optional(),
+  relationship_updates: z.record(z.string(), z.any()).optional(),
+})
+
+type CombinedExtractionOutput = z.infer<typeof CombinedExtractionSchema>
 
 // ============================================================================
 // VALIDATION STRATEGIES
@@ -616,126 +661,52 @@ export class StateExtractor {
 
   async extract(storyText: string, currentState: any, turnResult?: Partial<TurnResult>): Promise<StateUpdate> {
     try {
-      const evaluation = await this.evaluateTurn(storyText, currentState, turnResult)
-      const systemPrompt = this.buildSystemPrompt(currentState, evaluation)
+      const systemPrompt = this.buildSystemPrompt(currentState)
+      const prompt = `Current state:
+${JSON.stringify(currentState, null, 2).slice(0, 1000)}
 
-      const result = await callLLM({
-        prompt: `Story segment to analyze:\n\n${storyText}`,
+Story segment to analyze:
+${storyText}
+
+Output valid JSON matching the requested schema.`
+
+      const result = await callLLMJson<CombinedExtractionOutput>({
+        prompt,
         system: systemPrompt,
-        callType: "state_extraction",
+        callType: "combined_state_extraction",
         temperature: 0.3,
         useRetry: true,
       })
 
-      const text = result.text.trim()
-      log.info("llm_raw_output", { text: text.slice(0, 500) })
-
-      const jsonMatch = text.match(/\{[\s\S]*\}/)
-
-      if (jsonMatch) {
-        try {
-          const updates = JSON.parse(jsonMatch[0])
-          log.info("parsed_updates", { keys: Object.keys(updates) })
-
-          const validated = await this.validateAndEnhance(updates, currentState, storyText, evaluation)
-
-          log.info("state_extracted", {
-            outcome: evaluation.outcome_type,
-            difficulty: evaluation.challenge_difficulty,
-            characters: Object.keys(validated.characters || {}).length,
-            relationships: Object.keys(validated.relationships || {}).length,
-            newTraumas: validated.evolution_summary?.changes.newTraumas || 0,
-            newSkills: validated.evolution_summary?.changes.newSkills || 0,
-            auditFlags: (validated.evolution_summary?.auditFlags || []).length,
-          })
-
-          this.previousState = currentState
-          return validated
-        } catch (parseError) {
-          log.error("json_parse_failed", { error: String(parseError), json: jsonMatch[0].slice(0, 200) })
-        }
-      } else {
-        log.warn("no_json_found_in_output", { text: text.slice(0, 300) })
+      const combined = result.data
+      const evaluation = combined.evaluation as TurnEvaluation
+      const updates = {
+        character_updates: combined.character_updates || [],
+        world_updates: combined.world_updates,
+        relationship_updates: combined.relationship_updates,
       }
+
+      log.info("parsed_updates", { keys: Object.keys(updates) })
+
+      const validated = await this.validateAndEnhance(updates, currentState, storyText, evaluation)
+
+      log.info("state_extracted", {
+        outcome: evaluation.outcome_type,
+        difficulty: evaluation.challenge_difficulty,
+        characters: Object.keys(validated.characters || {}).length,
+        relationships: Object.keys(validated.relationships || {}).length,
+        newTraumas: validated.evolution_summary?.changes.newTraumas || 0,
+        newSkills: validated.evolution_summary?.changes.newSkills || 0,
+        auditFlags: (validated.evolution_summary?.auditFlags || []).length,
+      })
+
+      this.previousState = currentState
+      return validated
     } catch (error) {
       log.error("state_extraction_failed", { error: String(error) })
     }
 
-    // Graceful degradation: orchestrator has no try/catch around extract()
-    // Returning empty object prevents cycle crash while logging the error
     return {}
-  }
-
-  private async evaluateTurn(
-    storyText: string,
-    currentState: any,
-    turnResult?: Partial<TurnResult>,
-  ): Promise<TurnEvaluation> {
-    const evaluationPrompt = `You are a strict narrative auditor. Evaluate this turn's outcome.
-
-ANALYSIS RULES:
-1. SUCCESS: Character achieved their goal despite obstacles
-2. COMPLICATION: Character failed or made situation worse
-3. FAILURE: Character suffered clear defeat or setback
-4. NEUTRAL: No clear success or failure, just progression
-
-STRESS EVALUATION:
-- Identify moments of conflict, danger, psychological pressure
-- Rate intensity 1-10 for each character
-- High intensity (>7) should trigger trauma consideration
-
-RELATIONSHIP EVALUATION:
-- Track trust changes based on cooperation/betrayal
-- Range: -50 to +50 per event
-
-KEY EVENTS CLASSIFICATION:
-For each key event, assign ONE of these types:
-- character_death: A character dies or is presumed dead
-- skill_acquired: A character learns a new skill
-- trauma_inflicted: A character suffers psychological trauma
-- betrayal: A character betrays another
-- alliance_formed: Characters form an alliance
-- revelation: Important information is revealed
-- conflict_resolved: A major conflict is resolved
-- relationship_shift: A significant relationship change
-- goal_completed: A character achieves their goal
-- world_event: A major world-changing event
-
-Output JSON only:
-{
-  "outcome_type": "SUCCESS" | "COMPLICATION" | "FAILURE" | "NEUTRAL",
-  "challenge_difficulty": 1-10,
-  "stress_events": [{"character": "Name", "intensity": 1-10, "cause": "event"}],
-  "relationship_changes": [{"pair": "Char1-Char2", "delta": -50 to 50, "cause": "event"}],
-  "key_events": [
-    {
-      "description": "What happened",
-      "type": "character_death|skill_acquired|trauma_inflicted|betrayal|alliance_formed|revelation|conflict_resolved|relationship_shift|goal_completed|world_event",
-      "characters": ["Character1", "Character2"],
-      "impact": "low|medium|high"
-    }
-  ]
-}`
-
-    try {
-      const result = await callLLMJson<TurnEvaluation>({
-        prompt: `Current state:\n${JSON.stringify(currentState, null, 2)}\n\nStory:\n${storyText}`,
-        system: evaluationPrompt,
-        callType: "turn_evaluation",
-        temperature: 0.2,
-        useRetry: true,
-      })
-      return result.data
-    } catch (error) {
-      log.warn("turn_evaluation_failed", { error: String(error) })
-      return {
-        outcome_type: turnResult?.outcome_type || "NEUTRAL",
-        challenge_difficulty: turnResult?.challenge_difficulty || 5,
-        stress_events: [],
-        relationship_changes: [],
-        key_events: [],
-      }
-    }
   }
 
   async extractMindModel(characterName: string, storyText: string, currentState: any): Promise<MindModel | null> {
@@ -797,15 +768,54 @@ Each field should be 1-3 concise sentences.`
     return results
   }
 
-  private buildSystemPrompt(currentState: any, evaluation: TurnEvaluation): string {
-    const { outcome_type, challenge_difficulty, stress_events } = evaluation
+  private buildSystemPrompt(currentState: any): string {
+    return `You are a strict narrative auditor and state manager. 
+Analyze the provided story segment and output a SINGLE JSON object with two main keys: "evaluation" and "character_updates".
 
-    return buildStateExtractionPrompt({
-      currentStateJson: JSON.stringify(currentState, null, 2),
-      narrativeText: "Story segment provided separately",
-      chaosOutcome: outcome_type,
-      difficultyRating: challenge_difficulty,
-    })
+### EVALUATION KEY (Turn Analysis)
+{
+  "evaluation": {
+    "outcome_type": "SUCCESS" | "COMPLICATION" | "FAILURE" | "NEUTRAL",
+    "challenge_difficulty": 1-10,
+    "stress_events": [{"character": "Name", "intensity": 1-10, "cause": "event"}],
+    "relationship_changes": [{"pair": "Char1-Char2", "delta": -50 to 50, "cause": "event"}],
+    "key_events": [
+      {
+        "description": "What happened",
+        "type": "character_death|skill_acquired|trauma_inflicted|betrayal|alliance_formed|revelation|conflict_resolved|relationship_shift|goal_completed|world_event",
+        "characters": ["Character1", "Character2"],
+        "impact": "low|medium|high"
+      }
+    ]
+  }
+}
+
+### CHARACTER_UPDATES KEY (Detailed State Changes)
+If characters experienced changes, include "character_updates" array:
+[
+  {
+    "name": "Character Name",
+    "stress_delta": 10,
+    "status_change": "active|injured|stressed|deceased",
+    "emotions": { "valence_delta": -5, "arousal_delta": 10, "dominant": "angry" },
+    "new_trait": "trait_name",
+    "new_trauma": { "name": "...", "description": "...", "tags": ["tag1"], "severity": 5, "source_event": "event" },
+    "new_skill": { "name": "...", "category": "...", "level": 1, "description": "...", "source_event": "event", "difficulty": 5 },
+    "secrets": ["secret1"],
+    "clues": ["clue1"],
+    "goals": [{ "type": "...", "description": "...", "priority": 5, "status": "active|completed" }],
+    "notes": "New observations",
+    "relationship_deltas": { "OtherCharacter": 10 },
+    "mindModel": { "publicSelf": "...", "privateSelf": "...", "blindSpot": "..." }
+  }
+]
+
+### RULES
+1. If no changes occurred for a character, omit them.
+2. Dead characters cannot gain skills or receive trauma.
+3. Skills are only awarded on SUCCESS or high-difficulty COMPLICATION.
+4. High stress (>70) or stress delta > 20 MUST result in a new_trauma entry.
+5. Output valid JSON only.`
   }
 
   private async validateAndEnhance(
