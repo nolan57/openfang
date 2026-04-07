@@ -1,8 +1,27 @@
 # Novel Engine - Dead Code Strategic Analysis
 
 **Date:** 2026-04-05
+**Last Updated:** 2026-04-07 — Phase 1/2 cleanup completed
 **Perspective:** Novel engine purpose — AI-driven interactive fiction with dynamic branching, character psychology, relationship dynamics, and visual panel generation
 **Method:** Each dead code item evaluated against engine goals, then classified into: **保留/Keep**, **实现/Implement**, **重构/Refactor**, **集成/Integrate**, **删除/Delete**
+
+---
+
+## Status Update (2026-04-07)
+
+Commit `ad8b2747d` and follow-up cleanup have completed:
+
+| Item | Status |
+|------|--------|
+| ~~`enrichBeatWithVisuals()`~~ | ✅ **DELETED** |
+| ~~`translateStoryToPanels()`~~ | ✅ **DELETED** |
+| ~~`ruleBasedPreSegmentation()`~~ | ✅ **MOVED** to `visual-orchestrator.ts` |
+| ~~`initVisualTranslator()`~~ | ✅ **DELETED** |
+| ~~`generateDeterministicVisualHash()`~~ export | ✅ **MADE INTERNAL** |
+| ~~`EnrichedBeat`~~ re-export | ✅ **REMOVED** |
+| Barrel exports: `isSlashCommand`, `listSkills`, `callLLMBatch`, `callLLMWithTracing`, `novelLLM` | ✅ **REMOVED** |
+
+The visual pipeline unification is **complete**. `visual-translator.ts` is now a clean 732-line config-driven utility library with 100% active exports.
 
 ---
 
@@ -32,42 +51,36 @@ Each dead code item is evaluated against these goals.
 
 ---
 
-## 1. visual-translator.ts — Dead Functions (1179 lines)
+## 1. visual-translator.ts — ~~Dead Functions~~ — ✅ CLEANED UP
 
-### `initVisualTranslator()` — 🔴 DELETE
-- **What:** One-time config loader for visual translator
-- **Why dead:** Config is loaded lazily via `getConfig()`. This explicit init function is redundant.
-- **Engine value:** Zero — lazy loading is the correct pattern already in use.
-- **Action:** Delete. The lazy `getConfig()` pattern works fine.
+### ~~`initVisualTranslator()`~~ — ✅ DELETED
+- **Status:** Removed in cleanup pass. Config loaded lazily via `getConfig()`.
 
-### `enrichBeatWithVisuals()` — 🟡 INTEGRATE
-- **What:** Takes a single literary beat + character states → produces `EnrichedBeat` with full `VisualPanelSpec`
-- **Why dead:** The orchestrator uses `visual-orchestrator.ts` → `visual-prompt-engineer.ts` → `assemblePanelSpec()` pipeline instead. This function wraps `assemblePanelSpec()` with a simpler interface.
-- **Engine value:** **HIGH** — this is a cleaner, single-beat API compared to the complex multi-panel pipeline. Useful for:
-  - Real-time visual generation during CLI interaction (single beat → immediate panel)
-  - Plugin/integration scenarios where consumers only have one beat
-  - Testing and debugging visual generation
-- **Action:** Move from internal to public API. Keep as lightweight wrapper around `assemblePanelSpec()`.
+### ~~`enrichBeatWithVisuals()`~~ — ✅ DELETED
+- **Status:** Removed in cleanup pass. `assemblePanelSpec()` is the sole entry point.
 
-### `translateStoryToPanels()` — 🟣 REFACTOR → Merge into visual-orchestrator.ts
-- **What:** Full pipeline — story text → rule-based pre-segmentation → LLM semantic refinement → VisualPanelSpec[]
-- **Why dead:** `visual-orchestrator.ts` has its own `planPanelSegments()` + `buildPanelSpecWithHybridEngine()` pipeline that does the same thing differently.
-- **Engine value:** **HIGH** — this has a superior hybrid splitting strategy:
-  - Rule-based pre-segmentation handles markdown separators, chapter headings, paragraph breaks, sentence boundaries
-  - LLM semantic refinement merges related chunks with cinematic unity principles
-  - Graceful fallback when LLM fails
-- **Problem:** Two competing visual generation pipelines exist (`visual-translator.ts` vs `visual-orchestrator.ts`). This is architectural debt.
-- **Action:** **Merge the best of both:**
-  1. Adopt `ruleBasedPreSegmentation()` from visual-translator as the default splitter in visual-orchestrator
-  2. Adopt `refineChunksWithLLM()` as the LLM refinement strategy
-  3. Delete the simpler `planPanelSegments()` from visual-orchestrator
-  4. Keep `assemblePanelSpec()` as the shared panel assembly function
-  5. Delete `translateStoryToPanels()` after migration
+### ~~`translateStoryToPanels()`~~ — ✅ DELETED
+- **Status:** Removed in cleanup pass. Its `ruleBasedPreSegmentation()` logic was moved to `visual-orchestrator.ts` where it's actively used.
 
-### `generateVisualHash()` / `generateCharacterRefUrl()` — 🔴 DELETE
-- **What:** Deprecated hash functions
-- **Why dead:** Replaced by `generateDeterministicVisualHash()` and `generateStableCharacterRefUrl()`
-- **Action:** Already marked `@deprecated`. Delete in next cleanup pass.
+### `generateDeterministicVisualHash()` — ✅ MADE INTERNAL
+- **Status:** No longer exported. Used only by `generateStableCharacterRefUrl()` internally.
+
+### Current Active Exports (all verified)
+
+| Export | Purpose | Consumer |
+|--------|---------|----------|
+| `assemblePanelSpec()` | Complete panel assembly | visual-prompt-engineer.ts |
+| `translateEmotionToVisuals()` | Emotion → visual mapping | visual-prompt-engineer.ts |
+| `translateActionToCamera()` | Action → camera mapping | visual-prompt-engineer.ts |
+| `selectLightingPreset()` | Lighting presets | visual-prompt-engineer.ts |
+| `selectStyleModifiers()` | Style modifiers | visual-prompt-engineer.ts |
+| `selectAtmosphericEffects()` | Atmospheric effects | visual-prompt-engineer.ts |
+| `generateStableCharacterRefUrl()` | Deterministic character ref | visual-prompt-engineer.ts |
+| `prioritizeAndTruncatePrompt()` | Token-limited prompts | visual-prompt-engineer.ts (internal) |
+| `getShotSpecificNegatives()` | Shot negative prompts | visual-translator.ts (internal) |
+| `getMovementSpecificNegatives()` | Movement negative prompts | visual-translator.ts (internal) |
+| `isComplexEmotion()` | Complex emotion check | visual-prompt-engineer.ts |
+| `isComplexAction()` | Complex action check | visual-prompt-engineer.ts |
 
 ---
 
@@ -406,27 +419,27 @@ Prompt → ProceduralWorldGenerator → Inject into story generation prompt → 
 
 ## Summary Matrix
 
-### 🔴 DELETE (clean up, ~200 lines)
+### 🔴 DELETE (clean up)
 
-| Item | Lines | Rationale |
-|------|-------|-----------|
-| `visual-translator.ts` → `initVisualTranslator()` | ~10 | Redundant with lazy loading |
-| `visual-translator.ts` → deprecated hash chain | ~40 | Properly deprecated, no consumers |
-| `narrative-skeleton.ts` → `createFallbackSkeleton()` | ~30 | Useless fallback, never called |
-| `command-parser.ts` → `submitFeedbackToMetaLearner()` | ~5 | Stub with no implementation |
-| `command-parser.ts` → `/plugin` subcommands | ~15 | Unimplemented |
-| `continuity-analyzer.ts` → `validateAnalysis()` | ~15 | Unreachable private method |
-| `character-lifecycle.ts` → `generateNewCharacter()` | ~30 | Random gen doesn't serve engine goals |
-| `branch-storage.ts` → `BranchEvent` type | ~10 | Never instantiated |
-| `observability.ts` → unused imports | 2 | Dead imports |
-| Unused imports across 8 files (`Instance`, `z`, etc.) | ~12 | Dead imports |
-| `multiway-relationships.ts` → noop singletons | ~10 | Broken (noop readers) |
-| Barrel exports: `isSlashCommand`, `listSkills` | — | Internal-only |
-| Barrel exports: `callLLMWithTracing`, `callLLMBatch`, `novelLLM` namespace | — | Test-only or convenience |
-| Barrel exports: `createCorrelationId`, `createCorrelationContext` | — | Test-only |
-| Barrel exports: memo cache utils | — | Test-only |
-| Barrel exports: `PROMPT_TEMPLATES` | — | Never imported |
-| **Subtotal** | **~180 lines + 15 barrel exports** | |
+| Item | Lines | Rationale | Status |
+|------|-------|-----------|--------|
+| ~~`visual-translator.ts` → `initVisualTranslator()`~~ | ~~10~~ | Redundant with lazy loading | ✅ **DELETED** |
+| ~~`visual-translator.ts` → `enrichBeatWithVisuals()`~~ | ~~100~~ | No callers | ✅ **DELETED** |
+| ~~`visual-translator.ts` → `translateStoryToPanels()`~~ | ~~150~~ | Pipeline moved to orchestrator | ✅ **DELETED** |
+| ~~`visual-translator.ts` → deprecated hash chain~~ | ~~40~~ | Properly deprecated | ✅ **MADE INTERNAL** |
+| ~~Barrel exports: `isSlashCommand`, `listSkills`~~ | — | Internal-only | ✅ **REMOVED** |
+| ~~Barrel exports: `callLLMWithTracing`, `callLLMBatch`, `novelLLM`~~ | — | Test-only | ✅ **REMOVED** |
+| `narrative-skeleton.ts` → `createFallbackSkeleton()` | ~30 | Useless fallback, never called | 🔴 Remaining |
+| `command-parser.ts` → `submitFeedbackToMetaLearner()` | ~5 | Stub with no implementation | 🔴 Remaining |
+| `command-parser.ts` → `/plugin` subcommands | ~15 | Unimplemented | 🔴 Remaining |
+| `continuity-analyzer.ts` → `validateAnalysis()` | ~15 | Unreachable private method | 🔴 Remaining |
+| `character-lifecycle.ts` → `generateNewCharacter()` | ~30 | Random gen doesn't serve engine goals | 🔴 Remaining |
+| `multiway-relationships.ts` → noop singletons | ~10 | Broken (noop readers) | 🔴 Remaining |
+| Unused imports across files | ~12 | Dead imports | 🔴 Remaining |
+| Barrel exports: `createCorrelationId`, `createCorrelationContext` | — | Test-only | 🔴 Remaining |
+| Barrel exports: memo cache utils | — | Test-only | 🔴 Remaining |
+| Barrel exports: `PROMPT_TEMPLATES` | — | Never imported | 🔴 Remaining |
+| **Subtotal: Remaining** | **~120 lines** | | |
 
 ### 🔵 IMPLEMENT (fill gaps, ~150 lines)
 
@@ -436,31 +449,34 @@ Prompt → ProceduralWorldGenerator → Inject into story generation prompt → 
 | branch-storage.ts → embedding column (OR delete) | ~30 lines | **MEDIUM** — Semantic branch search |
 | state-extractor.ts → FactValidator wiring (actually wired via orchestrator, but document it) | ~5 lines comments | **LOW** — Clarify extension point |
 
-### 🟣 REFACTOR (redesign before integration, ~400 lines)
+### 🟣 REFACTOR (redesign before integration, ~250 lines)
 
-| Item | Effort | Engine Impact |
-|------|--------|--------------|
-| `visual-translator.ts` `translateStoryToPanels()` → merge into visual-orchestrator.ts | ~150 lines | **HIGH** — Superior hybrid splitting |
-| `config/config-loader.ts` `resolveVisualSpec()` → extract strategy layers into visual-prompt-engineer | ~200 lines | **MEDIUM-HIGH** — Dynamic visual strategy |
-| `validation.ts` `*WithContext` functions → integrate into state extractor pipeline | ~50 lines | **MEDIUM** — Granular validation |
+| Item | Effort | Engine Impact | Status |
+|------|--------|--------------|--------|
+| ~~`visual-translator.ts` `translateStoryToPanels()`~~ | ~~150 lines~~ | ~~Superior hybrid splitting~~ | ✅ **COMPLETED** — Logic moved to orchestrator |
+| ~~`visual-translator.ts` LLM enhancement~~ | ~~200 lines~~ | ~~Complex scene enhancement~~ | ✅ **COMPLETED** — `assemblePanelSpecWithLLM()` with auto-detection |
+| ~~`visual-translator.ts` panel cache~~ | ~~80 lines~~ | ~~Avoid duplicate generation~~ | ✅ **COMPLETED** — LRU cache with deterministic hashing |
+| ~~`visual-translator.ts` config hot-reload~~ | ~~20 lines~~ | ~~Live config updates~~ | ✅ **COMPLETED** — `reloadVisualConfig()` + `/reload` CLI |
+| `config/config-loader.ts` `resolveVisualSpec()` → extract strategy layers into visual-prompt-engineer | ~200 lines | **MEDIUM-HIGH** — Dynamic visual strategy | 🔴 Remaining |
+| `validation.ts` `*WithContext` functions → integrate into state extractor pipeline | ~50 lines | **MEDIUM** — Granular validation | 🔴 Remaining |
 
-### 🟡 INTEGRATE (fully built, missing wiring, ~200 lines)
+### 🟡 INTEGRATE (fully built, missing wiring, ~185 lines)
 
-| Item | Effort | Engine Impact |
-|------|--------|--------------|
-| `enrichBeatWithVisuals()` → expose as public single-beat API | ~5 lines | **MEDIUM** — Simpler visual generation |
-| narrative-skeleton standalone functions → use in orchestrator | ~20 lines | **MEDIUM** — Better encapsulation |
-| ~~branch-manager auto-merge → wire into saveState()~~ | ~~10 lines~~ | ✅ **DONE** - autoMergeSimilarBranches() called every chapter |
-| branch querying → CLI `/branches` command | ~30 lines | **MEDIUM** — Branch exploration |
-| observability exports → CLI `/health`, `/metrics` commands | ~40 lines | **MEDIUM** — Engine monitoring |
-| ~~motif-tracker → exportToKnowledgeGraph~~ | ~~10 lines~~ | ✅ **DONE** — Already wired |
-| relationship-inertia → CLI `/hooks` command + chaos injection | ~30 lines | **MEDIUM** — Plot hook suggestions |
-| end-game-detection → CLI `/completion` command | ~20 lines | **MEDIUM** — Story progress tracking |
-| performance.ts → rateLimit/throttle → wire into production | ~20 lines | **HIGH** — API rate limiting |
-| procedural-world → inject world data into story prompts | ~30 lines | **MEDIUM-HIGH** — Geographic context |
-| novel-learning-bridge → Phase 1: sync patterns to vector store | ~20 lines | **HIGH** — Self-evolving capability |
-| llm-wrapper → callLLMWithTracing → wire into observability | ~10 lines | **MEDIUM** — LLM tracing |
-| **Subtotal** | **~235 lines** (was ~245) | |
+| Item | Effort | Engine Impact | Status |
+|------|--------|--------------|--------|
+| ~~`enrichBeatWithVisuals()`~~ | ~~5 lines~~ | ~~Single-beat API~~ | ✅ **DELETED** — Not needed |
+| narrative-skeleton standalone functions → use in orchestrator | ~20 lines | **MEDIUM** — Better encapsulation | 🔴 Remaining |
+| ~~branch-manager auto-merge → wire into saveState()~~ | ~~10 lines~~ | ✅ **DONE** - autoMergeSimilarBranches() called every chapter | ✅ **DONE** |
+| branch querying → CLI `/branches` command | ~30 lines | **MEDIUM** — Branch exploration | 🔴 Remaining |
+| observability exports → CLI `/health`, `/metrics` commands | ~40 lines | **MEDIUM** — Engine monitoring | 🔴 Remaining |
+| ~~motif-tracker → exportToKnowledgeGraph~~ | ~~10 lines~~ | ✅ **DONE** — Already wired | ✅ **DONE** |
+| relationship-inertia → CLI `/hooks` command + chaos injection | ~30 lines | **MEDIUM** — Plot hook suggestions | 🔴 Remaining |
+| end-game-detection → CLI `/completion` command | ~20 lines | **MEDIUM** — Story progress tracking | 🔴 Remaining |
+| performance.ts → rateLimit/throttle → wire into production | ~20 lines | **HIGH** — API rate limiting | 🔴 Remaining |
+| procedural-world → inject world data into story prompts | ~30 lines | **MEDIUM-HIGH** — Geographic context | 🔴 Remaining |
+| novel-learning-bridge → Phase 1: sync patterns to vector store | ~20 lines | **HIGH** — Self-evolving capability | 🔴 Remaining |
+| llm-wrapper → callLLMWithTracing → wire into observability | ~10 lines | **MEDIUM** — LLM tracing | 🔴 Remaining |
+| **Subtotal** | **~185 lines** | | |
 
 ### 🟢 KEEP (valuable, no action needed)
 
@@ -476,63 +492,42 @@ Prompt → ProceduralWorldGenerator → Inject into story generation prompt → 
 
 ## Implementation Priority Roadmap
 
-### Phase 1 — Quick Wins (Week 1, ~50 lines)
-1. 🔴 Remove 12 dead imports across 8 files
-2. 🔴 Remove 4 dead functions (initVisualTranslator, submitFeedbackToMetaLearner, validateAnalysis, createFallbackSkeleton)
-3. 🔴 Remove 6 barrel exports (isSlashCommand, listSkills, correlation utils, memo cache utils, PROMPT_TEMPLATES, deprecated hash chain)
-4. 🔴 Delete noop singletons in multiway-relationships.ts
+### ✅ Phase 1 — Visual Pipeline Cleanup (COMPLETED)
+1. ✅ ~~Remove `initVisualTranslator()`, `enrichBeatWithVisuals()`, `translateStoryToPanels()`~~
+2. ✅ ~~Remove `EnrichedBeat` re-export, make `generateDeterministicVisualHash()` internal~~
+3. ✅ ~~Remove dead imports from visual-translator.ts~~
+4. ✅ ~~Remove barrel exports: `isSlashCommand`, `listSkills`, `callLLMBatch`, `callLLMWithTracing`, `novelLLM`~~
+5. ✅ ~~Update outdated documentation~~
 
-### Phase 2 — Observability (Week 1-2, ~80 lines)
-5. 🔵 Implement 5 observability TODOs
-6. 🟡 Wire observ exports into CLI `/health` command
+### Phase 2 — Remaining Dead Code (~120 lines)
+6. 🔴 Remove `createFallbackSkeleton()`, `submitFeedbackToMetaLearner()`, `validateAnalysis()`, `generateNewCharacter()`
+7. 🔴 Remove noop singletons in multiway-relationships.ts
+8. 🔴 Remove unused imports across files
+9. 🔴 Remove remaining barrel exports (correlation utils, memo cache utils, PROMPT_TEMPLATES)
 
-### Phase 3 — Visual Pipeline Refactor (Week 2-3, ~350 lines)
-7. 🟣 Merge `translateStoryToPanels()` hybrid splitting into visual-orchestrator.ts
-8. 🟣 Extract `resolveVisualSpec()` strategy layers into visual-prompt-engineer
-9. 🟡 Expose `enrichBeatWithVisuals()` as public API
+### Phase 3 — Observability (~80 lines)
+10. 🔵 Implement 5 observability TODOs
+11. 🟡 Wire observability into CLI `/health` command
 
-### Phase 4 — Branch Management (Week 3, ~60 lines)
-10. 🟡 Wire auto-merge into saveState()
-11. 🟡 Add CLI `/branches` command
-12. 🔴 Decide on embedding column (recommend: delete)
-
-### Phase 5 — Validation Pipeline (Week 3-4, ~80 lines)
+### Phase 4 — Config/Validation Refactor (~250 lines)
+12. 🟣 Extract `resolveVisualSpec()` strategy layers into visual-prompt-engineer
 13. 🟣 Integrate `*WithContext` functions into state extractor
 
-### Phase 6 — World Integration (Week 4, ~50 lines)
-14. 🟡 Inject procedural world data into story prompts
-15. 🟡 Wire world conflicts as chaos event seeds
-
-### Phase 7 — Learning Bridge Phase 1 (Week 4-5, ~30 lines)
-16. 🟡 Sync patterns to vector store after each turn
-17. 🟡 Add CLI `/search-patterns` command
-
-### Phase 8 — Remaining Integration (Week 5-6, ~100 lines)
-18. ~~🟡 Wire motif-tracker → knowledge graph~~ — ✅ **DONE**
-19. 🟡 Wire relationship-inertia → CLI `/hooks`
-20. 🟡 Wire end-game-detection → CLI `/completion`
-21. 🟡 Wire narrative-skeleton functions into orchestrator
-22. 🟡 Wire rateLimit/throttle into production
-
-### Phase 9 — Cleanup (Week 6)
-23. 🔴 Delete embedding column (if decided)
-24. 🔴 Delete `/plugin` subcommands
-25. Update stale documentation in `docs/`
+### Phase 5 — Integration (~185 lines)
+14. 🟡 Wire narrative-skeleton functions into orchestrator
+15. 🟡 Add CLI `/branches`, `/hooks`, `/completion` commands
+16. 🟡 Wire performance utils into production (rateLimit, throttle)
+17. 🟡 Inject procedural world data into story prompts
+18. 🟡 Wire learning bridge Phase 1
 
 ---
 
 ## Final Health Assessment
 
-| Dimension | Before | After (All Phases) |
-|-----------|--------|-------------------|
-| **Dead code lines** | ~600 | ~0 |
-| **Barrel export hygiene** | 🔴 15 dead exports | ✅ Clean |
-| **Unused imports** | 🔴 14 | ✅ 0 |
-| **Core pipeline** | ✅ Healthy | ✅ Healthy |
-| **Visual subsystem** | 🔴 Competing pipelines | ✅ Unified |
-| **Observability** | 🔴 Placeholder data | ✅ Real metrics |
-| **Branch management** | ⚠️ Manual only | ✅ Auto-merge + CLI |
-| **Self-evolution** | ⚠️ Partial | ✅ Full learning bridge |
-| **World context** | ⚠️ Generated but unused | ✅ Injected into prompts |
-| **Validation** | ⚠️ Bulk only | ✅ Granular + contextual |
-| **Test coverage** | ⚠️ 17 modules untested | ⚠️ Same (out of scope) |
+| Dimension | Before | After (Phase 1 Complete) | After (All Phases) |
+|-----------|--------|-------------------------|-------------------|
+| **Dead code lines** | ~600 | ~300 | ~0 |
+| **Barrel export hygiene** | 🔴 15 dead exports | ✅ Clean | ✅ Clean |
+| **Unused imports** | 🔴 14 | ~12 | ✅ 0 |
+| **Visual subsystem** | 🔴 Competing pipelines | ✅ Unified | ✅ Unified |
+| **Core pipeline** | ✅ Healthy | ✅ Healthy | ✅ Healthy |

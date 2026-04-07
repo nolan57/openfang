@@ -21,6 +21,7 @@ class DefaultLLMClient implements LLMClient {
       prompt,
       callType: options?.callType || "narrative_conflict",
       temperature: 0.2,
+      useRetry: true,
     })
     return result.text.trim()
   }

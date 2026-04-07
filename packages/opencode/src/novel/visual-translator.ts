@@ -4,18 +4,17 @@ import {
   loadVisualConfig,
   getVisualConfig,
   getEmotionVisual,
-  getActionMapping,
   getLightingPreset as getConfigLightingPreset,
   getStyleModifiers as getConfigStyleModifiers,
   isComplexEmotion,
   isComplexAction,
+  reloadVisualConfig as _reloadConfig,
+  clearConfigCache as _clearConfigCache,
   type VisualConfig,
-  type EmotionVisual,
-  type ActionMapping,
 } from "./config"
-import { type VisualPanelSpec, type CameraSpec, type ControlNetSignals, type EnrichedBeat } from "./types"
+import { type VisualPanelSpec, type CameraSpec, type ControlNetSignals } from "./types"
 
-export type { VisualPanelSpec, CameraSpec, ControlNetSignals, EnrichedBeat }
+export type { VisualPanelSpec, CameraSpec, ControlNetSignals }
 
 const log = Log.create({ service: "visual-translator" })
 
@@ -29,29 +28,154 @@ const log = Log.create({ service: "visual-translator" })
 let config: VisualConfig | null = null
 
 /**
- * Initializes the visual translator by loading configuration.
- * Must be called before using other functions in production.
- */
-export async function initVisualTranslator(): Promise<void> {
-  if (!config) {
-    config = await loadVisualConfig()
-    log.info("visual_translator_initialized", {
-      version: config.version,
-      emotions: Object.keys(config.emotions).length,
-      actions: Object.keys(config.actions).length,
-    })
-  }
-}
-
-/**
  * Gets the current config, loading it if necessary.
- * For sync contexts where initVisualTranslator has already been called.
+ * For sync contexts where config has already been loaded via `loadVisualConfig()`.
  */
 function getConfig(): VisualConfig {
   if (!config) {
     config = getVisualConfig()
   }
   return config
+}
+
+// ============================================================================
+// VISUAL PANEL CACHE (Phase B: Cache System)
+// ============================================================================
+
+/**
+ * LRU cache for assembled panel specs.
+ * Keyed by deterministic content hash — identical inputs always return cached result.
+ */
+interface CacheEntry {
+  spec: VisualPanelSpec
+  timestamp: number
+}
+
+const panelCache = new Map<string, CacheEntry>()
+const DEFAULT_CACHE_MAX_SIZE = 256
+const DEFAULT_CACHE_TTL_MS = 30 * 60 * 1000 // 30 minutes
+
+/**
+ * Generates a cache key from panel input parameters.
+ */
+function generatePanelCacheKey(input: PanelSpecInput): string {
+  const charNames = input.characters.map((c) => c.name).join(",")
+  const canon = JSON.stringify({
+    panelIndex: input.panelIndex,
+    beatText: input.beat.text.slice(0, 100),
+    chars: charNames,
+    emotion: input.beat.emotion,
+    action: input.beat.action,
+    location: input.scene.location,
+    timeOfDay: input.scene.timeOfDay,
+    tone: input.scene.tone,
+    style: input.scene.style,
+  })
+  return `panel:${djb2Hash(canon)}`
+}
+
+/**
+ * Gets a panel from cache if available and not expired.
+ */
+function getCachedPanel(cacheKey: string): VisualPanelSpec | null {
+  const entry = panelCache.get(cacheKey)
+  if (!entry) return null
+
+  const ttl = getConfig().cache?.ttl_ms ?? DEFAULT_CACHE_TTL_MS
+  if (Date.now() - entry.timestamp > ttl) {
+    panelCache.delete(cacheKey)
+    return null
+  }
+
+  return entry.spec
+}
+
+/**
+ * Stores a panel in the cache, evicting LRU entries if at capacity.
+ */
+function cachePanel(cacheKey: string, spec: VisualPanelSpec): void {
+  const maxSize = getConfig().cache?.max_size ?? DEFAULT_CACHE_MAX_SIZE
+
+  if (panelCache.size >= maxSize) {
+    // Evict oldest entry
+    const firstKey = panelCache.keys().next().value
+    if (firstKey) panelCache.delete(firstKey)
+  }
+
+  panelCache.set(cacheKey, { spec, timestamp: Date.now() })
+}
+
+/**
+ * Clears the visual panel cache.
+ */
+export function clearPanelCache(): void {
+  panelCache.clear()
+  log.info("panel_cache_cleared")
+}
+
+/**
+ * Returns cache statistics for monitoring.
+ */
+export function getPanelCacheStats(): { size: number; maxSize: number } {
+  const cfg = getConfig()
+  return {
+    size: panelCache.size,
+    maxSize: cfg.cache?.max_size ?? DEFAULT_CACHE_MAX_SIZE,
+  }
+}
+
+// ============================================================================
+// COMPLEXITY DETECTION (Phase A: LLM Enhancement)
+// ============================================================================
+
+/**
+ * Determines if a scene is complex enough to warrant LLM enhancement.
+ *
+ * Complexity triggers:
+ * 1. Multiple characters with distinct emotions (3+)
+ * 2. Complex/abstract emotion types
+ * 3. Complex action types
+ * 4. High emotion intensity (≥0.8)
+ * 5. Theme-driven generic actions requiring thematic lighting
+ */
+function isComplexScene(input: PanelSpecInput): boolean {
+  const { beat, characters, scene } = input
+
+  // Multiple characters on screen with distinct emotions
+  if (characters.length >= 3) return true
+
+  // Complex emotion types
+  if (beat.emotion && isComplexEmotion(beat.emotion)) return true
+
+  // High intensity emotion
+  if (beat.emotionIntensity != null && beat.emotionIntensity >= 0.8) return true
+
+  // Complex action types
+  if (beat.action && isComplexAction(beat.action)) return true
+
+  // Theme-driven generic action
+  if (scene.tone && (beat.action === "conversation" || beat.action === "emotional")) {
+    const toneLower = scene.tone.toLowerCase()
+    if (toneLower.includes("betray") || toneLower.includes("redempt") || toneLower.includes("myster")) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
+ * LLM enhancement result for complex visual scenes.
+ */
+interface LLMEnhancement {
+  /** LLM-suggested visual prompt additions/modifications */
+  visualSuggestions?: string
+  /** LLM-suggested negative prompt additions */
+  negativeSuggestions?: string
+  /** LLM-suggested composition changes */
+  compositionSuggestion?: string
+  /** Confidence score (0-1) */
+  confidence: number
 }
 
 // ============================================================================
@@ -188,8 +312,9 @@ function djb2Hash(str: string): string {
 /**
  * Generates a deterministic visual hash for character consistency.
  * Hash version is loaded from configuration.
+ * Internal only — use `generateStableCharacterRefUrl()` for public API.
  */
-export function generateDeterministicVisualHash(characterId: string, stateSnapshot: CharacterStateSnapshot): string {
+function generateDeterministicVisualHash(characterId: string, stateSnapshot: CharacterStateSnapshot): string {
   const cfg = getConfig()
 
   // Create a canonical string representation
@@ -636,6 +761,75 @@ function generateColorPalette(tone?: string, weather?: string): string[] {
   return cfg.color_palettes[tone?.toLowerCase() || ""] || cfg.color_palettes.light
 }
 
+/**
+ * Uses LLM to validate and enhance a rule-based visual panel spec.
+ * Only invoked for complex scenes where hardcoded rules may be insufficient.
+ *
+ * @param ruleBasedSpec - The spec generated by rules
+ * @param input - Original panel input for context
+ * @returns Enhancement suggestions from LLM
+ */
+async function enhanceWithLLM(ruleBasedSpec: VisualPanelSpec, input: PanelSpecInput): Promise<LLMEnhancement> {
+  const charContext = input.characters
+    .map((c) => `${c.name}: ${c.visualDescription || c.name}, stress=${c.stress ?? 0}, emotions=[${(c.emotions ?? []).map((e) => e.type).join(",")}]`)
+    .join("\n")
+
+  const prompt = `You are a visual composition expert for image generation prompts. Review this visual panel specification and suggest improvements.
+
+## Scene Context
+Characters on screen:
+${charContext}
+
+Beat text: ${input.beat.text.slice(0, 200)}
+Emotion: ${input.beat.emotion ?? "none"} (intensity: ${input.beat.emotionIntensity ?? "default"})
+Action: ${input.beat.action ?? "none"}
+Tone: ${input.scene.tone ?? "narrative"}
+
+## Current Panel Spec
+- Camera: ${ruleBasedSpec.camera.shot} shot, ${ruleBasedSpec.camera.angle}, ${ruleBasedSpec.camera.movement}
+- Lighting: ${ruleBasedSpec.lighting}
+- Composition: ${ruleBasedSpec.composition}
+- Visual Prompt: ${ruleBasedSpec.visualPrompt.slice(0, 200)}
+- Negative Prompt: ${ruleBasedSpec.negativePrompt.slice(0, 100)}
+
+## Task
+Suggest improvements to make this panel more cinematically compelling and visually accurate.
+Consider: character interactions, emotional undertones, thematic consistency, and visual storytelling.
+
+Return ONLY a JSON object with these optional fields:
+- "visualSuggestions": additional visual elements to append to the prompt
+- "negativeSuggestions": additional negative terms to exclude  
+- "compositionSuggestion": improved composition description
+- "confidence": your confidence in these suggestions (0.0 to 1.0)`
+
+  try {
+    const result = await callLLMJson<LLMEnhancement>({
+      prompt,
+      system: "You are a visual composition expert. Respond with valid JSON only.",
+      callType: "visual_enhancement",
+      temperature: 0.3,
+      maxTokens: 300,
+      useRetry: true,
+      metadata: { module: "visual-translator", task: "panel-enhancement" },
+    })
+
+    const enhancement = result.data
+    if (!enhancement || enhancement.confidence < 0.3) {
+      return { confidence: 0, visualSuggestions: "", negativeSuggestions: "" }
+    }
+
+    return {
+      visualSuggestions: enhancement.visualSuggestions ?? "",
+      negativeSuggestions: enhancement.negativeSuggestions ?? "",
+      compositionSuggestion: enhancement.compositionSuggestion,
+      confidence: enhancement.confidence ?? 0,
+    }
+  } catch (error) {
+    log.error("llm_enhancement_failed", { error: String(error) })
+    return { confidence: 0, visualSuggestions: "", negativeSuggestions: "" }
+  }
+}
+
 // ============================================================================
 // MAIN PANEL SPEC ASSEMBLY
 // ============================================================================
@@ -643,8 +837,114 @@ function generateColorPalette(tone?: string, weather?: string): string[] {
 /**
  * Assembles a complete VisualPanelSpec from structured input.
  * All parameters are loaded from configuration.
+ * Uses panel cache for repeated identical inputs.
  */
 export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec {
+  // Phase B: Cache lookup
+  const cacheKey = generatePanelCacheKey(input)
+  const cached = getCachedPanel(cacheKey)
+  if (cached) {
+    log.debug("panel_cache_hit", { key: cacheKey })
+    return cached
+  }
+
+  const spec = _assemblePanelSpecInternal(input)
+
+  // Phase B: Store in cache
+  cachePanel(cacheKey, spec)
+
+  return spec
+}
+
+/**
+ * Assembles a VisualPanelSpec with optional LLM enhancement for complex scenes.
+ *
+ * For simple scenes, behaves identically to `assemblePanelSpec()`.
+ * For complex scenes (multi-character, abstract emotions, thematic actions),
+ * invokes LLM to validate and enhance the rule-based spec.
+ *
+ * @param input - Panel input parameters
+ * @param options - Enhancement options
+ * @returns VisualPanelSpec, optionally enhanced by LLM
+ */
+export async function assemblePanelSpecWithLLM(
+  input: PanelSpecInput,
+  options?: {
+    /** Force LLM enhancement even for simple scenes */
+    forceEnhancement?: boolean
+    /** Minimum confidence threshold to apply LLM suggestions (default: 0.5) */
+    minConfidence?: number
+  },
+): Promise<VisualPanelSpec> {
+  // Build the rule-based spec first
+  const ruleBasedSpec = _assemblePanelSpecInternal(input)
+
+  // Check if LLM enhancement is warranted
+  const shouldEnhance = options?.forceEnhancement ?? isComplexScene(input)
+  if (!shouldEnhance) {
+    // Cache the result even for simple scenes
+    const cacheKey = generatePanelCacheKey(input)
+    cachePanel(cacheKey, ruleBasedSpec)
+    return ruleBasedSpec
+  }
+
+  // Phase A: LLM enhancement for complex scenes
+  const enhancement = await enhanceWithLLM(ruleBasedSpec, input)
+  const minConfidence = options?.minConfidence ?? 0.5
+
+  if (enhancement.confidence >= minConfidence) {
+    // Apply LLM suggestions
+    let enhancedVisualPrompt = ruleBasedSpec.visualPrompt
+    let enhancedNegativePrompt = ruleBasedSpec.negativePrompt
+    let enhancedComposition = ruleBasedSpec.composition
+
+    if (enhancement.visualSuggestions) {
+      enhancedVisualPrompt += `, ${enhancement.visualSuggestions}`
+    }
+    if (enhancement.negativeSuggestions) {
+      enhancedNegativePrompt += `, ${enhancement.negativeSuggestions}`
+    }
+    if (enhancement.compositionSuggestion) {
+      enhancedComposition = enhancement.compositionSuggestion
+    }
+
+    const enhancedSpec: VisualPanelSpec = {
+      ...ruleBasedSpec,
+      visualPrompt: enhancedVisualPrompt,
+      negativePrompt: enhancedNegativePrompt,
+      composition: enhancedComposition,
+      notes: `${ruleBasedSpec.notes} [llm-enhanced:confidence=${enhancement.confidence.toFixed(2)}]`,
+    }
+
+    // Cache the enhanced result
+    const cacheKey = generatePanelCacheKey(input)
+    cachePanel(cacheKey, enhancedSpec)
+
+    log.info("panel_llm_enhanced", {
+      confidence: enhancement.confidence,
+      cacheKey,
+    })
+
+    return enhancedSpec
+  }
+
+  // LLM confidence too low — fall back to rule-based
+  const cacheKey = generatePanelCacheKey(input)
+  cachePanel(cacheKey, ruleBasedSpec)
+
+  log.info("panel_llm_low_confidence", {
+    confidence: enhancement.confidence,
+    threshold: minConfidence,
+  })
+
+  return ruleBasedSpec
+}
+
+/**
+ * Internal panel spec assembly — the core logic without cache or LLM.
+ * Used by both `assemblePanelSpec()` and `assemblePanelSpecWithLLM()`.
+ */
+function _assemblePanelSpecInternal(input: PanelSpecInput): VisualPanelSpec {
   const cfg = getConfig()
   const { beat, characters, scene, panelIndex } = input
 
@@ -743,7 +1043,44 @@ export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec {
 
 export { isComplexEmotion, isComplexAction }
 
+// ============================================================================
+// CONFIG HOT-RELOAD (Phase C)
+// ============================================================================
+
+/**
+ * Reloads visual configuration from file, clearing the config cache.
+ * Useful for live config updates without restarting the engine.
+ *
+ * Note: This does NOT clear the panel cache — cached panels remain valid
+ * since they were generated from the previous config. Use `clearPanelCache()`
+ * to also invalidate cached panels.
+ */
+export async function reloadVisualConfig(): Promise<VisualConfig> {
+  log.info("reloading_visual_config")
+  const newConfig = await _reloadConfig()
+  return newConfig
+}
+
+/**
+ * Clears both the config cache and the visual panel cache.
+ * Use this when switching between entirely different visual styles mid-session.
+ */
+export async function resetVisualTranslator(): Promise<void> {
+  _clearConfigCache()
+  clearPanelCache()
+  config = null
+  log.info("visual_translator_reset")
+}
+
 log.info("visual_translator_loaded", {
   version: "v3-config-driven",
-  features: ["configuration-driven", "prioritized-prompts", "deterministic-hashes", "dynamic-negatives"],
+  features: [
+    "configuration-driven",
+    "prioritized-prompts",
+    "deterministic-hashes",
+    "dynamic-negatives",
+    "panel-cache",
+    "llm-enhancement",
+    "config-hot-reload",
+  ],
 })

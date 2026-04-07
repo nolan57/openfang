@@ -1,9 +1,7 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { resolve, dirname } from "path"
-import { mkdir } from "fs/promises"
 import type { Branch } from "./branch-manager"
-import { getBranchStorageDbPath } from "./novel-config"
+import { dbManager } from "./db/database-manager"
 
 const log = Log.create({ service: "branch-storage" })
 
@@ -11,16 +9,6 @@ interface BranchEvent {
   id: string
   type: string
   description: string
-}
-
-// Lazy-initialized database path
-let DB_PATH: string | null = null
-
-function getDbPath(): string {
-  if (!DB_PATH) {
-    DB_PATH = getBranchStorageDbPath()
-  }
-  return DB_PATH
 }
 
 export const BranchRecordSchema = z.object({
@@ -47,6 +35,9 @@ export type BranchRecord = z.infer<typeof BranchRecordSchema>
 
 export interface BranchStorageConfig {
   maxBranches: number
+  /** Enable local content signature generation for branch similarity search.
+   *  NOTE: These are hash-based signatures, NOT AI embeddings.
+   *  Real embeddings go through NovelVectorBridge → VectorStore → EmbeddingService. */
   enableEmbeddings: boolean
 }
 
@@ -67,12 +58,8 @@ export class BranchStorage {
   async initialize(): Promise<void> {
     if (this.initialized) return
 
-    const dbPath = getDbPath()
     try {
-      await mkdir(dirname(dbPath), { recursive: true })
-
-      const { Database } = await import("bun:sqlite")
-      this.db = new Database(dbPath)
+      this.db = await dbManager.getDb("branches")
 
       this.db.run(`
         CREATE TABLE IF NOT EXISTS branches (
@@ -123,7 +110,7 @@ export class BranchStorage {
       this.migrateTable()
 
       this.initialized = true
-      log.info("branch_storage_initialized", { path: dbPath })
+      log.info("branch_storage_initialized", { dbName: "branches" })
     } catch (error) {
       log.error("branch_storage_init_failed", { error: String(error) })
       throw error
@@ -158,9 +145,12 @@ export class BranchStorage {
   async saveBranch(branch: Branch): Promise<void> {
     if (!this.initialized) await this.initialize()
 
-    // Generate embedding from story segment if enabled
-    const embedding = this.config.enableEmbeddings
-      ? this.generateBranchEmbedding(branch)
+    // Generate a local content signature (hash + eval scores) for branch similarity.
+    // NOTE: This is NOT an AI embedding — it's a deterministic hash-based signature
+    // used for fast local similarity search without calling an embedding model.
+    // Real embeddings go through NovelVectorBridge → VectorStore → EmbeddingService.
+    const branchSignature = this.config.enableEmbeddings
+      ? this.generateBranchSignature(branch)
       : null
 
     const stmt = this.db.prepare(`
@@ -187,20 +177,21 @@ export class BranchStorage {
       branch.mergedInto || null,
       branch.pruned ? 1 : 0,
       branch.pruneReason || null,
-      embedding,
+      branchSignature,
       JSON.stringify(branch.events || []),
       JSON.stringify(branch.structuredState || {}),
     )
 
-    log.info("branch_saved", { id: branch.id, chapter: branch.chapter, embedding: !!embedding })
+    log.info("branch_saved", { id: branch.id, chapter: branch.chapter, signature: !!branchSignature })
   }
 
   /**
-   * Generate a semantic embedding vector for a branch as a compact JSON string.
+   * Generate a local content signature for a branch as a compact JSON string.
    * Uses a multi-feature hash combining story content, evaluation scores, and
-   * narrative themes for future similarity-based branch retrieval.
+   * narrative themes for fast local similarity-based branch retrieval.
+   * NOTE: This is NOT an AI embedding — it's a deterministic hash-based signature.
    */
-  private generateBranchEmbedding(branch: Branch): string {
+  private generateBranchSignature(branch: Branch): string {
     const evalScores = branch.evaluation
       ? [
           branch.evaluation.narrativeQuality || 0,
@@ -213,12 +204,12 @@ export class BranchStorage {
         ]
       : [0, 0, 0, 0, 0, 0, 0]
 
-    // Generate a content-based hash for semantic similarity
+    // Generate a content-based hash for similarity matching
     const contentHash = this.simpleHash(branch.storySegment)
     const choiceHash = this.simpleHash(branch.choiceMade + branch.branchPoint)
 
     return JSON.stringify({
-      v: 1, // embedding version
+      v: 1, // signature version
       ch: contentHash,
       wh: choiceHash,
       ev: evalScores,
@@ -421,9 +412,10 @@ export class BranchStorage {
   }
 
   /**
-   * Find branches with similar embeddings to the given context.
-   * Uses cosine similarity on the evaluation score vectors and content hashes.
+   * Find branches with similar content signatures to the given context.
+   * Uses cosine similarity on evaluation score vectors and content hashes.
    * Returns branches sorted by similarity score (highest first).
+   * NOTE: Uses local hash-based signatures, NOT AI embeddings.
    */
   async findSimilarBranches(
     context: {
@@ -445,13 +437,13 @@ export class BranchStorage {
     if (!this.initialized) await this.initialize()
 
     const allBranches = await this.loadAllBranches(false)
-    const branchesWithEmbeddings = allBranches.filter((b) => b.events && b.pruned === false)
+    const branchesWithSignatures = allBranches.filter((b) => b.events && b.pruned === false)
 
-    if (branchesWithEmbeddings.length === 0) {
+    if (branchesWithSignatures.length === 0) {
       return []
     }
 
-    const contextEmbedding = this.generateBranchEmbedding({
+    const contextSignature = this.generateBranchSignature({
       id: "context",
       storySegment: context.storySegment || "",
       branchPoint: "",
@@ -466,11 +458,11 @@ export class BranchStorage {
       structuredState: {},
     } as Branch)
 
-    const similarities = branchesWithEmbeddings
+    const similarities = branchesWithSignatures
       .map((branch) => {
         try {
-          const branchEmbedding = (branch as any).embedding || "{}"
-          const similarity = this.calculateEmbeddingSimilarity(contextEmbedding, branchEmbedding)
+          const branchSignature = (branch as any).embedding || "{}"
+          const similarity = this.calculateSignatureSimilarity(contextSignature, branchSignature)
           return { branch, similarity }
         } catch {
           return { branch, similarity: 0 }
@@ -481,7 +473,7 @@ export class BranchStorage {
       .slice(0, limit)
 
     log.info("similar_branches_found", {
-      total: branchesWithEmbeddings.length,
+      total: branchesWithSignatures.length,
       returned: similarities.length,
       minSimilarity,
     })
@@ -490,13 +482,14 @@ export class BranchStorage {
   }
 
   /**
-   * Calculate cosine similarity between two embedding vectors.
+   * Calculate cosine similarity between two content signature vectors.
    * Compares evaluation scores primarily, with hash matching as bonus.
+   * NOTE: Operates on local hash-based signatures, NOT AI embeddings.
    */
-  private calculateEmbeddingSimilarity(embedA: string, embedB: string): number {
+  private calculateSignatureSimilarity(sigA: string, sigB: string): number {
     try {
-      const a = typeof embedA === "string" ? JSON.parse(embedA) : embedA
-      const b = typeof embedB === "string" ? JSON.parse(embedB) : embedB
+      const a = typeof sigA === "string" ? JSON.parse(sigA) : sigA
+      const b = typeof sigB === "string" ? JSON.parse(sigB) : sigB
 
       if (!a.ev || !b.ev) return 0
 
@@ -743,8 +736,8 @@ export class BranchStorage {
   }
 
   close(): void {
-    if (this.db) {
-      this.db.close()
+    if (this.initialized) {
+      dbManager.close("branches")
       this.db = null
       this.initialized = false
       log.info("branch_storage_closed")

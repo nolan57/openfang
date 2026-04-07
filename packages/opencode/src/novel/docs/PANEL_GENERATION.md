@@ -180,17 +180,78 @@ export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec
 
 ---
 
-#### `translateStoryToPanels()`
+#### `assemblePanelSpec()`
 
 ```typescript
-export function translateStoryToPanels(
-  storyText: string,
-  characterStates: CharacterState[],
-  options?: {...}
-): VisualPanelSpec[]
+export function assemblePanelSpec(input: PanelSpecInput): VisualPanelSpec
 ```
 
-**Purpose**: Convert entire story segment to multiple panels.
+**Purpose**: Assemble complete `VisualPanelSpec` from component parts.
+
+**Handles**:
+
+- Camera specification from action
+- Lighting from time/atmosphere
+- Deterministic hashing for character consistency
+- Priority-based prompt truncation
+- **Panel Cache**: LRU cache with deterministic content hashing (see below)
+
+---
+
+#### `assemblePanelSpecWithLLM()`
+
+```typescript
+export async function assemblePanelSpecWithLLM(
+  input: PanelSpecInput,
+  options?: { forceEnhancement?: boolean; minConfidence?: number },
+): Promise<VisualPanelSpec>
+```
+
+**Purpose**: Assemble panel spec with optional LLM enhancement for complex scenes.
+
+**Complex Scene Detection** (auto-triggers LLM):
+- 3+ characters on screen with distinct emotions
+- Complex/abstract emotion types (e.g., "bittersweet", "conflicted")
+- High emotion intensity (≥ 0.8)
+- Complex action types (fight choreography, dance, etc.)
+- Theme-driven generic actions (betrayal, redemption, mystery themes)
+
+**Behavior**:
+1. Builds rule-based spec first (fast path)
+2. For complex scenes, invokes LLM to validate and enhance composition
+3. Applies LLM suggestions only if confidence ≥ threshold
+4. Falls back to rule-based if LLM confidence is low
+5. Caches all results to avoid duplicate generation
+
+---
+
+## Visual Panel Cache
+
+The visual translator implements an **LRU cache** for assembled panel specs.
+
+**Cache Key**: Deterministic hash of panel input parameters (panelIndex, beatText, characters, emotion, action, location, timeOfDay, tone, style).
+
+**Configuration** (in `visual-config.json`):
+```json
+{
+  "cache": {
+    "max_size": 256,
+    "ttl_ms": 1800000
+  }
+}
+```
+
+**Manual Control via CLI**:
+- `/reload cache` — Clear the panel cache
+- `/reload stats` — Show cache statistics (entries / max size)
+- `/reload visual` — Reload config AND clear cache
+
+**Programmatic Control**:
+```typescript
+import { clearPanelCache, getPanelCacheStats } from "./visual-translator"
+clearPanelCache()                    // Clear all cached panels
+const stats = getPanelCacheStats()   // { size: 42, maxSize: 256 }
+```
 
 ---
 
@@ -204,18 +265,15 @@ export function translateStoryToPanels(
 - `visual-config.schema.json` - Zod validation schema
 - `novel-config.json` - Novel-specific settings
 
-### Strategy Layers (v3)
+### Current Strategy (v3)
 
-```typescript
-export function resolveVisualSpec(context: VisualContext): ResolvedVisualSpec
-```
+The visual system uses a **configuration-driven** approach:
 
-**Dynamic Resolution Flow**:
+1. **Base Layer**: Default emotion/action mappings from `visual-config.json`
+2. **Theme Adjustments**: Context-aware overrides for tension level and motifs
+3. **Conflict Resolution**: Removes contradictory terms (e.g., "warm" vs "cold")
 
-1. **Base Layer**: Default emotion/action mappings
-2. **Override Layer**: Context-aware overrides (tension level, active motifs)
-3. **Thematic Voting**: Multiple motifs vote with weighted influence
-4. **Conflict Resolution**: Removes contradictory terms (e.g., "warm" vs "cold")
+> **Note:** `resolveVisualSpec()` was a sophisticated layered override + voting system that was designed but never wired into production. The current `visual-prompt-engineer.ts` hybrid engine handles these cases through simpler config lookups and LLM fallback.
 
 ---
 

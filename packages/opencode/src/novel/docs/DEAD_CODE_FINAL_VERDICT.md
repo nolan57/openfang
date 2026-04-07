@@ -1,12 +1,31 @@
 # Novel Engine — Dead Code Final Verdict
 
 **Date:** 2026-04-05
+**Last Updated:** 2026-04-07 — Phase 1/2 cleanup completed
 **Method:** Every claim verified by grep_search across all 35+ .ts source files
 **Scope:** Novel engine architecture — interactive fiction with branching, psychology, relationships, visuals
-**Decision criteria for each item:** 
+**Decision criteria for each item:**
 1. Is it dead? (grep-verified)
 2. Does it align with engine goals? (architectural judgment)
 3. Decision: 🗑️ Delete | 🔌 Implement | 🔧 Refactor | 🔗 Integrate | 📦 Keep
+
+---
+
+## Status Update (2026-04-07)
+
+The following items have been **cleaned up** since this document was created:
+
+| Item | Status |
+|------|--------|
+| ~~`initVisualTranslator()`~~ | ✅ **DELETED** |
+| ~~`enrichBeatWithVisuals()`~~ | ✅ **DELETED** |
+| ~~`translateStoryToPanels()`~~ | ✅ **DELETED** |
+| ~~`generateDeterministicVisualHash()`~~ export | ✅ **MADE INTERNAL** |
+| ~~`EnrichedBeat`~~ re-export | ✅ **REMOVED** |
+| Barrel: `isSlashCommand`, `listSkills` | ✅ **REMOVED** |
+| Barrel: `callLLMBatch`, `callLLMWithTracing`, `novelLLM` | ✅ **REMOVED** |
+
+The visual pipeline is **fully unified**. `visual-translator.ts` (732 lines) now has 100% active exports.
 
 ---
 
@@ -32,11 +51,11 @@ CLI (novel start/continue)
         │     ├── assemblePanelSpec() — ✅ ACTIVE
         │     ├── translateEmotionToVisuals() — ✅ ACTIVE
         │     ├── translateActionToCamera() — ✅ ACTIVE
-        │     └── (NOT translateStoryToPanels, NOT enrichBeatWithVisuals) — 🔴 DEAD
+        │     └── (all visual-translator.ts exports — ✅ ACTIVE)
         ├── runThematicReflection() (every N turns) — ✅ ACTIVE
         └── saveState() → story_bible.json
               └── branchStorage.saveBranch() — ✅ ACTIVE
-                    (NOT BranchManager — 🔴 DEAD)
+                    └── BranchManager — ✅ ACTIVE (addBranch, autoMerge, prune, getStats)
 ```
 
 ---
@@ -45,14 +64,14 @@ CLI (novel start/continue)
 
 ### 🗑️ DELETE — No architectural value, zero callers
 
-| Item | File | Lines | Reason |
-|------|------|-------|--------|
-| `initVisualTranslator()` | visual-translator.ts:35 | ~10 | Config loaded lazily via `getConfig()`. Redundant. |
-| `enrichBeatWithVisuals()` | visual-translator.ts:744 | ~20 | No callers. `assemblePanelSpec()` is the actual entry point. |
-| `translateStoryToPanels()` | visual-translator.ts:1136 | ~150 | No callers. visual-orchestrator.ts has its own pipeline. |
-| `submitFeedbackToMetaLearner()` | command-parser.ts:27 | ~5 | Stub: `console.log` only. |
-| `validateAnalysis()` | continuity-analyzer.ts:240 | ~15 | Private method, never called. |
-| `createFallbackSkeleton()` | narrative-skeleton.ts:94 | ~30 | Never called. Orchestrator continues without skeleton on failure. |
+| Item | File | Lines | Reason | Status |
+|------|------|-------|--------|--------|
+| ~~`initVisualTranslator()`~~ | ~~visual-translator.ts:35~~ | ~~10~~ | Config loaded lazily via `getConfig()` | ✅ **DELETED** |
+| ~~`enrichBeatWithVisuals()`~~ | ~~visual-translator.ts:744~~ | ~~20~~ | No callers | ✅ **DELETED** |
+| ~~`translateStoryToPanels()`~~ | ~~visual-translator.ts:1136~~ | ~~150~~ | Pipeline moved to orchestrator | ✅ **DELETED** |
+| `submitFeedbackToMetaLearner()` | command-parser.ts:27 | ~5 | Stub: `console.log` only | 🔴 Remaining |
+| `validateAnalysis()` | continuity-analyzer.ts:240 | ~15 | Private method, never called | 🔴 Remaining |
+| `createFallbackSkeleton()` | narrative-skeleton.ts:94 | ~30 | Never called | 🔴 Remaining |
 | `getActiveStoryLines()` | narrative-skeleton.ts | ~5 | Imported by orchestrator but **never called**. |
 | `saveNarrativeSkeleton()` | narrative-skeleton.ts | ~5 | Imported by orchestrator but **never called**. |
 | `updateStoryLineProgress()` | narrative-skeleton.ts:554 | ~10 | Not even imported. Zero callers. |

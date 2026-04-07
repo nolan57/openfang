@@ -2,7 +2,7 @@
 import { readFile, writeFile, readdir } from "fs/promises"
 import { resolve, dirname, join } from "path"
 import { Skill } from "../skill/skill"
-import { StateExtractor, extractMindModelsForCharacters } from "./state-extractor"
+import { StateExtractor } from "./state-extractor"
 import { validateRawStateUpdate } from "./validation"
 import { EvolutionRulesEngine, type ChaosEvent } from "./evolution-rules"
 import { RelationshipAnalyzer } from "./relationship-analyzer"
@@ -1096,10 +1096,15 @@ ${graphConstraintContext}
     let branchData: any[] = []
 
     try {
+      const traceId = novelObservability.startTrace("branch_generation", {
+        chapter: this.storyState.chapterCount + 1,
+      })
       const result = await callLLM({
         prompt: branchGenerationPrompt,
         callType: "branch_generation",
+        useRetry: true,
       })
+      novelObservability.endTrace(traceId, "success")
 
       const match = result.text.match(/\[[\s\S]*\]/)
       if (match) {
@@ -1217,7 +1222,10 @@ OUTPUT JSON:
 }`
 
     try {
-      const result = await callLLM({ prompt, callType: "branch_selection" })
+      const traceId = novelObservability.startTrace("branch_selection", {
+        chapter: this.storyState.chapterCount + 1,
+      })
+      const result = await callLLM({ prompt, callType: "branch_selection", useRetry: true })
       const match = result.text.match(/\{[\s\S]*\}/)
       if (match) {
         const selection = JSON.parse(match[0])
@@ -1236,6 +1244,7 @@ OUTPUT JSON:
           index: selection.selectedIndex,
           reasoning: selection.reasoning?.slice(0, 100),
         })
+        novelObservability.endTrace(traceId, "success")
 
         return selected
       }
@@ -1287,10 +1296,15 @@ Output JSON:
 }`
 
     try {
+      const traceId = novelObservability.startTrace("branch_evaluation", {
+        chapter: this.storyState.chapterCount + 1,
+      })
       const result = await callLLM({
         prompt: evalPrompt,
         callType: "branch_evaluation",
+        useRetry: true,
       })
+      novelObservability.endTrace(traceId, "success")
 
       const match = result.text.match(/\{[\s\S]*\}/)
       if (match) {
@@ -2266,10 +2280,15 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
       let summaryContent: string
       if (storySegment.length > 300) {
         try {
+          const summaryTraceId = novelObservability.startTrace("chapter_summary", {
+            chapter: this.storyState.chapterCount,
+          })
           const summaryResult = await callLLM({
             prompt: `Summarize the following story segment in 2-3 sentences, focusing on: key events, character emotional changes, and any clues or secrets revealed. Keep it concise.\n\n${storySegment}`,
             callType: "chapter_summary",
+            useRetry: true,
           })
+          novelObservability.endTrace(summaryTraceId, "success")
           summaryContent = summaryResult.text.trim()
         } catch {
           summaryContent = storySegment.substring(0, 800)
@@ -2294,19 +2313,24 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
       const ARC_INTERVAL = 10
       if (this.storyState.chapterCount > 0 && this.storyState.chapterCount % ARC_INTERVAL === 0) {
         this.log(`   Generating Arc Summary for chapters ${this.storyState.chapterCount - ARC_INTERVAL + 1}-${this.storyState.chapterCount}...`)
-        try {
-          const memories = await this.storyWorldMemory.getMemoriesByChapter(this.storyState.chapterCount)
-          const recentChaptersMemories = await this.storyWorldMemory.getMemoriesByChapter(this.storyState.chapterCount - ARC_INTERVAL + 1)
-          
-          // Combine context
-          const context = [...recentChaptersMemories, ...memories].slice(0, 15).map(m => 
-            `[Ch.${m.chapter}] ${m.content}`
-          ).join("\n")
+        const memories = await this.storyWorldMemory.getMemoriesByChapter(this.storyState.chapterCount)
+        const recentChaptersMemories = await this.storyWorldMemory.getMemoriesByChapter(this.storyState.chapterCount - ARC_INTERVAL + 1)
 
+        // Combine context
+        const context = [...recentChaptersMemories, ...memories].slice(0, 15).map(m =>
+          `[Ch.${m.chapter}] ${m.content}`
+        ).join("\n")
+
+        const arcTraceId = novelObservability.startTrace("arc_summary_generation", {
+          chapter: this.storyState.chapterCount,
+        })
+        try {
           const arcResult = await callLLM({
             prompt: `You are a Literary Editor. Summarize the following story arc (chapters ${this.storyState.chapterCount - ARC_INTERVAL + 1} to ${this.storyState.chapterCount}) into a high-level summary.\n\nRecent Chapters Context:\n${context}\n\nOutput requirements:\n1. Main Plot progression (what major goals were achieved/failed?)\n2. Character Arcs (who changed significantly?)\n3. Emerging Themes\n4. Unresolved Cliffhangers\n\nSummary (200-300 words):`,
             callType: "arc_summary_generation",
+            useRetry: true,
           })
+          novelObservability.endTrace(arcTraceId, "success")
 
           await this.storyWorldMemory.storeArcSummary(
             `Arc_${Math.floor(this.storyState.chapterCount / ARC_INTERVAL)}`,
@@ -2318,6 +2342,7 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
           )
           this.log(`   Arc Summary stored successfully`)
         } catch (error) {
+          novelObservability.endTrace(arcTraceId, "error", String(error))
           log.warn("arc_summary_generation_failed", { error: String(error) })
         }
       }
@@ -2852,9 +2877,10 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
     })
     this.log(`   [DEBUG] Chapter ${this.storyState.chapterCount} completed in ${totalDuration}ms`)
 
-    // Collect observability metrics (if advanced modules are initialized)
+    // Collect observability metrics and generate health report
     if (this.advancedModulesInitialized) {
       try {
+        const metricsStart = Date.now()
         const metrics = await novelObservability.collectMetrics(
           this.branchManager,
           enhancedPatternMiner,
@@ -2865,6 +2891,9 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
           this.storyState.relationships || {},
           this.storyState.chapterCount,
         )
+        const metricsDuration = Date.now() - metricsStart
+
+        novelObservability.recordExtractionTime(metricsDuration)
 
         const healthReport = await novelObservability.generateHealthReport(metrics)
         if (healthReport.overall !== "healthy") {
@@ -2873,6 +2902,23 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
             overall: healthReport.overall,
             issues: healthReport.issues.length,
           })
+          for (const issue of healthReport.issues) {
+            if (issue.severity === "high") {
+              this.log(`   ⚠️  [HIGH] ${issue.category}: ${issue.description}`)
+            }
+          }
+        }
+
+        // Store metrics history for trend analysis
+        // @ts-expect-error - metricsHistory is private but we need to push from orchestrator
+        novelObservability.metricsHistory.push({
+          timestamp: Date.now(),
+          metrics,
+        })
+        // @ts-expect-error - MAX_METRICS_HISTORY is private static
+        if (novelObservability.metricsHistory.length > novelObservability.MAX_METRICS_HISTORY) {
+          // @ts-expect-error - metricsHistory is private
+          novelObservability.metricsHistory.shift()
         }
       } catch (error) {
         log.debug("observability_collection_failed", { error: String(error) })
@@ -2901,13 +2947,12 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
       }
     }
 
-    try {
-      const systemPrompt = `You are a story element extractor. Analyze the following prompt and extract story elements in JSON format.
+    const systemPrompt = `You are a story element extractor. Analyze the following prompt and extract story elements in JSON format.
 
 Extract ONLY these fields:
 {
   "time": "time and date if mentioned",
-  "location": "place/location if mentioned", 
+  "location": "place/location if mentioned",
   "characters": ["list of character names mentioned"],
   "event": "main event or conflict",
   "tone": "mood/atmosphere (dark, suspenseful, etc)",
@@ -2916,11 +2961,17 @@ Extract ONLY these fields:
 
 If a field is not mentioned, use empty string or empty array.`
 
+    const promptTraceId = novelObservability.startTrace("prompt_parsing", {
+      chapter: this.storyState.chapterCount,
+    })
+    try {
       const result = await callLLM({
         prompt: promptContent.substring(0, 3000),
         system: systemPrompt,
         callType: "prompt_parsing",
+        useRetry: true,
       })
+      novelObservability.endTrace(promptTraceId, "success")
 
       const text = result.text.trim()
       const jsonMatch = text.match(/\{[\s\S]*\}/)
@@ -2939,6 +2990,8 @@ If a field is not mentioned, use empty string or empty array.`
       log.error("llm_parse_failed", { error: String(error), retry: retries })
     }
 
+    novelObservability.endTrace(promptTraceId, "warning", "parse_failed")
+
     // Retry with exponential backoff
     return this.parsePromptWithLLM(promptContent, retries + 1)
   }
@@ -2947,66 +3000,65 @@ If a field is not mentioned, use empty string or empty array.`
    * LLM-based story generation with full context
    */
   private async generateWithLLM(promptContent: string, elements: any, chaosResult: ChaosResult): Promise<string> {
+    const previousStory = this.storyState.fullStory || "(This is where the story begins)"
+    const characterInfo = Object.keys(this.storyState.characters).join(", ") || "The protagonist"
+    const currentChapter = this.storyState.chapterCount + 1
+
+    const skeletonContext = this.buildSkeletonContextForChapter(currentChapter)
+
+    // NEW: Build context from dynamically mined patterns (archetypes, motifs, plot templates)
+    const patternContext = this.buildPatternContext()
+
+    // NEW: Inject Thematic Analyst Recommendations for self-correction
+    let thematicGuidance = ""
     try {
-      const previousStory = this.storyState.fullStory || "(This is where the story begins)"
-      const characterInfo = Object.keys(this.storyState.characters).join(", ") || "The protagonist"
-      const currentChapter = this.storyState.chapterCount + 1
+      const latestTurn = await getLatestReflectionTurn()
+      if (latestTurn > 0) {
+        const reflectionPath = resolve(getReflectionsPath(), `reflection_turn_${latestTurn}.json`)
+        if (await fileExists(reflectionPath)) {
+          const reflectionContent = JSON.parse(await readFile(reflectionPath, "utf-8"))
+          const warnings = reflectionContent.recommendations?.warnings || []
+          const immediate = reflectionContent.recommendations?.immediate || []
 
-      const skeletonContext = this.buildSkeletonContextForChapter(currentChapter)
-
-      // NEW: Build context from dynamically mined patterns (archetypes, motifs, plot templates)
-      const patternContext = this.buildPatternContext()
-
-      // NEW: Inject Thematic Analyst Recommendations for self-correction
-      let thematicGuidance = ""
-      try {
-        const latestTurn = await getLatestReflectionTurn()
-        if (latestTurn > 0) {
-          const reflectionPath = resolve(getReflectionsPath(), `reflection_turn_${latestTurn}.json`)
-          if (await fileExists(reflectionPath)) {
-            const reflectionContent = JSON.parse(await readFile(reflectionPath, "utf-8"))
-            const warnings = reflectionContent.recommendations?.warnings || []
-            const immediate = reflectionContent.recommendations?.immediate || []
-
-            if (warnings.length > 0 || immediate.length > 0) {
-              thematicGuidance = `\n=== LITERARY CRITIC FEEDBACK (Act Now) ===\n`
-              if (warnings.length > 0) {
-                thematicGuidance += `⚠️ CRITICAL WARNINGS:\n${warnings.join("\n")}\n`
-              }
-              if (immediate.length > 0) {
-                thematicGuidance += `📝 IMMEDIATE ACTIONS FOR NEXT CHAPTER:\n${immediate.join("\n")}\n`
-              }
-              thematicGuidance += `Ensure these thematic goals are met in this chapter.`
+          if (warnings.length > 0 || immediate.length > 0) {
+            thematicGuidance = `\n=== LITERARY CRITIC FEEDBACK (Act Now) ===\n`
+            if (warnings.length > 0) {
+              thematicGuidance += `⚠️ CRITICAL WARNINGS:\n${warnings.join("\n")}\n`
             }
+            if (immediate.length > 0) {
+              thematicGuidance += `📝 IMMEDIATE ACTIONS FOR NEXT CHAPTER:\n${immediate.join("\n")}\n`
+            }
+            thematicGuidance += `Ensure these thematic goals are met in this chapter.`
           }
         }
-      } catch (e) {
-        log.debug("thematic_feedback_load_failed", { error: String(e) })
       }
+    } catch (e) {
+      log.debug("thematic_feedback_load_failed", { error: String(e) })
+    }
 
-      // Detect language from prompt [LANGUAGE: ...] tag
-      const languageMatch = promptContent.match(/\[LANGUAGE:\s*([^\]]+)\]/i)
-      const specifiedLanguage = languageMatch ? languageMatch[1].trim() : null
-      const languageInstruction = specifiedLanguage
-        ? `IMPORTANT: Write all story content, dialogue, and narration in ${specifiedLanguage}. This is a strict requirement.`
-        : "Write in the same language as the prompt"
+    // Detect language from prompt [LANGUAGE: ...] tag
+    const languageMatch = promptContent.match(/\[LANGUAGE:\s*([^\]]+)\]/i)
+    const specifiedLanguage = languageMatch ? languageMatch[1].trim() : null
+    const languageInstruction = specifiedLanguage
+      ? `IMPORTANT: Write all story content, dialogue, and narration in ${specifiedLanguage}. This is a strict requirement.`
+      : "Write in the same language as the prompt"
 
-      // Load chapter length configuration
-      const chapterLengthConfig = {
-        mode: "dynamic" as const,
-        minWords: 800,
-        maxWords: 3000,
-        minChineseChars: 1000,
-        maxChineseChars: 5000,
-        qualityOverQuantity: true,
-      }
+    // Load chapter length configuration
+    const chapterLengthConfig = {
+      mode: "dynamic" as const,
+      minWords: 800,
+      maxWords: 3000,
+      minChineseChars: 1000,
+      maxChineseChars: 5000,
+      qualityOverQuantity: true,
+    }
 
-      const lengthInstruction =
-        chapterLengthConfig.mode === "dynamic"
-          ? "Determine the appropriate length based on the scene complexity, emotional depth, and narrative importance. Let the story flow naturally - some chapters may be short and punchy, others may be longer and more detailed. Quality over quantity."
-          : `Aim for ${chapterLengthConfig.minWords}-${chapterLengthConfig.maxWords} words (or ${chapterLengthConfig.minChineseChars}-${chapterLengthConfig.maxChineseChars} Chinese characters).`
+    const lengthInstruction =
+      chapterLengthConfig.mode === "dynamic"
+        ? "Determine the appropriate length based on the scene complexity, emotional depth, and narrative importance. Let the story flow naturally - some chapters may be short and punchy, others may be longer and more detailed. Quality over quantity."
+        : `Aim for ${chapterLengthConfig.minWords}-${chapterLengthConfig.maxWords} words (or ${chapterLengthConfig.minChineseChars}-${chapterLengthConfig.maxChineseChars} Chinese characters).`
 
-      const systemPrompt = `You are a creative story writer. Continue or start a story based on the given prompt and context.
+    const systemPrompt = `You are a creative story writer. Continue or start a story based on the given prompt and context.
 
 Rules:
 - ${languageInstruction}
@@ -3022,7 +3074,7 @@ Rules:
 - Follow the active plot template stages for structural coherence
 - Prioritize: character development, emotional resonance, plot progression, and immersive descriptions`
 
-      const userPrompt = `Story Context (previous chapters):
+    const userPrompt = `Story Context (previous chapters):
 ${previousStory.slice(-2000)}
 
 Established Characters: ${characterInfo}
@@ -3042,25 +3094,20 @@ Force the narrative to address this chaos event naturally while advancing the st
 
 Write Chapter ${currentChapter}:`
 
-      const traceId = novelObservability.startTrace("branch_generation", { chapter: this.storyState.chapterCount + 1 })
-      try {
-        const result = await callLLM({
-          prompt: userPrompt,
-          system: systemPrompt,
-          callType: "story_generation",
-        })
-        novelObservability.endTrace(traceId, "success")
-        return result.text.trim()
-      } catch (error) {
-        novelObservability.endTrace(traceId, "error", String(error))
-        throw error
-      }
+    const traceId = novelObservability.startTrace("story_generation", { chapter: this.storyState.chapterCount + 1 })
+    try {
+      const result = await callLLM({
+        prompt: userPrompt,
+        system: systemPrompt,
+        callType: "story_generation",
+        useRetry: true,
+      })
+      novelObservability.endTrace(traceId, "success")
+      return result.text.trim()
     } catch (error) {
-      log.error("llm_generate_failed", { error: String(error) })
+      novelObservability.endTrace(traceId, "error", String(error))
+      throw error
     }
-
-    // Fallback
-    return this.generateFallback(elements)
   }
 
   /**
@@ -3305,11 +3352,17 @@ Write Chapter ${currentChapter}:`
           .map((m) => `[Ch.${m.chapter}] ${m.content}`)
           .join("\n")
 
+        const epicTraceId = novelObservability.startTrace("epic_summary", {
+          chapter: this.storyState.chapterCount,
+          memoryCount: lowSignificanceMemories.length,
+        })
         const summaryResult = await callLLM({
           prompt: `Compress the following story memories into a SINGLE sentence "epic summary" that captures the overarching narrative arc. This will be used as context for the next chapter:\n\n${rawText}`,
           callType: "epic_summary",
           temperature: 0.3,
+          useRetry: true,
         })
+        novelObservability.endTrace(epicTraceId, "success")
 
         const epicSummary = summaryResult.text.trim().slice(0, 300)
         if (epicSummary) {
@@ -3581,11 +3634,16 @@ ${content.substring(0, 2000)}
 
 Generate only the title, nothing else:`
 
+      const titleTraceId = novelObservability.startTrace("chapter_title_extraction", {
+        chapter: this.storyState.chapterCount,
+      })
       const result = await callLLM({
         prompt: userPrompt,
         system: systemPrompt,
         callType: "chapter_title_extraction",
+        useRetry: true,
       })
+      novelObservability.endTrace(titleTraceId, "success")
 
       return result.text.trim()
     } catch (error) {
@@ -3608,10 +3666,15 @@ Output JSON array of character names: ["name1", "name2", ...]
 
 If no clear characters are found, return an empty array [].`
 
+      const charTraceId = novelObservability.startTrace("character_extraction", {
+        chapter: this.storyState.chapterCount,
+      })
       const result = await callLLM({
         prompt,
         callType: "character_extraction",
+        useRetry: true,
       })
+      novelObservability.endTrace(charTraceId, "success")
 
       const match = result.text.match(/\[[\s\S]*\]/)
       if (match) {

@@ -1027,29 +1027,14 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
           console.log("× Usage: /memory search <keyword>")
           break
         }
-        // SQLite LIKE search on content
-        await storyWorldMemory.initialize()
-        const stmt = (storyWorldMemory as any).db.prepare(`
-          SELECT * FROM memory_entries WHERE content LIKE ? ORDER BY significance DESC LIMIT 20
-        `)
-        const rows = stmt.all(`%${query}%`)
-        console.log(`\n🔍 Search Results for "${query}" (${rows.length} entries)`)
+        const results = await storyWorldMemory.searchByContent(query, 20)
+        console.log(`\n🔍 Search Results for "${query}" (${results.length} entries)`)
         console.log("─".repeat(60))
-        if (rows.length === 0) {
+        if (results.length === 0) {
           console.log("  (No matches found)")
         } else {
-          const MemoryEntrySchema = (await import("./story-world-memory")).MemoryEntrySchema
-          for (const r of rows) {
-             try {
-               const m = MemoryEntrySchema.parse({
-                 id: r.id, level: r.level, content: r.content, chapter: r.chapter, scene: r.scene,
-                 characters: JSON.parse(r.characters), locations: JSON.parse(r.locations),
-                 events: JSON.parse(r.events), themes: JSON.parse(r.themes),
-                 emotions: r.emotions ? JSON.parse(r.emotions) : [],
-                 significance: r.significance, createdAt: r.created_at, parent_id: r.parent_id, embeddings: r.embeddings, metadata: r.metadata ? JSON.parse(r.metadata) : {}
-               })
-               console.log(`  [Ch.${m.chapter}] ${m.content.substring(0, 100)}...`)
-             } catch { /* ignore parse errors */ }
+          for (const m of results) {
+            console.log(`  [Ch.${m.chapter}] ${m.content.substring(0, 100)}...`)
           }
         }
       } else {
@@ -1263,6 +1248,44 @@ Exported: ${new Date().toISOString()}
       )
 
       console.log("✓ Story state reset!")
+      break
+    }
+
+    case "/reload": {
+      const target = args[0] as string
+
+      if (!target || target === "visual") {
+        const { reloadVisualConfig, clearPanelCache } = await import("./visual-translator")
+        console.log(" Reloading visual configuration...")
+        try {
+          await reloadVisualConfig()
+          clearPanelCache()
+          console.log("✓ Visual config reloaded and panel cache cleared!")
+        } catch (error) {
+          console.error(` Failed to reload config: ${String(error)}`)
+        }
+      } else if (target === "cache") {
+        const { clearPanelCache, getPanelCacheStats } = await import("./visual-translator")
+        const stats = getPanelCacheStats()
+        clearPanelCache()
+        console.log(`✓ Visual panel cache cleared! (was ${stats.size} entries, max ${stats.maxSize})`)
+      } else if (target === "stats" || target === "status") {
+        const { getPanelCacheStats } = await import("./visual-translator")
+        const stats = getPanelCacheStats()
+        console.log(`
+ Visual Cache Status:
+   Entries: ${stats.size} / ${stats.maxSize}
+`)
+      } else {
+        console.log(`
+ Invalid reload target: ${target}
+
+ Available targets:
+   /reload visual     — Reload visual config and clear panel cache
+   /reload cache      — Clear visual panel cache only
+   /reload stats      — Show visual cache statistics
+`)
+      }
       break
     }
 
@@ -1490,6 +1513,10 @@ Examples:
   /export <md|json> Export story to file
   /patterns         Show discovered narrative patterns
   /reset            Reset story state
+  /reload [target]  Reload visual config / cache
+                    - /reload visual: Reload config and clear panel cache
+                    - /reload cache: Clear visual panel cache only
+                    - /reload stats: Show cache statistics
   /architect        Open web-based Prompt Architect wizard
   /plugin [action] [name]
                     Plugin management:

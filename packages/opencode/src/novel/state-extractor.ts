@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { callLLM, callLLMJson } from "./llm-wrapper"
+import { callLLMJson } from "./llm-wrapper"
 import { Provider } from "../provider/provider"
 import { getTraumaTags, getSkillCategories, getCharacterStatus, getEmotionTypes, getGoalTypes, SALIENCE_LEVELS } from "./types"
 import type {

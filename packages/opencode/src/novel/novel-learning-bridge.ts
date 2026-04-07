@@ -81,7 +81,15 @@ export const DEFAULT_LEARNING_BRIDGE_CONFIG: LearningBridgeConfig = {
 }
 
 // ============================================================================
-// NovelVectorBridge
+// NovelVectorBridge — Unified Embedding Entry Point
+//
+// All real AI embedding calls in the novel engine go through this path:
+//   NovelVectorBridge → VectorStore → SqliteVecStore → EmbeddingService → AI SDK
+//
+// Other "embedding" references in the codebase are local hash-based signatures:
+//   - branch-storage.ts: generateBranchSignature() / calculateSignatureSimilarity()
+//     These are deterministic hashes + eval scores for fast local similarity search,
+//     NOT AI embedding vectors.
 // ============================================================================
 
 export interface SimilarityResult {
@@ -440,7 +448,6 @@ export class NovelMemoryBridge {
         significance: (s.metadata?.significance as number) || 5,
         createdAt: (s.metadata?.createdAt as number) || 0,
         parent_id: null,
-        embeddings: null,
       }))
     } catch (error) {
       log.error("duplicate_search_failed", { error: String(error) })
@@ -533,7 +540,7 @@ export class NovelImprovementApi {
       },
       {
         regex: /generateRandomEmbedding|cosineSimilarity/g,
-        suggestion: "Detected local vector calculation; recommend using NovelVectorBridge's unified embedding service",
+        suggestion: "Detected local vector calculation; recommend using NovelVectorBridge (wraps VectorStore → EmbeddingService) for unified embedding",
         type: "enhance" as const,
       },
     ]

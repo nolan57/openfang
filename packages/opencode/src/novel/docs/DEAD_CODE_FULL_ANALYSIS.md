@@ -1,8 +1,25 @@
 # Novel Engine - Comprehensive Dead Code Analysis
 
 **Date:** 2026-04-05
+**Last Updated:** 2026-04-07 — Phase 1/2 cleanup completed
 **Scope:** All 35 source files + 2 config files + 13 test files in `src/novel/`
 **Method:** Import/export graph analysis, call chain tracing, external consumer mapping, existing audit cross-reference
+
+---
+
+## Status Update (2026-04-07)
+
+Visual pipeline cleanup completed:
+
+| Item | Status |
+|------|--------|
+| ~~`initVisualTranslator()`~~ | ✅ **DELETED** |
+| ~~`enrichBeatWithVisuals()`~~ | ✅ **DELETED** |
+| ~~`translateStoryToPanels()`~~ | ✅ **DELETED** |
+| ~~`generateDeterministicVisualHash()`~~ export | ✅ **MADE INTERNAL** |
+| ~~`EnrichedBeat`~~ re-export | ✅ **REMOVED** |
+| ~~Dead imports in visual-translator~~ | ✅ **CLEANED** |
+| Barrel exports cleanup | ✅ **REMOVED** 5 dead exports from `index.ts` |
 
 ---
 
@@ -214,13 +231,13 @@ These are defined and exported but **never imported by any other file**. They fa
 
 ## 5. Dead Functions (defined but never called) — 🟡 REVIEW
 
-| Function | File | Details |
-|----------|------|---------|
-| `initVisualTranslator()` | `visual-translator.ts:35` | Initialization function, never called. Config is loaded lazily via `getConfig()` instead |
-| `enrichBeatWithVisuals()` | `visual-translator.ts:744` | No callers outside the file |
-| `translateStoryToPanels()` | `visual-translator.ts:1136` | No callers outside the file |
-| `submitFeedbackToMetaLearner()` | `command-parser.ts:27` | Stub that only does `console.log`. Called by `/feedback` command but does nothing functional |
-| `validateAnalysis()` | `continuity-analyzer.ts:240` | Private method defined but never invoked within the file |
+| Function | File | Details | Status |
+|----------|------|---------|--------|
+| ~~`initVisualTranslator()`~~ | ~~`visual-translator.ts:35`~~ | Initialization function, never called | ✅ **DELETED** |
+| ~~`enrichBeatWithVisuals()`~~ | ~~`visual-translator.ts:744`~~ | No callers outside the file | ✅ **DELETED** |
+| ~~`translateStoryToPanels()`~~ | ~~`visual-translator.ts:1136`~~ | No callers outside the file | ✅ **DELETED** |
+| `submitFeedbackToMetaLearner()` | `command-parser.ts:27` | Stub that only does `console.log` | 🔴 Remaining |
+| `validateAnalysis()` | `continuity-analyzer.ts:240` | Private method defined but never invoked | 🔴 Remaining |
 
 ---
 
@@ -355,7 +372,7 @@ These singletons are exported but the orchestrator creates its own instances ins
 | `types.ts` | ❌ No | LOW — type definitions |
 | `command-parser.ts` | ❌ No | MEDIUM — CLI entry point |
 | `dynamic-prompt.ts` | ❌ No | LOW — prompt templates |
-| `visual-translator.ts` | ❌ No | MEDIUM |
+| `visual-translator.ts` | ❌ No | MEDIUM — all exports now active |
 | `visual-prompt-engineer.ts` | ❌ No | MEDIUM |
 | `end-game-detection.ts` | ❌ No | LOW |
 | `character-lifecycle.ts` | ❌ No | LOW |
@@ -407,22 +424,22 @@ These files in `docs/` reference modules that no longer exist or describe planne
 | `command-parser.ts` | `isSlashCommand`, `listSkills` |
 | ~~`branch-manager.ts`~~ | ~~`getEventsByBranchId`, `getBranchTree`, `getBranchPath`, `autoMergeSimilarBranches`, `mergeBranches`, `detectSimilarBranches`~~ — ✅ ALL NOW ACTIVE |
 | `branch-storage.ts` | `loadBranchesByEventType`, `loadBranchTree`, `exportToJson`, `importFromJson`, `BranchEvent` |
-| `llm-wrapper.ts` | `callLLMWithTracing`, `callLLMBatch`, `novelLLM` |
+| ~~`llm-wrapper.ts`~~ | ~~`callLLMWithTracing`, `callLLMBatch`, `novelLLM`~~ | ✅ **REMOVED from barrel** |
 | `validation.ts` | All `*WithContext` functions, `createCorrelationId`, `createCorrelationContext` |
 | `performance.ts` | `rateLimit`, `throttle`, `batch`, `lazy`, `clearMemoCache`, `deleteMemoKey`, `getMemoStats` |
 | `observability.ts` | `exportTraceData`, `getErrorSummary`, `getMetricsHistory`, `getTraceEvents` |
 | `dynamic-prompt.ts` | `PROMPT_TEMPLATES` |
 
-#### 2B. Delete dead functions (~150 lines)
+#### 2B. ~~Delete dead functions~~ — ✅ COMPLETED
 
-| Module | Dead Function | Lines |
-|--------|--------------|-------|
-| `visual-translator.ts` | `initVisualTranslator()` | ~10 |
-| `visual-translator.ts` | `enrichBeatWithVisuals()` | ~100 |
-| `visual-translator.ts` | `translateStoryToPanels()` | ~50 |
-| `command-parser.ts` | `submitFeedbackToMetaLearner()` | ~5 |
-| `continuity-analyzer.ts` | `validateAnalysis()` | ~15 |
-| `narrative-skeleton.ts` | `createFallbackSkeleton()` | ~30 |
+| Module | ~~Dead Function~~ | Status |
+|--------|------|--------|
+| ~~`visual-translator.ts`~~ | ~~`initVisualTranslator()`~~ | ✅ **DELETED** |
+| ~~`visual-translator.ts`~~ | ~~`enrichBeatWithVisuals()`~~ | ✅ **DELETED** |
+| ~~`visual-translator.ts`~~ | ~~`translateStoryToPanels()`~~ | ✅ **DELETED** |
+| `command-parser.ts` | `submitFeedbackToMetaLearner()` | 🔴 Remaining |
+| `continuity-analyzer.ts` | `validateAnalysis()` | 🔴 Remaining |
+| `narrative-skeleton.ts` | `createFallbackSkeleton()` | 🔴 Remaining |
 
 #### 2C. Decide on stub/incomplete features
 
@@ -437,12 +454,12 @@ These files in `docs/` reference modules that no longer exist or describe planne
 
 ### 🟢 LOW — Technical debt (documented, no urgency)
 
-| Item | Notes |
-|------|-------|
-| `types.ts` deprecated aliases | Keep for backward compat, plan removal in next major |
-| `visual-translator.ts` deprecated hash functions | Keep for backward compat |
-| `config/config-loader.ts` dead exports | `resolveVisualSpec`, `reloadVisualConfig`, `clearConfigCache` — decide: integrate into visual pipeline or archive |
-| Orphan docs in `docs/` | Update or delete stale documentation |
+| Item | Notes | Status |
+|------|-------|--------|
+| `types.ts` deprecated aliases | Keep for backward compat, plan removal in next major | — |
+| ~~`visual-translator.ts` deprecated hash functions~~ | ~~Keep for backward compat~~ | ✅ **MADE INTERNAL** |
+| `config/config-loader.ts` dead exports | `resolveVisualSpec`, `reloadVisualConfig`, `clearConfigCache` — decide: integrate into visual pipeline or archive | 🔴 Remaining |
+| Orphan docs in `docs/` | Update or delete stale documentation | ✅ **UPDATED** in this cleanup |
 
 ---
 
@@ -458,8 +475,8 @@ These files in `docs/` reference modules that no longer exist or describe planne
 | ~~`branch-manager.ts`~~ | ✅ **Full** | ✅ **All exports active** | ✅ Yes | ✅ **Healthy** |
 | `branch-storage.ts` | ✅ Partial | ⚠️ 5 dead exports + embedding column | ✅ Yes | 🟡 Review needed |
 | `visual-orchestrator.ts` | ✅ Full | ✅ Clean | ✅ Yes | ✅ Healthy |
-| `visual-prompt-engineer.ts` | ✅ Full | ⚠️ 1 dead import | ❌ No test | ⚠️ Minor cleanup |
-| `visual-translator.ts` | ✅ Partial | 🔴 3 dead functions + deprecated chain | ❌ No test | 🔴 Cleanup needed |
+| `visual-prompt-engineer.ts` | ✅ Full | ✅ **Clean** | ❌ No test | ⚠️ Needs test |
+| `visual-translator.ts` | ✅ Full | ✅ **Clean** — all exports active | ❌ No test | ⚠️ Healthy, needs test |
 | `story-knowledge-graph.ts` | ✅ Partial | ⚠️ 6 dead exports | ✅ Yes | 🟡 Review needed |
 | `story-world-memory.ts` | ✅ Partial | ⚠️ 2 dead imports | ✅ Yes | ⚠️ Minor cleanup |
 | `pattern-miner-enhanced.ts` | ✅ Full | ⚠️ 2 dead imports | ✅ Yes | ⚠️ Minor cleanup |

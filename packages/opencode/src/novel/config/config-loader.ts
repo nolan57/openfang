@@ -197,6 +197,12 @@ const VisualConfigSchema = z.object({
   panel_generation: PanelGenerationSchema,
   continuity: ContinuitySchema,
   hash: HashSchema,
+  cache: z
+    .object({
+      max_size: z.number().int().min(64).default(256),
+      ttl_ms: z.number().int().min(60000).default(30 * 60 * 1000),
+    })
+    .optional(),
 })
 
 // ============================================================================

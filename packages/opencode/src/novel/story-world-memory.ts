@@ -1,20 +1,8 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { resolve, dirname } from "path"
-import { mkdir } from "fs/promises"
-import { getStoryMemoryDbPath } from "./novel-config"
+import { dbManager } from "./db/database-manager"
 
 const log = Log.create({ service: "story-world-memory" })
-
-// Lazy-initialized database path
-let MEMORY_DB_PATH: string | null = null
-
-function getDbPath(): string {
-  if (!MEMORY_DB_PATH) {
-    MEMORY_DB_PATH = getStoryMemoryDbPath()
-  }
-  return MEMORY_DB_PATH
-}
 
 export const MemoryLevelSchema = z.enum(["sentence", "scene", "chapter", "arc", "story"])
 
@@ -69,12 +57,8 @@ export class StoryWorldMemory {
   async initialize(): Promise<void> {
     if (this.initialized) return
 
-    const dbPath = getDbPath()
     try {
-      await mkdir(dirname(dbPath), { recursive: true })
-
-      const { Database } = await import("bun:sqlite")
-      this.db = new Database(dbPath)
+      this.db = await dbManager.getDb("story-memory")
 
       this.db.run(`
         CREATE TABLE IF NOT EXISTS memory_entries (
@@ -113,7 +97,7 @@ export class StoryWorldMemory {
       `)
 
       this.initialized = true
-      log.info("story_world_memory_initialized", { path: dbPath })
+      log.info("story_world_memory_initialized", { dbName: "story-memory" })
     } catch (error) {
       log.error("story_world_memory_init_failed", { error: String(error) })
       throw error
@@ -437,6 +421,20 @@ export class StoryWorldMemory {
     }
   }
 
+  /**
+   * Search memories by keyword in content.
+   * Public API for CLI and external consumers.
+   */
+  async searchByContent(keyword: string, limit: number = 20): Promise<MemoryEntry[]> {
+    if (!this.initialized) await this.initialize()
+
+    const stmt = this.db.prepare(`
+      SELECT * FROM memory_entries WHERE content LIKE ? ORDER BY significance DESC LIMIT ?
+    `)
+    const rows = stmt.all(`%${keyword}%`, limit)
+    return rows.map((r: any) => this.rowToMemory(r))
+  }
+
   async exportToJson(): Promise<MemoryEntry[]> {
     if (!this.initialized) await this.initialize()
 
@@ -493,8 +491,8 @@ export class StoryWorldMemory {
   }
 
   close(): void {
-    if (this.db) {
-      this.db.close()
+    if (this.initialized) {
+      dbManager.close("story-memory")
       this.db = null
       this.initialized = false
       log.info("story_world_memory_closed")

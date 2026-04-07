@@ -233,28 +233,32 @@ describe("DEFAULT_LEARNING_BRIDGE_CONFIG", () => {
       },
       knowledge: {
         enabled: true,
-        syncNodes: false,
-        syncEdges: false,
-        linkToCode: false,
+        syncNodes: true,
+        syncEdges: true,
+        linkToCode: true,
       },
       memory: {
         enabled: true,
-        qualityFilter: false,
+        qualityFilter: true,
         minQualityScore: 0.5,
-        deduplication: false,
+        deduplication: true,
       },
       improvement: {
-        enabled: false,
-        autoSuggest: false,
-        requireReview: true,
+        enabled: true,
+        autoSuggest: true,
+        requireReview: false,
       },
     })
   })
 
-  test("should have progressive enablement (opt-in features)", () => {
-    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.knowledge.syncNodes).toBe(false)
-    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.knowledge.syncEdges).toBe(false)
-    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.memory.qualityFilter).toBe(false)
-    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.improvement.enabled).toBe(false)
+  test("should have full feature enablement by default", () => {
+    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.knowledge.syncNodes).toBe(true)
+    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.knowledge.syncEdges).toBe(true)
+    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.knowledge.linkToCode).toBe(true)
+    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.memory.qualityFilter).toBe(true)
+    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.memory.deduplication).toBe(true)
+    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.improvement.enabled).toBe(true)
+    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.improvement.autoSuggest).toBe(true)
+    expect(DEFAULT_LEARNING_BRIDGE_CONFIG.improvement.requireReview).toBe(false)
   })
 })

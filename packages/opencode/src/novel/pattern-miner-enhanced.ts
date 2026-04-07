@@ -862,6 +862,7 @@ Output JSON:
       const result = await callLLM({
         prompt,
         callType: "skill_generation_check",
+        useRetry: true,
       })
 
       const match = result.text.match(/\{[\s\S]*\}/)

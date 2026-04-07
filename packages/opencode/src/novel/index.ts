@@ -57,12 +57,12 @@ export { novelObservability, NovelObservability, type NovelMetrics, type NovelHe
 // Configuration & CLI — Active
 // ============================================================================
 export { NovelConfig } from "../config/novel-config"
-export { handleSlashCommand, resolveSafePath, isSlashCommand, listSkills } from "./command-parser"
+export { handleSlashCommand, resolveSafePath } from "./command-parser"
 
 // ============================================================================
 // LLM Wrapper — Core LLM calling utilities
 // ============================================================================
-export { callLLM, callLLMJson, callLLMBatch, callLLMWithTracing, novelLLM, type LLMCallOptions, type LLMCallResult, type LLMJsonCallOptions, type LLMJsonCallResult } from "./llm-wrapper"
+export { callLLM, callLLMJson, type LLMCallOptions, type LLMCallResult, type LLMJsonCallOptions, type LLMJsonCallResult } from "./llm-wrapper"
 
 // ============================================================================
 // Model Acquisition — Active: used by evolution/skill, learning modules

@@ -1,5 +1,5 @@
 import { Log } from "../util/log"
-import { callLLM, callLLMJson } from "./llm-wrapper"
+import { callLLMJson } from "./llm-wrapper"
 
 const log = Log.create({ service: "relationship-analyzer" })
 

@@ -1,21 +1,11 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { resolve, dirname } from "path"
-import { mkdir } from "fs/promises"
-import { getStoryGraphDbPath } from "./novel-config"
+import { dbManager } from "./db/database-manager"
 import type { MemoryEntry } from "./story-world-memory"
 
 const log = Log.create({ service: "story-knowledge-graph" })
 
-// Lazy-initialized database path
-let GRAPH_DB_PATH: string | null = null
-
-function getDbPath(): string {
-  if (!GRAPH_DB_PATH) {
-    GRAPH_DB_PATH = getStoryGraphDbPath()
-  }
-  return GRAPH_DB_PATH
-}
+// Node and edge type definitions
 
 export const NodeTypeSchema = z.enum(["character", "location", "item", "event", "faction", "concept", "theme", "group"])
 
@@ -94,12 +84,8 @@ export class StoryKnowledgeGraph {
   async initialize(): Promise<void> {
     if (this.initialized) return
 
-    const dbPath = getDbPath()
     try {
-      await mkdir(dirname(dbPath), { recursive: true })
-
-      const { Database } = await import("bun:sqlite")
-      this.db = new Database(dbPath)
+      this.db = await dbManager.getDb("story-graph")
 
       this.db.run(`
         CREATE TABLE IF NOT EXISTS nodes (
@@ -137,7 +123,7 @@ export class StoryKnowledgeGraph {
       this.db.run(`CREATE INDEX IF NOT EXISTS idx_edges_type ON edges(type)`)
 
       this.initialized = true
-      log.info("story_knowledge_graph_initialized", { path: dbPath })
+      log.info("story_knowledge_graph_initialized", { dbName: "story-graph" })
     } catch (error) {
       log.error("story_knowledge_graph_init_failed", { error: String(error) })
       throw error
@@ -957,8 +943,8 @@ export class StoryKnowledgeGraph {
   }
 
   close(): void {
-    if (this.db) {
-      this.db.close()
+    if (this.initialized) {
+      dbManager.close("story-graph")
       this.db = null
       this.initialized = false
       log.info("story_knowledge_graph_closed")

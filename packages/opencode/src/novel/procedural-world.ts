@@ -1,21 +1,8 @@
 import { z } from "zod"
 import { Log } from "../util/log"
-import { resolve, dirname } from "path"
-import { mkdir } from "fs/promises"
-import { getProceduralWorldDbPath } from "./novel-config"
 import { callLLMJson, type LLMJsonCallOptions } from "./llm-wrapper"
 
 const log = Log.create({ service: "procedural-world" })
-
-// Lazy-initialized database path
-let WORLD_DB_PATH: string | null = null
-
-function getDbPath(): string {
-  if (!WORLD_DB_PATH) {
-    WORLD_DB_PATH = getProceduralWorldDbPath()
-  }
-  return WORLD_DB_PATH
-}
 
 export const RegionTypeSchema = z.enum([
   "city",

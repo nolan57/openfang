@@ -222,21 +222,6 @@ export async function callLLMJson<T = unknown>(options: LLMJsonCallOptions<T>): 
 }
 
 /**
- * 带 tracing 的 LLM 调用（用于 observability 集成）
- *
- * @param traceCallback - Tracing 回调函数
- * @param options - LLM 调用选项
- * @returns LLM 调用结果
- */
-export async function callLLMWithTracing<T>(
-  traceCallback: (result: LLMCallResult) => T,
-  options: LLMCallOptions,
-): Promise<T> {
-  const result = await callLLM(options)
-  return traceCallback(result)
-}
-
-/**
  * 批量 LLM 调用（用于并行处理多个调用）
  *
  * @param calls - LLM 调用选项数组
@@ -291,6 +276,5 @@ export async function callLLMBatch(calls: LLMCallOptions[], concurrency: number 
 export const novelLLM = {
   call: callLLM,
   callJson: callLLMJson,
-  callWithTracing: callLLMWithTracing,
   batch: callLLMBatch,
 }

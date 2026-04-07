@@ -75,8 +75,17 @@ export interface TraceEvent {
   id: string
   type:
     | "branch_generation"
+    | "branch_selection"
+    | "branch_evaluation"
+    | "story_generation"
+    | "chapter_summary"
+    | "arc_summary_generation"
     | "state_extraction"
     | "pattern_mining"
+    | "prompt_parsing"
+    | "epic_summary"
+    | "chapter_title_extraction"
+    | "character_extraction"
     | "faction_detection"
     | "memory_store"
     | "graph_update"
