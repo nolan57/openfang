@@ -2,7 +2,8 @@
 import { readFile, writeFile, readdir } from "fs/promises"
 import { resolve, dirname, join } from "path"
 import { Skill } from "../skill/skill"
-import { StateExtractor } from "./state-extractor"
+import { StateExtractor, extractMindModelsForCharacters } from "./state-extractor"
+import { validateRawStateUpdate } from "./validation"
 import { EvolutionRulesEngine, type ChaosEvent } from "./evolution-rules"
 import { RelationshipAnalyzer } from "./relationship-analyzer"
 import { CharacterDeepener } from "./character-deepener"
@@ -887,7 +888,7 @@ Output JSON only:
         mapSize: 100,
         regionCount: 15 + this.randomInt(0, 10),
         enableHistory: true,
-        enableEcology: false,
+        enableEcology: true, // Enabled for rich environmental narrative hooks
       })
 
       this.log(`   Generating procedural world (seed: ${seed})...`)
@@ -1980,6 +1981,13 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
       const traceId = novelObservability.startTrace("state_extraction", { chapter: this.storyState.chapterCount })
       try {
         const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
+        
+        // 🔍 Validation Gatekeeper: Ensure LLM output conforms to strict schema
+        const validationResult = validateRawStateUpdate(stateUpdates)
+        if (!validationResult.success) {
+          log.warn("state_update_schema_invalid", { errors: validationResult.errors?.slice(0, 3) })
+        }
+
         this.log(`   [DEBUG] State extracted in ${Date.now() - extractStart}ms`, {
           charactersUpdated: Object.keys(stateUpdates.characters || {}).length,
         })
