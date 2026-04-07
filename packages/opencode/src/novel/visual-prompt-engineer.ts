@@ -141,39 +141,44 @@ function buildPromptEngineerUserPrompt(context: VisualGenerationContext | Extend
   // Build continuity context if previous panels exist
   let continuityContext = ""
   if (context.previousPanels && context.previousPanels.length > 0) {
-    continuityContext = `\nPREVIOUS PANELS (for continuity):
+    continuityContext = `\nPREVIOUS PANELS (for visual continuity):
 ${context.previousPanels.map((p, i) => `Panel ${i + 1}: ${p.visualPrompt?.slice(0, 100)}...`).join("\n")}
 `
   }
 
-  // 【NEW】Enhanced continuity instruction from continuity analyzer
+  // 【IMPROVEMENT】Explicitly enforce Continuity Analyzer instructions
   let continuityInstruction = ""
+  // Check if context contains continuity data (from ExtendedVisualGenerationContext)
   if ("continuity" in context && context.continuity) {
     const continuityData = context.continuity as { analysis: any; instruction: string }
-    continuityInstruction = `\n\n${continuityData.instruction}`
+    continuityInstruction = `\n\n🎬 DIRECTOR'S NOTE ON CONTINUITY:\n${continuityData.instruction}`
 
-    if (continuityData.analysis.llmJudgement.shouldMaintainOutfit) {
-      continuityInstruction += `\nIMPORTANT: Character outfit MUST remain exactly the same. Use this outfit description: ${continuityData.analysis.llmJudgement.outfitDescription}`
+    if (continuityData.analysis?.llmJudgement?.shouldMaintainOutfit) {
+      const outfit = continuityData.analysis.llmJudgement.outfitDescription || "Same as previous panel"
+      continuityInstruction += `\n\n🔒 CRITICAL OUTFIT LOCK:
+The character MUST wear exactly this outfit: "${outfit}".
+Do NOT describe a different outfit. Do NOT imply a time jump that would allow a costume change.`
     }
   }
 
-  // Build psychological context if available
+  // 【IMPROVEMENT】Deepen psychological integration
   let psychologicalContext = ""
   if ("characterPsychologicalProfiles" in context && context.characterPsychologicalProfiles) {
     const charProfile = context.characterPsychologicalProfiles[context.character.name]
     if (charProfile) {
-      psychologicalContext = `\nCharacter Psychology:
+      psychologicalContext = `\n🧠 PSYCHOLOGICAL SUBTEXT:
 - Core Fear: ${charProfile.coreFear || "Unknown"}
 - Attachment Style: ${charProfile.attachmentStyle || "Unknown"}
-Incorporate these psychological traits subtly into body language and expression.`
+**Instruction**: Subtly reflect these internal traits through micro-expressions, body language, and eye contact. 
+Example: If 'Avoidant', character might avert gaze during intimacy. If 'Core Fear: Betrayal', eyes should look suspicious.`
     }
   }
 
   // Build theme context if available
   let themeContext = ""
   if ("globalTheme" in context && context.globalTheme) {
-    themeContext = `\nGlobal Theme: ${context.globalTheme}
-Ensure visual composition, lighting, and atmosphere reflect this thematic element.`
+    themeContext = `\n🎨 GLOBAL THEME: ${context.globalTheme}
+Ensure visual composition, color palette, and lighting reinforce this theme.`
   }
 
   return `Context:
@@ -190,21 +195,21 @@ ${themeContext}
 ${psychologicalContext}
 ${continuityContext}
 ${continuityInstruction}
+
 Task:
-Generate a refined visual prompt and negative prompt.
-- If the scene is standard, keep it simple.
-- If complex, be creative but precise.
-- Consider the camera shot for specific negative prompts.
-- ${continuityInstruction.includes("MAINTAIN") ? "CRITICAL: Maintain outfit consistency with previous panels." : "Outfit may have changed based on context."}
-- Max tokens for visual prompt: ${cfg.prompt_engineering.max_token_limit}
+Generate a refined visual prompt and negative prompt suitable for an image generation model.
+- **Visual Clarity**: Be extremely descriptive of visual elements (lighting, pose, texture). Avoid abstract concepts.
+- **Psychological Depth**: Use the psychological subtext to guide facial expression and posture.
+- **Continuity**: ${continuityInstruction.includes("OUTFIT LOCK") ? "STRICTLY MAINTAIN OUTFIT." : "Maintain outfit unless explicit time jump is mentioned."}
+- **Max tokens for visual prompt**: ${cfg.prompt_engineering.max_token_limit}
 
 OUTPUT JSON ONLY:
 {
-  "refinedVisualPrompt": "string (required, max ${cfg.prompt_engineering.max_token_limit} tokens)",
-  "refinedNegativePrompt": "string (required)",
-  "detectedAction": "string (optional, one of: fight, chase, conversation, monologue, revelation, romantic, tension, action, emotional)",
-  "artisticNotes": "string (optional)",
-  "confidenceScore": "number (optional, 0-1)"
+  "refinedVisualPrompt": "string (High detail, photorealistic/cinematic style)",
+  "refinedNegativePrompt": "string (Standard quality negatives + scene specific)",
+  "detectedAction": "string (fight, chase, conversation, monologue, revelation, romantic, tension, action, emotional)",
+  "artisticNotes": "string (Brief rationale for composition)",
+  "confidenceScore": "number (0-1)"
 }`
 }
 
