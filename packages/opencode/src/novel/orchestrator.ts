@@ -1975,12 +1975,21 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
 
       this.log(`   [DEBUG] Extracting state changes...`)
       const extractStart = Date.now()
-      const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
-      this.log(`   [DEBUG] State extracted in ${Date.now() - extractStart}ms`, {
-        charactersUpdated: Object.keys(stateUpdates.characters || {}).length,
-      })
+      const traceId = novelObservability.startTrace("state_extraction", { chapter: this.storyState.chapterCount })
+      try {
+        const stateUpdates = await this.stateExtractor.extract(storySegment, this.storyState)
+        this.log(`   [DEBUG] State extracted in ${Date.now() - extractStart}ms`, {
+          charactersUpdated: Object.keys(stateUpdates.characters || {}).length,
+        })
+        novelObservability.recordExtractionTime(Date.now() - extractStart)
+        novelObservability.endTrace(traceId, "success")
 
-      this.storyState = this.stateExtractor.applyUpdates(this.storyState, stateUpdates)
+        this.storyState = this.stateExtractor.applyUpdates(this.storyState, stateUpdates)
+      } catch (error) {
+        novelObservability.endTrace(traceId, "error", String(error))
+        throw error
+      }
+      
       log.info("state_changes_applied", {
         characters: Object.keys(this.storyState.characters).length,
         relationships: Object.keys(this.storyState.relationships || {}).length,
@@ -2007,6 +2016,7 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
     // Activate the character deepener to perform Big Five, Attachment Theory,
     // and Character Arc analysis on all established characters.
     // Uses lifecycle data when available for richer analysis.
+    const deepeningTraceId = novelObservability.startTrace("pattern_mining", { chapter: this.storyState.chapterCount, type: "character_deepening" })
     try {
       const charNames = Object.keys(this.storyState.characters).slice(0, 4)
       if (charNames.length > 0) {
@@ -2050,9 +2060,11 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
         }
 
         this.log(`   Character psychology deepened in ${Date.now() - deepeningStart}ms`)
+        novelObservability.endTrace(deepeningTraceId, "success")
       }
     } catch (error) {
       log.warn("character_deepening_failed", { error: String(error) })
+      novelObservability.endTrace(deepeningTraceId, "error", String(error))
       // Non-critical: continue even if psychology analysis fails
     }
 
@@ -2177,12 +2189,19 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
     // Extracts archetypes, plot templates, motifs, and auto-generates skills
     let patternResults: { archetypes: any[]; templates: any[]; motifs: any[] } | null = null
     try {
-      patternResults = await this.enhancedPatternMiner.onTurn({
-        storySegment,
-        characters: this.storyState.characters,
-        chapter: this.storyState.chapterCount,
-        fullStory: this.storyState.fullStory || "",
-      })
+      const miningTraceId = novelObservability.startTrace("pattern_mining", { chapter: this.storyState.chapterCount })
+      try {
+        patternResults = await this.enhancedPatternMiner.onTurn({
+          storySegment,
+          characters: this.storyState.characters,
+          chapter: this.storyState.chapterCount,
+          fullStory: this.storyState.fullStory || "",
+        })
+        novelObservability.endTrace(miningTraceId, "success")
+      } catch (error) {
+        novelObservability.endTrace(miningTraceId, "error", String(error))
+        throw error
+      }
       this.log(`   Pattern mining completed: ${patternResults.archetypes.length} archetypes, ${patternResults.templates.length} templates, ${patternResults.motifs.length} motifs`)
 
       // Wire patterns to learning bridge vector index
@@ -2954,13 +2973,19 @@ Force the narrative to address this chaos event naturally while advancing the st
 
 Write Chapter ${currentChapter}:`
 
-      const result = await callLLM({
-        prompt: userPrompt,
-        system: systemPrompt,
-        callType: "story_generation",
-      })
-
-      return result.text.trim()
+      const traceId = novelObservability.startTrace("branch_generation", { chapter: this.storyState.chapterCount + 1 })
+      try {
+        const result = await callLLM({
+          prompt: userPrompt,
+          system: systemPrompt,
+          callType: "story_generation",
+        })
+        novelObservability.endTrace(traceId, "success")
+        return result.text.trim()
+      } catch (error) {
+        novelObservability.endTrace(traceId, "error", String(error))
+        throw error
+      }
     } catch (error) {
       log.error("llm_generate_failed", { error: String(error) })
     }
