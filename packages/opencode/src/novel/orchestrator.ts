@@ -2451,21 +2451,38 @@ Unstable triads: ${this.cachedRelationshipAnalysis.unstableCount}/${this.cachedR
       }
     }
 
-    // 6. Check end game conditions (every 10 chapters)
-    if (this.storyState.chapterCount % 10 === 0) {
+    // 6. Check end game conditions (every 5 chapters for better responsiveness)
+    if (this.storyState.chapterCount % 5 === 0) {
       try {
+        // Calculate real metrics from active modules
+        const motifStats = this.motifTracker.getStats()
+        const relationshipCount = Object.keys(this.storyState.relationships || {}).length
+        
+        // Thematic coverage: based on motif evolutions (target 50 evolutions for 100%)
+        const thematicCoverage = Math.min(100, Math.round((motifStats.evolutions / 50) * 100))
+        
+        // Resolved conflicts: heuristic based on stable relationships
+        const totalConflicts = relationshipCount * 2 // Each relationship has ~2 potential conflict points
+        const resolvedConflicts = Math.floor(totalConflicts * 0.3) // Simplified: assume 30% resolution rate
+
         this.endGameDetector.updateStoryMetrics({
           totalChapters: this.storyState.chapterCount,
           resolvedArcs:
             this.storyState.narrativeSkeleton?.storyLines?.filter((s: any) => s.status === "completed").length || 0,
           totalArcs: this.storyState.narrativeSkeleton?.storyLines?.length || 1,
-          thematicCoverage: 70,
-          resolvedConflicts: 0,
-          totalConflicts: Object.keys(this.storyState.relationships || {}).length,
+          thematicCoverage,
+          resolvedConflicts,
+          totalConflicts,
         })
+
         const endGameReport = await this.endGameDetector.checkCompletion()
         if (endGameReport.isComplete) {
           this.log(`   *** Story completion detected! Score: ${endGameReport.completionScore.toFixed(1)}% ***`)
+          if (endGameReport.epiloguePrompt) {
+            this.log(`   Epilogue suggested.`)
+          }
+        } else if (endGameReport.unmetCriteria.length > 0) {
+          this.log(`   ⚠️ Ending not yet ready. ${endGameReport.unmetCriteria.length} criteria unmet.`)
         }
       } catch (error) {
         log.warn("end_game_check_failed", { error: String(error) })
@@ -3513,6 +3530,22 @@ If no clear characters are found, return an empty array [].`
    */
   get sagaArchitect() {
     return this.multiArcArchitect
+  }
+
+  /**
+   * Get the end game detector instance.
+   * Useful for CLI commands and completion checking.
+   */
+  get detector() {
+    return this.endGameDetector
+  }
+
+  /**
+   * Get the motif tracker instance.
+   * Useful for CLI commands and motif querying.
+   */
+  get motifManager() {
+    return this.motifTracker
   }
 
   async reset(): Promise<void> {

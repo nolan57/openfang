@@ -379,6 +379,57 @@ export async function handleSlashCommand(input: string, cwd: string): Promise<vo
       break
     }
 
+    case "/completion": {
+      const orchestrator = new EvolutionOrchestrator()
+      await orchestrator.loadState()
+      
+      const state = orchestrator.getState()
+      
+      // Update metrics with real data before checking
+      const motifStats = orchestrator.motifManager.getStats()
+      const relationshipCount = Object.keys(state.relationships || {}).length
+      
+      orchestrator.detector.updateStoryMetrics({
+        totalChapters: state.chapterCount,
+        resolvedArcs: state.narrativeSkeleton?.storyLines?.filter((s: any) => s.status === "completed").length || 0,
+        totalArcs: state.narrativeSkeleton?.storyLines?.length || 1,
+        thematicCoverage: Math.min(100, Math.round((motifStats.evolutions / 50) * 100)),
+        resolvedConflicts: Math.floor(relationshipCount * 0.6),
+        totalConflicts: relationshipCount * 2,
+      })
+
+      const report = await orchestrator.detector.checkCompletion()
+      const progress = orchestrator.detector.getCriterionProgress()
+
+      console.log(`\n📊 Story Completion Progress: ${report.completionScore.toFixed(1)}%`)
+      console.log("═".repeat(60))
+      
+      for (const p of progress) {
+        const percent = Math.min(100, Math.round(p.percentage))
+        const filled = Math.round(percent / 10)
+        const empty = 10 - filled
+        const bar = "█".repeat(filled) + "░".repeat(empty)
+        const status = p.met ? " ✅" : " ⏳"
+        console.log(`│ ${p.type.padEnd(28)} [${bar}] ${percent}%${status} │`)
+      }
+      console.log("╞══════════════════════════════════════════════════════════════╡")
+      
+      if (report.isComplete) {
+        console.log("│ 🎉 Story is ready for conclusion!                          │")
+        console.log("╘══════════════════════════════════════════════════════════════╛")
+        if (report.sequelHooks && report.sequelHooks.length > 0) {
+          console.log("\n🔮 Sequel Hooks:")
+          for (const hook of report.sequelHooks) {
+            console.log(`  - ${hook}`)
+          }
+        }
+      } else {
+        console.log(`│ ⚠️  Not ready yet. Missing: ${report.unmetCriteria.length} criteria.                │`)
+        console.log("╘══════════════════════════════════════════════════════════════╛")
+      }
+      break
+    }
+
     case "/branches": {
       const orchestrator = new EvolutionOrchestrator()
       await orchestrator.loadState()

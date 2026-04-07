@@ -3,10 +3,6 @@ import { Log } from "../util/log"
 
 const log = Log.create({ service: "end-game-detection" })
 
-export interface MetaLearner {
-  getCurrentConfigPatch(): Promise<LearnedConfigPatch>
-}
-
 export interface LearnedConfigPatch {
   completionWeights?: {
     major_arc_resolved?: number
@@ -93,9 +89,8 @@ export class EndGameDetector {
   private criteria: Map<string, CompletionCriterion> = new Map()
   private config: EndGameConfig
   private storyMetrics: StoryMetricsType
-  private metaLearner?: MetaLearner
 
-  constructor(config: Partial<EndGameConfig> = {}, metaLearner?: MetaLearner) {
+  constructor(config: Partial<EndGameConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
     this.storyMetrics = {
       totalChapters: 0,
@@ -106,7 +101,6 @@ export class EndGameDetector {
       resolvedConflicts: 0,
       totalConflicts: 0,
     }
-    this.metaLearner = metaLearner
   }
 
   addCriterion(criterion: Omit<CompletionCriterion, "id" | "met" | "current">): CompletionCriterion {
@@ -166,18 +160,7 @@ export class EndGameDetector {
   }
 
   async checkCompletion(): Promise<EndGameReport> {
-    let effectiveConfig = { ...this.config }
-
-    if (this.metaLearner) {
-      const patch = await this.metaLearner.getCurrentConfigPatch()
-      if (patch.completionWeights) {
-        effectiveConfig.criterionWeights = { ...effectiveConfig.criterionWeights, ...patch.completionWeights }
-      }
-      if (patch.thresholds?.minCompletionScore !== undefined) {
-        effectiveConfig.minCompletionScore = patch.thresholds.minCompletionScore
-      }
-    }
-
+    const effectiveConfig = { ...this.config }
     const allCriteria = Array.from(this.criteria.values())
     const metCriteria = allCriteria.filter((c) => c.met)
     const unmetCriteria = allCriteria.filter((c) => !c.met)
@@ -358,15 +341,6 @@ Focus: Character resolution over new conflicts`
     log.info("end_game_detector_imported", { criterionCount: data.criteria.length })
   }
 
-  getMetaLearner(): MetaLearner | undefined {
-    return this.metaLearner
-  }
-
-  setMetaLearner(metaLearner: MetaLearner): void {
-    this.metaLearner = metaLearner
-    log.info("meta_learner_set_for_end_game_detector")
-  }
-
   clear(): void {
     this.criteria.clear()
     this.storyMetrics = {
@@ -384,6 +358,6 @@ Focus: Character resolution over new conflicts`
 
 export const endGameDetector = new EndGameDetector()
 
-export function createEndGameDetector(config?: Partial<EndGameConfig>, metaLearner?: MetaLearner): EndGameDetector {
-  return new EndGameDetector(config, metaLearner)
+export function createEndGameDetector(config?: Partial<EndGameConfig>): EndGameDetector {
+  return new EndGameDetector(config)
 }
